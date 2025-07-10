@@ -1,0 +1,10 @@
+{
+    "eslint.options": {
+        "overrideConfigFile": "../../.eslintrc.js"
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/out": true,
+        "**/.vscode-test": true
+    }
+}

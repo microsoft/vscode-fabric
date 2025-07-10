@@ -1,0 +1,734 @@
+import { Mock, It, Times } from 'moq.ts';
+import * as vscode from 'vscode';
+import * as assert from 'assert';
+import * as sinon from 'sinon';
+import { ArtifactManager } from '../../../artifactManager/ArtifactManager';
+import { IFabricExtensionManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
+import { IWorkspaceManager, IArtifact, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IArtifactHandler, IReadArtifactWorkflow, OperationRequestType, ICreateArtifactWorkflow } from '@fabric/vscode-fabric-api';
+import { IFabricEnvironmentProvider, ILogger, TelemetryService, withErrorHandling } from '@fabric/vscode-fabric-util';
+import { FabricWorkspaceDataProvider } from '../../../workspace/treeView';
+import { IObservableReadOnlyMap } from '../../../collections/definitions';
+import * as utilities from '../../../utilities';
+
+describe('ArtifactManager', function () {
+    let artifactMock: Mock<IArtifact>;
+    let extensionManagerMock: Mock<IFabricExtensionManagerInternal>;
+    let workspaceManagerMock: Mock<IWorkspaceManager>;
+    let fabricEnvironmentProviderMock: Mock<IFabricEnvironmentProvider>;
+    let apiClientMock: Mock<IFabricApiClient>;
+    let loggerMock: Mock<ILogger>;
+    let dataProviderMock: Mock<FabricWorkspaceDataProvider>;
+    let telemetryServiceMock: Mock<TelemetryService>;
+
+    let artifactManager: ArtifactManager;
+    const artifactId = '5b218778-e7a5-4d73-8187-f10824047715';
+    const workspaceId = 'cfafbeb1-8037-4d0c-896e-a46fb27ff229';
+    const artifactType = 'Lakehouse';
+
+    beforeEach(function () {
+        extensionManagerMock = new Mock<IFabricExtensionManagerInternal>();
+        workspaceManagerMock = new Mock<IWorkspaceManager>();
+        fabricEnvironmentProviderMock = new Mock<IFabricEnvironmentProvider>();
+        apiClientMock = new Mock<IFabricApiClient>();
+        loggerMock = new Mock<ILogger>();
+        dataProviderMock = new Mock<FabricWorkspaceDataProvider>();
+        telemetryServiceMock = new Mock<TelemetryService>();
+
+        artifactMock = new Mock<IArtifact>();
+        artifactMock.setup(a => a.id)
+            .returns(artifactId);
+        artifactMock.setup(a => a.workspaceId)
+            .returns(workspaceId);
+        artifactMock.setup(a => a.type)
+            .returns(artifactType);
+
+        extensionManagerMock.setup(x => x.getArtifactHandler(It.IsAny()))
+            .returns(undefined);
+
+        artifactManager = new ArtifactManager(
+            extensionManagerMock.object(),
+            workspaceManagerMock.object(),
+            fabricEnvironmentProviderMock.object(),
+            apiClientMock.object(),
+            loggerMock.object(),
+            telemetryServiceMock.object(),
+            dataProviderMock.object()
+        );
+    });
+
+    afterEach(function () {
+        sinon.restore();
+    });
+
+    describe('createArtifact', function () {
+        let customItemMetadata: any | undefined = undefined;
+
+        let artifact: IArtifact;
+        let apiResponse: IApiClientResponse;
+
+        beforeEach(function () {
+            artifact = {
+                id: '',
+                type: 'Notebook',
+                displayName: 'MyNotebook',
+                description: 'desc',
+                workspaceId: 'ws1',
+                fabricEnvironment: 'env'
+            };
+            apiResponse = {
+                status: 201,
+                parsedBody: { id: 'new-id' },
+            };
+
+            apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+                .returns(Promise.resolve(apiResponse));
+
+        });
+
+        afterEach(function () {
+            sinon.restore();
+        });
+
+        [
+            { status: 201 },
+            { status: 400 }
+        ].forEach(({ status }) => {
+            it(`createArtifact (no handler): response status ${status}`, async function () {
+                // Arrange
+                if (status === 400) {
+                    apiResponse = {
+                        status: 400,
+                        parsedBody: { errorCode: 'BadRequest', requestId: 'reqid' },
+                        response: { bodyAsText: 'Bad request' } as any
+                    };
+                }
+
+                let sendRequestArgs: IApiClientRequestOptions | undefined;
+                apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+                    .returns(Promise.resolve(apiResponse));
+
+                // Act
+                const result = await act();
+
+                // Assert
+                assert.strictEqual(result, apiResponse, 'Should return API response');
+                apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once());
+                apiClientMock.verify(
+                    x => x.sendRequest(
+                        It.Is<IApiClientRequestOptions>(req =>
+                            req.method === 'POST' &&
+                            !!req.pathTemplate && req.pathTemplate.includes('ws1') &&
+                            req.body?.displayName === 'MyNotebook' &&
+                            req.body?.type === 'Notebook'
+                        )
+                    ),
+                    Times.Once()
+                );
+                dataProviderMock.verify(x => x.refresh(), Times.Never());
+            });
+        });
+
+        it('Matching create workflow', async function () {
+            // Arrange
+            customItemMetadata = { custom: 'metadata' };
+
+            const onBeforeCreateStub = sinon.stub().resolves();
+            const onAfterCreateStub = sinon.stub().resolves();
+            const showCreateStub = sinon.stub().resolves(customItemMetadata);
+
+            const createWorkflowMock: ICreateArtifactWorkflow = {
+                showCreate: showCreateStub,
+                onBeforeCreate: onBeforeCreateStub,
+                onAfterCreate: onAfterCreateStub
+            };
+
+            const artifactHandlerMock = new Mock<IArtifactHandler>()
+                .setup(h => h.createWorkflow)
+                .returns(createWorkflowMock);
+
+            extensionManagerMock.setup(x => x.getArtifactHandler(It.Is(a => a === 'Notebook')))
+                .returns(artifactHandlerMock.object());
+
+            // Act
+            const result = await act();
+
+            // Assert
+            assert.strictEqual(result, apiResponse, 'Should return API response');
+            assert.strictEqual(artifact.id, '', 'Artifact id should not be set from response');
+
+            // Validate onBeforeCreate was called with the expected parameters
+            assert.ok(onBeforeCreateStub.calledOnce, 'onBeforeCreate should be called once');
+            const beforeArgs = onBeforeCreateStub.firstCall.args;
+            assert.deepStrictEqual(beforeArgs[0], artifact, 'onBeforeCreate first argument should be the artifact');
+            assert.strictEqual(typeof beforeArgs[1], 'object', 'onBeforeCreate second argument should be the request options');
+            assert.strictEqual(beforeArgs[1].method, 'POST', 'onBeforeCreate request method should be POST');
+            assert.ok(beforeArgs[1].pathTemplate.includes('ws1'), 'onBeforeCreate pathTemplate should include workspace id');
+            assert.strictEqual(beforeArgs[1].body.displayName, 'MyNotebook', 'onBeforeCreate body.displayName should match');
+            assert.strictEqual(beforeArgs[1].body.type, 'Notebook', 'onBeforeCreate body.type should match');
+            assert.deepStrictEqual(beforeArgs[2], customItemMetadata, 'onBeforeCreate third argument should be customItemMetadata');
+
+            // Validate onAfterCreate was called with the expected parameters
+            assert.ok(onAfterCreateStub.calledOnce, 'onAfterCreate should be called once');
+            const afterArgs = onAfterCreateStub.firstCall.args;
+            assert.deepStrictEqual(afterArgs[0], artifact, 'onAfterCreate first argument should be the artifact');
+            assert.deepStrictEqual(afterArgs[1], customItemMetadata, 'onAfterCreate second argument should be customItemMetadata');
+            assert.deepStrictEqual(afterArgs[2], apiResponse, 'onAfterCreate third argument should be the apiResponse');
+
+            assert.ok(showCreateStub.notCalled, 'showCreate should not be called');
+
+            dataProviderMock.verify(x => x.refresh(), Times.Never());
+            apiClientMock.verify(
+                x => x.sendRequest(
+                    It.Is<IApiClientRequestOptions>(req =>
+                        req.method === 'POST' &&
+                        typeof req.pathTemplate === 'string' && req.pathTemplate.includes('ws1') &&
+                        req.body.displayName === 'MyNotebook' &&
+                        req.body.type === 'Notebook'
+                    )
+                ),
+                Times.Once()
+            );
+        });
+
+        it('Mismatched create workflow', async function () {
+            // Arrange
+            const onBeforeRequestStub = sinon.stub().resolves();
+            const onAfterRequestStub = sinon.stub().resolves();
+
+            // Mock IArtifactHandler
+            const artifactHandlerMock: IArtifactHandler = {
+                artifactType: 'NotNotebook',
+                onBeforeRequest: onBeforeRequestStub,
+                onAfterRequest: onAfterRequestStub,
+            };
+
+            extensionManagerMock.setup(x => x.getArtifactHandler(It.Is(a => a === 'NotNotebook')))
+                .returns(artifactHandlerMock);
+
+            // Act
+            const result = await act();
+
+            // Assert
+            assert.strictEqual(result, apiResponse, 'Should return API response');
+            assert.strictEqual(artifact.id, '', 'Artifact id should not be set from response');
+            assert.ok(onBeforeRequestStub.notCalled, 'onBeforeRequest should not be called');
+            assert.ok(onAfterRequestStub.notCalled, 'onAfterRequest should not be called');
+            dataProviderMock.verify(x => x.refresh(), Times.Never());
+            apiClientMock.verify(
+                x => x.sendRequest(
+                    It.Is<IApiClientRequestOptions>(req =>
+                        req.method === 'POST' &&
+                        typeof req.pathTemplate === 'string' && req.pathTemplate.includes('ws1') &&
+                        req.body.displayName === 'MyNotebook' &&
+                        req.body.type === 'Notebook'
+                    )
+                ),
+                Times.Once()
+            );
+        });
+
+        async function act() {
+            return artifactManager.createArtifact(artifact, customItemMetadata);
+        }
+    });
+
+    describe('createArtifactDeprecated', function () {
+        let artifactHandlersMock: Mock<IObservableReadOnlyMap<string, IArtifactHandler>>;
+
+        let withProgressStub: sinon.SinonStub;
+
+        let artifact: IArtifact;
+        let apiResponse: IApiClientResponse;
+
+        beforeEach(function () {
+            artifactHandlersMock = new Mock<IObservableReadOnlyMap<string, IArtifactHandler>>();
+            artifact = {
+                id: '',
+                type: 'Notebook',
+                displayName: 'MyNotebook',
+                description: 'desc',
+                workspaceId: 'ws1',
+                fabricEnvironment: 'env'
+            };
+            apiResponse = {
+                status: 201,
+                parsedBody: { id: 'new-id' },
+            };
+
+            artifactHandlersMock.setup(x => x.get(It.IsAny()))
+                .returns(undefined); // No handlers for simplicity
+            workspaceManagerMock.setup(x => x.currentWorkspace)
+                .returns({ objectId: 'ws1', displayName: 'WS' } as any);
+            fabricEnvironmentProviderMock.setup(x => x.getCurrent())
+                .returns({ sharedUri: 'https://test.fabric' } as any);
+            extensionManagerMock.setup(x => x.artifactHandlers)
+                .returns(artifactHandlersMock.object());
+            apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+                .returns(Promise.resolve(apiResponse));
+            dataProviderMock.setup(x => x.refresh())
+                .returns(undefined);
+            telemetryServiceMock.setup(instance => instance.sendTelemetryEvent(It.IsAny(), It.IsAny()))
+                .returns(undefined);
+
+            withProgressStub = sinon.stub(vscode.window, 'withProgress');
+            withProgressStub.callsFake(async (_opts, cb) => cb({ report: () => { } }, {}));
+
+            artifactManager = new ArtifactManager(
+                extensionManagerMock.object(),
+                workspaceManagerMock.object(),
+                fabricEnvironmentProviderMock.object(),
+                apiClientMock.object(),
+                loggerMock.object(),
+                telemetryServiceMock.object(),
+                dataProviderMock.object()
+            );
+        });
+
+        afterEach(function () {
+            sinon.restore();
+        });
+
+        it('Success, no handlers', async function () {
+            // Arrange
+
+            // Act
+            const result = await act();
+
+            // Assert
+            assert.strictEqual(result, apiResponse, 'Should return API response');
+            assert.strictEqual(artifact.id, 'new-id', 'Artifact id should be set from response');
+            dataProviderMock.verify(x => x.refresh(), Times.Once());
+            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once());
+            apiClientMock.verify(
+                x => x.sendRequest(
+                    It.Is<IApiClientRequestOptions>(req =>
+                        req.method === 'POST' &&
+                        !!req.pathTemplate && req.pathTemplate.includes('ws1') &&
+                        req.body?.displayName === 'MyNotebook' &&
+                        req.body?.type === 'Notebook'
+                    )
+                ),
+                Times.Once()
+            );
+        });
+
+        it('Success, ignore create workflow', async function () {
+            // Arrange
+            const onBeforeCreateStub = sinon.stub().resolves();
+            const onAfterCreateStub = sinon.stub().resolves();
+            const showCreateStub = sinon.stub().resolves({ custom: 'metadata' });
+
+            const createWorkflowMock = {
+                showCreate: showCreateStub,
+                onBeforeCreate: onBeforeCreateStub,
+                onAfterCreate: onAfterCreateStub
+            };
+
+            const handlerMock: IArtifactHandler = {
+                artifactType: 'Notebook',
+                createWorkflow: createWorkflowMock as any
+            };
+
+            // Setup artifactHandlers to return the handler for 'Notebook'
+            artifactHandlersMock.setup(x => x.get('Notebook'))
+                .returns(handlerMock);
+
+            // Act
+            const result = await act();
+
+            // Assert
+            assert.strictEqual(result, apiResponse, 'Should return API response');
+            assert.strictEqual(artifact.id, 'new-id', 'Artifact id should be set from response');
+
+            // Validate onBeforeCreate was never called
+            assert.ok(onBeforeCreateStub.notCalled, 'onBeforeCreate should never be called');
+
+            // Validate onAfterCreate was never called
+            assert.ok(onAfterCreateStub.notCalled, 'onAfterCreate should never be called');
+
+            // Validate showCreate was never called
+            assert.ok(showCreateStub.notCalled, 'showCreate should not be called');
+
+            dataProviderMock.verify(x => x.refresh(), Times.Once());
+            apiClientMock.verify(
+                x => x.sendRequest(
+                    It.Is<IApiClientRequestOptions>(req =>
+                        req.method === 'POST' &&
+                        typeof req.pathTemplate === 'string' && req.pathTemplate.includes('ws1') &&
+                        req.body.displayName === 'MyNotebook' &&
+                        req.body.type === 'Notebook'
+                    )
+                ),
+                Times.Once()
+            );
+        });
+
+        it('Success, use deprecated customizations', async function () {
+            // Arrange
+            const onBeforeRequestStub = sinon.stub().resolves();
+            const onAfterRequestStub = sinon.stub().resolves();
+
+            const handlerMock: IArtifactHandler = {
+                artifactType: 'Notebook',
+                onBeforeRequest: onBeforeRequestStub,
+                onAfterRequest: onAfterRequestStub
+                // No createWorkflow
+            };
+
+            artifactHandlersMock.setup(x => x.get('Notebook')).returns(handlerMock);
+
+            // Act
+            const result = await act();
+
+            // Assert
+            assert.strictEqual(result, apiResponse, 'Should return API response');
+            assert.strictEqual(artifact.id, 'new-id', 'Artifact id should be set from response');
+            assert.ok(onBeforeRequestStub.calledOnce, 'onBeforeRequest should be called once');
+            const beforeArgs = onBeforeRequestStub.firstCall.args;
+            assert.strictEqual(beforeArgs[0], OperationRequestType.create, 'onBeforeRequest first argument should be OperationRequestType.create');
+            assert.deepStrictEqual(beforeArgs[1], artifact, 'onBeforeRequest second argument should be the artifact');
+            assert.strictEqual(typeof beforeArgs[2], 'object', 'onBeforeRequest third argument should be the request options');
+            assert.strictEqual(beforeArgs[2].method, 'POST', 'onBeforeRequest request method should be POST');
+            assert.ok(beforeArgs[2].pathTemplate.includes('ws1'), 'onBeforeRequest pathTemplate should include workspace id');
+            assert.strictEqual(beforeArgs[2].body.displayName, 'MyNotebook', 'onBeforeRequest body.displayName should match');
+            assert.strictEqual(beforeArgs[2].body.type, 'Notebook', 'onBeforeRequest body.type should match');
+
+            assert.ok(onAfterRequestStub.calledOnce, 'onAfterRequest should be called once');
+            const afterArgs = onAfterRequestStub.firstCall.args;
+            assert.strictEqual(afterArgs[0], OperationRequestType.create, 'onAfterRequest first argument should be OperationRequestType.create');
+            assert.deepStrictEqual(afterArgs[1], artifact, 'onAfterRequest second argument should be the artifact');
+            assert.deepStrictEqual(afterArgs[2], apiResponse, 'onAfterRequest third argument should be the apiResponse');
+        });
+
+
+        it('Error: 400 status with Learn more selection', async function () {
+            // Arrange
+            apiResponse = {
+                status: 400,
+                parsedBody: { errorCode: 'UnsupportedCapacitySKU', requestId: 'reqid' },
+                response: { bodyAsText: 'UnsupportedCapacitySKU' }
+            } as any;
+
+            apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+                .returns(Promise.resolve(apiResponse));
+
+            const showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage');
+            showErrorMessageStub.resolves('Learn more' as any);
+
+            const openExternalStub = sinon.stub(vscode.env, 'openExternal');
+            openExternalStub.resolves(true);
+
+            // Act & Assert
+            await assert.rejects(
+                () => act(),
+                /Create Artifact 'MyNotebook' failed: 400 UnsupportedCapacitySKU/
+            );
+
+            // Verify user notification was shown
+            assert.ok(showErrorMessageStub.calledOnce, 'showErrorMessage should be called once');
+            const errorCall = showErrorMessageStub.firstCall;
+            assert.ok(errorCall.args[0].includes('MyNotebook'), 'Error message should contain artifact name');
+            assert.ok(errorCall.args[0].includes('UnsupportedCapacitySKU'), 'Error message should contain error code');
+
+            // Verify Learn more link was opened
+            assert.ok(openExternalStub.calledOnce, 'openExternal should be called once');
+            const openCall = openExternalStub.firstCall;
+            assert.strictEqual(openCall.args[0].toString(), 'https://aka.ms/SupportedCapacitySkus', 'Should open correct Learn more URL');
+        });
+
+
+        it('Error: 400 status with no Learn more selection', async function () {
+            // Arrange
+            apiResponse = {
+                status: 400,
+                parsedBody: { errorCode: 'UnsupportedCapacitySKU', requestId: 'reqid' },
+                response: { bodyAsText: 'UnsupportedCapacitySKU' }
+            } as any;
+
+            apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+                .returns(Promise.resolve(apiResponse));
+
+            const showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage');
+            showErrorMessageStub.resolves(undefined); // User dismisses dialog or selects a different option
+
+            const openExternalStub = sinon.stub(vscode.env, 'openExternal');
+
+            // Act & Assert
+            await assert.rejects(
+                () => act(),
+                /Create Artifact 'MyNotebook' failed: 400 UnsupportedCapacitySKU/
+            );
+
+            // Verify user notification was shown
+            assert.ok(showErrorMessageStub.calledOnce, 'showErrorMessage should be called once');
+            const errorCall = showErrorMessageStub.firstCall;
+            assert.ok(errorCall.args[0].includes('MyNotebook'), 'Error message should contain artifact name');
+            assert.ok(errorCall.args[0].includes('UnsupportedCapacitySKU'), 'Error message should contain error code');
+
+            // Verify Learn more link was NOT opened when user doesn't select it
+            assert.ok(openExternalStub.notCalled, 'openExternal should not be called when user does not select Learn more');
+        });
+
+        it('Error: Non-400 status code', async function () {
+            // Arrange
+            apiResponse = {
+                status: 500,
+                parsedBody: { errorCode: 'InternalServerError', requestId: 'reqid' },
+                response: { bodyAsText: 'Internal server error' }
+            } as any;
+
+            apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+                .returns(Promise.resolve(apiResponse));
+
+            const showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage');
+
+            // Act & Assert
+            await assert.rejects(
+                () => act(),
+                /Create Artifact 'MyNotebook' failed: 500 Internal server error/
+            );
+
+            // Verify no user notification dialog was shown for non-400 errors
+            assert.ok(showErrorMessageStub.notCalled, 'showErrorMessage should not be called for non-400 errors');
+        });
+        async function act() {
+            return artifactManager.createArtifactDeprecated(artifact);
+        }
+    });
+
+    describe('getArtifact', function () {
+        let apiResponse: IApiClientResponse;
+
+        beforeEach(function () {
+            apiResponse = {
+                status: 200,
+                parsedBody: {
+                    displayName: 'Item 1',
+                    description: 'Item 1 description',
+                    type: artifactType,
+                    workspaceId: workspaceId,
+                    id: artifactId
+                },
+            };
+
+            apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+                .returns(Promise.resolve(apiResponse));
+        });
+
+        it('No read workflow', async function () {
+            // Arrange
+
+            // Act
+            const result = await act();
+
+            // Assert
+            assert.strictEqual(result, apiResponse);
+
+            apiClientMock.verify(
+                x => x.sendRequest(It.Is<IApiClientRequestOptions>(opts =>
+                    opts.method === 'GET' &&
+                    opts.pathTemplate === `/v1/workspaces/${workspaceId}/items/${artifactId}`
+                )),
+                Times.Once()
+            );
+
+            artifactMock.verify(x => x.id, Times.AtLeastOnce());
+            artifactMock.verify(x => x.workspaceId, Times.AtLeastOnce());
+        });
+
+        it('Incomplete read workflow', async function () {
+            // Arrange
+            const readArtifactWorkflowMock = new Mock<IReadArtifactWorkflow>();
+            readArtifactWorkflowMock.setup(x => x.onBeforeRead)
+                .returns(undefined);
+
+            const artifactHandlerMock = new Mock<IArtifactHandler>()
+                .setup(h => h.readWorkflow)
+                .returns(readArtifactWorkflowMock.object());
+
+
+            extensionManagerMock.setup(x => x.getArtifactHandler(It.Is(a => a === artifactType)))
+                .returns(artifactHandlerMock.object());
+
+            // Act
+            const result = await act();
+
+            // Assert
+            assert.strictEqual(result, apiResponse);
+            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once());
+            extensionManagerMock.verify(x => x.getArtifactHandler(It.Is(a => a === artifactType)), Times.Once());
+            artifactHandlerMock.verify(h => h.readWorkflow, Times.Once());
+        });
+
+        it('Complete read workflow', async function () {
+            // Arrange
+            const apiClientRequestOptions: IApiClientRequestOptions = {
+                method: 'OPTIONS',
+                pathTemplate: 'test-path-template',
+            };
+
+            let calledArtifact: IArtifact | undefined;
+            const onBeforeReadMock = new Mock<(artifact: IArtifact, options: IApiClientRequestOptions) => Promise<IApiClientRequestOptions>>();
+            onBeforeReadMock.setup(fn => fn(It.IsAny(), It.IsAny()))
+                .callback(({ args: [artifact, options] }) => {
+                    calledArtifact = artifact;
+                    return Promise.resolve(apiClientRequestOptions);
+                });
+
+            const artifactHandlerMock = new Mock<IArtifactHandler>()
+                .setup(h => h.readWorkflow)
+                .returns({
+                    onBeforeRead: onBeforeReadMock.object()
+                });
+
+            extensionManagerMock.setup(x => x.getArtifactHandler(It.Is(a => a === artifactType)))
+                .returns(artifactHandlerMock.object());
+
+            // Act
+            const result = await act();
+
+            // Assert
+            assert.strictEqual(result, apiResponse);
+            assert.strictEqual(calledArtifact, artifactMock.object());
+            onBeforeReadMock.verify(
+                fn => fn(
+                    It.IsAny(),
+                    It.Is<IApiClientRequestOptions>(opts =>
+                        opts.method === 'GET' &&
+                        opts.pathTemplate === `/v1/workspaces/${workspaceId}/items/${artifactId}`)
+                ),
+                Times.Once()
+            );
+            // Verify that the API client was called with the modified request options
+            apiClientMock.verify(x => x.sendRequest(It.Is<IApiClientRequestOptions>(opts =>
+                opts.method === 'OPTIONS' &&
+                opts.pathTemplate === 'test-path-template'
+            )), Times.Once());
+            extensionManagerMock.verify(x => x.getArtifactHandler(It.Is(a => a === artifactType)), Times.Once());
+            artifactHandlerMock.verify(h => h.readWorkflow, Times.AtLeastOnce());
+            onBeforeReadMock.verify(fn => fn(It.IsAny(), It.IsAny()), Times.Once());
+        });
+
+        async function act() {
+            return artifactManager.getArtifact(artifactMock.object());
+        }
+
+    });
+
+    [
+        { status: 200 },
+        { status: 400 }
+    ].forEach(({ status }) => {
+        it(`updateArtifact: response status ${status}`, async function () {
+            // Arrange
+            const apiResponse: IApiClientResponse = {
+                status: status,
+                parsedBody: {
+                    displayName: 'Item\'s New Name',
+                    description: 'Item\'s New Description',
+                    type: artifactType,
+                    workspaceId: workspaceId,
+                    id: artifactId
+                },
+            };
+
+            const body: Map<string, string> = new Map<string, string>();
+            body.set('displayName', 'Item\'s New Name');
+            body.set('description', 'Item\'s New Description');
+
+            let sendRequestArgs: IApiClientRequestOptions | undefined;
+            apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+                .callback(({ args }) => {
+                    sendRequestArgs = args[0];
+                    return Promise.resolve(apiResponse);
+                });
+
+            // Act
+            const result = await artifactManager.updateArtifact(artifactMock.object(), body);
+
+            // Assert
+            assert.strictEqual(result, apiResponse);
+
+            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once());
+            assert.ok(sendRequestArgs, 'sendRequest should have been called');
+            assert.strictEqual(sendRequestArgs.method, 'PATCH', 'sendRequest: Method');
+            assert.strictEqual(sendRequestArgs.pathTemplate, `/v1/workspaces/${workspaceId}/items/${artifactId}`, 'sendRequest: Path template');
+            assert.ok(sendRequestArgs.headers, 'sendRequest: Headers should be defined');
+            assert.strictEqual(sendRequestArgs.headers['Content-Type'], 'application/json; charset=utf-8', 'sendRequest headers: Content-Type');
+
+            artifactMock.verify(x => x.id, Times.AtLeastOnce());
+            artifactMock.verify(x => x.workspaceId, Times.AtLeastOnce());
+        });
+    });
+
+    [
+        { status: 200 },
+        { status: 400 }
+    ].forEach(({ status }) => {
+        it(`deleteArtifact: response status ${status}`, async function () {
+            // Arrange
+            const apiResponse: IApiClientResponse = {
+                status: status,
+            };
+
+            let sendRequestArgs: IApiClientRequestOptions | undefined;
+            apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+                .callback(({ args }) => {
+                    sendRequestArgs = args[0];
+                    return Promise.resolve(apiResponse);
+                });
+
+            // Act
+            const result = await artifactManager.deleteArtifact(artifactMock.object());
+
+            // Assert
+            assert.strictEqual(result, apiResponse);
+
+            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once(),);
+            assert.ok(sendRequestArgs, 'sendRequest should have been called');
+            assert.strictEqual(sendRequestArgs.method, 'DELETE', 'sendRequest: Method');
+            assert.strictEqual(sendRequestArgs.pathTemplate, `/v1/workspaces/${workspaceId}/items/${artifactId}`, 'sendRequest: Path template');
+
+            artifactMock.verify(x => x.id, Times.AtLeastOnce());
+            artifactMock.verify(x => x.workspaceId, Times.AtLeastOnce());
+        });
+    });
+
+    [
+        { status: 200 },
+        { status: 202 },
+        { status: 400 }
+    ].forEach(({ status }) => {
+        it(`getArtifactDefinition: response status ${status}`, async function() {
+            // Arrange
+            const apiResponse: IApiClientResponse = {
+                status: status,
+            };
+
+            let sendRequestArgs: IApiClientRequestOptions | undefined;
+            apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+                .callback(({ args }) => {
+                    sendRequestArgs = args[0];
+                    return Promise.resolve(apiResponse);
+                });
+
+            const handleLongRunningOperationStub = sinon.stub(utilities, 'handleLongRunningOperation').resolves(apiResponse);
+
+            // Act
+            const result = await artifactManager.getArtifactDefinition(artifactMock.object());
+
+            // Assert
+            assert.strictEqual(result, apiResponse);
+
+            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once(),);
+            assert.ok(sendRequestArgs, 'sendRequest should have been called');
+            assert.strictEqual(sendRequestArgs.method, 'POST', 'sendRequest: Method');
+            assert.strictEqual(sendRequestArgs.pathTemplate, `/v1/workspaces/${workspaceId}/items/${artifactId}/getDefinition`, 'sendRequest: Path template');
+
+            artifactMock.verify(x => x.id, Times.AtLeastOnce());
+            artifactMock.verify(x => x.workspaceId, Times.AtLeastOnce());
+
+            assert.ok(handleLongRunningOperationStub.called, 'handleLongRunningOperation should be called');
+        });
+    });
+});

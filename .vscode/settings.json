@@ -1,0 +1,12 @@
+{
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/out": true,
+        "**/dist": true,
+        "**/lib": true,
+        "*.nls.*.json": true,
+        "l10n/*.l10n.*.json": true,
+        "**/Localize/loc/**": true,
+        "**/*.lcl": true
+    }
+}

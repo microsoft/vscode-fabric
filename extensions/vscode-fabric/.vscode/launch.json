@@ -1,0 +1,36 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Launch Extension",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--disable-extensions",
+				"--extensionDevelopmentPath=${workspaceFolder}",
+			],
+			"outFiles": [
+				"${workspaceFolder}/**/*",
+			],
+			"sourceMapPathOverrides": {
+				"webpack://vscode-fabric/*": "${workspaceFolder}/*",
+			},
+			"sourceMaps": true,
+			"env": {
+				"VSCODE_FABRIC_USE_MOCKS": "false",
+			}
+		},
+		{
+			"name": "Debug Core UI Tests",
+			"type": "node",
+			"request": "launch",
+			"program": "${workspaceFolder:🌳 ROOT}/node_modules/vscode-extension-tester/out/cli.js",
+			"args": ["run-tests", "${workspaceFolder:📦 vscode-fabric}/out/test/uitest/*.test.js"],
+			"console": "integratedTerminal",
+			"internalConsoleOptions": "neverOpen",
+			"env": {
+				"VSCODE_FABRIC_USE_FAKES": "true", // this does not work :/
+			},
+		}
+	]
+}

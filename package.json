@@ -1,0 +1,41 @@
+{
+  "private": true,
+  "name": "vscode-fabric",
+  "workspaces": [
+    "extensions/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "compile": "npm run compile -w packages/api && npm run compile -w packages/util && npm run compile -w extensions/vscode-fabric",
+    "package": "npm run package -w packages/api && npm run package -w packages/util && npm run package -w extensions/vscode-fabric",
+    "vsix": "npm run vsix -w extensions/vscode-fabric",
+    "compile-tests": "concurrently \"npm run compile-tests -w extensions/vscode-fabric\" \"npm run compile-tests -w packages/api\" \"npm run compile-tests -w packages/util\"",
+    "test": "npm run test -w packages/api && npm run test -w packages/util && npm run test -w extensions/vscode-fabric",
+    "lint": "npm run lint --ws",
+    "pretest": "npm run pretest --ws",
+    "clean": "npm run clean --ws",
+    "clean-node-modules": "npm exec rimraf node_modules",
+    "uitest": "npm run uitest -w extensions/vscode-fabric"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "@wessberg/di-compiler": "^4.0.2",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.36.0",
+    "eslint-plugin-security": "^2.1.0",
+    "madge": "^8.0.0",
+    "minimatch": "^10.0.1",
+    "rimraf": "^6.0.1",
+    "ts-patch": "^3.3.0",
+    "tsc-watch": "^6.0.4",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@types/decompress": "^4.2.7",
+    "@wessberg/di": "^3.0.2",
+    "glob": "^11.0.1",
+    "web-tree-sitter": "^0.24.3"
+  }
+}
