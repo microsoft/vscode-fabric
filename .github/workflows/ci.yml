@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build all packages and extensions
+        run: npm run compile
+
+      - name: Run all unit tests (Linux only)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run test
+
+      - name: Run all unit tests (Windows/macOS)
+        if: runner.os != 'Linux'
+        run: npm run test
