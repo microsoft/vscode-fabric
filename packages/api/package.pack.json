@@ -3,7 +3,7 @@
   "publisher": "fabric",
   "displayName": "Microsoft Fabric - APIs for VS Code",
   "description": "Contains APIs for interacting with Microsoft Fabric and VS Code Fabric extensions",
-  "version": "0.23.0-placeholder",
+  "version": "0.31.0-placeholder",
   "main": "./index.js",
   "types": "./index.d.ts"
 }

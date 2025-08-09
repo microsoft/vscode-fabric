@@ -4,7 +4,7 @@
   "private": true,
   "displayName": "Microsoft Fabric - APIs for VS Code",
   "description": "Contains APIs for interacting with Microsoft Fabric and VS Code Fabric extensions",
-  "version": "0.23.0-preview",
+  "version": "0.31.0-preview",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {
