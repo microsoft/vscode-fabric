@@ -23,151 +23,17 @@ extends:
       os: windows # Allowed values: windows, linux, macOS
 
     stages:
-    - stage: main
-      jobs:
-      - job: build
-        # If the pipeline publishes artifacts, use `templateContext` to define the artifacts.
-        # This will enable 1ES PT to run SDL analysis tools on the artifacts and then upload them.
-        templateContext:
-          outputs:
-          - output: pipelineArtifact
-            targetPath: $(Build.ArtifactStagingDirectory)
-            artifactName: artifacts
+    # Stage 1: Build
+    - template: templates/stages/build.yml
 
-        steps:
+    # Stage 2: Publish NPM Packages Internally
+    - template: templates/stages/publish-npm-internal.yml
 
-        # Install dependencies
-        - task: NodeTool@0
-          inputs: 
-            versionSpec: 20.x
-          displayName: install nodejs
+    # Stage 3: Manual Approval for Public Release
+    - template: templates/stages/manual-approval.yml
 
-        # Set up CFS
-        - pwsh: |
-            Add-Content -Path "$(Build.SourcesDirectory)/.npmrc" -Value "registry=https://powerbi.pkgs.visualstudio.com/AppDev/_packaging/vscode-fabric/npm/registry/`nalways-auth=true"
-          displayName: Inject registry settings into .npmrc
+    # Stage 4: Publish NPM Packages Publicly
+    - template: templates/stages/publish-npm-public.yml
 
-        - task: npmAuthenticate@0
-          inputs:
-            workingFile: .npmrc
-
-        # Install npm packages
-        - task: Npm@1
-          displayName: npm ci
-          inputs:
-            command: ci
-            workingDirectory: $(Build.SourcesDirectory)
-            verbose: true
-
-        # Set vsix version
-        - script: npm exec nbgv-setversion
-          workingDirectory: extensions/vscode-fabric
-          displayName: set git height version (core extension)
-
-        # Builds
-        - script: npm run package
-          workingDirectory: packages/api
-          displayName: build api dependency
-
-        - script: npm run package
-          workingDirectory: packages/util
-          displayName: build util dependency
-
-        - script: npm run vsix
-          displayName: build vsix packages
-          
-        - script: npm run mkdir-redist
-          workingDirectory: packages/api
-          displayName: create api npm package outdir
-
-        - script: npm run build-redist
-          workingDirectory: packages/api
-          displayName: build api npm package
-
-        - script: npm run mkdir-redist
-          workingDirectory: packages/util
-          displayName: create util npm package outdir
-
-        - script: npm run build-redist
-          workingDirectory: packages/util
-          displayName: build util npm package
-
-        - task: CopyFiles@2
-          inputs:
-            SourceFolder: extensions
-            Contents: '**\*.vsix'
-            flattenFolders: true
-            TargetFolder: $(Build.ArtifactStagingDirectory)
-          displayName: copy packages to drop directory
-
-          # Find the VSIX file and set a variable
-        - pwsh: |
-            $vsix = Get-ChildItem -Path "$(Build.ArtifactStagingDirectory)" -Filter *.vsix | Select-Object -First 1
-            if ($null -eq $vsix) {
-              Write-Error "No VSIX file found in $(Build.ArtifactStagingDirectory)"
-              exit 1
-            }
-            Write-Host "##vso[task.setvariable variable=VSIX_FILE_NAME]$($vsix.Name)"
-            Write-Host "VSIX file found: $($vsix.Name)"
-          displayName: Locate VSIX file and set variable
-
-        - task: CopyFiles@2
-          inputs:
-            SourceFolder: packages/api/redist
-            Contents: '*.*'
-            TargetFolder: $(Build.ArtifactStagingDirectory)/NPM Packages/api
-          displayName: copy api npm package to drop directory
-
-        - task: CopyFiles@2
-          inputs:
-            SourceFolder: packages/util/redist
-            Contents: '*.*'
-            TargetFolder: $(Build.ArtifactStagingDirectory)/NPM Packages/util
-          displayName: copy util npm package to drop directory
-
-        # Sign vsix
-        - pwsh: npx @vscode/vsce@latest generate-manifest -i $(Build.ArtifactStagingDirectory)/$(VSIX_FILE_NAME) -o $(Build.ArtifactStagingDirectory)/extension.manifest
-          displayName: Generate extension manifest
-          workingDirectory: $(Build.ArtifactStagingDirectory)
-
-        - pwsh: cp $(Build.ArtifactStagingDirectory)/extension.manifest $(Build.ArtifactStagingDirectory)/extension.signature.p7s
-          displayName: Prepare manifest for signing
-          workingDirectory: $(Build.ArtifactStagingDirectory)
-
-        - task: EsrpCodeSigning@5
-          inputs:
-            ConnectedServiceName: Fabric-ESRP-Secure-AppDev
-            UseMSIAuthentication: true
-            EsrpClientId: f351681f-63af-4d0a-80b2-80bc2ec5cbb2
-            AppRegistrationClientId: 8644665c-9c03-4b6b-a224-e5634f3b674d
-            AppRegistrationTenantId: 975f013f-7f24-47e8-a7d3-abc4752bf346
-            AuthAKVName: Fabric-ES-ESRP-PME
-            AuthSignCertName: Fabric-ESRP-Signing-PME
-            FolderPath: $(Build.ArtifactStagingDirectory)
-            Pattern: extension.signature.p7s
-            signConfigType: inlineSignParams
-            inlineOperation: |
-              [
-                {
-                  "keyCode": "CP-401405",
-                  "operationSetCode": "VSCodePublisherSign",
-                  "parameters" : [],
-                  "toolName": "sign",
-                  "toolVersion": "1.0"
-                }
-              ]
-            SessionTimeout: 90
-            MaxConcurrency: 25
-            MaxRetryAttempts: 5
-            PendingAnalysisWaitTimeoutMinutes: 5
-          displayName: Sign extension
-
-        # Verify VSIX signature
-        - pwsh: npx @vscode/vsce@latest verify-signature --packagePath $(Build.ArtifactStagingDirectory)/$(VSIX_FILE_NAME) --manifestPath $(Build.ArtifactStagingDirectory)/extension.manifest --signaturePath $(Build.ArtifactStagingDirectory)/extension.signature.p7s
-          displayName: Verify VSIX signature
-          workingDirectory: $(Build.ArtifactStagingDirectory)
-
-        # Publish the extension
-        # - pwsh: npx @vscode/vsce@latest publish -i $(Build.ArtifactStagingDirectory)/$(VSIX_FILE_NAME) --manifestPath $(Build.ArtifactStagingDirectory)/extension.manifest --signaturePath $(Build.ArtifactStagingDirectory)/extension.signature.p7s
-        #   displayName: 'Publish extension'
-        #   workingDirectory: $(Build.ArtifactStagingDirectory)
+    # Stage 5: Sign and Publish VSCode Extension
+    - template: templates/stages/sign-publish-extension.yml

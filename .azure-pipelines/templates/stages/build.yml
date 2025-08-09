@@ -1,0 +1,93 @@
+# Build Stage Template
+# Builds all components (API, Util packages, and VSIX extension)
+
+stages:
+- stage: Build
+  displayName: 'Build Stage'
+  jobs:
+  - job: build
+    displayName: 'Build Job'
+    templateContext:
+      outputs:
+      - output: pipelineArtifact
+        targetPath: $(Build.ArtifactStagingDirectory)
+        artifactName: build-artifacts
+
+    steps:
+    # Install dependencies
+    - task: NodeTool@0
+      inputs: 
+        versionSpec: 20.x
+      displayName: install nodejs
+
+    # Set up CFS
+    - pwsh: |
+        Add-Content -Path "$(Build.SourcesDirectory)/.npmrc" -Value "registry=https://powerbi.pkgs.visualstudio.com/AppDev/_packaging/vscode-fabric/npm/registry/`nalways-auth=true"
+      displayName: Inject registry settings into .npmrc
+
+    - task: npmAuthenticate@0
+      inputs:
+        workingFile: .npmrc
+
+    # Install npm packages
+    - task: Npm@1
+      displayName: npm ci
+      inputs:
+        command: ci
+        workingDirectory: $(Build.SourcesDirectory)
+        verbose: true
+
+    # Set vsix version
+    - script: npm exec nbgv-setversion
+      workingDirectory: extensions/vscode-fabric
+      displayName: set git height version (core extension)
+
+    # Builds
+    - script: npm run package
+      workingDirectory: packages/api
+      displayName: build api dependency
+
+    - script: npm run package
+      workingDirectory: packages/util
+      displayName: build util dependency
+
+    - script: npm run vsix
+      displayName: build vsix packages
+      
+    - script: npm run mkdir-redist
+      workingDirectory: packages/api
+      displayName: create api npm package outdir
+
+    - script: npm run build-redist
+      workingDirectory: packages/api
+      displayName: build api npm package
+
+    - script: npm run mkdir-redist
+      workingDirectory: packages/util
+      displayName: create util npm package outdir
+
+    - script: npm run build-redist
+      workingDirectory: packages/util
+      displayName: build util npm package
+
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: extensions
+        Contents: '**\*.vsix'
+        flattenFolders: true
+        TargetFolder: $(Build.ArtifactStagingDirectory)
+      displayName: copy packages to drop directory
+
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: packages/api/redist
+        Contents: '*.*'
+        TargetFolder: $(Build.ArtifactStagingDirectory)/NPM-Packages/api
+      displayName: copy api npm package to drop directory
+
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: packages/util/redist
+        Contents: '*.*'
+        TargetFolder: $(Build.ArtifactStagingDirectory)/NPM-Packages/util
+      displayName: copy util npm package to drop directory

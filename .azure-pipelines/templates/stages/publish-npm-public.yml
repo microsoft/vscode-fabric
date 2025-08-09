@@ -1,0 +1,25 @@
+# Publish NPM Packages Publicly Stage Template
+# Publishes NPM packages to public npmjs.org registry
+
+stages:
+- stage: PublishNpmPublic
+  displayName: 'Publish NPM (public)'
+  dependsOn: ManualApproval
+  jobs:
+  - job: publishPublic
+    displayName: 'Publish Public NPM Packages'
+    steps:
+    # Install dependencies
+    - task: NodeTool@0
+      inputs: 
+        versionSpec: 20.x
+      displayName: install nodejs
+
+    # Download artifacts from build stage
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: 'current'
+        artifactName: 'build-artifacts'
+        targetPath: $(Pipeline.Workspace)/build-artifacts
+
+    # TODO Add EsrpRelease task here (should sign and release to NPM)

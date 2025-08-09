@@ -1,0 +1,57 @@
+# Publish NPM Packages Internally Stage Template
+# Publishes NPM packages to internal/private registry
+
+stages:
+- stage: PublishNpmInternal
+  displayName: 'Publish NPM (internal)'
+  dependsOn: Build
+  jobs:
+  - job: publishInternal
+    displayName: 'Publish Internal NPM Packages'
+    steps:
+    # Install dependencies
+    - task: NodeTool@0
+      inputs: 
+        versionSpec: 20.x
+      displayName: install nodejs
+
+    # Download artifacts from build stage
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: 'current'
+        artifactName: 'build-artifacts'
+        targetPath: $(Pipeline.Workspace)/build-artifacts
+
+    # Set up CFS for internal registry
+    - pwsh: |
+        Add-Content -Path "$(Build.SourcesDirectory)/.npmrc" -Value "registry=https://powerbi.pkgs.visualstudio.com/AppDev/_packaging/vscode-fabric/npm/registry/`nalways-auth=true"
+      displayName: Inject internal registry settings into .npmrc
+
+    - task: npmAuthenticate@0
+      inputs:
+        workingFile: .npmrc
+
+    # Publish npm packages to private feed
+    - pwsh: |
+        $apiPackage = Get-ChildItem -Path "$(Pipeline.Workspace)/build-artifacts/NPM-Packages/api" -Filter "*.tgz" | Select-Object -First 1
+        if ($null -eq $apiPackage) {
+          Write-Error "No API package found in NPM-Packages/api"
+          exit 1
+        }
+        Write-Host "Publishing API package: $($apiPackage.Name)"
+        Write-Host "Package size: $([math]::Round($apiPackage.Length / 1KB, 2)) KB"
+        Write-Host "Package path: $($apiPackage.FullName)"
+        npm publish $apiPackage.FullName --registry https://powerbi.pkgs.visualstudio.com/AppDev/_packaging/vscode-fabric/npm/registry/ --verbose --loglevel verbose
+      displayName: Publish API npm package to internal feed
+
+    - pwsh: |
+        $utilPackage = Get-ChildItem -Path "$(Pipeline.Workspace)/build-artifacts/NPM-Packages/util" -Filter "*.tgz" | Select-Object -First 1
+        if ($null -eq $utilPackage) {
+          Write-Error "No Util package found in NPM-Packages/util"
+          exit 1
+        }
+        Write-Host "Publishing Util package: $($utilPackage.Name)"
+        Write-Host "Package size: $([math]::Round($utilPackage.Length / 1KB, 2)) KB"
+        Write-Host "Package path: $($utilPackage.FullName)"
+        npm publish $utilPackage.FullName --registry https://powerbi.pkgs.visualstudio.com/AppDev/_packaging/vscode-fabric/npm/registry/ --verbose --loglevel verbose
+      displayName: Publish Util npm package to internal feed

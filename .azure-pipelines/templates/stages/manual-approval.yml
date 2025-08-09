@@ -1,0 +1,30 @@
+# Manual Approval Stage Template
+# Gates the public release process with manual intervention
+
+stages:
+- stage: ManualApproval
+  displayName: 'Manual Approval for Public Release'
+  dependsOn: PublishNpmInternal
+  jobs:
+  - job: approvalGate
+    displayName: 'Approval Required for Public Release'
+    pool: server
+    steps:
+    - task: ManualValidation@0
+      timeoutInMinutes: 1440 # 24 hours timeout
+      inputs:
+        notifyUsers: appdevtooling@microsoft.com
+        onTimeout: 'reject'
+        instructions: |
+          Please review and approve the public release:
+          
+          1. Verify NPM packages have been published internally
+          2. Review build artifacts and quality
+          3. Confirm readiness for public NPM publication
+          4. Confirm readiness for VS Code extension publication
+          
+          Approving this will trigger:
+          - Public NPM package publishing
+          - VS Code extension signing and publishing
+          
+          Only authorized team members can approve this release.
