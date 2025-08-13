@@ -1,7 +1,6 @@
 {
   "name": "@fabric/vscode-fabric-util",
   "publisher": "fabric",
-  "private": true,
   "displayName": "Microsoft Fabric - Utilities for VS Code",
   "description": "Contains utilities for interacting with Microsoft Fabric and VS Code Fabric extensions",
   "version": "0.31.0-preview",
