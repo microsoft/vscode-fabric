@@ -54,17 +54,9 @@ stages:
     - script: npm run vsix
       displayName: build vsix packages
       
-    - script: npm run mkdir-redist
-      workingDirectory: packages/api
-      displayName: create api npm package outdir
-
     - script: npm run build-redist
       workingDirectory: packages/api
       displayName: build api npm package
-
-    - script: npm run mkdir-redist
-      workingDirectory: packages/util
-      displayName: create util npm package outdir
 
     - script: npm run build-redist
       workingDirectory: packages/util

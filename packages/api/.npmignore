@@ -1,1 +1,12 @@
-*.map
+.vscode/
+.github/
+src/
+out/
+test/
+.vscode-test.mjs
+*.tgz
+*.test.*
+*.spec.*
+tsconfig.json
+tsconfig.*.json
+!lib/

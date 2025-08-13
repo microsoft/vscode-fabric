@@ -70,7 +70,7 @@ export function createBufFromFileWithLineEndingsFixed(text: string): ArrayBuffer
     // read the file contents into a string and replace all line endings so works with windows and linux
     const bText = text.replace(/\r?\n|\n?\r|\r/g, '\n');
     const buf = Buffer.from(bText, 'utf8');
-    return buf;
+    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
 }
 
 /**
