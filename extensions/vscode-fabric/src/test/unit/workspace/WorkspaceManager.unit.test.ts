@@ -5,8 +5,8 @@ import * as sinon from 'sinon';
 import { WorkspaceManager } from '../../../workspace/WorkspaceManager';
 import { IFabricExtensionsSettingStorage } from '../../../settings/definitions';
 import { LocalFolderManager } from '../../../LocalFolderManager';
-import { IAccountProvider, IFabricEnvironmentProvider, ILogger } from '@fabric/vscode-fabric-util';
-import { IFabricApiClient } from '@fabric/vscode-fabric-api';
+import { IAccountProvider, IFabricEnvironmentProvider, ILogger, FabricError } from '@fabric/vscode-fabric-util';
+import { IApiClientResponse, IApiClientRequestOptions, IFabricApiClient } from '@fabric/vscode-fabric-api';
 import { IGitOperator } from '../../../apis/internal/fabricExtensionInternal';
 
 describe('WorkspaceManager', function() {
@@ -134,5 +134,81 @@ describe('WorkspaceManager', function() {
         
         // Assert
         assert.strictEqual(refreshSpy.callCount, 3, 'refreshConnectionToFabric should be called for each tenant change event');
+    });
+
+    [
+        { includeCapacity: true, includeDescription: true, status: 201 },
+        { includeCapacity: false, includeDescription: true, status: 201 },
+        { includeCapacity: true, includeDescription: false, status: 201 },
+        { includeCapacity: false, includeDescription: false, status: 201 },
+        { includeCapacity: false, includeDescription: false, status: 400 }
+    ].forEach(({ includeCapacity, includeDescription,status }) => {
+        it(`createWorkspace: includeCapacity ${includeCapacity}, includeDescription ${includeDescription}, response status ${status}`, async function () {
+            const workspaceName = 'test-workspace';
+            let apiResponse: IApiClientResponse = {
+                status: status,
+            };
+            if (status === 400) {
+                apiResponse.parsedBody = { errorCode: 'BadRequest', requestId: 'reqid' };
+                apiResponse.response = { bodyAsText: 'Bad request' } as any;
+            }
+            else {
+                apiResponse.parsedBody = {
+                    id: 'new-id',
+                    type: 'Workspace',
+                    displayName: workspaceName,
+                    description: includeDescription ? 'Test workspace' : undefined,
+                };
+            }
+
+            mockApiClient.setup(x => x.sendRequest(It.IsAny()))
+                .returns(Promise.resolve(apiResponse));
+
+            mockAccountProvider.setup(x => x.isSignedIn())
+                .returns(Promise.resolve(true));
+
+            // Act
+            const result = await workspaceManager.createWorkspace(
+                workspaceName,
+                {
+                    capacityId: includeCapacity ? 'capacity-id' : undefined,
+                    description: includeDescription ? 'Test workspace' : undefined
+                }
+            );
+
+            // Assert
+            assert.strictEqual(result, apiResponse, 'Should return API response');
+            mockApiClient.verify(x => x.sendRequest(It.IsAny()), Times.Once());
+            mockApiClient.verify(
+                x => x.sendRequest(
+                    It.Is<IApiClientRequestOptions>(req =>
+                        req.method === 'POST' &&
+                        !!req.pathTemplate && req.pathTemplate.includes('v1/workspaces') &&
+                        req.body?.displayName === workspaceName &&
+                        includeCapacity ? req.body?.capacityId === 'capacity-id' : !req.body?.capacityId &&
+                        includeDescription ? req.body?.description === 'Test workspace' : !req.body?.description
+                    )
+                ),
+                Times.Once()
+            );
+        });
+    });
+
+    it('should issue an error if creating a workspace when user is not signed in', async function () {
+        // Arrange
+        mockAccountProvider.setup(x => x.isSignedIn())
+            .returns(Promise.resolve(false));
+
+        // Act & Assert
+        await assert.rejects(
+            async () => {
+                await workspaceManager.createWorkspace('test-workspace');
+            },
+            (err: Error) => {
+                assert.ok(err instanceof FabricError, 'Should throw a FabricError');
+                assert.ok(err!.message.includes('Currently not connected to Fabric'), 'Error message should indicate user is not connected to Fabric');
+                return true;
+            } 
+        );
     });
 });

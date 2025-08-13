@@ -1,0 +1,21 @@
+{
+    "Projects": [
+        {
+            "LanguageSet": "Azure_LanguagesExt",
+            "LocItems": [
+                {
+                    "SourceFile": "extensions\\vscode-fabric\\package.nls.json",
+                    "CopyOption": "LangIDOnName",
+                    "Languages": "zh-cn;ja;es;ru;pt-br;fr;ko;de;zh-tw;it;pl;tr;hu;cs",
+                    "OutputPath": "extensions\\vscode-fabric"
+                },
+                {
+                    "SourceFile": "extensions\\vscode-fabric\\l10n\\bundle.l10n.json",
+                    "CopyOption": "LangIDOnName",
+                    "Languages": "zh-cn;ja;es;ru;pt-br;fr;ko;de;zh-tw;it;pl;tr;hu;cs",
+                    "OutputPath": "extensions\\vscode-fabric\\l10n"
+                }
+            ]
+        }
+    ]
+}

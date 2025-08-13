@@ -18,7 +18,7 @@ class MockWorkspaceFolderProvider implements IWorkspaceFolderProvider {
 describe('ExplorerLocalProjectDiscovery unit tests', () => {
     it('Empty when no workspaces found', async () => {
         const folders: Uri[] = [];
-        const discovery = new ExplorerLocalProjectDiscovery(new MockWorkspaceFolderProvider(folders));
+        const discovery = await ExplorerLocalProjectDiscovery.create(new MockWorkspaceFolderProvider(folders));
         assert.equal(discovery.projects.length, 0, 'Expected empty array');
     });
 
@@ -26,7 +26,7 @@ describe('ExplorerLocalProjectDiscovery unit tests', () => {
         const folders: Uri[] = [
             Uri.file('/user/me/workspaces/Type2Item.type2'),
         ];
-        const discovery = new ExplorerLocalProjectDiscovery(new MockWorkspaceFolderProvider(folders));
+        const discovery = await ExplorerLocalProjectDiscovery.create(new MockWorkspaceFolderProvider(folders));
         assert.equal(discovery.projects.items.length, 1, 'Discovered projects');
         assert.equal(discovery.projects.items[0].path, folders[0], 'Path');
         assert.equal(discovery.projects.items[0].artifactType, 'type2', 'Artifact type');
@@ -36,19 +36,25 @@ describe('ExplorerLocalProjectDiscovery unit tests', () => {
         const folders: Uri[] = [
             Uri.file('/user/me/workspaces/Type2Item'),
         ];
-        const discovery = new ExplorerLocalProjectDiscovery(new MockWorkspaceFolderProvider(folders));
+        const discovery = await ExplorerLocalProjectDiscovery.create(new MockWorkspaceFolderProvider(folders));
         assert.equal(discovery.projects.items.length, 0, 'Expected empty array');
     });
 
     it('Events: basic adds and deletes', async () => {
         const initialFolder = Uri.file('/user/me/workspaces/Type2Item.type2');
         const folderProvider = new MockWorkspaceFolderProvider([ initialFolder ]);
-        const discovery = new ExplorerLocalProjectDiscovery(folderProvider);
+        const discovery = await ExplorerLocalProjectDiscovery.create(folderProvider);
 
         const events = new ObservableArrayEventValidator(discovery.projects);
         const folderToAdd = Uri.file('/user/me/workspaces/Type3Item.type3');
+
         folderProvider.workspaceFolders.add(folderToAdd);
+        // Wait for the async onItemAdded handler to finish
+        await new Promise(resolve => setTimeout(resolve, 10));
+
         folderProvider.workspaceFolders.remove(initialFolder);
+        // Wait for the async onItemRemoved handler if needed (not currently async in code, but added for symmetry)
+        await new Promise(resolve => setTimeout(resolve, 10));
 
         assert.equal(discovery.projects.items.length, 1, 'Discovered projects');
         assert.equal(discovery.projects.items[0].path, folderToAdd, 'Path');
@@ -61,7 +67,7 @@ describe('ExplorerLocalProjectDiscovery unit tests', () => {
     it('Events: mis-matches', async () => {
         const initialFolder = Uri.file('/user/me/workspaces/Type2Item.type2');
         const folderProvider = new MockWorkspaceFolderProvider([ initialFolder ]);
-        const discovery = new ExplorerLocalProjectDiscovery(folderProvider);
+        const discovery = await ExplorerLocalProjectDiscovery.create(folderProvider);
 
         const events = new ObservableArrayEventValidator(discovery.projects);
         folderProvider.workspaceFolders.remove(Uri.file('/user/me/workspaces/Type2Item.type4'));

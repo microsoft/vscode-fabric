@@ -4,8 +4,8 @@ import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { ArtifactManager } from '../../../artifactManager/ArtifactManager';
 import { IFabricExtensionManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
-import { IWorkspaceManager, IArtifact, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IArtifactHandler, IReadArtifactWorkflow, OperationRequestType, ICreateArtifactWorkflow } from '@fabric/vscode-fabric-api';
-import { IFabricEnvironmentProvider, ILogger, TelemetryService, withErrorHandling } from '@fabric/vscode-fabric-util';
+import { IItemDefinition, PayloadType, IWorkspaceManager, IArtifact, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IArtifactHandler, IReadArtifactWorkflow, OperationRequestType, ICreateArtifactWorkflow, IWorkspace } from '@fabric/vscode-fabric-api';
+import { FabricError, IFabricEnvironmentProvider, ILogger, TelemetryService } from '@fabric/vscode-fabric-util';
 import { FabricWorkspaceDataProvider } from '../../../workspace/treeView';
 import { IObservableReadOnlyMap } from '../../../collections/definitions';
 import * as utilities from '../../../utilities';
@@ -24,6 +24,7 @@ describe('ArtifactManager', function () {
     const artifactId = '5b218778-e7a5-4d73-8187-f10824047715';
     const workspaceId = 'cfafbeb1-8037-4d0c-896e-a46fb27ff229';
     const artifactType = 'Lakehouse';
+    const artifactDisplayName = 'Test Lakehouse';
 
     beforeEach(function () {
         extensionManagerMock = new Mock<IFabricExtensionManagerInternal>();
@@ -41,6 +42,8 @@ describe('ArtifactManager', function () {
             .returns(workspaceId);
         artifactMock.setup(a => a.type)
             .returns(artifactType);
+        artifactMock.setup(a => a.displayName)
+            .returns(artifactDisplayName);
 
         extensionManagerMock.setup(x => x.getArtifactHandler(It.IsAny()))
             .returns(undefined);
@@ -615,6 +618,83 @@ describe('ArtifactManager', function () {
 
     });
 
+    describe('listArtifacts', function () {
+        let apiResponse: IApiClientResponse;
+        let workspaceMock: Mock<IWorkspace>;
+
+        beforeEach(function () {
+            workspaceMock = new Mock<IWorkspace>();
+            workspaceMock.setup(w => w.objectId).returns('ws1');
+            workspaceMock.setup(w => w.displayName).returns('Workspace 1');
+
+            fabricEnvironmentProviderMock.setup(f => f.getCurrent()).returns({ env: 'TestEnv' } as any);
+        });
+
+        it('returns artifacts when response is 200 and value is present', async function () {
+            apiResponse = {
+                status: 200,
+                parsedBody: {
+                    value: [
+                        { id: 'a1', type: 'Lakehouse', displayName: 'Artifact 1', workspaceId: 'ws1' },
+                        { id: 'a2', type: 'Notebook', displayName: 'Artifact 2', workspaceId: 'ws1' }
+                    ]
+                }
+            };
+            apiClientMock.setup(x => x.sendRequest(It.IsAny())).returns(Promise.resolve(apiResponse));
+
+            const result = await artifactManager.listArtifacts(workspaceMock.object());
+
+            assert.strictEqual(result.length, 2, 'Should return two artifacts');
+            assert.strictEqual(result[0].id, 'a1');
+            assert.strictEqual(result[1].id, 'a2');
+            assert.strictEqual(result[0].fabricEnvironment, 'TestEnv', 'fabricEnvironment should be set');
+            assert.strictEqual(result[1].fabricEnvironment, 'TestEnv', 'fabricEnvironment should be set');
+            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once());
+        });
+
+        it('returns empty array when response is 200 and value is missing', async function () {
+            apiResponse = {
+                status: 200,
+                parsedBody: {}
+            };
+            apiClientMock.setup(x => x.sendRequest(It.IsAny())).returns(Promise.resolve(apiResponse));
+
+            const result = await artifactManager.listArtifacts(workspaceMock.object());
+
+            assert.ok(Array.isArray(result), 'Result should be an array');
+            assert.strictEqual(result.length, 0, 'Should return empty array');
+            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once());
+        });
+
+        it('throws FabricError when response status is not 200', async function () {
+            apiResponse = {
+                status: 400,
+                parsedBody: { errorCode: 'BadRequest', value: [] }
+            };
+            apiClientMock.setup(x => x.sendRequest(It.IsAny())).returns(Promise.resolve(apiResponse));
+
+            await assert.rejects(
+                () => artifactManager.listArtifacts(workspaceMock.object()),
+                err => err instanceof FabricError && err.message.includes('Error listing items for workspace Workspace 1')
+            );
+            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once());
+        });
+
+        it('sets fabricEnvironment for each artifact', async function () {
+            apiResponse = {
+                status: 200,
+                parsedBody: {
+                    value: [
+                        { id: 'a1', type: 'Lakehouse', displayName: 'Artifact 1', workspaceId: 'ws1' }
+                    ]
+                }
+            };
+            apiClientMock.setup(x => x.sendRequest(It.IsAny())).returns(Promise.resolve(apiResponse));
+            const result = await artifactManager.listArtifacts(workspaceMock.object());
+            assert.strictEqual(result[0].fabricEnvironment, 'TestEnv', 'fabricEnvironment should be set for artifact');
+        });
+    });
+
     [
         { status: 200 },
         { status: 400 }
@@ -724,6 +804,122 @@ describe('ArtifactManager', function () {
             assert.ok(sendRequestArgs, 'sendRequest should have been called');
             assert.strictEqual(sendRequestArgs.method, 'POST', 'sendRequest: Method');
             assert.strictEqual(sendRequestArgs.pathTemplate, `/v1/workspaces/${workspaceId}/items/${artifactId}/getDefinition`, 'sendRequest: Path template');
+
+            artifactMock.verify(x => x.id, Times.AtLeastOnce());
+            artifactMock.verify(x => x.workspaceId, Times.AtLeastOnce());
+
+            assert.ok(handleLongRunningOperationStub.called, 'handleLongRunningOperation should be called');
+        });
+    });
+
+    [
+        { status: 201 },
+        { status: 202 },
+        { status: 400 }
+    ].forEach(({ status }) => {
+        it(`createArtifactWithDefinition: response status ${status}`, async function() {
+            // Arrange
+            const apiResponse: IApiClientResponse = {
+                status: status,
+            };
+            const itemDefinition: IItemDefinition = {
+                parts: [
+                    {
+                        path: 'notebook-content.py',
+                        payload: 'IyBGYWJyaW',
+                        payloadType: PayloadType.InlineBase64
+                    },
+                    {
+                        path: '.platform',
+                        payload: 'ewogICIkc2N',
+                        payloadType: PayloadType.InlineBase64
+                    }
+                ]
+            };
+
+            let sendRequestArgs: IApiClientRequestOptions | undefined;
+            apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+                .callback(({ args }) => {
+                    sendRequestArgs = args[0];
+                    return Promise.resolve(apiResponse);
+                });
+
+            const handleLongRunningOperationStub = sinon.stub(utilities, 'handleLongRunningOperation').resolves(apiResponse);
+
+            // Act
+            const result = await artifactManager.createArtifactWithDefinition(artifactMock.object(), itemDefinition);
+
+            // Assert
+            assert.strictEqual(result, apiResponse);
+
+            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once(),);
+            assert.ok(sendRequestArgs, 'sendRequest should have been called');
+            assert.strictEqual(sendRequestArgs.method, 'POST', 'sendRequest: Method');
+            assert.strictEqual(sendRequestArgs.pathTemplate, `/v1/workspaces/${workspaceId}/items`, 'sendRequest: path template');
+            assert.ok(sendRequestArgs.body, 'sendRequest: body should be defined');
+            assert.strictEqual(sendRequestArgs.body.displayName, artifactDisplayName, 'sendRequest: displayName');
+            assert.strictEqual(sendRequestArgs.body.type, artifactType, 'sendRequest: type');
+            assert.ok(sendRequestArgs.body.definition, 'sendRequest: definition should be defined');
+            assert.deepStrictEqual(sendRequestArgs.body.definition.parts, itemDefinition.parts, 'sendRequest body: parts should match');
+            assert.ok(sendRequestArgs.headers, 'sendRequest: headers should be defined');
+            assert.strictEqual(sendRequestArgs.headers['Content-Type'], 'application/json; charset=utf-8', 'sendRequest headers: Content-Type');
+
+            artifactMock.verify(x => x.type, Times.AtLeastOnce());
+            artifactMock.verify(x => x.displayName, Times.AtLeastOnce());
+            artifactMock.verify(x => x.workspaceId, Times.AtLeastOnce());
+
+            assert.ok(handleLongRunningOperationStub.called, 'handleLongRunningOperation should be called');
+        });
+    });
+    [
+        { status: 200 },
+        { status: 202 },
+        { status: 400 }
+    ].forEach(({ status }) => {
+        it(`updateArtifactDefinition: response status ${status}`, async function() {
+            // Arrange
+            const apiResponse: IApiClientResponse = {
+                status: status,
+            };
+            const itemDefinition: IItemDefinition = {
+                parts: [
+                    {
+                        path: 'notebook-content.py',
+                        payload: 'IyBGYWJyaW',
+                        payloadType: PayloadType.InlineBase64
+                    },
+                    {
+                        path: '.platform',
+                        payload: 'ewogICIkc2N',
+                        payloadType: PayloadType.InlineBase64
+                    }
+                ]
+            };
+
+            let sendRequestArgs: IApiClientRequestOptions | undefined;
+            apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+                .callback(({ args }) => {
+                    sendRequestArgs = args[0];
+                    return Promise.resolve(apiResponse);
+                });
+
+            const handleLongRunningOperationStub = sinon.stub(utilities, 'handleLongRunningOperation').resolves(apiResponse);
+
+            // Act
+            const result = await artifactManager.updateArtifactDefinition(artifactMock.object(), itemDefinition);
+
+            // Assert
+            assert.strictEqual(result, apiResponse);
+
+            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once(),);
+            assert.ok(sendRequestArgs, 'sendRequest should have been called');
+            assert.strictEqual(sendRequestArgs.method, 'POST', 'sendRequest: Method');
+            assert.strictEqual(sendRequestArgs.pathTemplate, `/v1/workspaces/${workspaceId}/items/${artifactId}/updateDefinition`, 'sendRequest: path template');
+            assert.ok(sendRequestArgs.body, 'sendRequest: body should be defined');
+            assert.ok(sendRequestArgs.body.definition, 'sendRequest: definition should be defined');
+            assert.deepStrictEqual(sendRequestArgs.body.definition.parts, itemDefinition.parts, 'sendRequest body: parts should match');
+            assert.ok(sendRequestArgs.headers, 'sendRequest: headers should be defined');
+            assert.strictEqual(sendRequestArgs.headers['Content-Type'], 'application/json; charset=utf-8', 'sendRequest headers: Content-Type');
 
             artifactMock.verify(x => x.id, Times.AtLeastOnce());
             artifactMock.verify(x => x.workspaceId, Times.AtLeastOnce());

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ILocalProjectDiscovery, ILocalProjectInformation, IWorkspaceFolderProvider } from './definitions';
-import { tryParseArtifactType } from './utilities';
+import { tryParseLocalProjectData } from './utilities';
 import { IObservableArray } from '../collections/definitions';
 import { ObservableSet } from '../collections/ObservableSet';
 
@@ -11,28 +11,44 @@ export class ExplorerLocalProjectDiscovery implements ILocalProjectDiscovery {
         (a, b) => a.path.toString(true) === b.path.toString(true)
     );
 
-    constructor(private workspaceFolderProvider: IWorkspaceFolderProvider) {
-        this.scan();
-        this.workspaceFolderProvider.workspaceFolders.onItemAdded((uri: vscode.Uri) => this.addIfProject(uri));
-        this.workspaceFolderProvider.workspaceFolders.onItemRemoved((uri: vscode.Uri) => {
-            const info = this.projects.items.find((item) => item.path.toString(true) === uri.toString(true));
+    private constructor(private workspaceFolderProvider: IWorkspaceFolderProvider) {
+    }
+
+    /**
+     * Creates a new ExplorerLocalProjectDiscovery and begins monitoring workspace folders.
+     * 
+     * Note: Updates to the `projects` collection in response to workspace folder changes
+     * are handled asynchronously. This means that immediately after a folder is added or removed
+     * from the workspace, the `projects` collection may not yet reflect the change.
+     * Consumers should not assume immediate consistency and may need to wait for the async
+     * update to complete if up-to-date state is required.
+     */
+    public static async create(workspaceFolderProvider: IWorkspaceFolderProvider): Promise<ExplorerLocalProjectDiscovery> {
+        const discovery = new ExplorerLocalProjectDiscovery(workspaceFolderProvider);
+        await discovery.scan();
+        discovery.workspaceFolderProvider.workspaceFolders.onItemAdded(async (uri: vscode.Uri) => {
+            await discovery.addIfProject(uri);
+        });
+        discovery.workspaceFolderProvider.workspaceFolders.onItemRemoved((uri: vscode.Uri) => {
+            const info = discovery.projects.items.find((item) => item.path.toString(true) === uri.toString(true));
             if (info) {
-                this.projects.remove(info);
+                discovery.projects.remove(info);
             }
         });
+        return discovery;
     }
 
-    private scan() {
-        this.workspaceFolderProvider.workspaceFolders.items.forEach(folder => {
-            this.addIfProject(folder);
-        });
+    private async scan() {
+        for (const folder of this.workspaceFolderProvider.workspaceFolders.items) {
+            await this.addIfProject(folder);
+        }
     }
 
-    private addIfProject(folder: vscode.Uri) {
-        const artifactType: string | undefined = tryParseArtifactType(folder);
-        if (artifactType) {
+    private async addIfProject(folder: vscode.Uri) {
+        const data = await tryParseLocalProjectData(folder);
+        if (data) {
             this.projects.add({
-                artifactType: artifactType,
+                artifactType: data.type,
                 path: folder,
             });
         }

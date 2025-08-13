@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { IApiClientResponse, IArtifact, IWorkspace, IApiClientRequestOptions, IFabricApiClient, OperationRequestType, IArtifactHandler, IArtifactManager, ArtifactTreeNode, IWorkspaceManager, } from '@fabric/vscode-fabric-api';
+import { IApiClientResponse, IArtifact, IItemDefinition, IWorkspace, IApiClientRequestOptions, IFabricApiClient, OperationRequestType, IArtifactHandler, IArtifactManager, ArtifactTreeNode, IWorkspaceManager, } from '@fabric/vscode-fabric-api';
 import { doFabricAction, FabricError, IFabricEnvironmentProvider, ILogger, sleep, TelemetryActivity, TelemetryService, withErrorHandling } from '@fabric/vscode-fabric-util';
 import { DefaultArtifactHandler } from '../DefaultArtifactHandler';
 import { fabricViewWorkspace } from '../constants';
@@ -8,6 +8,7 @@ import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../ap
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { handleArtifactCreationErrorAndThrow, handleLongRunningOperation, succeeded } from '../utilities';
+import { formatErrorResponse } from '../utilities';
 
 export class ArtifactManager implements IArtifactManagerInternal {
     protected disposables: vscode.Disposable[] = [];
@@ -186,6 +187,27 @@ export class ArtifactManager implements IArtifactManagerInternal {
         return response;
     }
 
+    public async createArtifactWithDefinition(artifact: IArtifact, definition: IItemDefinition): Promise<IApiClientResponse> {
+        const options: IApiClientRequestOptions =
+        {
+            method: 'POST',
+            pathTemplate: `/v1/workspaces/${artifact.workspaceId}/items`,
+            headers: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'application/json; charset=utf-8',
+            },
+            body: { 
+                displayName: artifact.displayName,
+                description: artifact.description,
+                type: artifact.type,
+                definition
+            }
+        };
+
+        const response = await this.apiClient.sendRequest(options);
+        return handleLongRunningOperation(this.apiClient, response);    
+    }
+
     public async getArtifact(artifact: IArtifact): Promise<IApiClientResponse> {
         // If the handler has a readWorkflow with onBeforeRead, call it before sending the request
         const pathTemplate = `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}`;
@@ -201,6 +223,33 @@ export class ArtifactManager implements IArtifactManagerInternal {
         }
 
         return await this.apiClient.sendRequest(options);
+    }
+
+    public async listArtifacts(workspace: IWorkspace): Promise<IArtifact[]> {
+        const options: IApiClientRequestOptions = {
+            method: 'GET',
+            pathTemplate: `/v1/workspaces/${workspace.objectId}/items`
+        };
+
+        const response = await this.apiClient.sendRequest(options);
+        if (response.status !== 200) {
+            throw new FabricError(
+                formatErrorResponse(vscode.l10n.t('Error listing items for workspace {0}', workspace.displayName), response),
+                response.parsedBody?.errorCode || 'Error listing items'
+            );
+        }
+
+        let artifacts: IArtifact[] = [];
+        if (response.parsedBody.value) {
+            artifacts = response.parsedBody.value;
+        }
+
+        // loop through all the artifacts and set artifact.fabricEnvironment to the current fabric environment
+        artifacts.forEach((artifact) => {
+            artifact.fabricEnvironment = this.fabricEnvironmentProvider.getCurrent().env;
+        });
+
+        return artifacts;
     }
 
     public async updateArtifact(artifact: IArtifact, body: Map<string, string>): Promise<IApiClientResponse> {
@@ -239,6 +288,22 @@ export class ArtifactManager implements IArtifactManagerInternal {
 
         const response = await this.apiClient.sendRequest(options);
         return handleLongRunningOperation(this.apiClient, response);
+    }
+
+    public async updateArtifactDefinition(artifact: IArtifact, definition: IItemDefinition): Promise<IApiClientResponse> {
+        const options: IApiClientRequestOptions =
+        {
+            method: 'POST',
+            pathTemplate: `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}/updateDefinition`,
+            headers: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'application/json; charset=utf-8',
+            },
+            body: { definition }
+        };
+
+        const response = await this.apiClient.sendRequest(options);
+        return handleLongRunningOperation(this.apiClient, response);    
     }
 
     public shouldUseDeprecatedCommand(artifactType: string, operationRequestType: OperationRequestType): boolean {

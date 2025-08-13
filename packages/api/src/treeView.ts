@@ -117,9 +117,9 @@ export class LocalProjectTreeNode extends FabricTreeNode {
      *  - tooltip (path)
      * Extenders providing child nodes should set the collapse state is set to Collapsed
      */
-    constructor(context: vscode.ExtensionContext, public displayName: string, protected path: string) {
+    constructor(context: vscode.ExtensionContext, public displayName: string, public folder: vscode.Uri) {
         super(context, displayName, vscode.TreeItemCollapsibleState.None);
-        this.tooltip = path;
+        this.tooltip = folder.fsPath;
     }
 
     /**
@@ -154,7 +154,7 @@ export class LocalProjectTreeNodeProvider implements ILocalProjectTreeNodeProvid
             displayName = parsedPath.name;
         }
 
-        return new LocalProjectTreeNode(this.context, displayName, localPath.fsPath);
+        return new LocalProjectTreeNode(this.context, displayName, localPath);
     }
 }
 

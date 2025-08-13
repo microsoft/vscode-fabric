@@ -3,7 +3,7 @@ import { IArtifact, IWorkspaceManager, IArtifactManager } from '@fabric/vscode-f
 import { formatErrorResponse, succeeded } from '../utilities';
 import { FabricError, TelemetryActivity, UserCancelledError } from '@fabric/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
-import { IItemDefinitionWriter } from '../itemDefinition/definitions';
+import { IItemDefinitionWriter } from '../itemDefinition/ItemDefinitionWriter';
 
 export async function exportArtifactCommand(
     artifact: IArtifact,

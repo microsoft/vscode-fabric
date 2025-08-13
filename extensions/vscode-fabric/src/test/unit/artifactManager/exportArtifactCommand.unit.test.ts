@@ -2,12 +2,12 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
-import { IApiClientResponse, IArtifactManager, IWorkspaceManager, IArtifact } from '@fabric/vscode-fabric-api';
+import { IApiClientResponse, IArtifactManager, IWorkspaceManager, IArtifact, IItemDefinition } from '@fabric/vscode-fabric-api';
 import { FabricError, TelemetryActivity, UserCancelledError} from '@fabric/vscode-fabric-util';
 import { exportArtifactCommand } from '../../../artifactManager/exportArtifactCommand';
 import { CoreTelemetryEventNames } from '../../../TelemetryEventNames';
 import { verifyAddOrUpdateProperties, verifyAddOrUpdatePropertiesNever } from '../../utilities/moqUtilities';
-import { IItemDefinition, IItemDefinitionWriter } from '../../../itemDefinition/definitions';
+import { IItemDefinitionWriter } from '../../../itemDefinition/ItemDefinitionWriter';
 
 const artifactDisplayName = 'Test Artifact';
 const artifactId = 'Test Artifact Id';
@@ -18,14 +18,14 @@ describe('exportArtifactCommand', () => {
         definition: {
             parts: [
                 {
-                    path: "notebook-content.py",
-                    payload: "IyBGYWJyaW",
-                    payloadType: "InlineBase64"
+                    path: 'notebook-content.py',
+                    payload: 'IyBGYWJyaW',
+                    payloadType: 'InlineBase64'
                 },
                 {
-                    path: ".platform",
-                    payload: "ewogICIkc2N",
-                    payloadType: "InlineBase64"
+                    path: '.platform',
+                    payload: 'ewogICIkc2N',
+                    payloadType: 'InlineBase64'
                 }
             ]
         }
@@ -175,14 +175,7 @@ describe('exportArtifactCommand', () => {
         const errorText = 'Test - Failed to delete local folder - Test';
         itemDefinitionWriterMock.setup(writer => writer.save(It.IsAny(), It.IsAny()))
             .throws(new Error(errorText));
-        showInformationMessageStub.callsFake(async (msg, opts, ...items) => {
-            assert.strictEqual(items.length, 0);
-            assert.strictEqual(opts.modal, false, 'showInformationMessage modal');
-            assert.ok(msg.includes(`Error opening {${artifactDisplayName}`), 'message should include display name');
-            assert.ok(msg.message.includes(errorText), 'message should include errorText');
-            return undefined;
-        });
-
+        
         // Act & Assert
         let error: FabricError | undefined = undefined;
         await assert.rejects(
@@ -214,6 +207,10 @@ describe('exportArtifactCommand', () => {
             ),
             Times.Once()
         );
+
+        assert.ok(showInformationMessageStub.notCalled,'showInformationMessage should not be called');
+
+        assert.ok(error!.message.includes(errorText), 'message should include errorText');
         
         verifyAddOrUpdateProperties(telemetryActivityMock, 'statusCode', '200');
         verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'requestId');

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { IArtifact, IApiClientResponse, IFabricApiClient } from './FabricApiClient';
+import { IArtifact, IApiClientResponse, IFabricApiClient, IItemDefinition } from './FabricApiClient';
 import { IFabricExtension } from './satelliteFabricExtension';
 import { ArtifactTreeNode, FabricTreeNode } from './treeView';
 
@@ -65,20 +65,29 @@ export interface IArtifactManager {
     createArtifact(artifact: IArtifact, itemSpecificMetadata?: any): Promise<IApiClientResponse>;
 
     /**
+     * Creates an item in the specified workspace using the specified definition
+     * 
+     * @param artifact - The artifact to create
+     * @param definition - The item definition to use for creating the artifact
+     */
+    createArtifactWithDefinition(artifact: IArtifact, definition: IItemDefinition): Promise<IApiClientResponse>;
+
+    /**
      * Gets the specified artifact on the Fabric back end
      * 
      * @param artifact - The artifact to get
      */
     getArtifact(artifact: IArtifact): Promise<IApiClientResponse>;
-   
-    /**
-     * Gets the specified artifact from the Fabric back end
-     * 
-     * @deprecated - use IReadArtifactWorkflow instead
-     * @param artifact - The artifact to fetch
-     */
-    selectArtifact(artifact: IArtifact): Promise<IApiClientResponse>;
 
+    /**
+     * Returns a list of items from the specified workspace
+     * 
+     * @param workspace - The workspace to list artifacts for
+     * @returns A list of artifacts in the specified workspace
+     * @throws FabricError if the request fails
+     */
+    listArtifacts(workspace: IWorkspace): Promise<IArtifact[]>;
+   
     /**
      * Updates the specified artifact from the Fabric back end
      * 
@@ -97,6 +106,19 @@ export interface IArtifactManager {
      * Gets the definition for the specified artifact from the Fabric back end
      */
     getArtifactDefinition(artifact: IArtifact): Promise<IApiClientResponse>;
+
+    /**
+     * Updates the definition for the specified artifact on the Fabric back end
+     */
+    updateArtifactDefinition(artifact: IArtifact, definition: IItemDefinition): Promise<IApiClientResponse>;
+
+    /**
+     * Gets the specified artifact from the Fabric back end
+     * 
+     * @deprecated - use IReadArtifactWorkflow instead
+     * @param artifact - The artifact to fetch
+     */
+    selectArtifact(artifact: IArtifact): Promise<IApiClientResponse>;
 
     /**
      * Opens the artifact with the specified options
@@ -174,6 +196,8 @@ export interface IWorkspace {
  * Performs IDE-specific functions for Fabric workspaces
  */
 export interface IWorkspaceManager {
+    listWorkspaces(): Promise<IWorkspace[]>
+    createWorkspace(workspaceName: string, options?: { capacityId?: string, description?: string }): Promise<IApiClientResponse>;
     get currentWorkspace(): IWorkspace | undefined;
     getLocalFolderForCurrentFabricWorkspace(options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined>;
     getLocalFolderForArtifact(artifact: IArtifact, options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined>

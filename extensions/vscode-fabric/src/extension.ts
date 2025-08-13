@@ -18,10 +18,12 @@ import { FabricWorkspaceDataProvider, IRootTreeNodeProvider, RootTreeNodeProvide
 import { registerArtifactCommands } from './artifactManager/commands';
 import { registerWorkspaceCommands } from './workspace/commands';
 import { registerTenantCommands } from './tenant/commands';
+import { registerLocalProjectCommands } from './localProject/commands';
 import TelemetryReporter from '@vscode/extension-telemetry';
 import { FabricExtensionManager } from './extensionManager/FabricExtensionManager';
 import { TenantStatusBar } from './tenant/TenantStatusBar';
 import { IArtifactManagerInternal } from './apis/internal/fabricExtensionInternal';
+import { ICapacityManager, CapacityManager } from './CapacityManager';
 
 // Information about the DI container can be found here: https://raw.githubusercontent.com/wessberg/DI/refs/heads/master/README.md
 import { DIContainer } from '@wessberg/di';
@@ -32,8 +34,6 @@ import { ArtifactManager } from './artifactManager/ArtifactManager';
 import { MockArtifactManager } from './artifactManager/MockArtifactManager';
 import { MockWorkspaceManager } from './workspace/mockWorkspaceManager';
 import { InternalSatelliteManager } from './internalSatellites/InternalSatelliteManager';
-import { IItemDefinitionWriter } from './itemDefinition/definitions';
-import { ItemDefinitionWriter } from './itemDefinition/ItemDefinitionWriter';
 
 let app: FabricVsCodeExtension;
 
@@ -72,7 +72,7 @@ export class FabricVsCodeExtension {
             const artifactManager = this.container.get<IArtifactManagerInternal>();
             const apiClient = this.container.get<IFabricApiClient>();
             const fabricEnvironmentProvider = this.container.get<IFabricEnvironmentProvider>();
-            const itemDefinitionWriter = this.container.get<IItemDefinitionWriter>();
+            const capacityManager = this.container.get<ICapacityManager>();
 
             const treeView: vscode.TreeView<FabricTreeNode> = vscode.window.createTreeView('vscode-fabric.view.workspace',
                 { treeDataProvider: dataProvider, showCollapseAll: true, });
@@ -85,9 +85,10 @@ export class FabricVsCodeExtension {
             workspaceManager.tvProvider = dataProvider;
             workspaceManager.treeView = treeView;
 
-            registerWorkspaceCommands(context, account, workspaceManager, apiClient, telemetryService, logger);
+            registerWorkspaceCommands(context, account, workspaceManager, capacityManager, apiClient, telemetryService, logger);
             registerTenantCommands(context, account, telemetryService, logger);
-            await registerArtifactCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, dataProvider, extensionManager, telemetryService, logger, itemDefinitionWriter);
+            await registerArtifactCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, dataProvider, extensionManager, telemetryService, logger);
+            registerLocalProjectCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, capacityManager, dataProvider, telemetryService, logger);
 
             const coreServiceCollection: IFabricExtensionServiceCollection = this.container.get<IFabricExtensionServiceCollection>();
             extensionManager.serviceCollection = coreServiceCollection;
@@ -101,8 +102,9 @@ export class FabricVsCodeExtension {
             context.subscriptions.push(workspaceFolderProvider);
 
             // Create/register the local project tree view
+            const explorerLocalProjectDiscovery = await ExplorerLocalProjectDiscovery.create(workspaceFolderProvider);
             context.subscriptions.push(vscode.window.createTreeView('vscode-fabric.view.local', {
-                treeDataProvider: new LocalProjectTreeDataProvider(context, new ExplorerLocalProjectDiscovery(workspaceFolderProvider), extensionManager, logger, telemetryService)
+                treeDataProvider: new LocalProjectTreeDataProvider(context, explorerLocalProjectDiscovery, extensionManager, logger, telemetryService)
             }));
 
             // Register the virtual document provider
@@ -298,9 +300,10 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<IArtifactManagerInternal>(() => container.get<IArtifactManager>() as IArtifactManagerInternal);
     container.registerSingleton<IFabricExtensionServiceCollection, FabricExtensionServiceCollection>();
 
+    container.registerSingleton<ICapacityManager, CapacityManager>();
+
     container.registerSingleton<FabricUriHandler>();
     container.registerSingleton<TenantStatusBar>();
-    container.registerSingleton<IItemDefinitionWriter>(() => new ItemDefinitionWriter(vscode.workspace.fs));
 
     container.registerSingleton<InternalSatelliteManager>();
 

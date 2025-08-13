@@ -9,7 +9,7 @@ import { FabricWorkspaceDataProvider } from '../../../workspace/treeView';
 import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
 import { TelemetryService, TelemetryActivity, IFabricEnvironmentProvider, ILogger } from '@fabric/vscode-fabric-util';
 import { UserCancelledError } from '@fabric/vscode-fabric-util';
-import { IItemDefinitionWriter } from '../../../itemDefinition/definitions';
+import { IItemDefinitionWriter } from '../../../itemDefinition/ItemDefinitionWriter';
 
 describe('registerArtifactCommands', () => {
     let contextMock: Mock<vscode.ExtensionContext>;
@@ -312,8 +312,6 @@ describe('registerArtifactCommands', () => {
         }
     });
 
-    
-
     async function act(): Promise<void> {
         await registerArtifactCommands(
             contextMock.object(),
@@ -324,7 +322,6 @@ describe('registerArtifactCommands', () => {
             extensionManagerMock.object(),
             telemetryServiceMock.object(),
             loggerMock.object(),
-            itemDefinitionWriterMock.object()
         );
     }
     

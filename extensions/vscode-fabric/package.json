@@ -95,6 +95,12 @@
         "icon": "$(open-preview)"
       },
       {
+        "command": "vscode-fabric.importArtifact",
+        "title": "%extension.importArtifact.title%",
+        "category": "Fabric",
+        "icon": "$(cloud-upload)"
+      },
+      {
         "command": "vscode-fabric.openInPortal",
         "title": "%extension.openInPortal.title%",
         "category": "Fabric"
@@ -248,6 +254,10 @@
           "when": "false"
         },
         {
+          "command": "vscode-fabric.importArtifact",
+          "when": "false"
+        },
+        {
           "command": "vscode-fabric.renameArtifact",
           "when": "false"
         },
@@ -368,6 +378,16 @@
         {
           "command": "vscode-fabric.exportArtifact",
           "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-export/",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-fabric.importArtifact",
+          "when": "view == vscode-fabric.view.local && viewItem =~ /item-import/",
+          "group": "6@1"
+        },
+        {
+          "command": "vscode-fabric.importArtifact",
+          "when": "view == vscode-fabric.view.local && viewItem =~ /item-import/",
           "group": "inline"
         },
         {

@@ -49,6 +49,12 @@ export class MockArtifactManagerStub extends ArtifactManager {
 }
 
 class MockWorkspaceManagerStub implements IWorkspaceManager {
+    createWorkspace(workspaceName: string, options?: { capacityId?: string; description?: string; }): Promise<IApiClientResponse> {
+        throw new Error('Method not implemented.');
+    }
+    listWorkspaces(): Promise<IWorkspace[]> {
+        throw new Error('Method not implemented.');        
+    }
     retrieveArtifacts(): Promise<IArtifact[]> {
         throw new Error('Method not implemented.');
     }

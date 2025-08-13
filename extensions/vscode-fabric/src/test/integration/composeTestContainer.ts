@@ -17,8 +17,7 @@ import { IArtifactManagerInternal, IFabricExtensionManagerInternal, IGitOperator
 import { It, Mock } from 'moq.ts';
 import { TenantStatusBar } from '../../tenant/TenantStatusBar';
 import { InternalSatelliteManager } from '../../internalSatellites/InternalSatelliteManager';
-import { IItemDefinitionWriter } from '../../itemDefinition/definitions';
-import { ItemDefinitionWriter } from '../../itemDefinition/ItemDefinitionWriter';
+import { ICapacityManager, CapacityManager } from '../../CapacityManager';
 
 // Define an extended Memento interface with setKeysForSync method
 interface ExtendedMemento extends vscode.Memento {
@@ -211,8 +210,10 @@ export async function composeTestContainer(): Promise<DIContainer> {
         )
     );
 
-    container.registerSingleton<IItemDefinitionWriter>(() =>
-        new ItemDefinitionWriter(vscode.workspace.fs)
+    container.registerSingleton<ICapacityManager>(() =>
+        new CapacityManager(
+            container.get<IFabricApiClient>(),
+        )
     );
 
     return container;

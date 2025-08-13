@@ -2,9 +2,8 @@ import * as vscode from 'vscode';
 import { Mock, It, Times } from 'moq.ts';
 import * as assert from 'assert';
 import * as path from 'path';
+import { IItemDefinition, IItemDefinitionPart, PayloadType } from '@fabric/vscode-fabric-api';
 import { ItemDefinitionWriter } from '../../../itemDefinition/ItemDefinitionWriter';
-import { IItemDefinition, IItemDefinitionPart } from '../../../itemDefinition/definitions';
-import { PayloadType } from '../../../itemDefinition/definitions';
 
 describe('ItemDefinitionWriter', () => {
     let fileSystemMock: Mock<vscode.FileSystem>;

@@ -1,5 +1,9 @@
 import * as vscode from 'vscode';
-import { IItemDefinition, IItemDefinitionWriter } from './definitions';
+import { IItemDefinition } from '@fabric/vscode-fabric-api';
+
+export interface IItemDefinitionWriter {
+    save(itemDefinition: IItemDefinition, destination: vscode.Uri): Promise<void>;
+}
 
 export class ItemDefinitionWriter implements IItemDefinitionWriter {
     public constructor(private readonly fileSystem: vscode.FileSystem) { 

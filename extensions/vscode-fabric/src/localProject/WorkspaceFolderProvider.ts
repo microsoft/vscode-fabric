@@ -6,6 +6,17 @@ import { isDirectory } from '../utilities';
 import { withErrorHandling, ILogger, TelemetryService } from '@fabric/vscode-fabric-util';
 
 export class WorkspaceFolderProvider implements IWorkspaceFolderProvider, vscode.Disposable {
+    /**
+     * Observable collection of workspace folders.
+     * 
+     * Note: Event handlers (such as onItemAdded/onItemRemoved) may be asynchronous.
+     * The add/remove methods on this collection do not await completion of async event handlers.
+     * As a result, consumers should not assume that all side effects of add/remove
+     * (such as updates in dependent components) are complete immediately after mutation.
+     * 
+     * This pattern results in eventual consistency: the collection and any listeners
+     * will be updated asynchronously, but not necessarily synchronously.
+     */
     public workspaceFolders: IObservableArray<vscode.Uri> = new ObservableSet<vscode.Uri>([], (a, b) => a.toString(true) === b.toString(true));
     private disposables: vscode.Disposable[] = [];
 

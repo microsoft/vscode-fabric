@@ -5,7 +5,7 @@ import { IArtifact, IWorkspace, IApiClientRequestOptions, IApiClientResponse, IF
 import { FabricWorkspaceDataProvider } from './treeView';
 import { LocalFolderManager } from '../LocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
-import { showQuickPickForLocalFolder } from './SelectFolderQuickPick';
+import { showLocalFolderQuickPick } from '../ui/showLocalFolderQuickPick';
 import { isDirectory } from '../utilities';
 import { IAccountProvider, IFabricEnvironmentProvider, FabricError, ILogger } from '@fabric/vscode-fabric-util';
 import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
@@ -234,6 +234,7 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
 
         return localWorkspaceFolder;
     }
+
     private ensureCurrentWorkspace(): IWorkspace {
         if (!this.currentWorkspace) {
             throw new FabricError(vscode.l10n.t('The current workspace has not been set'), 'The current workspace has not been set');
@@ -276,7 +277,7 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
             localWorkspaceFolder = this.localFolderManager.defaultLocalFolderForFabricWorkspace(this.currentWorkspace!);
         }
 
-        const selectedFolder: vscode.Uri | undefined = await showQuickPickForLocalFolder(localWorkspaceFolder, this.currentWorkspace!, this.gitOperator);
+        const selectedFolder: vscode.Uri | undefined = await showLocalFolderQuickPick(localWorkspaceFolder, this.currentWorkspace!, this.gitOperator);
         if (selectedFolder) {
             await this.setLocalFolderForCurrentFabricWorkspace(selectedFolder);
         }
@@ -346,7 +347,25 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         return artifacts;
     }
 
-    abstract getAllWorkspaces(): Promise<IWorkspace[]>;
+    public async createWorkspace(workspaceName: string, options?: { capacityId?: string; description?: string; }): Promise<IApiClientResponse> {
+        if (!(await this.isConnected())) {
+            throw new FabricError(vscode.l10n.t('Currently not connected to Fabric'), 'Currently not connected to Fabric');
+        }
+
+        const req: IApiClientRequestOptions = {
+            pathTemplate: '/v1/workspaces',
+            method: 'POST',
+            body: {
+                displayName: workspaceName,
+                capacityId: options?.capacityId,
+                description: options?.description
+            }
+        };
+        
+        return this.apiClient.sendRequest(req);
+    }
+
+    abstract listWorkspaces(): Promise<IWorkspace[]>;
     abstract logToOutPutChannel(message: string): void;
     abstract openWorkspaceById(id: string): Promise<void>;
 }
@@ -357,7 +376,8 @@ export class WorkspaceManager extends WorkspaceManagerBase {
 
     constructor(account: IAccountProvider,
         fabricEnvironmentProvider: IFabricEnvironmentProvider,
-        extensionSettingsStorage: IFabricExtensionsSettingStorage, localFolderManager: LocalFolderManager, 
+        extensionSettingsStorage: IFabricExtensionsSettingStorage, 
+        localFolderManager: LocalFolderManager, 
         apiClient: IFabricApiClient,
         logger: ILogger,
         gitOperator: IGitOperator
@@ -386,7 +406,7 @@ export class WorkspaceManager extends WorkspaceManagerBase {
      * 
      * @returns The set of all workspaces available to the logged in user
      */
-    public async getAllWorkspaces(): Promise<IWorkspace[]> {
+    public async listWorkspaces(): Promise<IWorkspace[]> {
         if (!(await this.isConnected())) {
             throw new FabricError(vscode.l10n.t('Currently not connected to Fabric'), 'Currently not connected to Fabric');
         }
@@ -396,7 +416,7 @@ export class WorkspaceManager extends WorkspaceManagerBase {
             pathTemplate: '/v1/workspaces',
         });
         if (res?.status !== 200) {
-            throw new Error(`Error Getting Workspaces  + ${res?.status}  ${res?.bodyAsText}`);
+            throw new Error(`Error Getting Workspaces + ${res?.status}  ${res?.bodyAsText}`);
         }
         let arrayWSpaces = res?.parsedBody;
         if (arrayWSpaces?.value) { // Public API changed. Daily changed to put the array under 'value', but the change isn't in DXT yet, so we need to try both

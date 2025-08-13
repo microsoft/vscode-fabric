@@ -85,11 +85,11 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
     updateFabricExtensionSettings(): void {
     }
 
-    getAllWorkspaces(): Promise<IWorkspace[]> {
+    listWorkspaces(): Promise<IWorkspace[]> {
         return Promise.resolve(this.currentWorkspaces);
     }
     async openWorkspaceById(id: string): Promise<void> {
-        const workspaces = await this.getAllWorkspaces();
+        const workspaces = await this.listWorkspaces();
         const workspace = workspaces.find((element) => element.objectId === id);
         if (!workspace) {
             const msg = 'Workspace id not found: ' + id;

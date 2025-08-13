@@ -1,16 +1,13 @@
 import * as vscode from 'vscode';
 import { commandNames } from '../constants';
-import { showPleaseSignInMessage, showSelectWorkspace } from '../artifactManager/commands';
+import { showSignInPrompt, showSelectWorkspacePrompt } from '../ui/prompts';
 import { WorkspaceManagerBase } from './WorkspaceManager';
 
-import { IApiClientRequestOptions, IFabricApiClient, IApiClientResponse, IWorkspaceManager } from '@fabric/vscode-fabric-api';
-import { IAccountProvider, TelemetryActivity, TelemetryService, doFabricAction, ILogger } from '@fabric/vscode-fabric-util';
-import { CoreTelemetryEventNames } from '../TelemetryEventNames';
-
-interface ICapacity {
-    displayName: string;
-    id: string;
-}
+import { showCreateWorkspaceWizard } from '../ui/showCreateWorkspaceWizard';
+import { showWorkspaceQuickPick } from '../ui/showWorkspaceQuickPick';
+import { IFabricApiClient, IWorkspace } from '@fabric/vscode-fabric-api';
+import { IAccountProvider, TelemetryService, ILogger } from '@fabric/vscode-fabric-util';
+import { CapacityManager, ICapacityManager } from '../CapacityManager';
 
 let workspaceCommandDisposables: vscode.Disposable[] = [];
 
@@ -28,6 +25,7 @@ export function registerWorkspaceCommands(
     context: vscode.ExtensionContext,
     auth: IAccountProvider,
     workspaceManager: WorkspaceManagerBase,
+    capacityManager: ICapacityManager,
     apiClient: IFabricApiClient,
     telemetryService: TelemetryService  | null, 
     logger: ILogger,
@@ -42,11 +40,11 @@ export function registerWorkspaceCommands(
     }, context);
 
     registerCommand(commandNames.createWorkspace, async () => {
-        await createWorkspace(workspaceManager, apiClient, telemetryService, logger);
+        await createWorkspace(workspaceManager, capacityManager, telemetryService, logger);
     }, context);
 
     registerCommand(commandNames.openWorkspace, async () => {
-        await openWorkspace(workspaceManager, telemetryService, logger);
+        await openWorkspace(workspaceManager, capacityManager, telemetryService, logger);
     }, context);
 
     registerCommand(commandNames.closeWorkSpace, async () => {
@@ -62,59 +60,16 @@ export function registerWorkspaceCommands(
  * If logged in, allows the user to enter a the name of a new workspace to create along with the capacity to use for the new workspace
  * @param manager Handles the Fabric workspaces for the user
  */
-async function createWorkspace(manager: WorkspaceManagerBase, client: IFabricApiClient, telemetryService: TelemetryService | null, logger: ILogger): Promise<void> {
+async function createWorkspace(manager: WorkspaceManagerBase, capacityManager: ICapacityManager, telemetryService: TelemetryService | null, logger: ILogger): Promise<void> {
     try {
         if (!(await manager.isConnected())) {
-            await showPleaseSignInMessage();
+            await showSignInPrompt();
             return;
         }
 
-        const capacities: ICapacity[] | undefined = await getCapacities(client);
-        if (capacities) {
-            const workspaceName = await vscode.window.showInputBox({ prompt: 'Name', value: 'Name this workspace', title: 'Create a workspace' });
-
-            if (workspaceName) {
-                const quickPickItems: CapacityQuickPickItem[] = [];
-                capacities.forEach(capacity => quickPickItems.push(new CapacityQuickPickItem(capacity.displayName, capacity.id)));
-
-                let selectedCapacity: CapacityQuickPickItem | undefined = quickPickItems[0];
-                if (quickPickItems.length > 1) {
-                    selectedCapacity = await vscode.window.showQuickPick(quickPickItems, { title: 'Choose Capacity...', canPickMany: false });
-                }
-                if (selectedCapacity) {
-                    const reqCreateWorkspace: IApiClientRequestOptions = {
-                        pathTemplate: '/v1/workspaces',
-                        method: 'POST',
-                        headers: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            'Content-Type': 'application/json; charset=utf-8',
-                        },
-                        body: {
-                            displayName: workspaceName,
-                            capacityId: selectedCapacity.id,
-                        }
-                    };
-
-                    const createActivity = new TelemetryActivity<CoreTelemetryEventNames>('workspace/create', telemetryService);
-                    await doFabricAction({ fabricLogger:logger, telemetryActivity: createActivity }, async () => {
-                        const responseCreateWorkspace: IApiClientResponse = await client.sendRequest(reqCreateWorkspace);
-                        createActivity.addOrUpdateProperties({
-                            'statusCode': responseCreateWorkspace.status.toString()
-                        });
-                        if (responseCreateWorkspace.status === 201) {
-                            const workspaceId = responseCreateWorkspace.parsedBody.id;
-                            createActivity.addOrUpdateProperties({
-                                'workspaceId': workspaceId,
-                                'fabricWorkspaceName': workspaceName,
-                            });
-                            await manager.openWorkspaceById(workspaceId);
-                        }
-                        else {
-                            throw new Error(`Unable to create workspace: '${responseCreateWorkspace.parsedBody?.message}'`);
-                        }
-                    });
-                }
-            }
+        const createdWorkspace: IWorkspace | undefined = await showCreateWorkspaceWizard(manager, capacityManager, telemetryService, logger);
+        if (createdWorkspace) {
+            await manager.openWorkspaceById(createdWorkspace.objectId);
         }
     }
     catch (error: any) {
@@ -123,74 +78,25 @@ async function createWorkspace(manager: WorkspaceManagerBase, client: IFabricApi
     }
 }
 
-async function getCapacities(client: IFabricApiClient): Promise<ICapacity[]> {
-    const requestCapacities: IApiClientRequestOptions = {
-        pathTemplate: '/v1/capacities'
-    };
-
-    const responseCapacities: IApiClientResponse = await client.sendRequest(requestCapacities);
-
-    if (responseCapacities && responseCapacities.status === 200) {
-        const parsedCapacities: any[] = responseCapacities.parsedBody.value;
-        const capacities: ICapacity[] = parsedCapacities.map(capacity => ({
-            displayName: capacity.displayName,
-            id: capacity.id
-        }));
-
-        if (capacities.length === 0) {
-            throw new Error('No capacities were found');
-        }
-        return capacities;
-    }
-    else {
-        throw new Error(`Unable to get capacities: '${responseCapacities?.parsedBody?.message}'`);
-    }
-}
-
 /**
  * If logged in, shows the user the available Fabric worskapces and allows for the selection of 1
  * @param manager Handles the Fabric workspaces for the user
  */
-async function openWorkspace(manager: WorkspaceManagerBase, telemetryService: TelemetryService | null, logger: ILogger): Promise<void> {
+async function openWorkspace(
+    manager: WorkspaceManagerBase, 
+    capacityManager: ICapacityManager,
+    telemetryService: TelemetryService | null, 
+    logger: ILogger): Promise<void> {
     try {
         if (!(await manager.isConnected())) {
-            await showPleaseSignInMessage();
+            await showSignInPrompt();
             return;
         }
 
-        let workspaces = await manager.getAllWorkspaces();
-        if (workspaces && workspaces.length > 0) {
-            // Sort all workspaces alphabetically
-            workspaces = workspaces.sort((a, b) => a.displayName.localeCompare(b.displayName));
-            
-            // Filter personal and non-personal workspaces
-            const personalWorkspaces = workspaces.filter(w => w.type === 'Personal');
-            const otherWorkspaces = workspaces.filter(w => w.type !== 'Personal');
-            
-            // Prepare items array with "Create new..." option first
-            const workspaceItems: string[] = [];
-            const createString = vscode.l10n.t('Create a new Fabric Workspace...');
-            workspaceItems.push(`$(add) ${createString}`);
-            
-            // Add personal workspaces first, then others
-            personalWorkspaces.forEach(w => workspaceItems.push(w.displayName));
-            otherWorkspaces.forEach(w => workspaceItems.push(w.displayName));
-
-            const pick: string | undefined = await vscode.window.showQuickPick(workspaceItems, { canPickMany: false, placeHolder: 'Select Fabric workspace' });
-            if (pick) {
-                for (const workspace of workspaces) {
-                    if (workspace.displayName === pick) {
-                        await manager.setCurrentWorkspace(workspace);
-                        telemetryService?.sendTelemetryEvent('workspace/open', { workspaceId: manager.currentWorkspace!.objectId });
-                        return;
-                    }
-                }
-
-                await vscode.commands.executeCommand(commandNames.createWorkspace);
-            }
-        }
-        else {
-            throw new Error('Unable to find any workspaces');
+        const selectedWorkspace = await showWorkspaceQuickPick(manager, capacityManager, telemetryService, logger);
+        if (selectedWorkspace) {
+            await manager.setCurrentWorkspace(selectedWorkspace);
+            telemetryService?.sendTelemetryEvent('workspace/open', { workspaceId: manager.currentWorkspace!.objectId });
         }
     }
     catch (error: any) {
@@ -205,11 +111,11 @@ async function openWorkspace(manager: WorkspaceManagerBase, telemetryService: Te
  */
 async function selectLocalFolder(manager: WorkspaceManagerBase): Promise<vscode.Uri | undefined> {
     if (!(await manager.isConnected())) {
-        await showPleaseSignInMessage();
+        await showSignInPrompt();
         return;
     }
     if (!manager.currentWorkspace) {
-        await showSelectWorkspace();
+        await showSelectWorkspacePrompt();
         return;
     }
 
@@ -220,12 +126,4 @@ async function closeWorkspace(manager: WorkspaceManagerBase): Promise<void> {
     if (!(await manager.isConnected())) {
         await manager.closeWorkspace();
     }
-}
-
-class CapacityQuickPickItem implements vscode.QuickPickItem {
-    constructor(public label: string, public id: string) {
-    }
-
-    description?: string;
-    detail?: string;
 }

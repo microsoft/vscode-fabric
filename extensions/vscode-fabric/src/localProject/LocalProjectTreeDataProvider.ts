@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
-import { FabricTreeNode, ILocalProjectTreeNodeProvider, LocalProjectTreeNode } from '@fabric/vscode-fabric-api';
+import { FabricTreeNode, ILocalProjectTreeNodeProvider, LocalProjectTreeNode, LocalProjectTreeNodeProvider } from '@fabric/vscode-fabric-api';
 import { ILogger, TelemetryService, withErrorHandling } from '@fabric/vscode-fabric-util';
 import { ILocalProjectDiscovery, ILocalProjectInformation } from './definitions';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
-import { getDisplayNamePlural, getArtifactIconPath, getArtifactDefaultIconPath } from '../metadata/fabricItemUtilities';
+import { getDisplayNamePlural, getArtifactIconPath, getArtifactDefaultIconPath, getSupportsArtifactWithDefinition } from '../metadata/fabricItemUtilities';
 import { commandNames } from '../constants';
 
 export class LocalProjectTreeDataProvider implements vscode.TreeDataProvider<FabricTreeNode> {
@@ -84,10 +84,16 @@ class LocalProjectTreeNodeCollection {
     public async addProject(project: ILocalProjectInformation) {
         if (!this.localProjectProviders.has(project.artifactType)) {
             const localProjectProvider = this.extensionManager.localProjectTreeNodeProviders.get(project.artifactType);
-            if (!localProjectProvider) {
-                return;
+
+            // TODO: Show a missing extension node if the extension is not installed
+
+            if (localProjectProvider) {
+                this.localProjectProviders.set(project.artifactType, new ArtifactTypeTreeNode(this.context, localProjectProvider));
             }
-            this.localProjectProviders.set(project.artifactType, new ArtifactTypeTreeNode(this.context, localProjectProvider));
+            else if (getSupportsArtifactWithDefinition(project.artifactType)) {
+                const defaultProvider = new DefinitionLocalProjectTreeNodeProvider(this.context, project.artifactType);
+                this.localProjectProviders.set(project.artifactType, new ArtifactTypeTreeNode(this.context, defaultProvider));
+            }
         }
         await this.localProjectProviders.get(project.artifactType)?.addProject(project);
     }
@@ -132,5 +138,24 @@ class ArtifactTypeTreeNode extends FabricTreeNode {
     public async getChildNodes(): Promise<FabricTreeNode[]> {
         const sortedArtifacts = [...this._children.values()].sort((a, b) => a.displayName.toLocaleLowerCase().localeCompare(b.displayName.toLocaleLowerCase()));
         return sortedArtifacts;
+    }
+}
+
+class DefinitionLocalProjectTreeNodeProvider extends LocalProjectTreeNodeProvider {
+    constructor(context: vscode.ExtensionContext, artifactType: string) {
+        super(context, artifactType);
+    }
+
+    public async createLocalProjectTreeNode(projectPath: vscode.Uri): Promise<LocalProjectTreeNode | undefined> {
+        const node = await super.createLocalProjectTreeNode(projectPath);
+        if (node) {
+            if (!node.contextValue) {
+                node.contextValue = 'item-import';
+            }
+            else if (!node.contextValue.split('|').includes('item-import')) {
+                node.contextValue += '|item-import';
+            }
+        }
+        return node;
     }
 }

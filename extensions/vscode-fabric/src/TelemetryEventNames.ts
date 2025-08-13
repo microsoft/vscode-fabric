@@ -14,6 +14,7 @@ export type CoreTelemetryEventNames = {
 	'item/update': { properties: ArtifactManagerResultPropertyNames; measurements: never },
 	'item/delete': { properties: ArtifactManagerResultPropertyNames; measurements: never },
 	'item/export': { properties: ArtifactManagerResultPropertyNames; measurements: never },
+	'item/import': { properties: ArtifactManagerResultPropertyNames; measurements: never },
 	'item/open': { properties: ResultPropertyNames | ArtifactPropertyNames; measurements: never },
 	'item/open/portal': { properties: ArtifactPropertyNames; measurements: never },
 

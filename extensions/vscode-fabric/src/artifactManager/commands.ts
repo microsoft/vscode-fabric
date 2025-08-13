@@ -16,8 +16,9 @@ import { readArtifactCommand } from './readArtifactCommand';
 import { renameArtifactCommand } from './renameArtifactCommand';
 import { deleteArtifactCommand } from './deleteArtifactCommand';
 import { exportArtifactCommand } from './exportArtifactCommand';
-import { IItemDefinitionWriter } from '../itemDefinition/definitions';
+import { ItemDefinitionWriter } from '../itemDefinition/ItemDefinitionWriter';
 import { UserCancelledError } from '@fabric/vscode-fabric-util';
+import { showSignInPrompt } from '../ui/prompts';
 
 let artifactCommandDisposables: vscode.Disposable[] = [];
 
@@ -39,7 +40,6 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
     extensionManager: IFabricExtensionManagerInternal,
     telemetryService: TelemetryService | null,
     logger: ILogger,
-    itemDefinitionWriter: IItemDefinitionWriter
 ): Promise<void> {
 
     // Dispose of any existing commands
@@ -50,7 +50,7 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
         commandNames.createArtifact,
         async (...cmdArgs) => {
             if (!(await workspaceManager.isConnected())) {
-                void showPleaseSignInMessage();
+                void showSignInPrompt();
                 return;
             }
 
@@ -165,7 +165,7 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                         item,
                         workspaceManager,
                         artifactManager, 
-                        itemDefinitionWriter,
+                        new ItemDefinitionWriter(vscode.workspace.fs),
                         activity,
                     );
                 }
@@ -243,30 +243,6 @@ export function formatPortalUrl(portalUri: string, workspace: IWorkspace, artifa
     }
 
     return undefined;
-}
-
-/**
- * Shows a modal dialog requesting the user to sign in to Fabric. The user can select a Sign in Button which will execute the command
- */
-export async function showPleaseSignInMessage() {
-    const signInAction = vscode.l10n.t('Sign in');
-    await vscode.window.showInformationMessage(vscode.l10n.t('Please sign in to Fabric'), { modal: true }, signInAction).then(async (selection) => {
-        if (selection === signInAction) {
-            await vscode.commands.executeCommand(commandNames.signIn);
-        }
-    });
-}
-
-/**
- * Shows a modal dialog requesting the user to select a workspace. The user can select a 'Select Workspace' button which will execute the command
- */
-export async function showSelectWorkspace() {
-    const selectWorkspaceAction = vscode.l10n.t('Select workspace');
-    await vscode.window.showInformationMessage(vscode.l10n.t('Please select a Fabric workspace'), { modal: true }, selectWorkspaceAction).then(async (selection) => {
-        if (selection === selectWorkspaceAction) {
-            await vscode.commands.executeCommand(commandNames.openWorkspace);
-        }
-    });
 }
 
 async function doArtifactAction(

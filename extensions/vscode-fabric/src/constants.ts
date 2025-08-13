@@ -9,6 +9,7 @@ export namespace commandNames {
     export const readArtifact = 'vscode-fabric.readArtifact';
     export const openArtifact = 'vscode-fabric.openArtifact';
     export const exportArtifact = 'vscode-fabric.exportArtifact';
+    export const importArtifact = 'vscode-fabric.importArtifact';
     export const openNotebook = 'vscode-fabric.openNotebook';
     export const refreshArtifactView = 'vscode-fabric.refreshArtifactView';
     export const refreshLocalProjectView = 'vscode-fabric.refreshLocalFolderView';

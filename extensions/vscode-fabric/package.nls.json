@@ -10,6 +10,7 @@
     "extension.readArtifact.title":"View item",
     "extension.openArtifact.title":"Open in Explorer",
     "extension.exportArtifact.title":"Open in Explorer",
+    "extension.importArtifact.title":"Publish to Fabric...",
     "extension.openNotebook.title":"Open in Synapse VS Code",
     "extension.openSqlExtension.title":"Open in SQL Server Extension",
     "extension.copyConnectionString.title":"Copy Connection String",
