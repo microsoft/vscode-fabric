@@ -1,0 +1,51 @@
+# Publish VSCode Extension Stage Template
+# Verifies the signed VSIX and publishes it to VS Code Marketplace
+
+stages:
+- stage: PublishExtension
+  displayName: 'Publish VS Code extension'
+  dependsOn: Build
+  jobs:
+  - job: approvalGate
+    displayName: 'Approval Required'
+    pool: server
+    steps:
+    # Manual approval gate
+    - template: ../steps/manual-approval.yml
+
+  - job: signAndPublish
+    displayName: 'Verify & Publish VSIX (public)'
+    dependsOn: approvalGate
+    condition: succeeded() # Only run if manual approval succeeded
+    steps:
+    # Install dependencies
+    - task: NodeTool@0
+      inputs: 
+        versionSpec: 20.x
+      displayName: install nodejs
+
+    # Download artifacts from build stage
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: 'current'
+        artifactName: 'vsix-artifacts'
+        targetPath: $(Pipeline.Workspace)/vsix-artifacts
+
+    # Locate the VSIX file for verification and publishing
+    - pwsh: |
+        $vsix = Get-ChildItem -Path "$(Pipeline.Workspace)/vsix-artifacts" -Filter "vscode-fabric*.vsix" | Select-Object -First 1
+        if ($null -eq $vsix) {
+          Write-Error "No vscode-fabric VSIX file found in $(Pipeline.Workspace)/vsix-artifacts"
+          exit 1
+        }
+        Write-Host "##vso[task.setvariable variable=VSIX_FILE_NAME]$($vsix.Name)"
+        Write-Host "VSIX file found: $($vsix.Name)"
+      displayName: Locate VSIX file and set variable
+
+    # Verify VSIX signature
+    - pwsh: npx @vscode/vsce@latest verify-signature --packagePath $(Pipeline.Workspace)/vsix-artifacts/$(VSIX_FILE_NAME) --manifestPath $(Pipeline.Workspace)/vsix-artifacts/extension.manifest --signaturePath $(Pipeline.Workspace)/vsix-artifacts/extension.signature.p7s
+      displayName: Verify VSIX signature
+
+    # Publish the extension to VS Code Marketplace
+    # - pwsh: npx @vscode/vsce@latest publish -i $(Pipeline.Workspace)/vsix-artifacts/$(VSIX_FILE_NAME) --manifestPath $(Pipeline.Workspace)/vsix-artifacts/extension.manifest --signaturePath $(Pipeline.Workspace)/vsix-artifacts/extension.signature.p7s
+    #   displayName: 'Publish extension to VS Code Marketplace'

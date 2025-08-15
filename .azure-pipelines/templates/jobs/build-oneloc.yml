@@ -1,0 +1,36 @@
+# OneLoc Build Job Template
+
+jobs:
+- job: build_oneloc
+  displayName: 'Build OneLoc'
+  templateContext:
+    outputs:
+    - output: pipelineArtifact
+      targetPath: $(Build.ArtifactStagingDirectory)
+      artifactName: oneloc-artifacts
+
+  steps:
+  # Setup dependencies
+  - template: ../steps/dependencies.yml
+
+  # Run OneLoc Build
+  - task: OneLocBuild@3
+    inputs:
+      locProj: 'localization/LocProject.json'
+      repoType: gitHub
+      # Create a PR to check-in resulting localized files to the repo & branch.
+      isCreatePrSelected: true
+      # Reuse an existing active PR for localized file check-in whenever possible, rather than creating a new one.
+      isShouldReusePrSelected: true
+      # Automatically complete a PR for automated localized file check-in skipping a review.
+      isAutoCompletePrSelected: false
+      gitHubPrMergeMethod: squash
+      # If persistCredentials is not enabled, specify the variable set with the PAT of your GitHub account for localized file check-in.
+      # gitHubPatVariable: '$(GitHubPat)'
+      prSourceBranchPrefix: 'locfiles'
+      packageSourceAuth: patAuth
+      # Provide the dependency packages required by OneLocBuild. Replace with your feed which has 'azure-feed://ceapex/LocTools@Local' as an upstream source.
+      dependencyPackageSource: 'https://powerbi.pkgs.visualstudio.com/AppDev/_packaging/vscode-fabric/nuget/v3/index.json'
+      # Use the predefined variable to install the dependency packages from your feed. It maps to 'Project Collection Build Service ({organization name})' or '{project name} Build Service ({organization name})', which should be assigned to the 'Feed and Upstream Reader (Collaborator)' role in the feed.
+      patVariable: '$(System.AccessToken)'
+    displayName: 'OneLoc Build'

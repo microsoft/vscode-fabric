@@ -4,10 +4,19 @@
 stages:
 - stage: PublishNpmPublic
   displayName: 'Publish NPM (public)'
-  dependsOn: ManualApproval
+  dependsOn: Build
   jobs:
   - job: publishPublic
-    displayName: 'Publish Public NPM Packages'
+    displayName: 'Approval Required'
+    pool: server
+    steps:
+    # Manual approval gate
+    - template: ../steps/manual-approval.yml
+
+  - job: publishPublicPackages
+    displayName: 'Publish NPM (public)'
+    dependsOn: publishPublic
+    condition: succeeded() # Only run if manual approval succeeded
     steps:
     # Install dependencies
     - task: NodeTool@0
@@ -19,7 +28,7 @@ stages:
     - task: DownloadPipelineArtifact@2
       inputs:
         buildType: 'current'
-        artifactName: 'build-artifacts'
-        targetPath: $(Pipeline.Workspace)/build-artifacts
+        artifactName: 'npm-artifacts'
+        targetPath: $(Pipeline.Workspace)/npm-artifacts
 
     # TODO Add EsrpRelease task here (should sign and release to NPM)
