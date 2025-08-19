@@ -1,13 +1,14 @@
 /* eslint-disable security/detect-non-literal-fs-filename */
 
 import * as vscode from 'vscode';
-import { IArtifact, IWorkspace, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IWorkspaceManager, FabricTreeNode, ISourceControlInformation } from '@fabric/vscode-fabric-api';
+import { IArtifact, IWorkspace, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IWorkspaceManager, FabricTreeNode, ISourceControlInformation } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from './treeView';
 import { LocalFolderManager } from '../LocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
 import { showLocalFolderQuickPick } from '../ui/showLocalFolderQuickPick';
 import { isDirectory } from '../utilities';
-import { IAccountProvider, IFabricEnvironmentProvider, FabricError, ILogger } from '@fabric/vscode-fabric-util';
+import { IFabricEnvironmentProvider, FabricError, ILogger } from '@microsoft/vscode-fabric-util';
+import { IAccountProvider, ITenantSettings } from '../authentication/interfaces';
 import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
 
 /**
@@ -129,7 +130,7 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
                 }
 
                 const availableTenants = await this.account.getTenants();
-                if (!availableTenants.some(tenant => tenant.tenantId === tenantId)) {
+                if (!availableTenants.some((tenant: ITenantSettings) => tenant.tenantId === tenantId)) {
                     this.logger.log(`Stored tenant ID ${tenantId} is not available in the current account. Showing sign in button.`);
                     showSignInButton = true;
                     return showSignInButton;
@@ -359,7 +360,11 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
                 displayName: workspaceName,
                 capacityId: options?.capacityId,
                 description: options?.description
-            }
+            },
+            headers: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'application/json'
+            }   
         };
         
         return this.apiClient.sendRequest(req);

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { IFabricExtensionServiceCollection } from '@fabric/vscode-fabric-api';
+import { IFabricExtensionServiceCollection } from '@microsoft/vscode-fabric-api';
 import { TelemetryService } from './telemetry/TelemetryService';
 import { TelemetryActivity } from './telemetry/TelemetryActivity';
 import { FABRIC_ENVIRONMENT_KEY, IFabricEnvironmentProvider } from './settings/FabricEnvironmentProvider';

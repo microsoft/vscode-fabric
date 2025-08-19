@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { Mock, It, Times } from 'moq.ts';
 import * as assert from 'assert';
 import * as path from 'path';
-import { IItemDefinition, IItemDefinitionPart, PayloadType } from '@fabric/vscode-fabric-api';
+import { IItemDefinition, IItemDefinitionPart, PayloadType } from '@microsoft/vscode-fabric-api';
 import { ItemDefinitionWriter } from '../../../itemDefinition/ItemDefinitionWriter';
 
 describe('ItemDefinitionWriter', () => {

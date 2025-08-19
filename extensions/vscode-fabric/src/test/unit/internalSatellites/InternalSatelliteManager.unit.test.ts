@@ -3,8 +3,8 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { InternalSatelliteManager } from '../../../internalSatellites/InternalSatelliteManager';
-import { IWorkspaceManager, IArtifactManager, IFabricApiClient } from '@fabric/vscode-fabric-api';
-import { ILogger, TelemetryService } from '@fabric/vscode-fabric-util';
+import { IWorkspaceManager, IArtifactManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
 
 describe('InternalSatelliteManager', function() {

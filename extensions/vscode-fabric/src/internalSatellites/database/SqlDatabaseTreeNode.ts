@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { IArtifact, IFabricApiClient, IApiClientRequestOptions, IApiClientResponse } from '@fabric/vscode-fabric-api';
+import { IArtifact, IFabricApiClient, IApiClientRequestOptions, IApiClientResponse } from '@microsoft/vscode-fabric-api';
 import { AbstractDatabaseTreeNode } from './AbstractDatabaseTreeNode';
 import { SqlDatabaseApiResponse } from './ApiResponseModels';
 

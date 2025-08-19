@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { IApiClientResponse, IArtifact, IArtifactHandler, IArtifactManager, IFabricExtensionManager, IFabricExtensionServiceCollection, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, OperationRequestType } from '@fabric/vscode-fabric-api';
+import { IApiClientResponse, IArtifact, IArtifactHandler, IArtifactManager, IFabricExtensionManager, IFabricExtensionServiceCollection, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, OperationRequestType } from '@microsoft/vscode-fabric-api';
 import { IObservableReadOnlyMap } from '../../collections/definitions';
 
 /**

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { IArtifactManager, IFabricExtension, IFabricExtensionManager, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, IWorkspaceManager, IFabricApiClient } from '@fabric/vscode-fabric-api';
-import { ILogger, TelemetryService } from '@fabric/vscode-fabric-util';
+import { IArtifactManager, IFabricExtension, IFabricExtensionManager, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, IWorkspaceManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { SqlDatabaseTreeNodeProvider } from './SqlDatabaseTreeNodeProvider';
 import { SqlEndpointTreeNodeProvider } from './SqlEndpointTreeNodeProvider';
 import { registerDatabaseCommands, disposeCommands } from './commands';

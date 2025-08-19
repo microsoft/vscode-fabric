@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { SqlDatabaseTreeNode } from '../../../../internalSatellites/database/SqlDatabaseTreeNode';
-import { IArtifact, IFabricApiClient, IApiClientRequestOptions, IApiClientResponse } from '@fabric/vscode-fabric-api';
+import { IArtifact, IFabricApiClient, IApiClientRequestOptions, IApiClientResponse } from '@microsoft/vscode-fabric-api';
 import { AbstractDatabaseTreeNode } from '../../../../internalSatellites/database/AbstractDatabaseTreeNode';
 import { SqlDatabaseApiResponse } from '../../../../internalSatellites/database/ApiResponseModels';
 

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 import { NotebookTreeNode } from './NotebookTreeNode';
-import { ArtifactPropertyNames, TelemetryEvent, TelemetryService } from '@fabric/vscode-fabric-util';
+import { ArtifactPropertyNames, TelemetryEvent, TelemetryService } from '@microsoft/vscode-fabric-util';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 type TelemetryEventNames = {

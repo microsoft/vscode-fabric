@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { IFabricExtension, IFabricExtensionManager, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, IWorkspaceManager } from '@fabric/vscode-fabric-api';
+import { IFabricExtension, IFabricExtensionManager, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { NotebookTreeNodeProvider } from './NotebookTreeNodeProvider';
 import { registerNotebookCommands, disposeCommands } from './commands';
-import { TelemetryService } from '@fabric/vscode-fabric-util';
+import { TelemetryService } from '@microsoft/vscode-fabric-util';
 
 export class NotebookExtension implements IFabricExtension, vscode.Disposable{
     public identity: string = 'fabric.internal-satellite-notebook';

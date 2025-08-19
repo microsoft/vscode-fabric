@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { FabricTreeNode, ILocalProjectTreeNodeProvider, LocalProjectTreeNode, LocalProjectTreeNodeProvider } from '@fabric/vscode-fabric-api';
-import { ILogger, TelemetryService, withErrorHandling } from '@fabric/vscode-fabric-util';
+import { FabricTreeNode, ILocalProjectTreeNodeProvider, LocalProjectTreeNode, LocalProjectTreeNodeProvider } from '@microsoft/vscode-fabric-api';
+import { ILogger, TelemetryService, withErrorHandling } from '@microsoft/vscode-fabric-util';
 import { ILocalProjectDiscovery, ILocalProjectInformation } from './definitions';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { getDisplayNamePlural, getArtifactIconPath, getArtifactDefaultIconPath, getSupportsArtifactWithDefinition } from '../metadata/fabricItemUtilities';

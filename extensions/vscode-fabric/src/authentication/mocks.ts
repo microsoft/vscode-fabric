@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as vscode from 'vscode';
-import { ITokenAcquisitionService, TokenRequestOptions, VsCodeAuthentication } from './TokenAcquisitionService';
-import { IAccountProvider, ITenantSettings } from './AccountProvider';
+import { ITokenAcquisitionService, TokenRequestOptions, IAccountProvider, ITenantSettings } from './interfaces';
+import { VsCodeAuthentication } from './TokenAcquisitionService';
 
 export class MockVsCodeAuthentication implements VsCodeAuthentication {
     static readonly instance = new MockVsCodeAuthentication();
@@ -85,4 +85,3 @@ export class MockAccountProvider implements IAccountProvider {
         return Promise.resolve();
     }
 }
-

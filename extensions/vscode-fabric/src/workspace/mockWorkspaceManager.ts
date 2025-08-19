@@ -1,6 +1,7 @@
 /* eslint-disable security/detect-object-injection */
-import { FabricApiClient, FabricEnvironmentName, FabricEnvironmentProvider, IAccountProvider, IFabricEnvironmentProvider, ILogger, ITokenAcquisitionService, TelemetryService } from '@fabric/vscode-fabric-util';
-import { IArtifact, IWorkspace, ArtifactType, RuntimeType, InputType, IFabricApiClient } from '@fabric/vscode-fabric-api';
+import { FabricEnvironmentName, IFabricEnvironmentProvider, ILogger } from '@microsoft/vscode-fabric-util';
+import { IAccountProvider } from '../authentication/interfaces';
+import { IArtifact, IWorkspace, ArtifactType, RuntimeType, InputType, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { WorkspaceManager, WorkspaceManagerBase } from './WorkspaceManager';
 import { LocalFolderManager } from '../LocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';

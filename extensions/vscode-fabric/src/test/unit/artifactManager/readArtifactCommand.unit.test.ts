@@ -3,9 +3,9 @@ import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
 import { readArtifactCommand } from '../../../artifactManager/readArtifactCommand';
-import { IArtifact, IApiClientResponse, Schema, IArtifactHandler } from '@fabric/vscode-fabric-api';
+import { IArtifact, IApiClientResponse, Schema, IArtifactHandler } from '@microsoft/vscode-fabric-api';
 import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from 'extensions/vscode-fabric/src/apis/internal/fabricExtensionInternal';
-import { FabricError, TelemetryActivity } from '@fabric/vscode-fabric-util';
+import { FabricError, TelemetryActivity } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../../../TelemetryEventNames';
 import { verifyAddOrUpdateProperties, verifyAddOrUpdatePropertiesNever } from '../../utilities/moqUtilities';
 

@@ -3,8 +3,8 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { openSqlExtensionInExternal } from '../../../../internalSatellites/database/openSqlExtension';
-import { TelemetryService, TelemetryEvent } from '@fabric/vscode-fabric-util';
-import { IFabricApiClient, IWorkspaceManager } from '@fabric/vscode-fabric-api';
+import { TelemetryService, TelemetryEvent } from '@microsoft/vscode-fabric-util';
+import { IFabricApiClient, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { AbstractDatabaseTreeNode } from '../../../../internalSatellites/database/AbstractDatabaseTreeNode';
 
 describe('openSqlExtensionInExternal', function() {

@@ -1,32 +1,12 @@
 import * as vscode from 'vscode';
 
-import { IDisposable } from '@fabric/vscode-fabric-api';
-import { ITokenAcquisitionService, TokenRequestOptions } from './TokenAcquisitionService';
+import { IDisposable } from '@microsoft/vscode-fabric-api';
+import { IAccountProvider, ITenantSettings, ITokenAcquisitionService, TokenRequestOptions } from './interfaces';
 import { AuthenticationSessionAccountInformation } from 'vscode';
-import { doTaskWithTimeout } from '../fabricUtilities';
+import { doTaskWithTimeout } from '@microsoft/vscode-fabric-util';
 import { SubscriptionClient, TenantIdDescription } from '@azure/arm-resources-subscriptions';
 import type { TokenCredential } from '@azure/core-auth';
 import { getConfiguredAzureEnv } from '@microsoft/vscode-azext-azureauth';
-
-export interface ITenantSettings {
-    tenantId: string;
-    displayName: string;
-    defaultDomain: string;
-}
-
-export interface IAccountProvider {
-    getTenants(): Promise<ITenantSettings[]>;
-    getCurrentTenant(): Promise<ITenantSettings | undefined>;
-    onTenantChanged: vscode.Event<void>;
-
-    getToken(tenantId?: string): Promise<string | null>
-    signIn(tenantId?: string): Promise<boolean>
-    isSignedIn(tenantId?: string): Promise<boolean>
-
-    getDefaultTelemetryProperties(): Promise<{ [key: string]: string }>;
-    onSignInChanged: vscode.Event<void>;
-    awaitSignIn(): Promise<void>;
-}
 
 export class AccountProvider implements IAccountProvider, IDisposable {
     private readonly onSuccessfulSignInEmitter = new vscode.EventEmitter<void>();

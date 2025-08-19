@@ -2,7 +2,7 @@ import * as Mocha from 'mocha';
 import * as assert from 'assert';
 import { Uri, ExtensionContext } from 'vscode';
 import { LocalProjectTreeDataProvider } from '../../../localProject/LocalProjectTreeDataProvider';
-import * as fabricExt  from '@fabric/vscode-fabric-api';
+import * as fabricExt  from '@microsoft/vscode-fabric-api';
 import { ILocalProjectInformation, ILocalProjectDiscovery } from '../../../localProject/definitions';
 import { satelliteExtensionIds, TestExtension } from '../shared/TestExtension';
 import * as os from 'os';
@@ -10,7 +10,7 @@ import * as path from 'path';
 import { IObservableArray } from '../../../collections/definitions';
 import { ObservableSet } from '../../../collections/ObservableSet';
 import { MockFabricExtensionManager } from '../../../extensionManager/MockFabricExtensionManager';
-import { MockConsoleLogger } from '@fabric/vscode-fabric-util';
+import { MockConsoleLogger } from '@microsoft/vscode-fabric-util';
 import { Mock } from 'moq.ts';
 
 

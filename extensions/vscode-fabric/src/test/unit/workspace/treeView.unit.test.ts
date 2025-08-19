@@ -4,8 +4,8 @@ import * as assert from 'assert';
 import { RootTreeNodeProvider, TreeViewWorkspaceTreeNode, ListViewWorkspaceTreeNode, IRootTreeNodeProvider } from '../../../workspace/treeView';
 import { IFabricExtensionSettings, IFabricExtensionsSettingStorage } from '../../../settings/definitions';
 import { IFabricExtensionManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
-import { ArtifactTreeNode, FabricTreeNode, IArtifact, IFabricTreeNodeProvider, IWorkspaceManager, IWorkspace } from '@fabric/vscode-fabric-api';
-import { TelemetryService } from '@fabric/vscode-fabric-util';
+import { ArtifactTreeNode, FabricTreeNode, IArtifact, IFabricTreeNodeProvider, IWorkspaceManager, IWorkspace } from '@microsoft/vscode-fabric-api';
+import { TelemetryService } from '@microsoft/vscode-fabric-util';
 import { ObservableMap } from '../../../collections/ObservableMap';
 
 async function createInstance(storage: IFabricExtensionsSettingStorage, context: vscode.ExtensionContext, extensionManager: IFabricExtensionManagerInternal, workspaceManager: IWorkspaceManager, telemetryService: TelemetryService | null): Promise<IRootTreeNodeProvider> {

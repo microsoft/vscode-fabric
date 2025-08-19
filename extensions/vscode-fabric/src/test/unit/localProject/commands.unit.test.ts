@@ -4,10 +4,10 @@ import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
 import { registerLocalProjectCommands } from '../../../localProject/commands';
 import { commandNames } from '../../../constants';
-import { IWorkspaceManager, IWorkspace, LocalProjectTreeNode, IFabricApiClient } from '@fabric/vscode-fabric-api';
+import { IWorkspaceManager, IWorkspace, LocalProjectTreeNode, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { IArtifactManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
-import { TelemetryService, IFabricEnvironmentProvider, ILogger } from '@fabric/vscode-fabric-util';
-import { UserCancelledError } from '@fabric/vscode-fabric-util';
+import { TelemetryService, IFabricEnvironmentProvider, ILogger } from '@microsoft/vscode-fabric-util';
+import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { ICapacityManager } from '../../../CapacityManager';
 import { FabricWorkspaceDataProvider } from '../../../workspace/treeView';
 

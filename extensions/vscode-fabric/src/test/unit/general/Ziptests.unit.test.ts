@@ -2,14 +2,15 @@
 import * as assert from 'assert';
 
 import * as Mocha from 'mocha';
-import { MemoryFileSystem } from '@fabric/vscode-fabric-util/src/MemoryFileSystem';
+import { MemoryFileSystem } from '@microsoft/vscode-fabric-util/src/MemoryFileSystem';
 
 //import * as fs from 'fs';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as JSZip from 'jszip';
 import { PathLike } from 'fs';
-import { createZipFile } from '@fabric/vscode-fabric-util';
+import { createZipFile } from '@microsoft/vscode-fabric-util';
 import { getOrCreateEmptyTempFolder } from '../../utils';
 
 
@@ -21,7 +22,7 @@ describe('Zip Unit test', () => {
         let destdir = await getOrCreateEmptyTempFolder('tempdir');
         let srcdir: fs.PathLike = path.resolve(__dirname, '../../../../src');
         const destZipFile = destdir + '/MyZipFile.zip';
-        const zipResult = await createZipFile(destZipFile, srcdir);
+        const zipResult = await createZipFile( vscode.Uri.file(destZipFile), vscode.Uri.file(srcdir));
 
         console.log(destZipFile + ' created.');
 
@@ -38,7 +39,7 @@ describe('Zip Unit test', () => {
         const destZipFile = '/MyZipFile.zip';
         let errorMessage = '';
         try {
-            const zipResult = await createZipFile(destZipFile, srcdir);
+            const zipResult = await createZipFile(vscode.Uri.file(destZipFile), vscode.Uri.file(srcdir));
         }
         catch (error: any) {
             errorMessage = error.message;

@@ -1,6 +1,6 @@
 /* eslint-disable security/detect-object-injection */
 import * as vscode from 'vscode';
-import { IArtifact } from '@fabric/vscode-fabric-api';
+import { IArtifact } from '@microsoft/vscode-fabric-api';
 
 interface IFabricItemMetadata {
     displayName?: string;

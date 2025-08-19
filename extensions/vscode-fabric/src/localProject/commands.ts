@@ -1,14 +1,14 @@
 import * as vscode from 'vscode';
 
 import { commandNames } from '../constants';
-import { IWorkspaceManager, LocalProjectTreeNode, IFabricApiClient } from '@fabric/vscode-fabric-api';
+import { IWorkspaceManager, LocalProjectTreeNode, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
 import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
-import { TelemetryActivity, TelemetryService, IFabricEnvironmentProvider, withErrorHandling, doFabricAction, ILogger } from '@fabric/vscode-fabric-util';
+import { TelemetryActivity, TelemetryService, IFabricEnvironmentProvider, withErrorHandling, doFabricAction, ILogger } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { fabricViewWorkspace } from '../constants';
 import { importArtifactCommand } from './importArtifactCommand';
-import { UserCancelledError } from '@fabric/vscode-fabric-util';
+import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { ItemDefinitionReader } from '../itemDefinition/ItemDefinitionReader';
 import { ICapacityManager } from '../CapacityManager';
 

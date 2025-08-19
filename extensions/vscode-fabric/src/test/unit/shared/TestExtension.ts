@@ -1,5 +1,5 @@
 import { testApiVersion } from '../../../extensionManager/MockFabricExtensionManager';
-import { IArtifactHandler, IFabricExtension, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, ArtifactTreeNodeProvider, LocalProjectTreeNodeProvider } from '@fabric/vscode-fabric-api';
+import { IArtifactHandler, IFabricExtension, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, ArtifactTreeNodeProvider, LocalProjectTreeNodeProvider } from '@microsoft/vscode-fabric-api';
 
 export const satelliteExtensionIds = [
     'fabric-test.vscode-fabric-test-extension1',

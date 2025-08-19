@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { SqlEndpointTreeNode } from '../../../../internalSatellites/database/SqlEndpointTreeNode';
-import { IArtifact, IFabricApiClient } from '@fabric/vscode-fabric-api';
+import { IArtifact, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { SqlEndpontGetConnectionStringResponse } from '../../../../internalSatellites/database/ApiResponseModels';
 
 describe('SqlEndpointTreeNode', function() {

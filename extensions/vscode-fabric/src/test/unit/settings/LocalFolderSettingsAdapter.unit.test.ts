@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { IFabricExtensionSettings, IFabricExtensionsSettingStorage, IFabricWorkspaceSettings } from '../../../settings/definitions';
 import { LocalFolderSettingsAdapter } from '../../../settings/LocalFolderSettingsAdapter';
-import { FabricEnvironmentName } from '@fabric/vscode-fabric-util';
+import { FabricEnvironmentName } from '@microsoft/vscode-fabric-util';
 import { MockFabricEnvironmentProvider } from '../general/serviceCollection';
 import { Mock, Times } from 'moq.ts';
 

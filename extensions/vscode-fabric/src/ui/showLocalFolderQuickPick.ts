@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { IWorkspace } from '@fabric/vscode-fabric-api';
+import { IWorkspace } from '@microsoft/vscode-fabric-api';
 import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
 
 const selectFolderText = vscode.l10n.t('Select the working directory for Fabric workspace');

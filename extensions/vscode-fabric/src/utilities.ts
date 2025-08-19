@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { IApiClientResponse, IApiClientRequestOptions, IFabricApiClient } from '@fabric/vscode-fabric-api';
-import { sleep, FabricError, TelemetryActivity } from '@fabric/vscode-fabric-util';
+import { IApiClientResponse, IApiClientRequestOptions, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { sleep, FabricError, TelemetryActivity } from '@microsoft/vscode-fabric-util';
 
 /**
  * Checks whether or not the given URI is a directory. Symbolic links to directories will not be considered directories

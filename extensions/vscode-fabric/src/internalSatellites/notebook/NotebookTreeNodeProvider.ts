@@ -1,5 +1,5 @@
 import { ExtensionContext } from 'vscode';
-import { IFabricTreeNodeProvider, ArtifactTreeNode, IArtifact, IFabricApiClient } from '@fabric/vscode-fabric-api';
+import { IFabricTreeNodeProvider, ArtifactTreeNode, IArtifact, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { NotebookTreeNode } from './NotebookTreeNode';
 
 export class NotebookTreeNodeProvider implements IFabricTreeNodeProvider {

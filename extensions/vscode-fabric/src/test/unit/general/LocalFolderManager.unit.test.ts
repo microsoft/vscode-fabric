@@ -1,13 +1,13 @@
 import { Uri } from 'vscode';
 import { LocalFolderManager } from '../../../LocalFolderManager';
 import { IFabricExtensionSettings, IFabricWorkspaceSettings } from '../../../../src/settings/definitions';
-import { IArtifact, IWorkspace } from '@fabric/vscode-fabric-api';
+import { IArtifact, IWorkspace } from '@microsoft/vscode-fabric-api';
 import * as os from 'os';
 import * as path from 'path';
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 
-import { FabricEnvironmentName } from '@fabric/vscode-fabric-util';
+import { FabricEnvironmentName } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionsSettingStorage } from '../../../../src/settings/definitions';
 import { MockFabricEnvironmentProvider } from './serviceCollection';
 import { Mock, Times } from 'moq.ts';

@@ -3,7 +3,7 @@ import * as assert from 'assert';
 
 import { IFabricExtensionSettings, IFabricWorkspaceSettings, fabricWorkspaceSettingsVersion } from '../../../settings/definitions';
 import { FabricExtensionsSettingStorage } from '../../../settings/FabricExtensionsSettingStorage';
-import { FabricEnvironmentName, IConfigurationProvider } from '@fabric/vscode-fabric-util';
+import { FabricEnvironmentName, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { MockFabricEnvironmentProvider } from '../general/serviceCollection';
 
 const settingsFabricWorkspace = 'settingsFabricWorkspace';

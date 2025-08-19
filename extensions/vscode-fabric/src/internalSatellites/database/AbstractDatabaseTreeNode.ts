@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
-import { ArtifactTreeNode, IApiClientResponse, IArtifact, IFabricApiClient } from '@fabric/vscode-fabric-api';
-import { FabricError } from '@fabric/vscode-fabric-util';
+import { ArtifactTreeNode, IApiClientResponse, IArtifact, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { FabricError } from '@microsoft/vscode-fabric-util';
 
 export type SqlArtifactType = 'SQLDatabase' | 'SQLEndpoint';
 

@@ -1,4 +1,4 @@
-import { FabricTreeNode, ArtifactTreeNode, IArtifact, IFabricTreeNodeProvider, RuntimeAttribute, InputTypeAttribute, RuntimeType, InputType } from '@fabric/vscode-fabric-api';
+import { FabricTreeNode, ArtifactTreeNode, IArtifact, IFabricTreeNodeProvider, RuntimeAttribute, InputTypeAttribute, RuntimeType, InputType } from '@microsoft/vscode-fabric-api';
 import * as vscode from 'vscode';
 
 export const allChildNodes: Map<string, number> = new Map<string, number>();

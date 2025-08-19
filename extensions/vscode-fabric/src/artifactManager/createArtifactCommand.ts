@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
-import { IApiClientResponse, IArtifact, IArtifactManager, ICreateArtifactWorkflow } from '@fabric/vscode-fabric-api';
-import { TelemetryActivity, TelemetryService, ILogger, FabricError } from '@fabric/vscode-fabric-util';
+import { IApiClientResponse, IArtifact, IArtifactManager, ICreateArtifactWorkflow } from '@microsoft/vscode-fabric-api';
+import { TelemetryActivity, TelemetryService, ILogger, FabricError } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionManagerInternal, IArtifactManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { CreationCapability, ICreateItemsProvider, ItemCreationDetails } from '../metadata/definitions';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { formatErrorResponse, succeeded, handleArtifactCreationErrorAndThrow } from '../utilities';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
-import { UserCancelledError } from '@fabric/vscode-fabric-util';
+import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 
 class CreateItemQuickPickItem implements vscode.QuickPickItem {
     constructor(public details: ItemCreationDetails) {

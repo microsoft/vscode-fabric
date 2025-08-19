@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 import { Mock, It, Times } from 'moq.ts';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
-import { IApiClientResponse, IApiClientRequestOptions, IFabricApiClient } from '@fabric/vscode-fabric-api';
-import { FabricError } from '@fabric/vscode-fabric-util';
+import { IApiClientResponse, IApiClientRequestOptions, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { FabricError } from '@microsoft/vscode-fabric-util';
 import { CapacityManager, CapacityState, ICapacity } from '../../../CapacityManager';
 import * as utilities from '../../../utilities';
 

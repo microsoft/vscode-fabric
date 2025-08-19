@@ -4,10 +4,15 @@ import * as querystring from 'querystring';
 
 import { FeedbackTreeDataProvider } from './feedback/FeedbackTreeDataProvider';
 import { WorkspaceManager, WorkspaceManagerBase } from './workspace/WorkspaceManager';
-import { IFabricExtensionManager, Schema, IArtifactManager, IFabricApiClient, IFabricExtensionServiceCollection, IWorkspaceManager, FabricTreeNode } from '@fabric/vscode-fabric-api';
-import { TelemetryService, TelemetryActivity, ITokenAcquisitionService, FabricUriHandler, IAccountProvider, FabricEnvironmentProvider, ConfigurationProvider, AccountProvider, IConfigurationProvider, IFabricEnvironmentProvider, ILogger, TokenAcquisitionService, IDisposableCollection, DisposableCollection, VsCodeAuthentication, DefaultVsCodeAuthentication, FabricApiClient, MockTokenAcquisitionService, MockApiClient, FakeConfigurationProvider, MockAccountProvider, MockConsoleLogger } from '@fabric/vscode-fabric-util';
+import { IFabricExtensionManager, Schema, IArtifactManager, IFabricApiClient, IFabricExtensionServiceCollection, IWorkspaceManager, FabricTreeNode } from '@microsoft/vscode-fabric-api';
+import { TelemetryService, TelemetryActivity, FabricUriHandler, FabricEnvironmentProvider, ConfigurationProvider, IConfigurationProvider, IFabricEnvironmentProvider, ILogger, IDisposableCollection, DisposableCollection, FakeConfigurationProvider, MockConsoleLogger } from '@microsoft/vscode-fabric-util';
+import { ITokenAcquisitionService, IAccountProvider } from './authentication/interfaces';
+import { AccountProvider } from './authentication/AccountProvider';
+import { TokenAcquisitionService, VsCodeAuthentication, DefaultVsCodeAuthentication } from './authentication/TokenAcquisitionService';
+import { MockTokenAcquisitionService, MockAccountProvider } from './authentication/mocks';
+import { FabricApiClient, MockApiClient } from './fabric';
 import { FabricExtensionServiceCollection } from './FabricExtensionServiceCollection';
-import { Logger } from '@fabric/vscode-fabric-util';
+import { Logger } from '@microsoft/vscode-fabric-util';
 import { LocalProjectTreeDataProvider } from './localProject/LocalProjectTreeDataProvider';
 import { ExplorerLocalProjectDiscovery } from './localProject/ExplorerLocalProjectDiscovery';
 import { WorkspaceFolderProvider } from './localProject/WorkspaceFolderProvider';

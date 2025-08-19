@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { SqlExtension } from './database/SqlExtension';
 import { NotebookExtension } from './notebook/NotebookExtension';
-import { IFabricExtension } from '@fabric/vscode-fabric-api';
-import { ILogger, TelemetryService } from '@fabric/vscode-fabric-util';
+import { IFabricExtension } from '@microsoft/vscode-fabric-api';
+import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 
 export interface IInternalSatelliteExtension extends IFabricExtension, vscode.Disposable {

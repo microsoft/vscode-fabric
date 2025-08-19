@@ -5,17 +5,17 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { AbortError } from '@azure/abort-controller';
 
-import { IApiClientRequestOptions, IApiClientResponse, IFabricApiClient } from '@fabric/vscode-fabric-api';
-import { TelemetryActivity } from '../telemetry/TelemetryActivity';
+import { IApiClientRequestOptions, IApiClientResponse, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { TelemetryActivity } from '@microsoft/vscode-fabric-util';
 
 import * as path from 'path';
-import { TelemetryService } from '../telemetry/TelemetryService';
-import { IAccountProvider } from '../authentication/AccountProvider';
-import { IConfigurationProvider } from '../settings/ConfigurationProvider';
-import { IFabricEnvironmentProvider } from '../settings/FabricEnvironmentProvider';
-import { FabricEnvironmentName } from '../settings/FabricEnvironment';
-import { doFabricAction } from '../FabricError';
-import { ILogger } from '../logger/Logger';
+import { TelemetryService } from '@microsoft/vscode-fabric-util';
+import { IConfigurationProvider } from '@microsoft/vscode-fabric-util';
+import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
+import { FabricEnvironmentName } from '@microsoft/vscode-fabric-util';
+import { doFabricAction } from '@microsoft/vscode-fabric-util';
+import { ILogger } from '@microsoft/vscode-fabric-util';
+import { IAccountProvider } from '../authentication/interfaces';
 
 export interface ClusterUrisByTenantLocation {
     /* eslint-disable @typescript-eslint/naming-convention*/

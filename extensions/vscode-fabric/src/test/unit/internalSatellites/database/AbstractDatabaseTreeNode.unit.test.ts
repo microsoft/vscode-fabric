@@ -2,8 +2,8 @@ import { Mock } from 'moq.ts';
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 import { AbstractDatabaseTreeNode, SqlArtifactType } from '../../../../internalSatellites/database/AbstractDatabaseTreeNode';
-import { IApiClientResponse, IArtifact, IFabricApiClient } from '@fabric/vscode-fabric-api';
-import { FabricError } from '@fabric/vscode-fabric-util';
+import { IApiClientResponse, IArtifact, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { FabricError } from '@microsoft/vscode-fabric-util';
 
 describe('AbstractDatabaseTreeNode (protected methods)', function() {
     class TestDatabaseTreeNode extends AbstractDatabaseTreeNode {

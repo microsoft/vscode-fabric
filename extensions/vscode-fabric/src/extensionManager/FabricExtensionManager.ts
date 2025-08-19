@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { apiVersion, IArtifactHandler, IFabricExtension, IFabricExtensionServiceCollection, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider } from '@fabric/vscode-fabric-api';
+import { apiVersion, IArtifactHandler, IFabricExtension, IFabricExtensionServiceCollection, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { ObservableMap } from '../collections/ObservableMap';
-import { ILogger, TelemetryService } from '@fabric/vscode-fabric-util';
+import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 
 const satelliteExtensionIds = [
     'fabric.vscode-fabric-functions',

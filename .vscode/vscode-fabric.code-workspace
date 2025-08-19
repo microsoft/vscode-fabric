@@ -1,4 +1,4 @@
-{
+﻿{
 	"folders": [
 		{
 			"name": "🌳 ROOT",
@@ -9,11 +9,11 @@
 			"path": "../extensions/vscode-fabric"
 		},
 		{
-			"name": "🚀 @fabric/vscode-fabric-api",
+			"name": "🚀 @microsoft/vscode-fabric-api",
 			"path": "../packages/api"
 		},
 		{
-			"name": "🚀 @fabric/vscode-fabric-util",
+			"name": "🚀 @microsoft/vscode-fabric-util",
 			"path": "../packages/util"
 		}
 	],
@@ -53,15 +53,15 @@
 		// }
 		"extension-test-runner.debugOptions": {
 			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder:📦 vscode-fabric}"
+				"--extensionDevelopmentPath=${workspaceFolder:📦 vscode-fabric}",
 			],
 			"outFiles": [
 				"${workspaceFolder:📦 vscode-fabric}/**/*",
-				"${workspaceFolder:🚀 @fabric/vscode-fabric-api}/**/*",
-				"${workspaceFolder:🚀 @fabric/vscode-fabric-util}/**/*",
+				"${workspaceFolder:🚀 @microsoft/vscode-fabric-api}/**/*",
+				"${workspaceFolder:🚀 @microsoft/vscode-fabric-util}/**/*",
 			],
 			"sourceMapPathOverrides": {
-				"webpack://vscode-fabric/*": "${workspaceFolder:📦 vscode-fabric}/*"
+				"webpack://vscode-fabric/*": "${workspaceFolder:📦 vscode-fabric}/*",
 			}
 		},
 	}

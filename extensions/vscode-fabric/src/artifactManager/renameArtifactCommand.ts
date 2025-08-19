@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { IArtifact, IArtifactManager } from '@fabric/vscode-fabric-api';
-import { FabricError, TelemetryActivity } from '@fabric/vscode-fabric-util';
+import { IArtifact, IArtifactManager } from '@microsoft/vscode-fabric-api';
+import { FabricError, TelemetryActivity } from '@microsoft/vscode-fabric-util';
 import { formatErrorResponse } from '../utilities';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
-import { UserCancelledError } from '@fabric/vscode-fabric-util';
+import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 
 export async function renameArtifactCommand(
     artifact: IArtifact,

@@ -6,7 +6,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { ILocalFileSystem, Schema } from '@fabric/vscode-fabric-api';
+import { ILocalFileSystem, Schema } from '@microsoft/vscode-fabric-api';
 
 class File implements vscode.FileStat {
 

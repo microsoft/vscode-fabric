@@ -1,12 +1,9 @@
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 
-import { ITokenAcquisitionService, TokenAcquisitionService, TokenRequestOptions, VsCodeAuthentication } from '../authentication/TokenAcquisitionService';
-import { FabricEnvironmentProvider } from '../settings/FabricEnvironmentProvider';
-import { msSessionProvider, msSessionProviderPPE } from '../authentication/helpers';
-import { sleep } from '../fabricUtilities';
-import { FakeConfigurationProvider } from '../settings/mocks';
-import { MockConsoleLogger } from '../logger/Logger';
+import { TokenAcquisitionService, VsCodeAuthentication } from '../../../authentication/index';
+import { FabricEnvironmentProvider, FakeConfigurationProvider, MockConsoleLogger, msSessionProvider, msSessionProviderPPE, sleep } from '@microsoft/vscode-fabric-util';
+
 
 describe('The TokenAcquisitionService', () => {
     let tokens: TokenAcquisitionService;

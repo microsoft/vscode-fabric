@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { IApiClientResponse, IApiClientRequestOptions, IFabricApiClient } from '@fabric/vscode-fabric-api';
+import { IApiClientResponse, IApiClientRequestOptions, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { formatErrorResponse } from './utilities';
-import { FabricError } from '@fabric/vscode-fabric-util';
+import { FabricError } from '@microsoft/vscode-fabric-util';
 
 export type CapacityState = 'Active' | 'Inactive';
 

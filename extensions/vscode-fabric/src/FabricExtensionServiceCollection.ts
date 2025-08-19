@@ -1,4 +1,4 @@
-import { IArtifactManager, IFabricApiClient, IFabricExtensionServiceCollection, IWorkspaceManager } from '@fabric/vscode-fabric-api';
+import { IArtifactManager, IFabricApiClient, IFabricExtensionServiceCollection, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 
 export class FabricExtensionServiceCollection implements IFabricExtensionServiceCollection {
     public constructor(

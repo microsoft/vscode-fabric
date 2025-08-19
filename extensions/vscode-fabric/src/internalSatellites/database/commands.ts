@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { AbstractDatabaseTreeNode } from './AbstractDatabaseTreeNode';
-import { ArtifactPropertyNames, TelemetryService } from '@fabric/vscode-fabric-util';
-import { IWorkspaceManager, IArtifactManager, IFabricApiClient } from '@fabric/vscode-fabric-api';
+import { ArtifactPropertyNames, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { IWorkspaceManager, IArtifactManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { openSqlExtensionInExternal } from './openSqlExtension';
 import { copyConnectionStringToClipboard } from './copyConnectionString';
 

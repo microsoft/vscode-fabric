@@ -11,13 +11,13 @@ import {
     IWorkspace,
     IWorkspaceManager,
     IFabricApiClient,
-} from '@fabric/vscode-fabric-api';
+} from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
 import { ArtifactManager } from '../../../artifactManager/ArtifactManager';
 import { FabricExtensionServiceCollection } from '../../../FabricExtensionServiceCollection';
 import { ObservableMap } from '../../../collections/ObservableMap';
 import { ObservableSet } from '../../../collections/ObservableSet';
-import { FabricEnvironmentName, getFabricEnvironment, FabricEnvironmentSettings, IFabricEnvironmentProvider, ILogger, LogImportance } from '@fabric/vscode-fabric-util';
+import { FabricEnvironmentName, getFabricEnvironment, FabricEnvironmentSettings, IFabricEnvironmentProvider, ILogger, LogImportance } from '@microsoft/vscode-fabric-util';
 import { Mock } from 'moq.ts';
 
 // #region stub IFabricServiceCollection implementations

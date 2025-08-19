@@ -3,7 +3,7 @@ import { IWorkspaceFolderProvider } from './definitions';
 import { IObservableArray } from '../collections/definitions';
 import { ObservableSet } from '../collections/ObservableSet';
 import { isDirectory } from '../utilities';
-import { withErrorHandling, ILogger, TelemetryService } from '@fabric/vscode-fabric-util';
+import { withErrorHandling, ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 
 export class WorkspaceFolderProvider implements IWorkspaceFolderProvider, vscode.Disposable {
     /**

@@ -5,8 +5,8 @@ import {
     IArtifact,
     RuntimeType,
     InputType
-} from '@fabric/vscode-fabric-api';
-import { FabricEnvironmentName, MockApiClient, TelemetryService } from '@fabric/vscode-fabric-util';
+} from '@microsoft/vscode-fabric-api';
+import { FabricEnvironmentName, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { MockArtifactManagerStub, MockFabricEnvironmentProvider, MockLoggerStub, initializeServiceCollection } from './serviceCollection';
 
 class MockArtifactManager extends MockArtifactManagerStub {

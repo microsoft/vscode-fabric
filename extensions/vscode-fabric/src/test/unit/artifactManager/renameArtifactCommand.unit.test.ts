@@ -2,13 +2,13 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
-import { IArtifactManager, IArtifact, IApiClientResponse } from '@fabric/vscode-fabric-api';
-import { FabricError, TelemetryActivity } from '@fabric/vscode-fabric-util';
+import { IArtifactManager, IArtifact, IApiClientResponse } from '@microsoft/vscode-fabric-api';
+import { FabricError, TelemetryActivity } from '@microsoft/vscode-fabric-util';
 import { renameArtifactCommand } from '../../../artifactManager/renameArtifactCommand';
 import { CoreTelemetryEventNames } from '../../../TelemetryEventNames';
 import { FabricWorkspaceDataProvider } from '../../../workspace/treeView';
 import { verifyAddOrUpdateProperties, verifyAddOrUpdatePropertiesNever } from '../../utilities/moqUtilities';
-import { UserCancelledError } from '@fabric/vscode-fabric-util';
+import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 
 describe('renameArtifactCommand', () => {
     let artifactManagerMock: Mock<IArtifactManager>;

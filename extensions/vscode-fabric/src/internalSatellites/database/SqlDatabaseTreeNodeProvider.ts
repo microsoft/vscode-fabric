@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { IFabricTreeNodeProvider, ArtifactTreeNode, IArtifact } from '@fabric/vscode-fabric-api';
+import { IFabricTreeNodeProvider, ArtifactTreeNode, IArtifact } from '@microsoft/vscode-fabric-api';
 import { SqlDatabaseTreeNode } from './SqlDatabaseTreeNode';
 
 

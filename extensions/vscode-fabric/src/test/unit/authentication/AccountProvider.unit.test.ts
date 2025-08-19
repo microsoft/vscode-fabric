@@ -4,7 +4,7 @@ import * as assert from 'assert';
 import * as sinon from 'sinon';
 
 import { AccountProvider } from '../../../authentication/AccountProvider';
-import { ITokenAcquisitionService, TokenRequestOptions } from '../../../authentication/TokenAcquisitionService';
+import { ITokenAcquisitionService, TokenRequestOptions } from '../../../authentication/interfaces';
 import { AuthenticationSessionAccountInformation } from 'vscode';
 import { SubscriptionClient, TenantIdDescription } from '@azure/arm-resources-subscriptions';
 
@@ -375,8 +375,7 @@ describe('AccountProvider', function() {
             const jsonParseSpy = sinon.spy(JSON, 'parse');
             
             // Create a spy on Buffer.from that will return our mock data
-            const bufferFromStub = sinon.stub(Buffer, 'from').callsFake((...args: [any, any?]) => {
-                const [data, encoding] = args;
+            const bufferFromStub = sinon.stub(Buffer, 'from').callsFake((data, encoding) => {
                 if (encoding === 'base64' && typeof data === 'string') {
                     // This is the mocked decoded JSON that would be returned
                     // We're simulating the decoding of the JWT token payload
@@ -430,8 +429,7 @@ describe('AccountProvider', function() {
             // Create a spy on Buffer.from that will return our mock data
             // This is testing the case where the JWT token contains preferred_username 
             // instead of email, which AccountProvider should also handle correctly
-            const bufferFromStub = sinon.stub(Buffer, 'from').callsFake((...args: [any, any?]) => {
-                const [data, encoding] = args;
+            const bufferFromStub = sinon.stub(Buffer, 'from').callsFake((data, encoding) => {
                 if (encoding === 'base64' && typeof data === 'string') {
                     // This is the mocked decoded JSON that would be returned
                     const mockJson = '{"preferred_username":"test-user@microsoft.com","tid":"test-tenant-id"}';
@@ -476,8 +474,7 @@ describe('AccountProvider', function() {
             // Create a spy on Buffer.from that will return our mock data
             // This test case verifies that non-Microsoft email domains are correctly
             // identified as external users in the telemetry properties
-            const bufferFromStub = sinon.stub(Buffer, 'from').callsFake((...args: [any, any?]) => {
-                const [data, encoding] = args;
+            const bufferFromStub = sinon.stub(Buffer, 'from').callsFake((data, encoding) => {
                 if (encoding === 'base64' && typeof data === 'string') {
                     // This is the mocked decoded JSON that would be returned
                     // Note the email domain is example.com (non-Microsoft)

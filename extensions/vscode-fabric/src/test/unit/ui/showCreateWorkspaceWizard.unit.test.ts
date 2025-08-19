@@ -4,8 +4,8 @@ import * as vscode from 'vscode';
 import { Mock, It, Times } from 'moq.ts';
 
 import { showCreateWorkspaceWizard } from '../../../ui/showCreateWorkspaceWizard';
-import { IWorkspaceManager, IFabricApiClient, IApiClientResponse, IWorkspace } from '@fabric/vscode-fabric-api';
-import { FabricError, TelemetryService, ILogger } from '@fabric/vscode-fabric-util';
+import { IWorkspaceManager, IFabricApiClient, IApiClientResponse, IWorkspace } from '@microsoft/vscode-fabric-api';
+import { FabricError, TelemetryService, ILogger } from '@microsoft/vscode-fabric-util';
 import { NotSignedInError } from '../../../ui/NotSignedInError';
 import { ICapacity, ICapacityManager, CapacityState } from '../../../CapacityManager';
 

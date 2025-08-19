@@ -3,7 +3,8 @@ import * as vscode from 'vscode';
 import { It, Mock, Times } from 'moq.ts';
 import { FabricVsCodeExtension } from '../../extension';
 import { composeTestContainer } from './composeTestContainer';
-import { FabricEnvironmentName, getFabricEnvironment, IAccountProvider, IFabricEnvironmentProvider, sleep, TelemetryService } from '@fabric/vscode-fabric-util';
+import { FabricEnvironmentName, getFabricEnvironment, IFabricEnvironmentProvider, sleep, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { IAccountProvider } from '../../authentication/interfaces';
 
 describe('FabricVsCodeExtension', function() {
     let app: FabricVsCodeExtension;

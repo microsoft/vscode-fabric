@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { IArtifact, IWorkspaceManager, IArtifactManager } from '@fabric/vscode-fabric-api';
+import { IArtifact, IWorkspaceManager, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { formatErrorResponse, succeeded } from '../utilities';
-import { FabricError, TelemetryActivity, UserCancelledError } from '@fabric/vscode-fabric-util';
+import { FabricError, TelemetryActivity, UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { IItemDefinitionWriter } from '../itemDefinition/ItemDefinitionWriter';
 

@@ -519,8 +519,9 @@
   },
   "dependencies": {
     "@azure/core-rest-pipeline": "^1.14.0",
-    "@fabric/vscode-fabric-api": "^0.31.0-preview",
-    "@fabric/vscode-fabric-util": "^0.31.0-preview",
+    "@microsoft/vscode-azext-azureauth": "^4.1.1",
+    "@microsoft/vscode-fabric-api": "^0.31.0-preview",
+    "@microsoft/vscode-fabric-util": "^0.31.0-preview",
     "@types/fs-extra": "^11.0.1",
     "@vscode/extension-telemetry": "^0.8.3",
     "fs-extra": "^11.1.1",

@@ -1,9 +1,6 @@
 import * as vscode from 'vscode';
 import * as os from 'os';
-import { IFabricEnvironmentProvider } from '../settings/FabricEnvironmentProvider';
-import { getSessionProviderForEnvironment, msSessionProvider, msSessionProviderPPE,  } from './helpers';
-import { TelemetryService } from '../telemetry/TelemetryService';
-import { ITokenAcquisitionService, TokenRequestOptions } from './TokenAcquisitionService';
+import { ITokenAcquisitionService, TokenRequestOptions } from './interfaces';
 
 export class FakeTokenAcquisitionService implements ITokenAcquisitionService {
     getArmAccessToken(options: TokenRequestOptions, extraScopes?: string[], tenantId?: string): Promise<string | null> {

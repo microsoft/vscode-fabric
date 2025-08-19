@@ -1,15 +1,16 @@
 /* eslint-disable security/detect-non-literal-fs-filename */
 /* eslint-disable security/detect-object-injection */
 /* eslint-disable @typescript-eslint/naming-convention */
-import { IApiClientRequestOptions, IApiClientResponse, IFabricApiClient } from '@fabric/vscode-fabric-api';
+import * as vscode from 'vscode';
+import { IApiClientRequestOptions, IApiClientResponse, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import * as azApi from '@azure/core-rest-pipeline';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
-import { createTestZipFile, unzipZipFile } from '../zipUtilities';
-import { FABRIC_ENVIRONMENTS } from '../settings/FabricEnvironmentProvider';
-import { FabricEnvironmentName } from '../settings/FabricEnvironment';
-import { ILogger } from '../logger/Logger';
+import { createTestZipFile, unzipZipFile } from '@microsoft/vscode-fabric-util';
+import { FABRIC_ENVIRONMENTS } from '@microsoft/vscode-fabric-util';
+import { FabricEnvironmentName } from '@microsoft/vscode-fabric-util';
+import { ILogger } from '@microsoft/vscode-fabric-util';
 
 export class MockApiClient implements IFabricApiClient {
     callback: (options: IApiClientRequestOptions) => Promise<IApiClientResponse>;
@@ -77,7 +78,7 @@ export class MockApiClient implements IFabricApiClient {
                             // now determine how many zip entries 
                             const tempzipFolder = path.resolve(os.tmpdir(), 'MyZipFileTemp');
                             await fs.emptyDir(tempzipFolder);
-                            const zipData = await unzipZipFile(filePath, tempzipFolder);
+                            const zipData = await unzipZipFile(vscode.Uri.file(filePath), vscode.Uri.file(tempzipFolder));
                             nZipEntries = zipData.nEntries;
                             if (numZipEntriesFirstFile === 0) {
                                 numZipEntriesFirstFile = nZipEntries;

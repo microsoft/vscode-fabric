@@ -7,7 +7,6 @@ import * as os from 'os';
 import JSZip = require('jszip');
 import * as glob from 'glob';
 import * as crypto from 'crypto';
-import * as decomp from 'decompress';
 
 /*
  * Options for creating and unzipping a zip file 
@@ -19,58 +18,123 @@ export interface IZipOptions {
     progress?: vscode.Progress<{}> | null;
     debug?: boolean; // for tests
     reporter?: IMessageReporter; // show to the user in the output channel window any zip differences
-    filterFolder?: (rootFolder: string, folder: string) => boolean; // Folder: return true to include the folder and its contents
+    filterFolder?: (rootFolder: vscode.Uri, folder: vscode.Uri) => Promise<boolean>; // Folder: return true to include the folder and its contents
 
     // local.settings.json can be anywhere in folder structure, and we don't want to zip/store it or include it in hash calculations so replace contents with '' before zip and hash calc 
-    filterFile?: (rootFolder: string, filename: string) => { include: boolean, replaceWithEmpty?: boolean };
+    filterFile?: (rootFolder: vscode.Uri, filename: string) => Promise<{ include: boolean, replaceWithEmpty?: boolean }>;
 }
 
 export interface IMessageReporter {
     report(message: string): void;
 }
 
-export async function unzipZipFile(srczip: string, destfolder: string, zipOptions?: IZipOptions): Promise<{ hash: string, nEntries: number }> {
+export async function unzipZipFile(srczip: vscode.Uri, destfolder: vscode.Uri, zipOptions?: IZipOptions): Promise<{ hash: string, nEntries: number }> {
     let hash = '';
     let nEntries = 0;
-    if (!fs.existsSync(srczip)) {
-        throw new Error(`Cannot find file ${srczip}`);
+
+    // Check if source zip file exists
+    try {
+        const stat = await vscode.workspace.fs.stat(srczip);
+        if (stat.type !== vscode.FileType.File) {
+            throw new Error(`${srczip.toString()} is not a file`);
+        }
     }
-    zipOptions?.reporter?.report(`Unzipping ${srczip} to ${destfolder}`);
-    let resUnzip = await decomp(srczip, destfolder);
+    catch (error) {
+        throw new Error(`Cannot find file ${srczip.toString()}`);
+    }
+
+    zipOptions?.reporter?.report(`Unzipping ${srczip.toString()} to ${destfolder.toString()}`);
+
+    // Read the zip file contents
+    const zipData = await vscode.workspace.fs.readFile(srczip);
+
+    // Load the zip file using JSZip
+    const zip = new JSZip();
+    const zipContents = await zip.loadAsync(zipData);
+
+    // Create destination directory if it doesn't exist
+    try {
+        await vscode.workspace.fs.createDirectory(destfolder);
+    }
+    catch (error) {
+        // Directory might already exist, that's okay
+    }
+
     let hasher: crypto.Hash | undefined;
     if (zipOptions?.calculateHash) {
         hasher = crypto.createHash('sha256');
-        processFolder(destfolder);
-        function processFolder(folderPath: string) {
-            const files = fs.readdirSync(folderPath);
-            files.forEach((fileName) => {
-                const filePath = path.resolve(folderPath, fileName);
-                if (fs.statSync(filePath).isDirectory()) {
-                    processFolder(filePath);
-                    nEntries++;
+    }
+
+    // Process each file in the zip
+    const filePromises: Promise<void>[] = [];
+
+    zipContents.forEach((relativePath, zipEntry) => {
+        if (!zipEntry.dir) {
+            // It's a file
+            const filePromise = (async () => {
+                const fileUri = vscode.Uri.joinPath(destfolder, relativePath);
+                const fileContent = await zipEntry.async('uint8array');
+
+                // Create directory structure if needed
+                const parentDir = vscode.Uri.joinPath(fileUri, '..');
+                try {
+                    await vscode.workspace.fs.createDirectory(parentDir);
                 }
-                else {
-                    const buf = createBufFromFileWithLineEndingsFixed(fs.readFileSync(filePath, 'utf8'));
-                    // convert the buf to a string
+                catch (error) {
+                    // Directory might already exist, that's okay
+                }
+
+                // Write the file
+                await vscode.workspace.fs.writeFile(fileUri, fileContent);
+
+                // Update hash if needed
+                if (hasher) {
+                    const textContent = Buffer.from(fileContent).toString('utf8');
+                    const buf = createBufFromFileWithLineEndingsFixed(textContent);
                     const bufStr = buf.toString();
-                    hasher?.update(bufStr);
-                    nEntries++;
+                    hasher.update(bufStr);
                 }
-            });
+
+                nEntries++;
+            })();
+
+            filePromises.push(filePromise);
         }
+        else {
+            // It's a directory
+            const dirPromise = (async () => {
+                const dirUri = vscode.Uri.joinPath(destfolder, relativePath);
+                try {
+                    await vscode.workspace.fs.createDirectory(dirUri);
+                }
+                catch (error) {
+                    // Directory might already exist, that's okay
+                }
+                nEntries++;
+            })();
+
+            filePromises.push(dirPromise);
+        }
+    });
+
+    // Wait for all files to be processed
+    await Promise.all(filePromises);
+
+    if (hasher) {
         hash = hasher.digest('base64');
     }
-    else {
-        nEntries = resUnzip.length;
-    }
-    return { hash, nEntries: nEntries };
+
+    return { hash, nEntries };
 }
 
 export function createBufFromFileWithLineEndingsFixed(text: string): ArrayBuffer {
     // read the file contents into a string and replace all line endings so works with windows and linux
     const bText = text.replace(/\r?\n|\n?\r|\r/g, '\n');
     const buf = Buffer.from(bText, 'utf8');
+    // BEGINMERGE
+//    return buf;
     return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+    // ENDMERGE
 }
 
 /**
@@ -94,20 +158,27 @@ async function getTempZipFileName(): Promise<string> {
     return destZipFile;
 }
 
-async function getArrayOfFilesToIncludeFromGitIgnore(srcDir: string, zipOptions?: IZipOptions): Promise<string[]> {
+async function getArrayOfFilesToIncludeFromGitIgnore(srcDir: vscode.Uri, zipOptions?: IZipOptions): Promise<string[]> {
     const fabricIgnoreFileName = '.fabricignore';
     const gitgnoreFileName = '.gitignore';
     let arrayFilesToInclude: string[] = [];
+
     if (zipOptions?.respectGitIgnoreFile) {
+        // For now, we'll use the file system path for gitignore processing
+        // This can be enhanced later to work fully with VSCode file system
+        const srcDirPath = srcDir.fsPath;
+
         // we'll use a '.fabricignore' file to specify what to include in the zip. If it doesn't exist, we'll use the '.gitignore' file if it exists
         // that way the user can have different settings for FabricIgnore. The .gitignore semantics is slightly different how we're using it here
         // for example, nested .gitignore's will not be processed. Also, negated patterns are not supported
-        const fabricIgnoreFullPathName = path.resolve(srcDir, fabricIgnoreFileName);
-        let gitIgnoreFileFullPathName = path.resolve(srcDir, gitgnoreFileName);
+        const fabricIgnoreFullPathName = path.resolve(srcDirPath, fabricIgnoreFileName);
+        let gitIgnoreFileFullPathName = path.resolve(srcDirPath, gitgnoreFileName);
+
         if (fs.existsSync(fabricIgnoreFullPathName)) {
             zipOptions?.reporter?.report(`Using .fabricignore file ${fabricIgnoreFullPathName}`);
             gitIgnoreFileFullPathName = fabricIgnoreFullPathName;
         }
+
         if (fs.existsSync(gitIgnoreFileFullPathName)) {
             zipOptions?.reporter?.report(`Reading gitignore file ${gitIgnoreFileFullPathName}`);
             let gitIgnoreLines = fs.readFileSync(gitIgnoreFileFullPathName).toString().split('\n').filter((line) => {
@@ -120,14 +191,14 @@ async function getArrayOfFilesToIncludeFromGitIgnore(srcDir: string, zipOptions?
             arrayFilesToInclude = glob.sync(
                 '**/*.*',
                 {
-                    cwd: srcDir,
+                    cwd: srcDirPath,
                     ignore: gitIgnoreLines,
                     dot: false, // whether to include files that start with '.' like .gitignore, but we want to exclude .vscode
                     posix: true, // whether, in the case of windows, to use / instead of \
                 });
             // we want to include any .ignore files
             [fabricIgnoreFileName, gitgnoreFileName].forEach((file) => {
-                if (fs.existsSync(path.resolve(srcDir, file))) {
+                if (fs.existsSync(path.resolve(srcDirPath, file))) {
                     arrayFilesToInclude.push(file);
                 }
             });
@@ -147,13 +218,10 @@ async function getArrayOfFilesToIncludeFromGitIgnore(srcDir: string, zipOptions?
  * Create a zip file from a directory. If the provided destdir is empty, will create a temp file name
  */
 export async function createZipFile(
-    destZipFile: string,
-    srcDir: string,
+    destZipFile: vscode.Uri,
+    srcDir: vscode.Uri,
     zipOptions?: IZipOptions
-): Promise<{ zipFileName: string, hash: string, nEntries: number }> {
-    if (destZipFile.length === 0) {
-        destZipFile = await getTempZipFileName();
-    }
+): Promise<{ zipFileName: vscode.Uri, hash: string, nEntries: number }> {
     let debugit = function (str: string) { };
     if (zipOptions?.debug) {
         debugit = function (str: string) {
@@ -168,38 +236,53 @@ export async function createZipFile(
     if (zipOptions?.calculateHash || zipOptions?.calculateHashOnly) {
         hasher = crypto.createHash('sha256');
     }
+
     try {
-        if (!fs.existsSync(srcDir)) {
-            throw new Error('srcdir does not exist ' + srcDir);
+        // Check if source directory exists
+        try {
+            const stat = await vscode.workspace.fs.stat(srcDir);
+            if (stat.type !== vscode.FileType.Directory) {
+                throw new Error(`srcdir is not a directory: ${srcDir.toString()}`);
+            }
         }
+        catch (error) {
+            throw new Error(`srcdir does not exist: ${srcDir.toString()}`);
+        }
+
         if (zipOptions?.calculateHashOnly) {
-            console.log(`Calculating Hash Only  ${srcDir}`);
+            console.log(`Calculating Hash Only  ${srcDir.toString()}`);
         }
         else {
-            console.log(`Starting to zip ${srcDir} into ${destZipFile}`);
+            console.log(`Starting to zip ${srcDir.toString()} into ${destZipFile.toString()}`);
             zipOptions?.progress?.report({ increment: 10, message: 'Starting to Zip' });
         }
-        let arrayFilesToIncludeFromGitIgnore: string[] = await getArrayOfFilesToIncludeFromGitIgnore(srcDir, zipOptions); // files to include (if found) relative to srcdir,  guided by .gitignore or .fabricignore. 
-        addFolderToZip(zipCreate, srcDir);
 
-        function addFolderToZip(zip: JSZip, folderPath: string) {
-            const files = fs.readdirSync(folderPath).sort((a, b) => a.localeCompare(b)); // linux mac and windows have different sort orders, wreaking havoc on the hash
+        // Process gitignore files if requested
+        let arrayFilesToIncludeFromGitIgnore: string[] = await getArrayOfFilesToIncludeFromGitIgnore(srcDir, zipOptions);
 
-            files.forEach((fileName) => {
-                const filePath = path.resolve(folderPath, fileName);//`${folderPath}/${fileName}`;
+        await addFolderToZip(zipCreate, srcDir, '');
+
+        async function addFolderToZip(zip: JSZip, folderUri: vscode.Uri, relativePath: string) {
+            const entries = await vscode.workspace.fs.readDirectory(folderUri);
+            // Sort entries for consistent hash calculation
+            entries.sort((a, b) => a[0].localeCompare(b[0]));
+
+            for (const [fileName, fileType] of entries) {
+                const fileUri = vscode.Uri.joinPath(folderUri, fileName);
+                const currentRelativePath = relativePath ? `${relativePath}/${fileName}` : fileName;
+
                 let includeit = false;
-                // if the filePath is in the arrayFilesToInclude, then add it to the zip
-                const testPath = filePath.substring(srcDir.length + 1).replace(/\\/g, '/'); // replace all \ with /
+                // Check if file should be included based on gitignore rules
                 if (arrayFilesToIncludeFromGitIgnore.length === 0) {
                     includeit = true;
                 }
                 else {
-                    // find an entry in the arrayFilesToInclude that starts with the testPath
-                    for (let i = 0; i < arrayFilesToIncludeFromGitIgnore.length; i++) { // there's gotta be a faster way!
+                    // find an entry in the arrayFilesToInclude that starts with the currentRelativePath
+                    for (let i = 0; i < arrayFilesToIncludeFromGitIgnore.length; i++) {
                         // eslint-disable-next-line security/detect-object-injection
-                        if (arrayFilesToIncludeFromGitIgnore[i].startsWith(testPath)) {
+                        if (arrayFilesToIncludeFromGitIgnore[i].startsWith(currentRelativePath)) {
                             // eslint-disable-next-line security/detect-object-injection
-                            if (arrayFilesToIncludeFromGitIgnore[i] === testPath) {
+                            if (arrayFilesToIncludeFromGitIgnore[i] === currentRelativePath) {
                                 // remove it from the array
                                 arrayFilesToIncludeFromGitIgnore.splice(i, 1);
                             }
@@ -208,26 +291,26 @@ export async function createZipFile(
                         }
                     }
                 }
+
                 if (includeit) {
                     includeit = false;
                     if (nEntriesAdded > 0 && nEntriesAdded % 1000 === 0) {
-                        zipOptions?.progress?.report({ message: `zipping Entries = ${nEntriesAdded}}` });
+                        zipOptions?.progress?.report({ message: `zipping Entries = ${nEntriesAdded}` });
                     }
-                    if (fs.statSync(filePath).isDirectory()) {
-                        if (zipOptions?.filterFolder ? zipOptions.filterFolder(srcDir, filePath) : true) {
+
+                    if (fileType === vscode.FileType.Directory) {
+                        if (zipOptions?.filterFolder ? await zipOptions.filterFolder(srcDir, fileUri) : true) {
                             nEntriesAdded++;
                             const zf = zip.folder(fileName);
                             if (zf !== null) {
-                                addFolderToZip(zf, filePath);
+                                await addFolderToZip(zf, fileUri, currentRelativePath);
                             }
                         }
                     }
-                    else {
-                        let replWithEmpty = false; // if true, then replace the file with an empty file (for example, local.settings.json)
-                        const relativePath = filePath.substring(srcDir.length + 1);
+                    else if (fileType === vscode.FileType.File) {
+                        let replWithEmpty = false;
                         if (zipOptions?.filterFile) {
-                            // remove the srcDir from the filePath
-                            const { include, replaceWithEmpty } = zipOptions.filterFile(srcDir, relativePath);
+                            const { include, replaceWithEmpty } = await zipOptions.filterFile(srcDir, currentRelativePath);
                             if (include) {
                                 includeit = true;
                             }
@@ -236,68 +319,66 @@ export async function createZipFile(
                         else {
                             includeit = true;
                         }
+
                         if (includeit) {
                             nEntriesAdded++;
                             if (zipOptions?.calculateHash || zipOptions?.calculateHashOnly) {
-                                let txt = fs.readFileSync(filePath, 'utf8') + relativePath.replace(/\\/g, '/'); // Add relative path in case user renamed file.  replace all \ with /
-                                if (replWithEmpty) {
-                                    txt = '';
+                                let txt = '';
+                                if (!replWithEmpty) {
+                                    const fileContent = await vscode.workspace.fs.readFile(fileUri);
+                                    txt = Buffer.from(fileContent).toString('utf8');
                                 }
-                                // const buf = Buffer.from(txt, 'utf8');
+                                txt += currentRelativePath.replace(/\\/g, '/'); // Add relative path for hash consistency
+
                                 const buf = createBufFromFileWithLineEndingsFixed(txt);
                                 const txtraw = buf.toString();
-                                if (zipOptions?.debug) { // for additional debugging: uncomment this block to get individual file hashes and log output
+                                if (zipOptions?.debug) {
                                     let hasher2 = crypto.createHash('sha256');
                                     hasher2.update(txtraw);
                                     const hash2 = hasher2.digest('base64');
-                                    debugit(`Hashing ${filePath} = ${hash2} replWithEmpty = ${replWithEmpty} len = ${txtraw.length}`);
+                                    debugit(`Hashing ${fileUri.toString()} = ${hash2} replWithEmpty = ${replWithEmpty} len = ${txtraw.length}`);
                                 }
                                 hasher?.update(txtraw);
                             }
+
                             if (replWithEmpty) {
-                                debugit(`Zeroing out file ${filePath}`);
-                                zip.file(fileName, ''); // create an empty file
+                                debugit(`Zeroing out file ${fileUri.toString()}`);
+                                zip.file(fileName, '');
                             }
                             else {
-                                const textToZip = fs.readFileSync(filePath);
-                                zip.file(fileName, textToZip);
+                                const fileContent = await vscode.workspace.fs.readFile(fileUri);
+                                zip.file(fileName, fileContent);
                             }
                         }
                     }
                 }
-            });
+            }
         }
+
         console.log(`Done collecting zip #Entries = ${nEntriesAdded}`);
         if (!zipOptions?.calculateHashOnly) {
-            // https://stuk.github.io/jszip/documentation/howto/write_zip.html
-            const nodeStrm = zipCreate.generateNodeStream({ type: 'nodebuffer', streamFiles: true, compression: 'DEFLATE', compressionOptions: { level: 9 } });
-            const wstrm = fs.createWriteStream(destZipFile);
-            const resPipe: fs.WriteStream = nodeStrm.pipe(wstrm);
-            const event = 'finish'; // we want to await the finish event
-            await new Promise<void>((resolve, reject) => {
-                const listener = () => {
-                    {
-                        resPipe.removeListener(event, listener);
-                        resPipe.close();
-                        resPipe.destroy();
-                        wstrm.close();
-                        wstrm.destroy();
-                        resolve();
-                    }
-                };
-                resPipe.addListener(event, listener);
+            // Generate zip content
+            const zipContent = await zipCreate.generateAsync({
+                type: 'uint8array',
+                compression: 'DEFLATE',
+                compressionOptions: { level: 9 }
             });
-            console.log(`Done zip #Entries = ${nEntriesAdded}  ${destZipFile}`);
+
+            // Write zip file using VSCode file system
+            await vscode.workspace.fs.writeFile(destZipFile, zipContent);
+            console.log(`Done zip #Entries = ${nEntriesAdded}  ${destZipFile.toString()}`);
         }
+
         if (hasher) {
             hash = hasher.digest('base64');
-            debugit(` ${srcDir} Calculated Hash = '${hash}   #Entries = ${nEntriesAdded}`);
+            debugit(`${srcDir.toString()} Calculated Hash = '${hash}' #Entries = ${nEntriesAdded}`);
         }
     }
     catch (error) {
-        debugit(`Error creating zip file ${destZipFile}  ${error}`);
+        debugit(`Error creating zip file ${destZipFile.toString()}  ${error}`);
         return Promise.reject(error);
     }
+
     return { zipFileName: destZipFile, hash: hash, nEntries: nEntriesAdded };
 }
 
@@ -380,6 +461,11 @@ export async function createTestZipFile(relativePath: string, descid: string): P
     }
     let srcdir: fs.PathLike = path.resolve(__dirname, relativePath);
     const destZipFile = destdir + '/MyZipFile.zip';
-    const resZip = await createZipFile(destZipFile, srcdir);
+
+    // Convert to URIs for the new createZipFile signature
+    const destZipFileUri = vscode.Uri.file(destZipFile);
+    const srcdirUri = vscode.Uri.file(srcdir.toString());
+
+    const resZip = await createZipFile(destZipFileUri, srcdirUri);
     return { destZipFile, nEntriesAdded: resZip.nEntries };
 }

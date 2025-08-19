@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { OperationRequestType, IArtifactHandler, IArtifact, IApiClientRequestOptions, IApiClientResponse, Schema  } from '@fabric/vscode-fabric-api';
+import { OperationRequestType, IArtifactHandler, IArtifact, IApiClientRequestOptions, IApiClientResponse, Schema  } from '@microsoft/vscode-fabric-api';
 
 export class DefaultArtifactHandler implements IArtifactHandler {
 

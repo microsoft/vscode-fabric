@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { IArtifact, ArtifactTreeNode } from '@fabric/vscode-fabric-api';
+import { IArtifact, ArtifactTreeNode } from '@microsoft/vscode-fabric-api';
 
 export class NotebookTreeNode extends ArtifactTreeNode {
     constructor(context: vscode.ExtensionContext, public readonly artifact: IArtifact) {

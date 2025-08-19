@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { IItemDefinition } from '@fabric/vscode-fabric-api';
+import { IItemDefinition } from '@microsoft/vscode-fabric-api';
 
 export interface IItemDefinitionWriter {
     save(itemDefinition: IItemDefinition, destination: vscode.Uri): Promise<void>;

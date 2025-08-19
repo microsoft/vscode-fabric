@@ -4,7 +4,7 @@ import * as assert from 'assert';
 import { Mock, It, Times } from 'moq.ts';
 import * as sinon from 'sinon';
 import { isDirectory, workspaceContainsDirectory, succeeded, formatErrorResponse, handleLongRunningOperation } from '../../../utilities';
-import { IApiClientRequestOptions, IApiClientResponse, IFabricApiClient } from '@fabric/vscode-fabric-api';
+import { IApiClientRequestOptions, IApiClientResponse, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 
 describe('isDirectory', () => {
     it('Directory', async () => {

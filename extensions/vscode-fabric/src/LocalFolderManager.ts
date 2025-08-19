@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { IArtifact, IWorkspace } from '@fabric/vscode-fabric-api';
+import { IArtifact, IWorkspace } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionsSettingStorage, ILocalFolderSettingsAdapter } from './settings/definitions';
 import * as os from 'os';
 import * as path from 'path';
 import { LocalFolderSettingsAdapter } from './settings/LocalFolderSettingsAdapter';
-import { IFabricEnvironmentProvider } from '@fabric/vscode-fabric-util';
+import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 
 export class LocalFolderManager {
     private adapter: ILocalFolderSettingsAdapter;

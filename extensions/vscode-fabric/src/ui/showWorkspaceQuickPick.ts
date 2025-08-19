@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { NotSignedInError } from './NotSignedInError';
 import { showCreateWorkspaceWizard } from './showCreateWorkspaceWizard';
-import { IWorkspace, IWorkspaceManager } from '@fabric/vscode-fabric-api';
-import { TelemetryService, ILogger } from '@fabric/vscode-fabric-util';
+import { IWorkspace, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
+import { TelemetryService, ILogger } from '@microsoft/vscode-fabric-util';
 import { ICapacityManager } from '../CapacityManager';
 
 /**

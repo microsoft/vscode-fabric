@@ -3,8 +3,8 @@ import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
 import { SqlExtension } from '../../../../internalSatellites/database/SqlExtension';
-import { IFabricExtensionManager, IWorkspaceManager, IArtifactManager, IFabricApiClient } from '@fabric/vscode-fabric-api';
-import { ILogger, TelemetryService } from '@fabric/vscode-fabric-util';
+import { IFabricExtensionManager, IWorkspaceManager, IArtifactManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 
 describe('SqlExtension', function() {
     let contextMock: Mock<vscode.ExtensionContext>;

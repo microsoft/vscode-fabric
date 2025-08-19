@@ -1,6 +1,6 @@
 /* eslint-disable security/detect-object-injection */
 import { Mock, It, Times } from 'moq.ts';
-import { TelemetryActivity, TelemetryEventRecord } from '@fabric/vscode-fabric-util';
+import { TelemetryActivity, TelemetryEventRecord } from '@microsoft/vscode-fabric-util';
  
 export function verifyAddOrUpdateProperties<T extends TelemetryEventRecord>(
     telemetryActivity: Mock<TelemetryActivity<T>>,

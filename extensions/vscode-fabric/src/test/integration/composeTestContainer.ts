@@ -1,8 +1,10 @@
 // filepath: /Users/kw/repos/vsfab/extensions/vscode-fabric/src/test/integration/composeTestContainer.ts
 import { DIContainer } from '@wessberg/di';
 import * as vscode from 'vscode';
-import { AccountProvider, ConfigurationProvider, DisposableCollection, FabricEnvironmentProvider, FabricUriHandler, FakeTokenAcquisitionService, IAccountProvider, IConfigurationProvider, IDisposableCollection, IFabricEnvironmentProvider, ILogger, ITokenAcquisitionService, MockApiClient, MockConsoleLogger, TelemetryService } from '@fabric/vscode-fabric-util';
-import { IArtifactManager, IFabricApiClient, IFabricExtensionServiceCollection, IWorkspaceManager } from '@fabric/vscode-fabric-api';
+import { ConfigurationProvider, DisposableCollection, FabricEnvironmentProvider, FabricUriHandler, IConfigurationProvider, IDisposableCollection, IFabricEnvironmentProvider, ILogger, MockConsoleLogger, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { AccountProvider, FakeTokenAcquisitionService, IAccountProvider, ITokenAcquisitionService } from '../../authentication';
+import { MockApiClient } from '../../fabric';
+import { IArtifactManager, IFabricApiClient, IFabricExtensionServiceCollection, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { GitOperator } from '../../git/GitOperator';
 import { FabricExtensionServiceCollection } from '../../FabricExtensionServiceCollection';
 import { FabricWorkspaceDataProvider, IRootTreeNodeProvider, RootTreeNodeProvider } from '../../workspace/treeView';

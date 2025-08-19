@@ -7,7 +7,7 @@ import { Lazy, lazyLoad } from '../Lazy';
 // The vscode.git extension exports definition
 // Downloaded from https://github.com/microsoft/vscode/commits/main/extensions/git/src/api/git.d.ts
 import * as gitExtension from '../apis/git';
-import { ILogger } from '@fabric/vscode-fabric-util';
+import { ILogger } from '@microsoft/vscode-fabric-util';
 
 export class GitOperator implements IGitOperator {
     private gitPath: Lazy<string>;

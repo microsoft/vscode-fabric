@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { commandNames } from '../constants';
-import { IAccountProvider, TelemetryService, ILogger, doCancelableActionWithErrorHandling, TelemetryActivity, TelemetryEventRecord } from '@fabric/vscode-fabric-util';
+import { TelemetryService, ILogger, doCancelableActionWithErrorHandling, TelemetryActivity, TelemetryEventRecord } from '@microsoft/vscode-fabric-util';
+import { IAccountProvider } from '../authentication/interfaces';
 import { switchTenantCommand } from './switchTenantCommand';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 

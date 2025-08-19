@@ -42,7 +42,7 @@ export interface IOpenArtifactOptions {
  * @example
  * 
  * ``` ts
- * import * as fabricExt from '@fabric/vscode-fabric-api';
+ * import * as fabricExt from '@microsoft/vscode-fabric-api';
  * 
  * export function activate(context: vscode.ExtensionContext) {
  *   const fabricExtensionServices: fabricExt.IFabricExtensionServiceCollection = <fabricExt.IFabricExtensionServiceCollection>vscode.extensions.getExtension('fabric.vscode-fabric')!.exports;

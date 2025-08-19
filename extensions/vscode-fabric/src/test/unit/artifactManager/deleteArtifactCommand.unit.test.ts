@@ -3,12 +3,12 @@ import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
 import { deleteArtifactCommand } from '../../../artifactManager/deleteArtifactCommand';
-import { IApiClientResponse, IArtifactManager, IWorkspaceManager, IArtifact } from '@fabric/vscode-fabric-api';
-import { FabricError, ILogger, TelemetryActivity} from '@fabric/vscode-fabric-util';
+import { IApiClientResponse, IArtifactManager, IWorkspaceManager, IArtifact } from '@microsoft/vscode-fabric-api';
+import { FabricError, ILogger, TelemetryActivity} from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../../../TelemetryEventNames';
 import { FabricWorkspaceDataProvider } from '../../../workspace/treeView';
 import { verifyAddOrUpdateProperties, verifyAddOrUpdatePropertiesNever } from '../../utilities/moqUtilities';
-import { UserCancelledError } from '@fabric/vscode-fabric-util';
+import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 
 const artifactDisplayName = 'Test Artifact';
 const artifactId = 'Test Artifact Id';

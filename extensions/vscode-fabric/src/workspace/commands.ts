@@ -5,8 +5,9 @@ import { WorkspaceManagerBase } from './WorkspaceManager';
 
 import { showCreateWorkspaceWizard } from '../ui/showCreateWorkspaceWizard';
 import { showWorkspaceQuickPick } from '../ui/showWorkspaceQuickPick';
-import { IFabricApiClient, IWorkspace } from '@fabric/vscode-fabric-api';
-import { IAccountProvider, TelemetryService, ILogger } from '@fabric/vscode-fabric-util';
+import { IFabricApiClient, IWorkspace } from '@microsoft/vscode-fabric-api';
+import { TelemetryService, ILogger } from '@microsoft/vscode-fabric-util';
+import { IAccountProvider } from '../authentication/interfaces';
 import { CapacityManager, ICapacityManager } from '../CapacityManager';
 
 let workspaceCommandDisposables: vscode.Disposable[] = [];

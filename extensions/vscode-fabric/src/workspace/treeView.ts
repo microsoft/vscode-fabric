@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { getDisplayNamePlural, getDisplayName, getArtifactIconPath, getArtifactDefaultIconPath, getArtifactExtensionId, getSupportsArtifactWithDefinition } from '../metadata/fabricItemUtilities';
-import { IWorkspaceManager, IArtifact, IWorkspace, FabricTreeNode, ArtifactDesignerActions, ArtifactTreeNode, IFabricTreeNodeProvider } from '@fabric/vscode-fabric-api';
-import { ILogger, TelemetryActivity, TelemetryService, withErrorHandling } from '@fabric/vscode-fabric-util';
+import { IWorkspaceManager, IArtifact, IWorkspace, FabricTreeNode, ArtifactDesignerActions, ArtifactTreeNode, IFabricTreeNodeProvider } from '@microsoft/vscode-fabric-api';
+import { ILogger, TelemetryActivity, TelemetryService, withErrorHandling } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';

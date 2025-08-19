@@ -3,8 +3,8 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { NotebookExtension } from '../../../../internalSatellites/notebook/NotebookExtension';
-import { IFabricExtensionManager, IWorkspaceManager, IArtifactManager } from '@fabric/vscode-fabric-api';
-import { TelemetryService } from '@fabric/vscode-fabric-util';
+import { IFabricExtensionManager, IWorkspaceManager, IArtifactManager } from '@microsoft/vscode-fabric-api';
+import { TelemetryService } from '@microsoft/vscode-fabric-util';
 
 describe('NotebookExtension', function() {
     let contextMock: Mock<vscode.ExtensionContext>;

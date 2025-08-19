@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
-import { IApiClientResponse, IArtifact, IArtifactManager, IWorkspaceManager } from '@fabric/vscode-fabric-api';
-import { FabricError, TelemetryActivity, TelemetryService, ILogger } from '@fabric/vscode-fabric-util';
+import { IApiClientResponse, IArtifact, IArtifactManager, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
+import { FabricError, TelemetryActivity, TelemetryService, ILogger } from '@microsoft/vscode-fabric-util';
 import { isDirectory, succeeded, workspaceContainsDirectory } from '../utilities';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
 import { formatErrorResponse } from '../utilities';
-import { UserCancelledError } from '@fabric/vscode-fabric-util';
+import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 
 export async function deleteArtifactCommand(
     artifact: IArtifact,

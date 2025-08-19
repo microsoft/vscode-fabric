@@ -1,48 +1,48 @@
 import * as assert from 'assert';
 
-import { getSessionProviderForEnvironment, msSessionProvider, msSessionProviderPPE } from '../authentication/helpers';
-import { FabricEnvironmentName } from '../settings/FabricEnvironment';
+import { getSessionProviderForFabricEnvironment, msSessionProvider, msSessionProviderPPE } from '../../../settings/getSessionProviderForFabricEnvironment';
+import { FabricEnvironmentName } from '../../../settings/FabricEnvironment';
 
 describe('sessionProviderForFabricEnvironment should return', () => {
     // Tests for msSessionProviderPPE environments
     it('microsoft-sovereign-cloud for FabricEnvironment.MOCK', () => {
-        const result = getSessionProviderForEnvironment(FabricEnvironmentName.MOCK);
+        const result = getSessionProviderForFabricEnvironment(FabricEnvironmentName.MOCK);
         assert.equal(result, msSessionProviderPPE);
     });
 
     it('microsoft-sovereign-cloud for FabricEnvironment.ONEBOX', () => {
-        const result = getSessionProviderForEnvironment(FabricEnvironmentName.ONEBOX);
+        const result = getSessionProviderForFabricEnvironment(FabricEnvironmentName.ONEBOX);
         assert.equal(result, msSessionProviderPPE);
     });
 
     it('microsoft-sovereign-cloud for FabricEnvironment.EDOG', () => {
-        const result = getSessionProviderForEnvironment(FabricEnvironmentName.EDOG);
+        const result = getSessionProviderForFabricEnvironment(FabricEnvironmentName.EDOG);
         assert.equal(result, msSessionProviderPPE);
     });
 
     it('microsoft-sovereign-cloud for FabricEnvironment.EDOGONEBOX', () => {
-        const result = getSessionProviderForEnvironment(FabricEnvironmentName.EDOGONEBOX);
+        const result = getSessionProviderForFabricEnvironment(FabricEnvironmentName.EDOGONEBOX);
         assert.equal(result, msSessionProviderPPE);
     });
 
     // Tests for msSessionProvider environments
     it('microsoft for FabricEnvironment.DAILY', () => {
-        const result = getSessionProviderForEnvironment(FabricEnvironmentName.DAILY);
+        const result = getSessionProviderForFabricEnvironment(FabricEnvironmentName.DAILY);
         assert.equal(result, msSessionProvider);
     });
 
     it('microsoft for FabricEnvironment.DXT', () => {
-        const result = getSessionProviderForEnvironment(FabricEnvironmentName.DXT);
+        const result = getSessionProviderForFabricEnvironment(FabricEnvironmentName.DXT);
         assert.equal(result, msSessionProvider);
     });
 
     it('microsoft for FabricEnvironment.MSIT', () => {
-        const result = getSessionProviderForEnvironment(FabricEnvironmentName.MSIT);
+        const result = getSessionProviderForFabricEnvironment(FabricEnvironmentName.MSIT);
         assert.equal(result, msSessionProvider);
     });
 
     it('microsoft for FabricEnvironment.PROD', () => {
-        const result = getSessionProviderForEnvironment(FabricEnvironmentName.PROD);
+        const result = getSessionProviderForFabricEnvironment(FabricEnvironmentName.PROD);
         assert.equal(result, msSessionProvider);
     });
 });

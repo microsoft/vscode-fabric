@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ItemDefinitionReader, IBase64Encoder } from '../../../itemDefinition/ItemDefinitionReader';
-import { IItemDefinition, PayloadType } from '@fabric/vscode-fabric-api';
+import { IItemDefinition, PayloadType } from '@microsoft/vscode-fabric-api';
 import { Mock, It, Times } from 'moq.ts';
 import * as assert from 'assert';
 

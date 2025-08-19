@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { IItemDefinition, PayloadType } from '@fabric/vscode-fabric-api';
+import { IItemDefinition, PayloadType } from '@microsoft/vscode-fabric-api';
 
 export interface IBase64Encoder {
     encode(content: Uint8Array): string;

@@ -4,9 +4,9 @@ import * as vscode from 'vscode';
 import { Mock, It } from 'moq.ts';
 
 import { showWorkspaceQuickPick } from '../../../ui/showWorkspaceQuickPick';
-import { IWorkspaceManager, IWorkspace } from '@fabric/vscode-fabric-api';
+import { IWorkspaceManager, IWorkspace } from '@microsoft/vscode-fabric-api';
 import { ICapacityManager } from '../../../CapacityManager';
-import { TelemetryService, ILogger } from '@fabric/vscode-fabric-util';
+import { TelemetryService, ILogger } from '@microsoft/vscode-fabric-util';
 import { NotSignedInError } from '../../../ui/NotSignedInError';
 import * as showCreateWorkspaceWizardModule from '../../../ui/showCreateWorkspaceWizard';
 

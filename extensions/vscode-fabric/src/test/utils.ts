@@ -2,7 +2,7 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as os from 'os';
-import { createZipFile } from '@fabric/vscode-fabric-util';
+import { createZipFile } from '@microsoft/vscode-fabric-util';
 
 export function isRepoUser(): boolean {
     let isInuserlist = false;

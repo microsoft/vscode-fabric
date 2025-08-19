@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
-import { IApiClientRequestOptions, IFabricApiClient, IApiClientResponse, IWorkspace, IWorkspaceManager } from '@fabric/vscode-fabric-api';
-import { TelemetryActivity, TelemetryService, doFabricAction, ILogger, UserCancelledError, FabricError } from '@fabric/vscode-fabric-util';
+import { IApiClientRequestOptions, IFabricApiClient, IApiClientResponse, IWorkspace, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
+import { TelemetryActivity, TelemetryService, doFabricAction, ILogger, UserCancelledError, FabricError } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { NotSignedInError } from './NotSignedInError';
 import { ICapacityManager, ICapacity } from '../CapacityManager';

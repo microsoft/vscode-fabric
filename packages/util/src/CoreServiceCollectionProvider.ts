@@ -1,4 +1,4 @@
-import { IFabricExtensionServiceCollection } from '@fabric/vscode-fabric-api';
+import { IFabricExtensionServiceCollection } from '@microsoft/vscode-fabric-api';
 
 export interface ICoreServiceCollectionProvider {
     getCollection(): IFabricExtensionServiceCollection;

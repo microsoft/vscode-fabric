@@ -5,8 +5,9 @@ import * as sinon from 'sinon';
 import { WorkspaceManager } from '../../../workspace/WorkspaceManager';
 import { IFabricExtensionsSettingStorage } from '../../../settings/definitions';
 import { LocalFolderManager } from '../../../LocalFolderManager';
-import { IAccountProvider, IFabricEnvironmentProvider, ILogger, FabricError } from '@fabric/vscode-fabric-util';
-import { IApiClientResponse, IApiClientRequestOptions, IFabricApiClient } from '@fabric/vscode-fabric-api';
+import { IFabricEnvironmentProvider, ILogger, FabricError } from '@microsoft/vscode-fabric-util';
+import { IAccountProvider } from '../../../authentication/interfaces';
+import { IApiClientResponse, IApiClientRequestOptions, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { IGitOperator } from '../../../apis/internal/fabricExtensionInternal';
 
 describe('WorkspaceManager', function() {

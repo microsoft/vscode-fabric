@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { IFabricExtension } from '@fabric/vscode-fabric-api';
+import { IFabricExtension } from '@microsoft/vscode-fabric-api';
 import { initializeServiceCollection } from './serviceCollection';
 import { MockFabricExtensionManager, testApiVersion } from '../../../extensionManager/MockFabricExtensionManager';
 import { satelliteExtensionIds, TestExtension } from '../shared/TestExtension';

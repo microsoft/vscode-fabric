@@ -3,8 +3,8 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { copyConnectionStringToClipboard } from '../../../../internalSatellites/database/copyConnectionString';
-import { TelemetryService, TelemetryEvent } from '@fabric/vscode-fabric-util';
-import { IFabricApiClient, IWorkspaceManager } from '@fabric/vscode-fabric-api';
+import { TelemetryService, TelemetryEvent } from '@microsoft/vscode-fabric-util';
+import { IFabricApiClient, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { AbstractDatabaseTreeNode } from '../../../../internalSatellites/database/AbstractDatabaseTreeNode';
 
 describe('copyConnectionStringToClipboard', function() {

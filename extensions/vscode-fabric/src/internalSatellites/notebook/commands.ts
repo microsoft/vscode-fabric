@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { TelemetryService } from '@fabric/vscode-fabric-util';
-import { IWorkspaceManager, IArtifactManager } from '@fabric/vscode-fabric-api';
+import { TelemetryService } from '@microsoft/vscode-fabric-util';
+import { IWorkspaceManager, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { NotebookTreeNode } from './NotebookTreeNode';
 import { openNotebookInSynapse } from './openNotebookInSynapse';
 

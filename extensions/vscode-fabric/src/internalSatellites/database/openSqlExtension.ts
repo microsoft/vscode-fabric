@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 
 import { AbstractDatabaseTreeNode } from './AbstractDatabaseTreeNode';
-import { TelemetryEvent, ArtifactPropertyNames, TelemetryService } from '@fabric/vscode-fabric-util';
-import { IFabricApiClient, IWorkspaceManager } from '@fabric/vscode-fabric-api';
+import { TelemetryEvent, ArtifactPropertyNames, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { IFabricApiClient, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 type TelemetryEventNames = {

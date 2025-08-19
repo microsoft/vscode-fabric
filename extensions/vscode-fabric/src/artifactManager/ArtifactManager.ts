@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
-import { IApiClientResponse, IArtifact, IItemDefinition, IWorkspace, IApiClientRequestOptions, IFabricApiClient, OperationRequestType, IArtifactHandler, IArtifactManager, ArtifactTreeNode, IWorkspaceManager, } from '@fabric/vscode-fabric-api';
-import { doFabricAction, FabricError, IFabricEnvironmentProvider, ILogger, sleep, TelemetryActivity, TelemetryService, withErrorHandling } from '@fabric/vscode-fabric-util';
+import { IApiClientResponse, IArtifact, IItemDefinition, IWorkspace, IApiClientRequestOptions, IFabricApiClient, OperationRequestType, IArtifactHandler, IArtifactManager, ArtifactTreeNode, IWorkspaceManager, } from '@microsoft/vscode-fabric-api';
+import { doFabricAction, FabricError, IFabricEnvironmentProvider, ILogger, sleep, TelemetryActivity, TelemetryService, withErrorHandling } from '@microsoft/vscode-fabric-util';
 import { DefaultArtifactHandler } from '../DefaultArtifactHandler';
 import { fabricViewWorkspace } from '../constants';
 import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';

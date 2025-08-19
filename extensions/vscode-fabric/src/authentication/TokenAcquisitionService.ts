@@ -1,17 +1,11 @@
-import { IDisposable } from '@fabric/vscode-fabric-api';
+import { IDisposable } from '@microsoft/vscode-fabric-api';
+import { ITokenAcquisitionService, TokenRequestOptions } from './interfaces';
 import * as vscode from 'vscode';
-import { IFabricEnvironmentProvider } from '../settings/FabricEnvironmentProvider';
-import { getSessionProviderForEnvironment, msSessionProvider, msSessionProviderPPE,  } from './helpers';
-import { TelemetryService } from '../telemetry/TelemetryService';
-import { ILogger, LogImportance } from '../logger/Logger';
+import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
+import { getSessionProviderForFabricEnvironment, msSessionProvider, msSessionProviderPPE,  } from '@microsoft/vscode-fabric-util';
+import { TelemetryService } from '@microsoft/vscode-fabric-util';
+import { ILogger, LogImportance } from '@microsoft/vscode-fabric-util';
 import { getConfiguredAzureEnv } from '@microsoft/vscode-azext-azureauth';
-
-export interface ITokenAcquisitionService {
-    getSessionInfo(options: TokenRequestOptions, extraScopes?: string[], tenantId?: string): Promise<vscode.AuthenticationSession | null>
-    getMsAccessToken(options: TokenRequestOptions, extraScopes?: string[], tenantId?: string): Promise<string | null>
-    getArmAccessToken(options: TokenRequestOptions, extraScopes?: string[], tenantId?: string): Promise<string | null>
-    msSessionChanged: vscode.Event<void>
-}
 
 export class TokenAcquisitionService implements ITokenAcquisitionService, IDisposable {
     private readonly sessionsChangeEventHandle: IDisposable;
@@ -31,7 +25,7 @@ export class TokenAcquisitionService implements ITokenAcquisitionService, IDispo
 
     public async getSessionInfo(options: TokenRequestOptions, extraScopes?: string[], tenantId?: string): Promise<vscode.AuthenticationSession | null> {
         const currentEnv = this.fabricEnvironmentProvider.getCurrent();
-        const currentProvider = getSessionProviderForEnvironment(currentEnv.env);
+        const currentProvider = getSessionProviderForFabricEnvironment(currentEnv.env);
         const fullScope = [...this.vscodeSessionScopes(currentEnv.clientId, tenantId), ...currentEnv.scopes, ...extraScopes ?? []];
         const session = await this.getSession(currentProvider, fullScope, options);
         return session ?? null;
@@ -39,14 +33,14 @@ export class TokenAcquisitionService implements ITokenAcquisitionService, IDispo
 
     public getMsAccessToken(options: TokenRequestOptions, extraScopes?: string[], tenantId?: string): Promise<string | null> {
         const currentEnv = this.fabricEnvironmentProvider.getCurrent();
-        const currentProvider = getSessionProviderForEnvironment(currentEnv.env);
+        const currentProvider = getSessionProviderForFabricEnvironment(currentEnv.env);
         const fullScope = [...this.vscodeSessionScopes(currentEnv.clientId, tenantId), ...currentEnv.scopes, ...extraScopes ?? []];
         return this.getAccessToken(currentProvider, fullScope, options);
     }
 
     public getArmAccessToken(options: TokenRequestOptions, extraScopes?: string[], tenantId?: string): Promise<string | null> {
         const currentEnv = this.fabricEnvironmentProvider.getCurrent();
-        const currentProvider = getSessionProviderForEnvironment(currentEnv.env);
+        const currentProvider = getSessionProviderForFabricEnvironment(currentEnv.env);
         const configuredAzureEnv = getConfiguredAzureEnv();
         const endpoint = configuredAzureEnv.resourceManagerEndpointUrl;
 
@@ -126,18 +120,6 @@ export class TokenAcquisitionService implements ITokenAcquisitionService, IDispo
         this.msSessionChangedEmitter.dispose();
         this.sessionsChangeEventHandle.dispose();
     }
-}
-
-export interface TokenRequestOptions extends vscode.AuthenticationGetSessionOptions {
-    /**
-     * Identifier of caller partner (ex. NuGet or AvailabilityService) that would be used for telemetry.
-     */
-    callerId: string
-
-    /**
-     * Reason to request session from customer. This string could be displayed to customer in the future, so ideally should be localized.
-     */
-    requestReason: string
 }
 
 export interface VsCodeAuthentication {

@@ -1,6 +1,6 @@
 {
-  "name": "@fabric/vscode-fabric-api",
-  "publisher": "fabric",
+  "name": "@microsoft/vscode-fabric-api",
+  "publisher": "Microsoft Corporation",
   "displayName": "Microsoft Fabric - APIs for VS Code",
   "description": "Contains APIs for interacting with Microsoft Fabric and VS Code Fabric extensions",
   "version": "0.31.0-preview",

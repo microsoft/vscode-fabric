@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { IAccountProvider, TelemetryService, ILogger, doFabricAction, FabricActionOptions, UserCancelledError, TelemetryActivity, TelemetryEventRecord } from '@fabric/vscode-fabric-util';
+import { TelemetryService, ILogger, doFabricAction, FabricActionOptions, UserCancelledError, TelemetryActivity, TelemetryEventRecord } from '@microsoft/vscode-fabric-util';
+import { IAccountProvider, ITenantSettings } from '../authentication/interfaces';
 
 /**
  * Switches the active tenant for the user.
@@ -31,7 +32,7 @@ export async function switchTenantCommand(auth: IAccountProvider, activity: Tele
     }
     else {
         const currentTenant = await auth.getCurrentTenant();
-        const tenantItems = tenants.map(tenant => ({
+        const tenantItems = tenants.map((tenant: ITenantSettings) => ({
             label: tenant.displayName || tenant.tenantId || vscode.l10n.t('Unknown tenant'),
             description: (tenant.defaultDomain || '') + (currentTenant && tenant.tenantId === currentTenant.tenantId ? vscode.l10n.t(' (currently active)') : ''),
             id: tenant.tenantId

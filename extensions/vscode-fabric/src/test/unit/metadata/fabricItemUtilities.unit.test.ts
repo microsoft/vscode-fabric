@@ -3,7 +3,7 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as fabricItemUtilities from '../../../metadata/fabricItemUtilities';
 import * as fabricItemMetadata from '../../../metadata/fabricItemMetadata';
-import { IArtifact } from '@fabric/vscode-fabric-api';
+import { IArtifact } from '@microsoft/vscode-fabric-api';
 
 // Mocked metadata for testing
 const testMetadata = {

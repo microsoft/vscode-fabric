@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { IArtifact, OperationRequestType, Schema } from '@fabric/vscode-fabric-api';
+import { IArtifact, OperationRequestType, Schema } from '@microsoft/vscode-fabric-api';
 import { formatErrorResponse, succeeded } from '../utilities';
 import { IArtifactManagerInternal } from '../apis/internal/fabricExtensionInternal';
-import { FabricError, TelemetryActivity } from '@fabric/vscode-fabric-util';
+import { FabricError, TelemetryActivity } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 
 export async function readArtifactCommand(

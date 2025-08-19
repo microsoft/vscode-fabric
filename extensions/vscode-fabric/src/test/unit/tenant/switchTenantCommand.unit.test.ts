@@ -5,8 +5,9 @@ import * as sinon from 'sinon';
 
 // Import the module being tested and required interfaces
 import { switchTenantCommand } from '../../../tenant/switchTenantCommand';
-import { UserCancelledError } from '@fabric/vscode-fabric-util';
-import { IAccountProvider, ITenantSettings, TelemetryService, ILogger, TelemetryActivity, TelemetryEventRecord } from '@fabric/vscode-fabric-util';
+import { UserCancelledError } from '@microsoft/vscode-fabric-util';
+import { TelemetryService, ILogger, TelemetryActivity, TelemetryEventRecord } from '@microsoft/vscode-fabric-util';
+import { IAccountProvider, ITenantSettings } from '../../../authentication/interfaces';
 
 describe('switchTenantCommand', function() {
     // Declare mocks

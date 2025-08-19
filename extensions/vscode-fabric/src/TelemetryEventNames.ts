@@ -1,4 +1,4 @@
-import { ApiResultPropertyNames, ArtifactManagerResultPropertyNames, ArtifactPropertyNames, ResultPropertyNames, WorkspacePropertyNames } from '@fabric/vscode-fabric-util';
+import { ApiResultPropertyNames, ArtifactManagerResultPropertyNames, ArtifactPropertyNames, ResultPropertyNames, WorkspacePropertyNames } from '@microsoft/vscode-fabric-util';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 export type CoreTelemetryEventNames = {

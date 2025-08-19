@@ -30,7 +30,7 @@ APIs are still under active development, but here is a brief synopsis of how a s
 During activation, satellite extensions can retrieve the `IFabricExtensionServiceCollection` from the core extension, id `fabric.vscode-fabric`: 
 
 ``` ts
-import * as fabricExt from '@fabric/vscode-fabric-api';
+import * as fabricExt from '@microsoft/vscode-fabric-api';
 
 export function activate(context: vscode.ExtensionContext) {
     const fabricExtensionManager: fabricExt.IFabricExtensionManager = <fabricExt.IFabricExtensionManager>vscode.extensions.getExtension('fabric.vscode-fabric')!.exports;
@@ -64,7 +64,7 @@ Once the Extension Manager has been successfully received, the satellite extensi
 ```
 The satellite extension now has access to all of the services exposed by the core extension via the `IFabricExtensionServiceCollection` interface.
 
-The interfaces the client should consume and implement are defined in the`@fabric/vscode-fabric-api` package. [View the vscode-fabric-api source folder](../packages/api/)
+The interfaces the client should consume and implement are defined in the`@microsoft/vscode-fabric-api` package. [View the vscode-fabric-api source folder](../packages/api/)
 
 ### Extension dependencies
 Satellite extensions must declare the core Fabric  extension as an extension dependency in their extension manifest `package.json` file. 

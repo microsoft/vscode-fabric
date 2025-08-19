@@ -1,4 +1,4 @@
-import { IFabricEnvironmentProvider } from '@fabric/vscode-fabric-util';
+import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { IFabricArtifactSettings, IFabricExtensionsSettingStorage, IFabricWorkspaceSettings, ILocalFolderSettingsAdapter } from './definitions';
 
 /**

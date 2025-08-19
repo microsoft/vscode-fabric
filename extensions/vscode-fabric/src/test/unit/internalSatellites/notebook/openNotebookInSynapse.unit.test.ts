@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { openNotebookInSynapse } from '../../../../internalSatellites/notebook/openNotebookInSynapse';
-import { TelemetryService, TelemetryEvent } from '@fabric/vscode-fabric-util';
+import { TelemetryService, TelemetryEvent } from '@microsoft/vscode-fabric-util';
 import { NotebookTreeNode } from '../../../../internalSatellites/notebook/NotebookTreeNode';
 
 describe('openNotebookInSynapse', function() {

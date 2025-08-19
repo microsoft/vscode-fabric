@@ -3,7 +3,7 @@ import * as assert from 'assert';
 
 import { Mock } from 'moq.ts';
 import { NotebookTreeNode } from '../../../../internalSatellites/notebook/NotebookTreeNode';
-import { IArtifact } from '@fabric/vscode-fabric-api';
+import { IArtifact } from '@microsoft/vscode-fabric-api';
 
 describe('NotebookTreeNode', function() {
     let contextMock: Mock<vscode.ExtensionContext>;

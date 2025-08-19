@@ -1,12 +1,12 @@
 /* eslint-disable security/detect-object-injection */
 import * as vscode from 'vscode';
 
-import { IArtifact, IArtifactHandler, IApiClientRequestOptions, IApiClientResponse, OperationRequestType, IOpenArtifactOptions, Schema, IFabricApiClient, IWorkspaceManager } from '@fabric/vscode-fabric-api';
+import { IArtifact, IArtifactHandler, IApiClientRequestOptions, IApiClientResponse, OperationRequestType, IOpenArtifactOptions, Schema, IFabricApiClient, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { ArtifactManager } from './ArtifactManager';
 import { MockWorkspaceManager } from '../workspace/mockWorkspaceManager';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
-import { IFabricEnvironmentProvider, ILogger, TelemetryService } from '@fabric/vscode-fabric-util';
+import { IFabricEnvironmentProvider, ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 
 export class MockArtifactManager extends ArtifactManager {
     public mapArtifacts: Map<string, IArtifact[]> = new Map<string, IArtifact[]>(); // wspaceid 

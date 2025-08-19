@@ -2,15 +2,15 @@ import { Mock, It, Times } from 'moq.ts';
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
-import { IApiClientResponse, IArtifact, IArtifactManager } from '@fabric/vscode-fabric-api';
+import { IApiClientResponse, IArtifact, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { promptForArtifactTypeAndName, createArtifactCommand } from '../../../artifactManager/createArtifactCommand';
 import { IFabricExtensionManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
 import { ICreateItemsProvider, ItemCreationDetails, CreationCapability } from '../../../metadata/definitions';
-import { FabricError, ILogger, TelemetryActivity} from '@fabric/vscode-fabric-util';
+import { FabricError, ILogger, TelemetryActivity} from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../../../TelemetryEventNames';
 import { FabricWorkspaceDataProvider } from '../../../workspace/treeView';
 import { verifyAddOrUpdateProperties, verifyAddOrUpdatePropertiesNever } from '../../utilities/moqUtilities';
-import { UserCancelledError } from '@fabric/vscode-fabric-util';
+import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 
 describe('promptForArtifactTypeAndName', function() {
     let contextMock: Mock<vscode.ExtensionContext>;

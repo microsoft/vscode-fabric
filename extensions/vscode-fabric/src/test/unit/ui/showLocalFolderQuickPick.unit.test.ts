@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import { Mock, It, Times } from 'moq.ts';
 
 import { showLocalFolderQuickPick } from '../../../ui/showLocalFolderQuickPick';
-import { IWorkspace, ISourceControlInformation } from '@fabric/vscode-fabric-api';
+import { IWorkspace, ISourceControlInformation } from '@microsoft/vscode-fabric-api';
 import { IGitOperator } from '../../../apis/internal/fabricExtensionInternal';
 
 describe('showLocalFolderQuickPick', () => {
