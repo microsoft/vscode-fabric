@@ -6,29 +6,24 @@ stages:
   displayName: 'Publish NPM (public)'
   dependsOn: Build
   jobs:
-  - job: publishPublic
-    displayName: 'Approval Required'
-    pool: server
-    steps:
-    # Manual approval gate
-    - template: ../steps/manual-approval.yml
-
-  - job: publishPublicPackages
+  - deployment: publishPublicPackages
     displayName: 'Publish NPM (public)'
-    dependsOn: publishPublic
-    condition: succeeded() # Only run if manual approval succeeded
-    steps:
-    # Install dependencies
-    - task: NodeTool@0
-      inputs: 
-        versionSpec: 20.x
-      displayName: install nodejs
+    environment: 'vscode-fabric-npm-release'  # Configure approvals on this environment in Azure DevOps
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # Install dependencies
+          - task: NodeTool@0
+            inputs: 
+              versionSpec: 20.x
+            displayName: install nodejs
 
-    # Download artifacts from build stage
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        buildType: 'current'
-        artifactName: 'npm-artifacts'
-        targetPath: $(Pipeline.Workspace)/npm-artifacts
+          # Download artifacts from build stage
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'current'
+              artifactName: 'npm-artifacts'
+              targetPath: $(Pipeline.Workspace)/npm-artifacts
 
-    # TODO Add EsrpRelease task here (should sign and release to NPM)
+          # TODO Add EsrpRelease task here (should sign and release to NPM)
