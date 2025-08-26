@@ -1,0 +1,11 @@
+name: sdl_required
+description: SDL minimum required branch protection policy
+resource: repository
+where:
+configuration:
+  branchProtectionRules:
+  - branchNamePattern: "main"
+    requiredApprovingReviewsCount: 1
+    requireLastPushApproval: true
+    allowsForcePushes: false
+    allowsDeletions: false
