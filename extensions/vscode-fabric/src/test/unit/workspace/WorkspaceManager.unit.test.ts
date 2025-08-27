@@ -212,4 +212,36 @@ describe('WorkspaceManager', function() {
             } 
         );
     });
+
+    it('should return workspaces alphabetically, prioritizing personal workspace', async function () {
+        // Arrange
+        const ws1 = { objectId: 'ws-1', displayName: 'Delta', description: '', type: 'Personal', capacityId: 'cap-1' };
+        const ws2 = { objectId: 'ws-2', displayName: 'Charlie', description: '', type: 'Workspace', capacityId: 'cap-2' };
+        const ws3 = { objectId: 'ws-3', displayName: 'Bravo', description: '', type: 'Personal', capacityId: '' };
+        const ws4 = { objectId: 'ws-4', displayName: 'Alpha', description: '', type: 'Workspace', capacityId: undefined };
+
+        const apiResponse = {
+            status: 200,
+            parsedBody: {
+                value: [
+                    { id: ws1.objectId, type: ws1.type, displayName: ws1.displayName, description: ws1.description, capacityId: ws1.capacityId },
+                    { id: ws2.objectId, type: ws2.type, displayName: ws2.displayName, description: ws2.description, capacityId: ws2.capacityId },
+                    { id: ws3.objectId, type: ws3.type, displayName: ws3.displayName, description: ws3.description, capacityId: ws3.capacityId },
+                    { id: ws4.objectId, type: ws4.type, displayName: ws4.displayName, description: ws4.description, }, // purposefully exclude the capacityId
+                ]
+            }
+        };
+        mockAccountProvider.setup(x => x.isSignedIn())
+            .returns(Promise.resolve(true));
+        mockApiClient
+            .setup(x => x.sendRequest(It.IsAny()))
+            .returns(Promise.resolve(apiResponse));
+
+        // Act
+        const result = await workspaceManager.listWorkspaces();
+
+        // Assert
+        const expectedOrder = [ws3, ws1, ws4, ws2];
+        assert.deepStrictEqual(result, expectedOrder, 'Workspaces should be sorted alphabetically by type');
+    });
 });

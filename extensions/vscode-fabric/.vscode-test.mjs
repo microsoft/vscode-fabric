@@ -12,6 +12,7 @@ const __dirname = dirname(__filename);
 export default defineConfig({
 	tests: [
 	{
+		label: 'unit',
 		files: '**/test/unit/**/*.test.js',
 		mocha: {
 			ui: 'bdd',
@@ -19,14 +20,29 @@ export default defineConfig({
 		}
 	},
 	{
+		label: 'integration',
 		files: '**/test/integration/**/*.test.js',
+		extensionDevelopmentPath: ['.'],
 		mocha: {
 			ui: 'bdd',
 			...getMochaReporterOptions('core-integration')
 		},
 		env: {
-			// VSCODE_FABRIC_USE_MOCKS: 'true',
-			// VSCODE_FABRIC_ENABLE_TEST_HOOKS: 'true'
+			VSCODE_FABRIC_ENABLE_TEST_HOOKS: 'true',
+			VSCODE_FABRIC_ENABLE_TEST_FAKES: 'true'
+		}
+	},
+	{
+		label: 'e2e',
+		files: '**/test/e2e/**/*.test.js',
+		extensionDevelopmentPath: ['.'],
+		mocha: {
+			ui: 'bdd',
+			...getMochaReporterOptions('core-e2e')
+		},
+		env: {
+			VSCODE_FABRIC_ENABLE_TEST_HOOKS: 'true',
+			VSCODE_FABRIC_ENABLE_TEST_FAKES: 'true'
 		}
 	}],
 	coverage: {

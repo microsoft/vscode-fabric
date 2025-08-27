@@ -19,22 +19,16 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
     protected didInitializePriorState = false;
     public isProcessingAutoLogin = false;
     public readonly fabricWorkspaceContext = 'fabricWorkspaceContext';
+    protected _workspacesCache: IWorkspace[] = [];
+
+
     /**
-     * The user's current workspace
+     * Gets a workspace by its ID from the workspace cache
+     * @param workspaceId The ID of the workspace to retrieve
+     * @returns The workspace if found, undefined otherwise
      */
-    private _currentWorkspace: IWorkspace | undefined;
-    public get currentWorkspace(): IWorkspace | undefined {
-        return this._currentWorkspace;
-    }
-    public async setCurrentWorkspace(value: IWorkspace | undefined) {
-        this._currentWorkspace = value;
-        if (value) {
-            this.extensionSettingsStorage.mostRecentWorkspace = value.objectId;
-            this.extensionSettingsStorage.settings.loginState = true; // user must be logged in, so let's remember in settings
-            await this.extensionSettingsStorage.save();
-            await this.refreshSourceControlInformation(this._currentWorkspace);
-        }
-        this._onDidChangePropertyValue.fire('currentWorkspace');
+    public getWorkspaceById(workspaceId: string): IWorkspace | undefined {
+        return this._workspacesCache.find(workspace => workspace.objectId === workspaceId);
     }
 
     public treeView: vscode.TreeView<FabricTreeNode> | undefined;
@@ -64,9 +58,8 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         // not connected -> connected = new FabricClient, remove workspace
         // connected -> not connected = remove FabricClient, remove workspace
         // connected -> connected = new fabric client, remove workspace
-        await this.closeWorkspace();
+        await this.closeWorkspaces();
         if (await this.account.isSignedIn()) {
-            await vscode.commands.executeCommand('setContext', this.fabricWorkspaceContext, 'chooseWorkspace');
             this.didInitializePriorState = false;
             await this.initializePriorStateIfAny();
             return true;
@@ -102,9 +95,6 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
             if (showSignIn) {
                 await vscode.commands.executeCommand('setContext', this.fabricWorkspaceContext, 'signin');
             }
-            else {
-                await vscode.commands.executeCommand('setContext', this.fabricWorkspaceContext, 'chooseWorkspace'); // no context, so no Welcome View
-            }
         }
     }
 
@@ -116,7 +106,6 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
     private async processAutoLogin(): Promise<boolean> {
         let showSignInButton = false;
         if (await this.account.isSignedIn()) {
-            let showChooseWorkspace: boolean = false;
 
             if (this.extensionSettingsStorage.settings.currentTenant) {
                 // this will only be defined if the user has ever switched tenants
@@ -145,34 +134,21 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
 
             if (this.extensionSettingsStorage.settings.loginState === true && this.extensionSettingsStorage.settings.workspaces.length > 0) { // last time, the user was logged in.
                 const mostRecentWorkspace: string | undefined = this.extensionSettingsStorage.mostRecentWorkspace;
-                if (!mostRecentWorkspace) {
-                    showChooseWorkspace = true; // user was logged in, but didn't have a workspace, so show choose workspace
-                }
-                else {
-                    console.log(`initializePriorStateIfAny opening ws=${mostRecentWorkspace}`);
+                
+                console.log(`initializePriorStateIfAny opening ws=${mostRecentWorkspace}`);
 
-                    // race condition: tvprovider is asked to show children, but we're in the process of getting the children, so it returns empty array
-                    //  fix: set flag indicating we're getting data, and refresh
-                    this.isProcessingAutoLogin = true; // set flag indicating we're getting workspace to prevent TVProvider showing "Choose Workspace"
-                    await vscode.commands.executeCommand('setContext', this.fabricWorkspaceContext, 'loadingWorkspace');
-                    try {
-                        await this.openWorkspaceById(mostRecentWorkspace);
-                    }
-                    catch (error) {
-                        showChooseWorkspace = true; // probably because mostrecentworkspace is not found. Any failures, we want to show choose workspace. Not worth telemetry
-                    }
-                    if (!showChooseWorkspace) {
-                        await vscode.commands.executeCommand('setContext', this.fabricWorkspaceContext, ''); // no context, so no Welcome View
-                        if (!this.isProcessingAutoLogin) { // if tvprovider returned 0 children we need to refresh
-                            this.tvProvider?.refresh(); // need to refresh after getting workspace and tvprovider already said there are no children.
-                            this.isProcessingAutoLogin = false;
-                        }
-                    }
+                // race condition: tvprovider is asked to show children, but we're in the process of getting the children, so it returns empty array
+                //  fix: set flag indicating we're getting data, and refresh
+                this.isProcessingAutoLogin = true; // set flag indicating we're getting workspace to prevent TVProvider showing "Choose Workspace"
+                await vscode.commands.executeCommand('setContext', this.fabricWorkspaceContext, 'loadingWorkspace');
+                
+                await vscode.commands.executeCommand('setContext', this.fabricWorkspaceContext, ''); // no context, so no Welcome View
+                if (!this.isProcessingAutoLogin) { // if tvprovider returned 0 children we need to refresh
+                    this.tvProvider?.refresh(); // need to refresh after getting workspace and tvprovider already said there are no children.
+                    this.isProcessingAutoLogin = false;
                 }
             }
-            if (showChooseWorkspace) {
-                await vscode.commands.executeCommand('setContext', this.fabricWorkspaceContext, 'chooseWorkspace');
-            }
+            
         }
         else {
             showSignInButton = true; // user is not logged in, so show signin button
@@ -197,17 +173,9 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         return this.account.isSignedIn();
     }
 
-    /**
-     * Whether or not the user opened a specific Fabric workspace
-     * 
-     * @returns True if the user has opened a workspace; otherwise False
-     */
-    public isWorkspaceOpen(): boolean {
-        return this.currentWorkspace !== undefined;
-    }
-
-    async closeWorkspace(): Promise<void> {
-        await this.setCurrentWorkspace(undefined);
+    async closeWorkspaces(): Promise<void> {
+        this._workspacesCache = [];
+        this._onDidChangePropertyValue.fire('allWorkspaces');
     }
 
     public dispose(): void {
@@ -217,12 +185,10 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         this.disposables = [];
     }
 
-    public async getLocalFolderForCurrentFabricWorkspace(options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined> {
-        this.ensureCurrentWorkspace();
-
-        let localWorkspaceFolder: vscode.Uri | undefined = await this.localFolderManager.getLocalFolderForFabricWorkspace(this.currentWorkspace!);
+    public async getLocalFolderForFabricWorkspace(workspace: IWorkspace, options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined> {
+        let localWorkspaceFolder: vscode.Uri | undefined = await this.localFolderManager.getLocalFolderForFabricWorkspace(workspace);
         if (!localWorkspaceFolder) {
-            localWorkspaceFolder = await this.promptForLocalFolder();
+            localWorkspaceFolder = await this.promptForLocalFolder(workspace);
         }
 
         if (localWorkspaceFolder && options?.createIfNotExists && !(await isDirectory(vscode.workspace.fs, localWorkspaceFolder))) {
@@ -236,22 +202,26 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         return localWorkspaceFolder;
     }
 
-    private ensureCurrentWorkspace(): IWorkspace {
-        if (!this.currentWorkspace) {
-            throw new FabricError(vscode.l10n.t('The current workspace has not been set'), 'The current workspace has not been set');
+    private ensureWorkspace(workspace: IWorkspace | undefined): IWorkspace {
+        if (!workspace) {
+            throw new FabricError(vscode.l10n.t('The workspace has not been set'), 'The workspace has not been set');
         }
-        return this.currentWorkspace;
+        return workspace;
     }
 
-    private async setLocalFolderForCurrentFabricWorkspace(newLocalFolder: vscode.Uri): Promise<void> {
-        await this.localFolderManager.setLocalFolderForFabricWorkspace(this.ensureCurrentWorkspace(), newLocalFolder);
+    private async setLocalFolderForFabricWorkspace(workspace: IWorkspace, newLocalFolder: vscode.Uri): Promise<void> {
+        await this.localFolderManager.setLocalFolderForFabricWorkspace(this.ensureWorkspace(workspace), newLocalFolder);
     }
 
     public async getLocalFolderForArtifact(artifact: IArtifact, options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined> {
         if (options?.createIfNotExists) {
             // Because the folder is getting created, the workspace folder must be set. 
             // Getting the workspace folder will verify it is already set or show UI to the user to set it.
-            const localWorkspaceFolder: vscode.Uri | undefined = await this.getLocalFolderForCurrentFabricWorkspace();
+            const workspace = this.getWorkspaceById(artifact.workspaceId);
+            if (!workspace) {
+                throw new FabricError(vscode.l10n.t('Workspace not found for artifact'), 'Workspace not found for artifact');
+            }
+            const localWorkspaceFolder: vscode.Uri | undefined = await this.getLocalFolderForFabricWorkspace(workspace);
             if (!localWorkspaceFolder) {
                 // Getting back undefined here indicates the user did not want to set the folder at this time.
                 // It is not possible to get the artifact folder without the workspace folder.
@@ -271,16 +241,16 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         return localArtifactFolder;
     }
 
-    public async promptForLocalFolder(): Promise<vscode.Uri | undefined> {
-        this.ensureCurrentWorkspace();
-        let localWorkspaceFolder: vscode.Uri | undefined = await this.localFolderManager.getLocalFolderForFabricWorkspace(this.currentWorkspace!);
+    public async promptForLocalFolder(workspace: IWorkspace): Promise<vscode.Uri | undefined> {
+        this.ensureWorkspace(workspace);
+        let localWorkspaceFolder: vscode.Uri | undefined = await this.localFolderManager.getLocalFolderForFabricWorkspace(workspace);
         if (!localWorkspaceFolder) {
-            localWorkspaceFolder = this.localFolderManager.defaultLocalFolderForFabricWorkspace(this.currentWorkspace!);
+            localWorkspaceFolder = this.localFolderManager.defaultLocalFolderForFabricWorkspace(workspace);
         }
 
-        const selectedFolder: vscode.Uri | undefined = await showLocalFolderQuickPick(localWorkspaceFolder, this.currentWorkspace!, this.gitOperator);
+        const selectedFolder: vscode.Uri | undefined = await showLocalFolderQuickPick(localWorkspaceFolder, workspace, this.gitOperator);
         if (selectedFolder) {
-            await this.setLocalFolderForCurrentFabricWorkspace(selectedFolder);
+            await this.setLocalFolderForFabricWorkspace(workspace, selectedFolder);
         }
         return selectedFolder;
     }
@@ -317,14 +287,10 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         }
     }
 
-    public async getItemsInWorkspace(): Promise<IArtifact[]> {
-        if (!this.currentWorkspace) {
-            throw new Error('The current workspace has not been set before retrieving artifacts called');
-        }
-        const wspaceId = this.currentWorkspace.objectId;
+    public async getItemsInWorkspace(workspaceId: string): Promise<IArtifact[]> {
         const res = await this.apiClient.sendRequest({
             method: 'GET',
-            pathTemplate: `/v1/workspaces/${wspaceId}/items`
+            pathTemplate: `/v1/workspaces/${workspaceId}/items`
         });
 
         if (res.status !== 200) {
@@ -372,7 +338,6 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
 
     abstract listWorkspaces(): Promise<IWorkspace[]>;
     abstract logToOutPutChannel(message: string): void;
-    abstract openWorkspaceById(id: string): Promise<void>;
 }
 /** 
  * Manages the logged-in user's Fabric Workspace
@@ -409,7 +374,7 @@ export class WorkspaceManager extends WorkspaceManagerBase {
      * 
      * An error is issued if the user is not logged in
      * 
-     * @returns The set of all workspaces available to the logged in user
+     * @returns The set of all workspaces available to the logged in user, sorted with personal workspaces first, then others, all alphabetically
      */
     public async listWorkspaces(): Promise<IWorkspace[]> {
         if (!(await this.isConnected())) {
@@ -430,45 +395,27 @@ export class WorkspaceManager extends WorkspaceManagerBase {
         if (!arrayWSpaces) {
             throw new Error('Get Workspace result parsedBody is null or undefined');
         }
-        let workSpaces: IWorkspace[] = [];
+        this._workspacesCache = [];
         for (let item of arrayWSpaces) {
             const wspace: IWorkspace = {
                 objectId: item.id,
                 description: item.description,
                 type: item.type,
                 displayName: item.displayName,
-                capacityId: item.capacityid
+                capacityId: item.capacityId
             };
-            workSpaces.push(wspace);
+            this._workspacesCache.push(wspace);
         }
-        return workSpaces;
+        
+        // Sort workspaces: personal workspaces first (alphabetically), then other workspaces (alphabetically)
+        const personalWorkspaces = this._workspacesCache.filter(w => w.type === 'Personal').sort((a, b) => a.displayName.localeCompare(b.displayName));
+        const otherWorkspaces = this._workspacesCache.filter(w => w.type !== 'Personal').sort((a, b) => a.displayName.localeCompare(b.displayName));
+        
+        this._workspacesCache = [...personalWorkspaces, ...otherWorkspaces];
+        return this._workspacesCache;
     }
 
     logToOutPutChannel(message: string): void {
         this.logger.log(message, undefined, true);
-    }
-
-    public async openWorkspaceById(id: string): Promise<void> {
-        if (!(await this.isConnected())) {
-            await this.account.awaitSignIn();
-        }
-
-        const req: IApiClientRequestOptions = {
-            pathTemplate: `/v1/workspaces/${id}`, //API ref: https://review.learn.microsoft.com/en-us/rest/api/fabric/core/workspaces/get-workspace?branch=drafts%2Ffeatures%2Fga-release&tabs=HTTP
-            method: 'GET'
-        };
-        const response = await this.apiClient.sendRequest(req);
-
-        if (response.status !== 200) {
-            throw new Error(`Cannot find Workspace with id ${id}`);
-        }
-        const workspace: IWorkspace = {
-            objectId: response.parsedBody.id,
-            capacityId: response.parsedBody.capacityId,
-            displayName: response.parsedBody.displayName,
-            description: response.parsedBody.description,
-            type: response.parsedBody.type
-        };
-        await this.setCurrentWorkspace(workspace);
     }
 }

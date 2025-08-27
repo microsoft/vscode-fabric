@@ -90,9 +90,8 @@ export async function unzipZipFile(srczip: vscode.Uri, destfolder: vscode.Uri, z
                 // Update hash if needed
                 if (hasher) {
                     const textContent = Buffer.from(fileContent).toString('utf8');
-                    const buf = createBufFromFileWithLineEndingsFixed(textContent);
-                    const bufStr = buf.toString();
-                    hasher.update(bufStr);
+                    const normalizedString = normalizeLineEndings(textContent);
+                    hasher.update(normalizedString);
                 }
 
                 nEntries++;
@@ -127,35 +126,10 @@ export async function unzipZipFile(srczip: vscode.Uri, destfolder: vscode.Uri, z
     return { hash, nEntries };
 }
 
-export function createBufFromFileWithLineEndingsFixed(text: string): ArrayBuffer {
-    // read the file contents into a string and replace all line endings so works with windows and linux
-    const bText = text.replace(/\r?\n|\n?\r|\r/g, '\n');
-    const buf = Buffer.from(bText, 'utf8');
-    // BEGINMERGE
-//    return buf;
-    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
-    // ENDMERGE
-}
-
-/**
- * Create a zip file from a directory. If the Dir is named "src" then the zip file will be named "src.zip". 
- * The content of src will be zipped. The top level folder "src" will not be included in the zip file: just it's entire contents recursively
- * @param destZipFile the path to the output file to create, e.g. "<path>\MyZipFile.zip"
- * @param srcdir the path to the directory to zip, e.g. "<path>\src"
- */
-async function getTempZipFileName(): Promise<string> {
-    const tempdir = os.tmpdir();
-    const destZipFile = tempdir + '/MyZipFile.zip';
-    if (fs.existsSync(destZipFile)) {
-        console.log(`Deleting existing file ${destZipFile}`);
-        fs.unlinkSync(destZipFile);
-        // await new Promise(async (resolve, reject) => {
-        //     await fs.unlink(destZipFile, () => {
-        //         Promise.resolve();
-        //     });
-        // });
-    }
-    return destZipFile;
+function normalizeLineEndings(text: string): string {
+    // Replace all line endings so works with windows and linux
+    const normalizedString = text.replace(/\r?\n|\n?\r|\r/g, '\n');
+    return normalizedString;
 }
 
 async function getArrayOfFilesToIncludeFromGitIgnore(srcDir: vscode.Uri, zipOptions?: IZipOptions): Promise<string[]> {
@@ -330,15 +304,14 @@ export async function createZipFile(
                                 }
                                 txt += currentRelativePath.replace(/\\/g, '/'); // Add relative path for hash consistency
 
-                                const buf = createBufFromFileWithLineEndingsFixed(txt);
-                                const txtraw = buf.toString();
+                                const normalizedString = normalizeLineEndings(txt);
                                 if (zipOptions?.debug) {
                                     let hasher2 = crypto.createHash('sha256');
-                                    hasher2.update(txtraw);
+                                    hasher2.update(normalizedString);
                                     const hash2 = hasher2.digest('base64');
-                                    debugit(`Hashing ${fileUri.toString()} = ${hash2} replWithEmpty = ${replWithEmpty} len = ${txtraw.length}`);
+                                    debugit(`Hashing ${fileUri.toString()} = ${hash2} replWithEmpty = ${replWithEmpty} len = ${normalizedString.length}`);
                                 }
-                                hasher?.update(txtraw);
+                                hasher?.update(normalizedString);
                             }
 
                             if (replWithEmpty) {

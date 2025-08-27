@@ -3,8 +3,6 @@
     "extension.signOut.title": "Sign Out",
     "extension.switchTenant.title": "Switch tenant...",
     "extension.createWorkspace.title": "Create Fabric workspace...",
-    "extension.selectWorkspace.title": "Select Fabric workspace...",
-    "extension.closeWorkspace.title": "Close Workspace",
     "extension.selectWorkspaceLocalFolder.title": "Select working directory...",
     "extension.createArtifact.title":"Create Item...",
     "extension.readArtifact.title":"View item",
@@ -27,7 +25,7 @@
 
     "extension.submenus.selectActions.label": "Workspace actions",
     
-    "extension.views.Workspace.title":"Fabric Workspace",
+    "extension.views.Workspace.title":"Fabric Workspaces (remote)",
     "extension.views.Local.title":"Local Folder",
     "extension.views.Feedback.title":"Feedback",
 
@@ -36,11 +34,8 @@
     "extension.welcomeTitle.signIn": "Sign in to Fabric to get started with your Workspace.\n[Sign in to Fabric](command:vscode-fabric.signIn)",
     "_extension.welcomeTitle.signIn.comment": "{Locked=\"(command:vscode-fabric.signIn)\"}",
 
-    "extension.welcomeTitle.chooseWorkspace": "No workspace selected [learn more](https://learn.microsoft.com/en-us/fabric/).\n[Select Fabric workspace](command:vscode-fabric.openWorkspace)",
-    "_extension.welcomeTitle.chooseWorkspace.comment": "{Locked=\"(https://learn.microsoft.com/en-us/fabric/)\",\"(command:vscode-fabric.openWorkspace)\"}",
-    
     "extension.welcomeTitle.autoSignIn":"signing in and getting workspace",
-    "extension.welcomeTitle.emptyWorkspace":"Your workspace is empty. Create an item to get started with Microsoft Fabric.\n[Create Fabric item](command:vscode-fabric.createArtifact)",
+    "extension.welcomeTitle.emptyWorkspace":"This workspace is empty. Create an item to get started with Microsoft Fabric.\n[Create Fabric item](command:vscode-fabric.createArtifact)",
 
     "extension.view.local.welcome": "No local project exists for a Fabric item in explorer.",
 
@@ -62,11 +57,5 @@
     
     "extension.walkthrough.signIn.title": "Sign in to Fabric",
     "extension.walkthrough.signIn.description": "Use the 'Fabric: Sign In' command or sign in through the Fabric Explorer.\n[Sign in to Fabric](command:vscode-fabric.signIn)",
-    "_extension.walkthrough.signIn.description.comment": "{Locked=\"(command:vscode-fabric.signIn)\"}",
-    
-    "extension.walkthrough.selectWorkspace.title": "Select Workspace",
-    "extension.walkthrough.selectWorkspace.description": "Use the 'Fabric: Select Workspace...' command or select a workspace through the Fabric Explorer.\n[Select Workspace](command:vscode-fabric.openWorkspace)",
-    "_extension.walkthrough.selectWorkspace.description.comment": "{Locked=\"(command:vscode-fabric.openWorkspace)\"}",
-    
-    "extension.walkthrough.selectWorkspace.alttext": "An image of the Select Fabric workspace picker which highlights the option to create a new workspace."
+    "_extension.walkthrough.signIn.description.comment": "{Locked=\"(command:vscode-fabric.signIn)\"}"
 }

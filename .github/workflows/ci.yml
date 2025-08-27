@@ -7,7 +7,7 @@ on:
       - '**'
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -17,22 +17,65 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Execute build
+        uses: ./.github/actions/build-steps
+
+  test-unit:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run unit tests
+        uses: ./.github/actions/run-test-label
         with:
-          node-version: '18'
-          cache: 'npm'
+          test-label: unit
 
-      - name: Install dependencies
-        run: npm install
+  test-integration:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
-      - name: Build all packages and extensions
-        run: npm run compile
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Run all unit tests (Linux only)
-        if: runner.os == 'Linux'
-        run: xvfb-run -a npm run test
+      - name: Run integration tests
+        uses: ./.github/actions/run-test-label
+        with:
+          test-label: integration
 
-      - name: Run all unit tests (Windows/macOS)
-        if: runner.os != 'Linux'
-        run: npm run test
+  test-e2e:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run e2e tests
+        uses: ./.github/actions/run-test-label
+        with:
+          test-label: e2e
+
+  test-ui:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run ui tests
+        uses: ./.github/actions/run-test-label
+        with:
+          test-label: ui

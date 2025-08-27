@@ -1,10 +1,18 @@
 import * as vscode from 'vscode';
-import { getDisplayNamePlural, getDisplayName, getArtifactIconPath, getArtifactDefaultIconPath, getArtifactExtensionId, getSupportsArtifactWithDefinition } from '../metadata/fabricItemUtilities';
-import { IWorkspaceManager, IArtifact, IWorkspace, FabricTreeNode, ArtifactDesignerActions, ArtifactTreeNode, IFabricTreeNodeProvider } from '@microsoft/vscode-fabric-api';
+
+import { IWorkspaceManager, IWorkspace, FabricTreeNode, ArtifactTreeNode } from '@microsoft/vscode-fabric-api';
 import { ILogger, TelemetryActivity, TelemetryService, withErrorHandling } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
+import { ListViewWorkspaceTreeNode } from './treeNodes/ListViewWorkspaceTreeNode';
+import { WorkspaceTreeNode } from './treeNodes/WorkspaceTreeNode';
+import { ArtifactTypeTreeNode } from './treeNodes/ArtifactTypeTreeNode';
+import { TenantTreeNode } from './treeNodes/TenantTreeNode';
+import { RootTreeNode } from './treeNodes/RootTreeNode';
+import { DisplayStyle, IRootTreeNodeProvider } from './definitions';
+import { TreeViewState } from './treeViewState';
+import { IAccountProvider, ITenantSettings } from '../authentication';
 
 /**
  * Provides tree data for a Fabric workspace
@@ -12,22 +20,19 @@ import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<FabricTreeNode>, vscode.Disposable {
     private disposables: vscode.Disposable[] = [];
     private rootNode: FabricTreeNode | undefined;
-    public static needsUpdate: Boolean = false;
 
     constructor(private context: vscode.ExtensionContext, 
         private readonly extensionManager: IFabricExtensionManagerInternal,
         private readonly workspaceManager: IWorkspaceManager,
         private rootTreeNodeProvider: IRootTreeNodeProvider,
         private readonly logger: ILogger,
-        private telemetryService: TelemetryService | null ) {
+        private telemetryService: TelemetryService | null,
+        private readonly accountProvider: IAccountProvider ) {
         extensionManager.onExtensionsUpdated(() => this.refresh());
 
         let disposable = workspaceManager.onDidChangePropertyValue((propertyName: string) => {
-            if (propertyName === 'currentWorkspace') {
-                FabricWorkspaceDataProvider.needsUpdate = true;
-                if (workspaceManager.treeView) {
-                    workspaceManager.treeView.description = this.getTreeViewDescription(workspaceManager.currentWorkspace?.displayName);
-                }
+            if (propertyName === 'allWorkspaces') {
+                TreeViewState.needsUpdate = true;
             }
             this._onDidChangeTreeData.fire();
         });
@@ -54,7 +59,7 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
     onDidChangeTreeData: vscode.Event<void | FabricTreeNode | FabricTreeNode[] | null | undefined> = this._onDidChangeTreeData.event;
 
     public refresh(): void {
-        FabricWorkspaceDataProvider.needsUpdate = true;
+        TreeViewState.needsUpdate = true;
         this._onDidChangeTreeData.fire();
     }
 
@@ -79,31 +84,38 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
         await (withErrorHandling('FabricWorkspaceDataProvider', this.logger, this.telemetryService, async () => {
             // Asking for the root node
             if (!element) {
-                //            console.log(`TreeView get root childen`);
                 if (await this.workspaceManager.isConnected()) {
-                    // User is signed in
-                    if (this.workspaceManager.currentWorkspace) {
-                        // Workspace is open
-                        this.workspaceManager.treeView!.description = this.getTreeViewDescription(this.workspaceManager.currentWorkspace.displayName);
-
-                        if (FabricWorkspaceDataProvider.needsUpdate) {
+                    // User is signed in - first ensure workspaces are loaded
+                    let workspaces: IWorkspace[];
+                    try {
+                        workspaces = await this.workspaceManager.listWorkspaces();
+                    }
+                    catch (error) {
+                        this.logger.log('Error loading workspaces: ' + error);
+                        return;
+                    }
+                    
+                    if (workspaces && workspaces.length > 0) {
+                        if (TreeViewState.needsUpdate) {
                             this.rootNode = undefined;
                         }
-                        // No workspace open. Urge the user to select a workspace
+                        
+                        // Create the root node which will handle both tenant and no-tenant cases
                         if (this.rootNode === undefined) {
-                            const item = this.rootTreeNodeProvider.create(this.workspaceManager.currentWorkspace);
-                            this.rootNode = item;
+                            const currentDisplayStyle = this.rootTreeNodeProvider.getCurrentDisplayStyle();
+                            this.rootNode = new RootTreeNode(
+                                this.context,
+                                this.extensionManager,
+                                this.telemetryService,
+                                this.workspaceManager,
+                                this.accountProvider,
+                                currentDisplayStyle
+                            );
                         }
 
-                        // In this view, there is no top-level workspace node. Return all of the sorted item collection nodes
-                        nodes = await this.rootNode.getChildNodes();
-                    }
-                    else {
-                        if (!this.workspaceManager.isProcessingAutoLogin) {
-                            await vscode.commands.executeCommand('setContext', this.workspaceManager.fabricWorkspaceContext, 'chooseWorkspace');
-                        }
-                        else {
-                            this.workspaceManager.isProcessingAutoLogin = false; // indicate that we returned 0 children and need a refresh
+                        if (this.rootNode) {
+                            // In this view, there is no top-level workspace node. Return all of the sorted item collection nodes
+                            nodes = await this.rootNode.getChildNodes();
                         }
                     }
                 }
@@ -128,7 +140,28 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
      * @return Parent of `element`.
      */
     async getParent(element: FabricTreeNode): Promise<FabricTreeNode | undefined> {
-        if (element instanceof ListViewWorkspaceTreeNode) {
+        if (element instanceof WorkspaceTreeNode) {
+            // Workspace nodes can have either the root node (no tenant case) or a tenant node as parent
+            const currentTenant = await this.accountProvider.getCurrentTenant();
+            if (currentTenant && this.rootNode) {
+                // If we have a tenant, workspace parent is the tenant node (child of root)
+                const childNodes = await this.rootNode.getChildNodes();
+                return childNodes.find(child => child instanceof TenantTreeNode);
+            }
+            else {
+                // If no tenant, workspace parent is the root node directly
+                return this.rootNode;
+            }
+        }
+        else if (element instanceof TenantTreeNode) {
+            // Tenant nodes always have the root node as parent
+            return this.rootNode;
+        }
+        else if (element instanceof RootTreeNode) {
+            // Root node has no parent
+            return undefined;
+        }
+        else if (element instanceof ListViewWorkspaceTreeNode) {
             return undefined;
         }
         else if (element instanceof ArtifactTypeTreeNode) {
@@ -156,245 +189,6 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
     }
 }
 
-abstract class WorkspaceTreeNode extends FabricTreeNode {
-    constructor(context: vscode.ExtensionContext, 
-        protected extensionManager: IFabricExtensionManagerInternal, 
-        public readonly workspace: IWorkspace, 
-        private displayStyle: DisplayStyle,
-        protected telemetryService: TelemetryService | null,
-        protected workspaceManager: IWorkspaceManager,
-    ) {
-        super(context, 'Items', vscode.TreeItemCollapsibleState.Expanded);
-        this.description = this.workspace.displayName;
-        this.contextValue = 'WorkspaceTreeNode';
-    }
-
-    /**
-     * Finds and returns all of the top-level items of the Fabric workspace
-     * 
-     * @returns The top-level items of the Fabric workspace
-     */
-    public async getChildNodes(): Promise<FabricTreeNode[]> {
-        if (FabricWorkspaceDataProvider.needsUpdate) {
-            this.reset();
-        }
-
-        if (!this.isReady()) {
-            this.ensureReady();
-            var activity = new TelemetryActivity<CoreTelemetryEventNames>('workspace/load-items', this.telemetryService);
-            await activity.doTelemetryActivity(async () => {
-                const workspaceManager:IWorkspaceManager = this.workspaceManager;
-                const artifacts: IArtifact[] = await workspaceManager.getItemsInWorkspace();
-                if (artifacts) {
-                    activity.addOrUpdateProperties({
-                        'itemCount': artifacts.length.toString(),
-                        'displayStyle': this.displayStyle,
-                    });
-                    if (artifacts.length === 0) {
-                        // when no items found in workspace, show a button to create a new item
-                        await vscode.commands.executeCommand('setContext', workspaceManager.fabricWorkspaceContext, 'emptyWorkspace');
-                    }
-                    else {
-                        for (const artifact of artifacts) {
-                            await this.addArtifact(artifact);
-                        }
-                    }
-                }
-            });
-
-            FabricWorkspaceDataProvider.needsUpdate = false;
-        }
-
-        return this.sortChildren();
-    }
-
-    /**
-     * Ask the workspace tree to add the specified artifact to the tree view
-     * @param artifact The artifact to add to the tree
-     */
-    protected abstract addArtifact(artifact: IArtifact): Promise<void>;
-
-    /**
-     * Ensures that new artifacts can be added to the tree
-     */
-    protected abstract ensureReady(): void;
-
-    /**
-     * Queries whether or not new artifacts can be added to the tree
-     */
-    protected abstract isReady(): boolean;
-
-    /**
-     * Removes all of the children from the tree
-     */
-    protected abstract reset(): void;
-
-    /**
-     * Sort the nodes after all of the artifacts have been added
-     */
-    protected abstract sortChildren(): FabricTreeNode[];
-}
-
-export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
-    private _children: ArtifactTreeNode[] | undefined;
-
-    constructor(context: vscode.ExtensionContext,
-        extensionManager: IFabricExtensionManagerInternal,
-        workspace: IWorkspace,
-        telemetryService: TelemetryService | null,
-        workspaceManager: IWorkspaceManager
-    ) {
-        super(context, extensionManager, workspace, DisplayStyle.list, telemetryService, workspaceManager);
-    }
-
-    protected async addArtifact(artifact: IArtifact): Promise<void> {
-        const treeNodeProvider: IFabricTreeNodeProvider | undefined = this.extensionManager.treeNodeProviders.get(artifact.type);
-        const artifactNode: ArtifactTreeNode = await createArtifactTreeNode(this.context, artifact, this.extensionManager, treeNodeProvider);
-
-        let description = getDisplayName(artifact);
-        if (typeof artifactNode.description === 'string' && artifactNode.description.length > 0) {
-            description = `${description} ${artifactNode.description}`;
-        }
-        artifactNode.description = description;
-
-        this._children?.push(artifactNode);
-    }
-
-    protected ensureReady(): void {
-        if (!this._children) {
-            this._children = [];
-        }
-    }
-
-    protected isReady(): boolean {
-        return !!this._children;
-    }
-
-    protected reset() {
-        this._children = undefined;
-    }
-
-    protected sortChildren(): FabricTreeNode[] {
-        if (this._children) {
-            return [...this._children.values()].sort((a, b) => a.artifact.displayName.localeCompare(b.artifact.displayName));
-        }
-
-        return [];
-    }
-}
-
-/**
- * Root tree item for the workspace
- */
-export class TreeViewWorkspaceTreeNode extends WorkspaceTreeNode {
-    private _children: Map<string, ArtifactTypeTreeNode> | undefined;
-
-    constructor(context: vscode.ExtensionContext,
-        extensionManager: IFabricExtensionManagerInternal,
-        workspace: IWorkspace,
-        telemetryService: TelemetryService | null,
-        workspaceManager: IWorkspaceManager
-    ) {
-        super(context, extensionManager, workspace, DisplayStyle.tree, telemetryService, workspaceManager);
-    }
-
-    protected async addArtifact(artifact: IArtifact) {
-        if (!this._children!.has(artifact.type)) {
-            this._children!.set(artifact.type, new ArtifactTypeTreeNode(this.context, this.extensionManager, artifact.type));
-        }
-        this._children!.get(artifact.type)?.addArtifact(artifact);
-    }
-
-    protected ensureReady() {
-        if (!this._children) {
-            this._children = new Map<string, ArtifactTypeTreeNode>();
-        }
-    }
-
-    protected isReady(): boolean {
-        return !!this._children;
-    }
-
-    protected reset() {
-        this._children = undefined;
-    }
-
-    protected sortChildren(): FabricTreeNode[] {
-        if (this._children) {
-            return [...this._children.values()].sort((a, b) => a.displayName.localeCompare(b.displayName));
-        }
-
-        return [];
-    }
-}
-
-class ArtifactTypeTreeNode extends FabricTreeNode {
-    private _children = new Map<string, IArtifact>();
-    private treeNodeProvider: IFabricTreeNodeProvider | undefined;
-
-    public get displayName() {
-        return getDisplayNamePlural(this.artifactType) ?? this.artifactType;
-    };
-
-    constructor(context: vscode.ExtensionContext, protected extensionManager: IFabricExtensionManagerInternal, public artifactType: string) {
-        super(context, getDisplayNamePlural(artifactType) ?? artifactType, vscode.TreeItemCollapsibleState.Collapsed);
-        this.treeNodeProvider = this.extensionManager.treeNodeProviders.get(artifactType);
-        this.contextValue = 'ItemType';
-        this.iconPath = getArtifactIconPath(this.context.extensionUri, artifactType) ?? getArtifactDefaultIconPath(this.context.extensionUri);
-    }
-
-    addArtifact(artifact: IArtifact) {
-        if (artifact.displayName && !this._children.has(artifact.id)) {
-            this._children.set(artifact.id, artifact);
-        }
-    }
-
-    async getChildNodes(): Promise<FabricTreeNode[]> {
-        const childNodes: FabricTreeNode[] = [];
-
-        const sortedArtifacts = [...this._children.values()].sort((a, b) => a.displayName.localeCompare(b.displayName));
-        for (const artifact of sortedArtifacts) {
-            const artifactNode: ArtifactTreeNode = await createArtifactTreeNode(this.context, artifact, this.extensionManager, this.treeNodeProvider);
-            childNodes.push(artifactNode);
-        }
-
-        return childNodes;
-    }
-}
-
-class MissingExtensionArtifactTreeNode extends ArtifactTreeNode {
-    constructor(context: vscode.ExtensionContext, artifact: IArtifact, private extensionId: string) {
-        super(context, artifact);
-        this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
-    }
-
-    async getChildNodes(): Promise<FabricTreeNode[]> {
-        return [ new InstallExtensionTreeNode(this.context, this.extensionId) ];
-    }
-}
-
-class InstallExtensionTreeNode extends FabricTreeNode {
-    constructor(context: vscode.ExtensionContext, public extensionId: string) {
-        super(context, vscode.l10n.t('Install extension to enable additional features...'), vscode.TreeItemCollapsibleState.None);
-        this.iconPath = new vscode.ThemeIcon('extensions');
-        this.command = {
-            command: 'vscode-fabric.installExtension',
-            title: '',
-            arguments: [extensionId],
-        };
-    }
-}
-
-enum DisplayStyle {
-    list = 'ListView',
-    tree = 'TreeView',
-}
-
-export interface IRootTreeNodeProvider {
-    create(workspace: IWorkspace): FabricTreeNode;
-    onDisplayStyleChanged: vscode.Event<void>;
-}
-
 const fabricViewDisplayStyleContext = 'vscode-fabric.workspaceViewDisplayStyle';
 export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodeProvider {
     private static disposables: vscode.Disposable[] = [];
@@ -406,6 +200,7 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
         private context: vscode.ExtensionContext,
         private extensionManager: IFabricExtensionManagerInternal,
         private workspaceManager: IWorkspaceManager,
+        private accountProvider: IAccountProvider,
         private telemetryService: TelemetryService | null = null
     ) {
         this.dispose();
@@ -467,11 +262,17 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
         RootTreeNodeProvider.disposables.push(this.onDisplayStyleChangedEmitter);
     }
 
-    public create(workspace: IWorkspace): FabricTreeNode {
-        if (this.storage.settings.displayStyle === DisplayStyle.tree) {
-            return new TreeViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager);
+    public create(tenant: ITenantSettings): FabricTreeNode {  
+        const displayStyle = this.storage.settings.displayStyle as DisplayStyle;
+        return new TenantTreeNode(this.context, this.extensionManager, this.telemetryService, this.workspaceManager, tenant, displayStyle);
+    }
+
+    public getCurrentDisplayStyle(): DisplayStyle {
+        if (this.storage.settings.displayStyle &&
+            Object.values(DisplayStyle).includes(this.storage.settings.displayStyle as DisplayStyle)) {
+            return this.storage.settings.displayStyle as DisplayStyle;
         }
-        return new ListViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager);
+        return DisplayStyle.list; // Default fallback
     }
 
     private async changeDisplayStyle(newDisplayStyle: DisplayStyle): Promise<void> {
@@ -498,55 +299,5 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
             RootTreeNodeProvider.disposables.forEach(item => item.dispose());
         }
         RootTreeNodeProvider.disposables = [];
-    }
-}
-
-async function createArtifactTreeNode(context: vscode.ExtensionContext, artifact: IArtifact, extensionManager: IFabricExtensionManagerInternal, treeNodeProvider: IFabricTreeNodeProvider | undefined): Promise<ArtifactTreeNode> {
-    let artifactNode: ArtifactTreeNode;
-    if (treeNodeProvider) {
-        artifactNode = await treeNodeProvider.createArtifactTreeNode(artifact);
-    }
-    else {
-        const extensionId: string | undefined = getArtifactExtensionId(artifact);
-        if (extensionId && !extensionManager.isAvailable(extensionId)) {
-            artifactNode = new MissingExtensionArtifactTreeNode(context, artifact, extensionId);
-        }
-        else {
-            artifactNode = new ArtifactTreeNode(context, artifact);
-        }
-    }
-
-    if (!artifactNode.iconPath) {
-        artifactNode.iconPath = getArtifactIconPath(context.extensionUri, artifact) ?? getArtifactDefaultIconPath(context.extensionUri);
-    }
-    setContextValue(artifactNode, artifactNode.allowedDesignActions);
-
-    return artifactNode;
-}
-
-function setContextValue(artifactNode: ArtifactTreeNode, allowedDesignActions: ArtifactDesignerActions | undefined): void {
-    if (!allowedDesignActions) {
-        allowedDesignActions = ArtifactDesignerActions.default;
-    }
-    if (!artifactNode.contextValue) {
-        artifactNode.contextValue = `Item${artifactNode.artifact.type}`;
-    }
-    if (allowedDesignActions & ArtifactDesignerActions.delete) {
-        artifactNode.contextValue += '|item-delete';
-    }
-    if (allowedDesignActions & ArtifactDesignerActions.open) {
-        artifactNode.contextValue += '|item-open-in-explorer';
-    }
-    if (allowedDesignActions & ArtifactDesignerActions.definition || getSupportsArtifactWithDefinition(artifactNode.artifact)) {
-        artifactNode.contextValue += '|item-export';
-    }
-    if (allowedDesignActions & ArtifactDesignerActions.publish) {
-        artifactNode.contextValue += '|item-publish';
-    }
-    if (allowedDesignActions & ArtifactDesignerActions.rename) {
-        artifactNode.contextValue += '|item-rename';
-    }
-    if (allowedDesignActions & ArtifactDesignerActions.viewInPortal) {
-        artifactNode.contextValue += '|item-view-in-portal';
     }
 }

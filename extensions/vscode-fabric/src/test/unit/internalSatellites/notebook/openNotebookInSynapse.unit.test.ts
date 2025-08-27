@@ -53,7 +53,6 @@ describe('openNotebookInSynapse', function() {
         // Act
         await openNotebookInSynapse(
             telemetryServiceMock.object(),
-            'TestWorkspace',
             treeNodeMock.object(),
         );
 

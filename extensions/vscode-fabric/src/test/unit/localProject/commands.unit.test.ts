@@ -104,7 +104,9 @@ describe('registerLocalProjectCommands', () => {
             fabricEnvironmentProviderMock.setup(x => x.getCurrent())
                 .returns({ sharedUri: 'https://test.fabric', env: 'test-env' } as any);
 
-            workspaceManagerMock.setup(x => x.currentWorkspace).returns({ objectId: 'test-workspace-id', displayName: 'TestWorkspaceDisplayName' } as IWorkspace);
+            const testWorkspace = { objectId: 'test-workspace-id', displayName: 'TestWorkspaceDisplayName' } as IWorkspace;
+            workspaceManagerMock.setup(x => x.listWorkspaces()).returns(Promise.resolve([testWorkspace]));
+            workspaceManagerMock.setup(x => x.getWorkspaceById('test-workspace-id')).returns(testWorkspace);
 
             telemetryServiceMock.setup(x =>
                 x.sendTelemetryEvent(

@@ -158,10 +158,10 @@ use the FabricError class to throw errors, which will allow control over logging
 The delegate is NOT invoked by this function. It is returned for later invocation.
 Also useful for wrapping a chunk of code in a common error handler.
 */
-export function withErrorHandling<T extends (...args: any[]) => any>(description: string, logger: ILogger, telemetryService: TelemetryService | null, fn: T): (...args: Parameters<T>) => Promise<void> {
+export function withErrorHandling<T extends (...args: any[]) => any>(description: string, logger: ILogger, telemetryService: TelemetryService | null, fn: T): (...args: Parameters<T>) => Promise<any> {
     const returnedFunc = async (...args: Parameters<T>) => {
         try {
-            await fn(...args);
+            return await fn(...args);
         }
         catch (error: any) {
             if (error?.isFabricError) { // Use contract-based detection instead of property-based

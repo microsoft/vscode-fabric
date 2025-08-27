@@ -57,7 +57,7 @@ describe('SqlExtension', function() {
         );
         // Assert
         assert.equal(sqlExtension.identity, 'fabric.internal-satellite-sql', 'Identity should be set');
-        assert.equal(sqlExtension.apiVersion, '0.6', 'API version should be set');
+        assert.equal(sqlExtension.apiVersion, '0.7', 'API version should be set');
         extensionManagerMock.verify(x => x.addExtension(It.IsAny()), Times.Once());
     });
 

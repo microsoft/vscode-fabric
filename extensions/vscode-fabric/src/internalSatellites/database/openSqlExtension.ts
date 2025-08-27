@@ -20,7 +20,6 @@ export async function openSqlExtensionInExternal(
     const event = new TelemetryEvent<TelemetryEventNames>('item/open/sql-ext', telemetryService);
     event.addOrUpdateProperties({
         'workspaceId': databaseTreeNode.artifact.workspaceId,
-        'fabricWorkspaceName': workspaceManager.currentWorkspace!.displayName,
         'artifactId': databaseTreeNode.artifact.id,
         'itemType': databaseTreeNode.artifact.type,
         'fabricArtifactName': databaseTreeNode.artifact.displayName,

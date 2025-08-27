@@ -10,6 +10,7 @@ import { IFabricEnvironmentProvider, ILogger, TelemetryService } from '@microsof
 
 export class MockArtifactManager extends ArtifactManager {
     public mapArtifacts: Map<string, IArtifact[]> = new Map<string, IArtifact[]>(); // wspaceid 
+    private allArtifacts: IArtifact[] = []; // Local storage for all artifacts
 
     constructor(
         extensionManager: IFabricExtensionManagerInternal,
@@ -26,14 +27,20 @@ export class MockArtifactManager extends ArtifactManager {
      * Returns the artifacts for the current workspace
      */
     public get artifacts(): IArtifact[] {
-        const arts = (this.workspaceManager! as MockWorkspaceManager).getArtifacts();
-        return arts;
+        return this.allArtifacts;
     };
 
     async createArtifact(artifact: IArtifact): Promise<IApiClientResponse> {
         artifact.id = String(this.artifacts.length);
-        (this.workspaceManager! as MockWorkspaceManager).addArtifact(artifact);
+        
+        // Add to local storage first
+        this.allArtifacts.push(artifact);
+        
+        const mockWorkspaceManager = this.workspaceManager! as MockWorkspaceManager;
+        await mockWorkspaceManager.addArtifact(artifact);
+        
         this.dataProvider.refresh();
+        
         return Promise.resolve({
             status: 200
         });
@@ -86,30 +93,31 @@ export class MockArtifactManager extends ArtifactManager {
 
     async updateArtifact(artifact: IArtifact, body: Map<string, string>): Promise<IApiClientResponse> {
         const index = this.artifacts.findIndex((item) => item.id === artifact.id);
+        
         if (index > -1) {
-            const artifact = this.artifacts[index];
+            const foundArtifact = this.artifacts[index];
             let request: IApiClientRequestOptions = {
                 method: 'PATCH',
-                pathTemplate: '/metadata/artifacts/' + artifact.id,
+                pathTemplate: '/metadata/artifacts/' + foundArtifact.id,
                 headers: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     'Content-Type': 'application/json',
                 },
                 body: {
-                    displayName: artifact.displayName,
-                    description: artifact.description + ' Updated Artifact ' + Date(), // make a change so we can tell it changed
+                    displayName: foundArtifact.displayName,
+                    description: foundArtifact.description + ' Updated Artifact ' + Date(), // make a change so we can tell it changed
                 }
             };
-            artifact.description += ' Updated Artifact' + Date();
+            foundArtifact.description += ' Updated Artifact' + Date();
 
-            const artifactHandler: IArtifactHandler | undefined = this.getArtifactHandler(artifact);
+            const artifactHandler: IArtifactHandler | undefined = this.getArtifactHandler(foundArtifact);
             if (artifactHandler?.onBeforeRequest) {
-                await artifactHandler?.onBeforeRequest(OperationRequestType.update, artifact, request);
+                await artifactHandler?.onBeforeRequest(OperationRequestType.update, foundArtifact, request);
             }
             const response = await this.apiClient.sendRequest(request);
 
             if (artifactHandler?.onAfterRequest) {
-                await artifactHandler?.onAfterRequest(OperationRequestType.update, artifact, response!);
+                await artifactHandler?.onAfterRequest(OperationRequestType.update, foundArtifact, response!);
             }
 
             this.dataProvider.refresh(); // force an update to the tree
@@ -118,7 +126,7 @@ export class MockArtifactManager extends ArtifactManager {
             }
             return Promise.resolve(response!);
         }
-        return Promise.reject('Artifact not found');
+        return Promise.reject(new Error('Artifact not found'));
     }
 
     async deleteArtifact(artifact: IArtifact): Promise<IApiClientResponse> {
@@ -126,6 +134,17 @@ export class MockArtifactManager extends ArtifactManager {
         if (index > -1) {
             this.artifacts.splice(index, 1);
         }
+        
+        // Also remove from workspace manager
+        const mockWorkspaceManager = this.workspaceManager! as MockWorkspaceManager;
+        const workspaceArtifacts = mockWorkspaceManager.mapArtifacts.get(artifact.workspaceId);
+        if (workspaceArtifacts) {
+            const wsIndex = workspaceArtifacts.findIndex((item) => item.id === artifact.id);
+            if (wsIndex > -1) {
+                workspaceArtifacts.splice(wsIndex, 1);
+            }
+        }
+        
         this.dataProvider.refresh();
         return Promise.resolve({
             status: 200

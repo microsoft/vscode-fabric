@@ -25,13 +25,7 @@ describe('copyConnectionStringToClipboard', function() {
         telemetryServiceMock = new Mock<TelemetryService>();
         workspaceManagerMock = new Mock<IWorkspaceManager>();
         apiClientMock = new Mock<IFabricApiClient>();
-        databaseTreeNodeMock = new Mock<AbstractDatabaseTreeNode>();
-
-        // Setup workspaceManager.currentWorkspace
-        workspaceManagerMock.setup(x => x.currentWorkspace).returns({
-            objectId: 'ws-123',
-            displayName: 'TestWorkspace'
-        } as any);
+        databaseTreeNodeMock = new Mock<AbstractDatabaseTreeNode>();    
 
         // Setup databaseTreeNode.artifact
         databaseTreeNodeMock.setup(x => x.artifact).returns({

@@ -53,10 +53,12 @@ export class MockAccountProvider implements IAccountProvider {
         this.#isSignedIn = true;
     }
     getCurrentTenant(): Promise<ITenantSettings | undefined> {
-        throw new Error('Method not implemented.');
+        // For mocking purposes, return undefined to indicate no tenant selection (direct workspace access)
+        return Promise.resolve(undefined);
     }
     getTenants(): Promise<ITenantSettings[]> {
-        throw new Error('Method not implemented.');
+        // For mocking purposes, return empty array
+        return Promise.resolve([]);
     }
 
     getAccountInfo(askToSignIn: boolean): Promise<vscode.AuthenticationSessionAccountInformation | null> {

@@ -78,11 +78,9 @@ export async function importArtifactCommand(
         };
 
         response = await artifactManager.createArtifactWithDefinition(newArtifact, definition);
-        if (workspaceManager.currentWorkspace?.objectId === targetWorkspace.objectId) {
-            // If the current workspace is the same as the target workspace, we need to refresh the data provider
-            // to ensure the new artifact is shown in the UI.
-            await dataProvider.refresh();
-        }
+        
+        await dataProvider.refresh();
+        
     }
     else {
         telemetryActivity.addOrUpdateProperties({

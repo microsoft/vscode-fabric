@@ -61,7 +61,8 @@ describe('showWorkspaceQuickPick', () => {
         const ws2: IWorkspace = { objectId: 'ws-2', displayName: 'Charlie', description: '', type: 'Workspace' };
         const ws3: IWorkspace = { objectId: 'ws-3', displayName: 'Bravo', description: '', type: 'Personal' };
         const ws4: IWorkspace = { objectId: 'ws-4', displayName: 'Alpha', description: '', type: 'Workspace' };
-        workspaceManagerMock.setup(m => m.listWorkspaces()).returnsAsync([ws1, ws2, ws3, ws4]);
+        // listWorkspaces is expected to sort the workspaces
+        workspaceManagerMock.setup(m => m.listWorkspaces()).returnsAsync([ws3, ws1, ws4, ws2]);
         let receivedItems: string[] = [];
         showQuickPickStub.callsFake((items: string[]) => {
             receivedItems = items;

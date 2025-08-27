@@ -83,30 +83,26 @@ export class FabricUriHandler implements vscode.UriHandler {
                     'openArtifact': openArtifact.toString()
                 }
             );
-            if (openArtifact) {
-                await this.openWorkspaceAndArtifact(workspaceId, artifactId);
+
+            if (!openArtifact) {
+                return;
             }
+
+            this.core.workspaceManager.clearPriorStateIfAny();
+
+            const artifacts = await this.core.workspaceManager.getItemsInWorkspace(workspaceId);
+            const artifact = artifacts.find(e => e.id === artifactId);
+
+            if (artifact === undefined) {
+                throw new FabricError(vscode.l10n.t('Artifact id not found: \'{0}\' in workspace: \'{1}\'")', artifactId, workspaceId), 'Artifact not found in workspace');
+            }
+
+            // show the Fabric remote view
+            await vscode.commands.executeCommand('workbench.view.extension.vscode-fabric_view_workspace');
+
+            // open the artifact (registered item type handlers will be called)
+            await this.core.artifactManager.openArtifact(artifact);
         });
-    }
-
-    async openWorkspaceAndArtifact(workspaceId: string, artifactId: string) {
-        this.core.workspaceManager.clearPriorStateIfAny();
-
-        // select the correct workspace
-        await this.core.workspaceManager.openWorkspaceById(workspaceId);
-
-        const artifacts = await this.core.workspaceManager.getItemsInWorkspace();
-        const artifact = artifacts.find(e => e.id === artifactId);
-
-        if (artifact === undefined) {
-            throw new FabricError(vscode.l10n.t('Artifact id not found: \'{0}\' in workspace: \'{1}\'")', artifactId, workspaceId), 'Artifact not found in workspace');
-        }
-
-        // show the Fabric remote view
-        await vscode.commands.executeCommand('workbench.view.extension.vscode-fabric_view_workspace');
-
-        // open the artifact (registered item type handlers will be called)
-        await this.core.artifactManager.openArtifact(artifact);
     }
 }
 

@@ -139,7 +139,7 @@ export interface IArtifactManager {
      * @param cmdArgs the command arguments if any
      * @param callback  the code to call when cmd invoked, passing in the ArtifactTreeNode as a parameter
      */
-    doContextMenuItem(cmdArgs: any[], description: string, callback: (item: ArtifactTreeNode | undefined) => Promise<void>): Promise<boolean>;
+    doContextMenuItem<T>(cmdArgs: any[], description: string, callback: (item: ArtifactTreeNode | undefined) => Promise<T>): Promise<boolean>;
 }
 
 /**
@@ -198,17 +198,16 @@ export interface IWorkspace {
 export interface IWorkspaceManager {
     listWorkspaces(): Promise<IWorkspace[]>
     createWorkspace(workspaceName: string, options?: { capacityId?: string, description?: string }): Promise<IApiClientResponse>;
-    get currentWorkspace(): IWorkspace | undefined;
-    getLocalFolderForCurrentFabricWorkspace(options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined>;
+    getLocalFolderForFabricWorkspace(workspace: IWorkspace, options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined>;
     getLocalFolderForArtifact(artifact: IArtifact, options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined>
     get onDidChangePropertyValue(): vscode.Event<string>;
-    getItemsInWorkspace(): Promise<IArtifact[]>;
+    getItemsInWorkspace(workspaceId: string): Promise<IArtifact[]>;
     isProcessingAutoLogin: boolean;
     fabricWorkspaceContext: string;
     isConnected(): Promise<boolean>;
     treeView: vscode.TreeView<FabricTreeNode> | undefined;
     clearPriorStateIfAny(): void;
-    openWorkspaceById(id: string): Promise<void>;
+    getWorkspaceById(workspaceId: string): IWorkspace | undefined;
 }
 
 /**

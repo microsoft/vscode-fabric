@@ -57,7 +57,7 @@ describe('NotebookExtension', function() {
         );
         // Assert
         assert.equal(notebookExtension.identity, 'fabric.internal-satellite-notebook', 'Identity should be set');
-        assert.equal(notebookExtension.apiVersion, '0.6', 'API version should be set');
+        assert.equal(notebookExtension.apiVersion, '0.7', 'API version should be set');
         extensionManagerMock.verify(x => x.addExtension(It.IsAny()), Times.Once());
     });
 

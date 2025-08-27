@@ -1,143 +1,110 @@
-import { DIContainer } from '@wessberg/di';
-import * as vscode from 'vscode';
-import { It, Mock, Times } from 'moq.ts';
-import { FabricVsCodeExtension } from '../../extension';
-import { composeTestContainer } from './composeTestContainer';
-import { FabricEnvironmentName, getFabricEnvironment, IFabricEnvironmentProvider, sleep, TelemetryService } from '@microsoft/vscode-fabric-util';
+import * as assert from 'assert';
+import { activateCore, IFabricEnvironmentProvider, sleep, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../../authentication/interfaces';
 
-describe('FabricVsCodeExtension', function() {
-    let app: FabricVsCodeExtension;
-    let container: DIContainer;
-    let mockAccountPovider: Mock<IAccountProvider>;
-    let mockTelemetryService: Mock<TelemetryService>;
-    let mockEnvironmentProvider: Mock<IFabricEnvironmentProvider>;
-    let onDidEnvironmentChangeEmitter: vscode.EventEmitter<void>;
-    let onTenantChangedEmitter: vscode.EventEmitter<void>;
+/**
+ * Integration Test for Telemetry Properties Management
+ * 
+ * Test Coverage:
+ * - Default telemetry properties set on activation
+ * - Fabric environment property updates
+ * - Tenant change property updates
+ * - Account provider integration with telemetry
+ */
+describe('Telemetry Properties Integration Tests', function() {
+    const testTimeOut = 60 * 1000;
     
+    let core: any;
+    let coreApi: any;
+    let accountProvider: IAccountProvider;
+    let telemetryService: TelemetryService;
+    let fabricEnvironmentProvider: IFabricEnvironmentProvider;
+
     beforeEach(async function() {
-        // Get the test container
-        container = await composeTestContainer();
+        this.timeout(testTimeOut);
         
-        // Set up mocks necessary for these tests
-        mockAccountPovider = new Mock<IAccountProvider>();
-        mockAccountPovider.setup(provider => provider.onSignInChanged).returns(new vscode.EventEmitter<void>().event);
+        const testHooksEnabled = process.env['VSCODE_FABRIC_ENABLE_TEST_HOOKS'] === 'true';
+        const testFakesEnabled = process.env['VSCODE_FABRIC_ENABLE_TEST_FAKES'] === 'true';
         
-        onTenantChangedEmitter = new vscode.EventEmitter<void>();
-        mockAccountPovider.setup(provider => provider.onTenantChanged).returns(onTenantChangedEmitter.event);
-        mockAccountPovider.setup(provider => provider.getDefaultTelemetryProperties).returns(async () => ({
-            tenantid: 'some-tenant',
-            useralias: 'some-user',
-            isMicrosoftInternal: 'false'
-        }));
+        if (!testHooksEnabled || !testFakesEnabled) {
+            throw new Error('Test hooks and fakes must be enabled. Set VSCODE_FABRIC_ENABLE_TEST_HOOKS=true and VSCODE_FABRIC_ENABLE_TEST_FAKES=true');
+        }
 
-        // Set up telemetry service mock to verify properties are added
-        mockTelemetryService = new Mock<TelemetryService>();
-        mockTelemetryService.setup(service => service.sendTelemetryEvent(It.IsAny(), It.IsAny(), It.IsAny())).returns(undefined);
-        mockTelemetryService.setup(service => service.sendTelemetryErrorEvent(It.IsAny(), It.IsAny(), It.IsAny())).returns(undefined);
-        mockTelemetryService.setup(service => service.addOrUpdateDefaultProperty(It.IsAny<string>(), It.IsAny<string>())) .returns(undefined);
-        mockTelemetryService.setup(service => service.dispose()).returns(Promise.resolve());
-            
-        mockEnvironmentProvider = new Mock<IFabricEnvironmentProvider>();
-        mockEnvironmentProvider.setup(provider => provider.getCurrent()).returns(getFabricEnvironment(FabricEnvironmentName.MOCK));
+        core = await activateCore();
+        
+        assert(core, 'Failed to activate core extension');
+        assert(core.testHooks, 'Failed to get test hooks from core');
+        
+        coreApi = core.testHooks['serviceCollection'];
+        assert(coreApi, 'Failed to get service collection');
 
-        onDidEnvironmentChangeEmitter = new vscode.EventEmitter<void>();
-        mockEnvironmentProvider.setup(provider => provider.onDidEnvironmentChange).returns(onDidEnvironmentChangeEmitter.event);
+        accountProvider = core.testHooks['accountProvider'] as IAccountProvider;
+        assert(accountProvider, 'Failed to get account provider from test hooks');
 
-        // Override the test container where needed
-        container.registerSingleton<IAccountProvider>(() => mockAccountPovider.object());
-        container.registerSingleton<TelemetryService>(() => mockTelemetryService.object());
-        container.registerSingleton<IFabricEnvironmentProvider>(() => mockEnvironmentProvider.object());
+        telemetryService = core.testHooks['telemetryService'] as TelemetryService;
+        assert(telemetryService, 'Failed to get telemetry service from test hooks');
 
-        // Create the extension
-        app = new FabricVsCodeExtension(container);
-    });
+        fabricEnvironmentProvider = core.testHooks['fabricEnvironmentProvider'] as IFabricEnvironmentProvider;
+        assert(fabricEnvironmentProvider, 'Failed to get fabric environment provider from test hooks');
 
-    afterEach(async function() {
-        await app.deactivate();
+        await sleep(2000);
     });
 
     it('should set default telemetry properties on activate', async function() {
-        // Act
-        await app.activate();
+        this.timeout(testTimeOut);
 
-        // Assert
-        mockTelemetryService.verify(service => 
-            service.addOrUpdateDefaultProperty(
-                It.Is<string>(s => s === 'tenantid'),
-                It.Is<string>(s => s === 'some-tenant')), Times.Once());
-
-        mockTelemetryService.verify(service => 
-            service.addOrUpdateDefaultProperty(
-                It.Is<string>(s => s === 'useralias'),
-                It.Is<string>(s => s === 'some-user')), Times.Once());
-
-        mockTelemetryService.verify(service => 
-            service.addOrUpdateDefaultProperty(
-                It.Is<string>(s => s === 'ismicrosoftinternal'),
-                It.Is<string>(s => s === 'false')), Times.Once());
+        const defaultProperties = await accountProvider.getDefaultTelemetryProperties();
+        assert(defaultProperties, 'Default telemetry properties should be available');
+        
+        assert.strictEqual(defaultProperties.tenantid, 'fake-tenant-id');
+        assert.strictEqual(defaultProperties.isMicrosoftInternal, 'true');
+        assert.strictEqual(defaultProperties.useralias, 'fake-user');
+        
+        assert.strictEqual(telemetryService.defaultProps['common.tenantid'], 'fake-tenant-id');
+        assert.strictEqual(telemetryService.defaultProps['common.ismicrosoftinternal'], 'true');
+        assert.strictEqual(telemetryService.defaultProps['common.useralias'], 'fake-user');
     });
 
     it('should set fabric environment property on activate', async function() {
-        // Act
-        await app.activate();
+        this.timeout(testTimeOut);
 
-        // Assert
-        mockTelemetryService.verify(service => 
-            service.addOrUpdateDefaultProperty(
-                It.Is<string>(s => s === 'fabricEnvironment'),
-                It.Is<string>(s => s === 'MOCK')), Times.Once());
-
-        // Arrange - change the environment retuned by the provider
-        mockEnvironmentProvider.setup(provider => provider.getCurrent()).returns(getFabricEnvironment(FabricEnvironmentName.PROD));
-
-        // Act - simulate changed event
-        onDidEnvironmentChangeEmitter.fire();
-
-        // Assert
-        mockTelemetryService.verify(service => 
-            service.addOrUpdateDefaultProperty(
-                It.Is<string>(s => s === 'fabricEnvironment'),
-                It.Is<string>(s => s === 'PROD')), Times.Once());
+        const currentEnvironment = fabricEnvironmentProvider.getCurrent();
+        assert(currentEnvironment, 'Current environment should be available');
+        assert(currentEnvironment.env, 'Environment should have an env property');
+        
+        assert.strictEqual(telemetryService.defaultProps['common.fabricEnvironment'], currentEnvironment.env);
     });
 
-    it('should update tenantid property when onTenantChanged is called', async function() {
-        // Act - activate extension
-        await app.activate();
+    it('should handle tenant change events properly', async function() {
+        this.timeout(testTimeOut);
 
-        // Verify initial setup call
-        mockTelemetryService.verify(service => 
-            service.addOrUpdateDefaultProperty(
-                It.Is<string>(s => s === 'tenantid'),
-                It.Is<string>(s => s === 'some-tenant')), Times.Once());
+        const originalAddOrUpdate = telemetryService.addOrUpdateDefaultProperty.bind(telemetryService);
+        
+        let capturedCalls: Array<{key: string, value: string}> = [];
+        telemetryService.addOrUpdateDefaultProperty = (key: string, value: string) => {
+            capturedCalls.push({key, value});
+            return originalAddOrUpdate(key, value);
+        };
 
-        // Arrange - update mock to return different tenant properties
-        mockAccountPovider.setup(provider => provider.getDefaultTelemetryProperties).returns(async () => ({
-            tenantid: 'updated-tenant',
-            useralias: 'updated-user',
-            isMicrosoftInternal: 'true'
-        }));
-
-        // Act - simulate tenant change event
-        onTenantChangedEmitter.fire();
-
-        // Give the async event handler time to complete
-        await sleep(10);
-
-        // Assert - verify updated tenant properties were set
-        mockTelemetryService.verify(service => 
-            service.addOrUpdateDefaultProperty(
-                It.Is<string>(s => s === 'tenantid'),
-                It.Is<string>(s => s === 'updated-tenant')), Times.Once());
-
-        mockTelemetryService.verify(service => 
-            service.addOrUpdateDefaultProperty(
-                It.Is<string>(s => s === 'useralias'),
-                It.Is<string>(s => s === 'updated-user')), Times.Once());
-
-        mockTelemetryService.verify(service => 
-            service.addOrUpdateDefaultProperty(
-                It.Is<string>(s => s === 'ismicrosoftinternal'),
-                It.Is<string>(s => s === 'true')), Times.Once());
+        const initialProperties = await accountProvider.getDefaultTelemetryProperties();
+        assert.strictEqual(initialProperties.tenantid, 'fake-tenant-id');
+        
+        // Access the event emitter through the account provider's internal structure
+        // Since we're using fake services, we need to trigger the event manually
+        const accountProviderAny = accountProvider as any;
+        if (accountProviderAny.onTenantChangedEmitter && typeof accountProviderAny.onTenantChangedEmitter.fire === 'function') {
+            accountProviderAny.onTenantChangedEmitter.fire();
+        }
+        
+        // Wait for the event to be processed
+        await sleep(100);
+        
+        // Verify that addOrUpdateDefaultProperty was called with the tenant ID
+        const tenantIdCall = capturedCalls.find(call => call.key === 'tenantid');
+        assert(tenantIdCall, 'addOrUpdateDefaultProperty should have been called with common.tenantid');
+        assert.strictEqual(tenantIdCall.value, 'fake-tenant-id');
+        
+        // Restore original method
+        telemetryService.addOrUpdateDefaultProperty = originalAddOrUpdate;
     });
 });

@@ -260,8 +260,6 @@ describe('ArtifactManager', function () {
 
             artifactHandlersMock.setup(x => x.get(It.IsAny()))
                 .returns(undefined); // No handlers for simplicity
-            workspaceManagerMock.setup(x => x.currentWorkspace)
-                .returns({ objectId: 'ws1', displayName: 'WS' } as any);
             fabricEnvironmentProviderMock.setup(x => x.getCurrent())
                 .returns({ sharedUri: 'https://test.fabric' } as any);
             extensionManagerMock.setup(x => x.artifactHandlers)

@@ -5,28 +5,27 @@ import * as querystring from 'querystring';
 import { FeedbackTreeDataProvider } from './feedback/FeedbackTreeDataProvider';
 import { WorkspaceManager, WorkspaceManagerBase } from './workspace/WorkspaceManager';
 import { IFabricExtensionManager, Schema, IArtifactManager, IFabricApiClient, IFabricExtensionServiceCollection, IWorkspaceManager, FabricTreeNode } from '@microsoft/vscode-fabric-api';
-import { TelemetryService, TelemetryActivity, FabricUriHandler, FabricEnvironmentProvider, ConfigurationProvider, IConfigurationProvider, IFabricEnvironmentProvider, ILogger, IDisposableCollection, DisposableCollection, FakeConfigurationProvider, MockConsoleLogger } from '@microsoft/vscode-fabric-util';
+import { TelemetryService, TelemetryActivity, FabricUriHandler, FabricEnvironmentProvider, ConfigurationProvider, IConfigurationProvider, IFabricEnvironmentProvider, ILogger, IDisposableCollection, DisposableCollection, FakeConfigurationProvider, MockConsoleLogger, VSCodeUIBypass } from '@microsoft/vscode-fabric-util';
 import { ITokenAcquisitionService, IAccountProvider } from './authentication/interfaces';
 import { AccountProvider } from './authentication/AccountProvider';
 import { TokenAcquisitionService, VsCodeAuthentication, DefaultVsCodeAuthentication } from './authentication/TokenAcquisitionService';
 import { MockTokenAcquisitionService, MockAccountProvider } from './authentication/mocks';
-import { FabricApiClient, MockApiClient } from './fabric';
+import { FabricApiClient, MockApiClient, FakeFabricApiClient } from './fabric';
 import { FabricExtensionServiceCollection } from './FabricExtensionServiceCollection';
 import { Logger } from '@microsoft/vscode-fabric-util';
 import { LocalProjectTreeDataProvider } from './localProject/LocalProjectTreeDataProvider';
 import { ExplorerLocalProjectDiscovery } from './localProject/ExplorerLocalProjectDiscovery';
 import { WorkspaceFolderProvider } from './localProject/WorkspaceFolderProvider';
-import { ObservableArrayVisibilityConverter, ObservableMapVisibilityConverter } from './VisibilityConverter';
 import { IFabricExtensionsSettingStorage } from './settings/definitions';
 import { IFabricExtensionManagerInternal, IGitOperator } from './apis/internal/fabricExtensionInternal';
-import { FabricWorkspaceDataProvider, IRootTreeNodeProvider, RootTreeNodeProvider } from './workspace/treeView';
+import { FabricWorkspaceDataProvider, RootTreeNodeProvider } from './workspace/treeView';
+import { IRootTreeNodeProvider } from './workspace/definitions';
 import { registerArtifactCommands } from './artifactManager/commands';
 import { registerWorkspaceCommands } from './workspace/commands';
 import { registerTenantCommands } from './tenant/commands';
 import { registerLocalProjectCommands } from './localProject/commands';
 import TelemetryReporter from '@vscode/extension-telemetry';
 import { FabricExtensionManager } from './extensionManager/FabricExtensionManager';
-import { TenantStatusBar } from './tenant/TenantStatusBar';
 import { IArtifactManagerInternal } from './apis/internal/fabricExtensionInternal';
 import { ICapacityManager, CapacityManager } from './CapacityManager';
 
@@ -39,6 +38,7 @@ import { ArtifactManager } from './artifactManager/ArtifactManager';
 import { MockArtifactManager } from './artifactManager/MockArtifactManager';
 import { MockWorkspaceManager } from './workspace/mockWorkspaceManager';
 import { InternalSatelliteManager } from './internalSatellites/InternalSatelliteManager';
+import { FakeTokenAcquisitionService } from './authentication';
 
 let app: FabricVsCodeExtension;
 
@@ -70,6 +70,8 @@ export class FabricVsCodeExtension {
             }));
 
             const storage = this.container.get<IFabricExtensionsSettingStorage>();
+            await storage.load();
+            
             const extensionManager = this.container.get<IFabricExtensionManagerInternal>();
             const account = this.container.get<IAccountProvider>();
             const workspaceManager = this.container.get<IWorkspaceManager>() as WorkspaceManagerBase;
@@ -92,16 +94,11 @@ export class FabricVsCodeExtension {
 
             registerWorkspaceCommands(context, account, workspaceManager, capacityManager, apiClient, telemetryService, logger);
             registerTenantCommands(context, account, telemetryService, logger);
-            await registerArtifactCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, dataProvider, extensionManager, telemetryService, logger);
+            await registerArtifactCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, dataProvider, extensionManager, capacityManager, telemetryService, logger);
             registerLocalProjectCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, capacityManager, dataProvider, telemetryService, logger);
 
             const coreServiceCollection: IFabricExtensionServiceCollection = this.container.get<IFabricExtensionServiceCollection>();
             extensionManager.serviceCollection = coreServiceCollection;
-
-            context.subscriptions.push(new ObservableMapVisibilityConverter(
-                extensionManager.localProjectTreeNodeProviders, 'vscode-fabric.view.local.isVisible'));
-            context.subscriptions.push(new ObservableMapVisibilityConverter(
-                extensionManager.localProjectTreeNodeProviders, 'vscode-fabric.selectWorkspaceLocalFolder.isVisible'));
 
             const workspaceFolderProvider = await WorkspaceFolderProvider.create(logger, telemetryService);
             context.subscriptions.push(workspaceFolderProvider);
@@ -138,9 +135,6 @@ export class FabricVsCodeExtension {
             // Initialize the default account properties for the first time
             await updateDefaultAccountProperties();
 
-            const statusBar = this.container.get<TenantStatusBar>();
-            context.subscriptions.push(statusBar);
-
             async function tenantChanged() {
                 const tenantInformation = await account.getCurrentTenant();
                 if (!tenantInformation) {
@@ -155,15 +149,12 @@ export class FabricVsCodeExtension {
                     };
                 }
                 await storage.save();
-
-                // Update the status bar
-                statusBar.refresh();
             }
             account.onTenantChanged(async () => await tenantChanged());
             account.onTenantChanged(async () => await updateDefaultAccountProperties());
 
             // set testhooks in the extension manager
-            if (process.env.VSCODE_FABRIC_ENABLE_TEST_HOOKS === 'true') {  // TODO add && extension in test mode
+            if (process.env.VSCODE_FABRIC_ENABLE_TEST_HOOKS === 'true' && context.extensionMode !== vscode.ExtensionMode.Production) {
                 extensionManager.testHooks = {
                     'accountProvider': account,
                     'fabricApiClient': apiClient,
@@ -171,7 +162,19 @@ export class FabricVsCodeExtension {
                     'serviceCollection': coreServiceCollection,
                     'context': context,
                     'logger': logger,
+                    'fabricEnvironmentProvider': fabricEnvironmentProvider,
+                    'telemetryService': telemetryService,
+                    'configurationProvider': this.container.get<IConfigurationProvider>(),
+                    'workspaceDataProvider': this.container.get<FabricWorkspaceDataProvider>(),
+                    'vscodeUIBypass': new VSCodeUIBypass(),
+                    'artifactManager': artifactManager,
+
                 };
+
+                // If using fakes, also expose the fake client for test configuration
+                if (process.env.VSCODE_FABRIC_ENABLE_TEST_FAKES === 'true' && apiClient instanceof FakeFabricApiClient) {
+                    extensionManager.testHooks['fakeFabricApiClient'] = apiClient;
+                }
             }
             // register the uri handler
             context.subscriptions.push(
@@ -308,11 +311,9 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<ICapacityManager, CapacityManager>();
 
     container.registerSingleton<FabricUriHandler>();
-    container.registerSingleton<TenantStatusBar>();
-
     container.registerSingleton<InternalSatelliteManager>();
 
-    if (process.env.VSCODE_FABRIC_USE_MOCKS === 'true' && context.extensionMode === vscode.ExtensionMode.Test) {
+    if (process.env.VSCODE_FABRIC_USE_MOCKS === 'true' && context.extensionMode !== vscode.ExtensionMode.Production) {
         // if mocks are requested, override with mock implementations
         container.registerSingleton<ILogger>(() => new MockConsoleLogger('Fabric'));
         container.registerSingleton<IArtifactManager, MockArtifactManager>();
@@ -321,6 +322,19 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
         container.registerSingleton<IAccountProvider, MockAccountProvider>();
         container.registerSingleton<IFabricApiClient>(() => new MockApiClient(container.get<ILogger>())); // registering the same item, the last one registered always wins.
         container.registerSingleton<IConfigurationProvider, FakeConfigurationProvider>();
+    }
+
+    if (process.env.VSCODE_FABRIC_ENABLE_TEST_FAKES === 'true' && context.extensionMode !== vscode.ExtensionMode.Production) {
+        // if fakes are requested, override with fake implementations that extend real implementations
+        container.registerSingleton<ILogger>(() => new MockConsoleLogger('Fabric'));
+        container.registerSingleton<IFabricApiClient>(() => new FakeFabricApiClient(
+            container.get<IAccountProvider>(),
+            container.get<IConfigurationProvider>(),
+            container.get<IFabricEnvironmentProvider>(),
+            container.get<TelemetryService>(),
+            container.get<ILogger>()
+        )); // registering the same item, the last one registered always wins.
+        container.registerSingleton<ITokenAcquisitionService>(() => new FakeTokenAcquisitionService());
     }
 
     return container;

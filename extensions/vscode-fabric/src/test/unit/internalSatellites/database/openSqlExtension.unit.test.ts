@@ -27,12 +27,6 @@ describe('openSqlExtensionInExternal', function() {
         apiClientMock = new Mock<IFabricApiClient>();
         databaseTreeNodeMock = new Mock<AbstractDatabaseTreeNode>();
 
-        // Setup workspaceManager.currentWorkspace
-        workspaceManagerMock.setup(x => x.currentWorkspace).returns({
-            objectId: 'ws-123',
-            displayName: 'TestWorkspace'
-        } as any);
-
         // Setup databaseTreeNode.artifact
         databaseTreeNodeMock.setup(x => x.artifact).returns({
             workspaceId: 'ws-123',

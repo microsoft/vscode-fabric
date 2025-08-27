@@ -10,11 +10,13 @@ const __dirname = dirname(__filename);
 // https://github.com/microsoft/vscode-test-cli/issues/40#issuecomment-2124849239
 
 export default defineConfig({
-	tests:[{
-		files: 'out/test/**/*.test.js',
+	tests:[
+	{
+		label: 'unit',
+		files: 'out/test/unit/**/*.test.js',
 		mocha: {
 			ui: 'bdd',
-			...getMochaReporterOptions('util')
+			...getMochaReporterOptions('util-unit')
 		}
 	}],
 	coverage: {

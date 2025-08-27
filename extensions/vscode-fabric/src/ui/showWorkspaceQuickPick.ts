@@ -27,22 +27,17 @@ export async function showWorkspaceQuickPick(
         throw new NotSignedInError();
     }
 
-    let workspaces = await workspaceManager.listWorkspaces();
-    // Sort all workspaces alphabetically
-    workspaces = workspaces.sort((a, b) => a.displayName.localeCompare(b.displayName));
-    
-    // Filter personal and non-personal workspaces
-    const personalWorkspaces = workspaces.filter(w => w.type === 'Personal');
-    const otherWorkspaces = workspaces.filter(w => w.type !== 'Personal');
+    const workspaces = await workspaceManager.listWorkspaces();
     
     // Prepare items array with "Create new..." option first
     const workspaceItems: string[] = [];
     const createString = vscode.l10n.t('Create a new Fabric Workspace...');
     workspaceItems.push(`$(add) ${createString}`);
     
-    // Add personal workspaces first, then others
-    personalWorkspaces.forEach(w => workspaceItems.push(w.displayName));
-    otherWorkspaces.forEach(w => workspaceItems.push(w.displayName));
+    // Add workspaces (already sorted by listWorkspaces) - explicitly preserve order
+    for (const workspace of workspaces) {
+        workspaceItems.push(workspace.displayName);
+    }
 
     const pick: string | undefined = await vscode.window.showQuickPick(workspaceItems, { canPickMany: false, placeHolder: 'Select Fabric workspace' });
     if (pick) {

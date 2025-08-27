@@ -2,11 +2,13 @@ import { defineConfig } from '@vscode/test-cli';
 import { getMochaReporterOptions } from '../../extensions/.vscode-test.shared.cjs';
 
 export default defineConfig({
-	tests:[{
-		files: 'out/test/**/*.test.js',
+	tests:[
+	{
+		label: 'unit',
+		files: 'out/test/unit/**/*.test.js',
 		mocha: {
 			ui: 'bdd',
-			...getMochaReporterOptions('api')
+			...getMochaReporterOptions('api-unit')
 		}
 	}],
 	coverage: {

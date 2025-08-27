@@ -1,0 +1,16 @@
+{
+  "pathMap": {
+    "Localize": "localization"
+  },
+  "deleteSkipList": [
+    "CODE_OF_CONDUCT.md",
+    "INTEGRATIONS.md",
+    "LICENSE.txt",
+    "SECURITY.md",
+    ".azure-pipelines",
+    ".github",
+    "packages/api/LICENSE",
+    "packages/util/LICENSE",
+    "tools"
+  ]
+}

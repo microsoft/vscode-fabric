@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { IArtifactManager, IFabricExtension, IFabricExtensionManager, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, IWorkspaceManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { apiVersion, IArtifactManager, IFabricExtension, IFabricExtensionManager, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, IWorkspaceManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { SqlDatabaseTreeNodeProvider } from './SqlDatabaseTreeNodeProvider';
 import { SqlEndpointTreeNodeProvider } from './SqlEndpointTreeNodeProvider';
@@ -11,7 +11,7 @@ export class SqlExtension implements IFabricExtension, vscode.Disposable {
     private apiClient: IFabricApiClient;
 
     public identity: string = 'fabric.internal-satellite-sql';
-    public apiVersion: string = '0.6';
+    public apiVersion: string = apiVersion;
     public artifactTypes: string[] = ['SQLDatabase, SQLEndpoint'];
     public treeNodeProviders: IFabricTreeNodeProvider[] = [
         new SqlDatabaseTreeNodeProvider(this.context),

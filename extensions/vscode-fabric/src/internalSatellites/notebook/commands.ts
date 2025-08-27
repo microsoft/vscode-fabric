@@ -21,10 +21,9 @@ export function registerNotebookCommands(
             }
 
             const notebookTreeNode = item as NotebookTreeNode;                        
-            const workspaceId = notebookTreeNode.artifact.workspaceId;
-            const workspaceName = workspaceManager.currentWorkspace!.displayName;
+            const workspaceId = notebookTreeNode.artifact.workspaceId;            
 
-            await openNotebookInSynapse(telemetryService, workspaceName, notebookTreeNode);
+            await openNotebookInSynapse(telemetryService, notebookTreeNode);
         });
     };
 

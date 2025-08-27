@@ -9,15 +9,13 @@ type TelemetryEventNames = {
 };
 
 export async function openNotebookInSynapse(
-    telemetryService: TelemetryService,
-    workspaceName: string,
+    telemetryService: TelemetryService,    
     treeNode: NotebookTreeNode): Promise<void> {
     const targetUrl = await treeNode.getExternalUri();
 
     const event = new TelemetryEvent<TelemetryEventNames>('item/open/synapse', telemetryService);
     event.addOrUpdateProperties({
         'workspaceId': treeNode.artifact.workspaceId,
-        'fabricWorkspaceName': workspaceName,
         'artifactId': treeNode.artifact.id,
         'itemType': treeNode.artifact.type,
         'fabricArtifactName': treeNode.artifact.displayName,

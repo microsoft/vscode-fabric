@@ -10,6 +10,7 @@ import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../..
 import { TelemetryService, TelemetryActivity, IFabricEnvironmentProvider, ILogger } from '@microsoft/vscode-fabric-util';
 import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { IItemDefinitionWriter } from '../../../itemDefinition/ItemDefinitionWriter';
+import { ICapacityManager } from '../../../CapacityManager';
 
 describe('registerArtifactCommands', () => {
     let contextMock: Mock<vscode.ExtensionContext>;
@@ -18,6 +19,7 @@ describe('registerArtifactCommands', () => {
     let artifactManagerMock: Mock<IArtifactManagerInternal>;
     let dataProviderMock: Mock<FabricWorkspaceDataProvider>;
     let extensionManagerMock: Mock<IFabricExtensionManagerInternal>;
+    let capacityManagerMock: Mock<ICapacityManager>;
     let telemetryServiceMock: Mock<TelemetryService>;
     let loggerMock: Mock<ILogger>;
     let itemDefinitionWriterMock: Mock<IItemDefinitionWriter>;
@@ -33,6 +35,7 @@ describe('registerArtifactCommands', () => {
         artifactManagerMock = new Mock<IArtifactManagerInternal>();
         dataProviderMock = new Mock<FabricWorkspaceDataProvider>();
         extensionManagerMock = new Mock<IFabricExtensionManagerInternal>();
+        capacityManagerMock = new Mock<ICapacityManager>();
         telemetryServiceMock = new Mock<TelemetryService>();
         loggerMock = new Mock<ILogger>();
         itemDefinitionWriterMock = new Mock<IItemDefinitionWriter>();
@@ -120,7 +123,9 @@ describe('registerArtifactCommands', () => {
             fabricEnvironmentProviderMock.setup(x => x.getCurrent())
                 .returns({ sharedUri: 'https://test.fabric', env: 'test-env' } as any);
 
-            workspaceManagerMock.setup(x => x.currentWorkspace).returns({ objectId: 'test-workspace-id', displayName: 'TestWorkspaceDisplayName' } as IWorkspace);
+            // Set up workspace for telemetry
+            const testWorkspace = { objectId: 'test-workspace-id', displayName: 'TestWorkspaceDisplayName' } as IWorkspace;
+            workspaceManagerMock.setup(x => x.getWorkspaceById('test-workspace-id')).returns(testWorkspace);
 
             telemetryServiceMock.setup(x =>
                 x.sendTelemetryEvent(
@@ -180,7 +185,7 @@ describe('registerArtifactCommands', () => {
                 let promptStub: sinon.SinonStub | undefined;
                 let promptResult: any;
                 if (specialCase) {
-                    promptResult = { type: 'test-artifact-type', name: 'TestArtifactDisplayName' };
+                    promptResult = { type: 'test-artifact-type', name: 'TestArtifactDisplayName', workspaceId: 'test-workspace-id' };
                     promptStub = sinon.stub().resolves(promptResult);
                     sinon.replace(commandModule, 'promptForArtifactTypeAndName', promptStub);
 
@@ -305,10 +310,9 @@ describe('registerArtifactCommands', () => {
             assert.strictEqual(capturedTelemetryProps.workspaceId, 'test-workspace-id', 'workspaceId should match');
             assert.strictEqual(capturedTelemetryProps.artifactId, specialCase ? undefined : 'test-artifact-id', 'artifactId should match');
             assert.strictEqual(capturedTelemetryProps.fabricArtifactName, 'TestArtifactDisplayName', 'fabricArtifactName should match');
-            assert.strictEqual(capturedTelemetryProps.fabricWorkspaceName, 'TestWorkspaceDisplayName', 'fabricWorkspaceName should match');
             assert.strictEqual(capturedTelemetryProps.itemType, 'test-artifact-type', 'itemType should match');
             assert.strictEqual(capturedTelemetryProps.result, 'Succeeded', 'result should match');
-            assert.strictEqual(Object.keys(capturedTelemetryProps).length, specialCase ? 7 : 8, 'Telemetry properties key count should match');
+            assert.strictEqual(Object.keys(capturedTelemetryProps).length, specialCase ? 6 : 7, 'Telemetry properties key count should match');
         }
     });
 
@@ -320,6 +324,7 @@ describe('registerArtifactCommands', () => {
             artifactManagerMock.object(),
             dataProviderMock.object(),
             extensionManagerMock.object(),
+            capacityManagerMock.object(),
             telemetryServiceMock.object(),
             loggerMock.object(),
         );

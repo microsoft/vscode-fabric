@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 import { IApiClientResponse, IArtifact, IItemDefinition, IWorkspace, IApiClientRequestOptions, IFabricApiClient, OperationRequestType, IArtifactHandler, IArtifactManager, ArtifactTreeNode, IWorkspaceManager, } from '@microsoft/vscode-fabric-api';
-import { doFabricAction, FabricError, IFabricEnvironmentProvider, ILogger, sleep, TelemetryActivity, TelemetryService, withErrorHandling } from '@microsoft/vscode-fabric-util';
+import { doFabricAction, FabricError, IFabricEnvironmentProvider, ILogger, sleep, TelemetryActivity, TelemetryService, withErrorHandling, UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { DefaultArtifactHandler } from '../DefaultArtifactHandler';
 import { fabricViewWorkspace } from '../constants';
 import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
@@ -25,10 +25,6 @@ export class ArtifactManager implements IArtifactManagerInternal {
 
     protected getArtifactHandler(artifact: IArtifact): IArtifactHandler | undefined {
         return this.extensionManager.artifactHandlers.get(artifact.type);
-    }
-
-    protected get currentWorkspace(): IWorkspace {
-        return this.workspaceManager.currentWorkspace!;
     }
 
     public dispose(): void {
@@ -60,7 +56,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
     }
 
     private currentContextMenuItemBeingExecuted = '';
-    public async doContextMenuItem(cmdArgs: any[], description: string, callback: (item: ArtifactTreeNode | undefined) => Promise<void>): Promise<boolean> {
+    public async doContextMenuItem<T>(cmdArgs: any[], description: string, callback: (item: ArtifactTreeNode | undefined) => Promise<T>): Promise<boolean> {
         let didit = false;
         await withErrorHandling(description, this.logger, this.telemetryService, async () => {
             await doFabricAction({ fabricLogger: this.logger }, async () => {
@@ -98,7 +94,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
                 const request: IApiClientRequestOptions =
                 {
                     method: 'POST',
-                    pathTemplate: `/v1/workspaces/${this.workspaceManager.currentWorkspace!.objectId}/items`,
+                    pathTemplate: `/v1/workspaces/${artifact.workspaceId}/items`,
                     headers: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         'Content-Type': 'application/json',
@@ -123,7 +119,6 @@ export class ArtifactManager implements IArtifactManagerInternal {
                 activity.addOrUpdateProperties({
                     'endpoint': this.fabricEnvironmentProvider.getCurrent().sharedUri,
                     'fabricArtifactName': artifact.displayName,
-                    'fabricWorkspaceName': this.workspaceManager.currentWorkspace!.displayName,
                     'statusCode': response?.status.toString(),
                     'workspaceId': artifact.workspaceId,
                     'itemType': artifact.type,
@@ -348,7 +343,6 @@ export class ArtifactManager implements IArtifactManagerInternal {
                     'workspaceId': artifact.workspaceId,
                     'artifactId': artifact.id,
                     'fabricArtifactName': artifact.displayName,
-                    'fabricWorkspaceName': this.workspaceManager.currentWorkspace!.displayName,
                     'itemType': artifact.type
                 });
                 if (response.status !== 200) {
@@ -439,33 +433,16 @@ export class ArtifactManager implements IArtifactManagerInternal {
     }
 
     public async openArtifact(artifact: IArtifact): Promise<void> {
-        return await vscode.window.withProgress({ location: { viewId: fabricViewWorkspace } }, async () => {
-            const activity = new TelemetryActivity<CoreTelemetryEventNames>('item/open', this.telemetryService);
-            return activity.doTelemetryActivity(async () => {
-                const artifactHandler = this.getArtifactHandler(artifact);
-                if (artifactHandler?.onOpen) {
-                    activity.addOrUpdateProperties({
-                        'workspaceId': artifact.workspaceId,
-                        'artifactId': artifact.id,
-                        'fabricArtifactName': artifact.displayName,
-                        'fabricWorkspaceName': this.workspaceManager.currentWorkspace!.displayName,
-                        'itemType': artifact.type
-                    });
-
-                    // Allow the user to select the local workspace folder if it hasn't been set yet
-                    // This will ensure the user has a local folder to open the artifact in
-                    let localFolder: vscode.Uri | undefined = await this.workspaceManager.getLocalFolderForCurrentFabricWorkspace();
-                    if (!localFolder) {
-                        throw new FabricError(vscode.l10n.t('User canceled Open Artifact'), 'User canceled Open Artifact', { showInUserNotification: 'Information' });
-                    }
-
-                    const targetFolder: vscode.Uri | undefined = await this.workspaceManager.getLocalFolderForArtifact(artifact, { createIfNotExists: true });
-                    const openSuccessful: boolean = await artifactHandler.onOpen(artifact, { folder: targetFolder! });
-                    if (openSuccessful) {
-                        await vscode.commands.executeCommand('vscode.openFolder', targetFolder!); // default to open in current window
-                    }
-                }
-            });
-        });
+        const artifactHandler = this.getArtifactHandler(artifact);
+        if (artifactHandler?.onOpen) {                    
+            const targetFolder: vscode.Uri | undefined = await this.workspaceManager.getLocalFolderForArtifact(artifact, { createIfNotExists: true });
+            if (!targetFolder) {
+                throw new UserCancelledError('localFolderSelection');
+            }
+            const openSuccessful: boolean = await artifactHandler.onOpen(artifact, { folder: targetFolder });
+            if (openSuccessful) {
+                await vscode.commands.executeCommand('vscode.openFolder', targetFolder); // default to open in current window
+            }
+        }
     }
 }

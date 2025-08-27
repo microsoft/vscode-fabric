@@ -2,7 +2,7 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Launch Extension",
+			"name": "Core extension",
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
@@ -15,10 +15,10 @@
 			"sourceMapPathOverrides": {
 				"webpack://vscode-fabric/*": "${workspaceFolder}/*",
 			},
-			"sourceMaps": true,
 			"env": {
-				"VSCODE_FABRIC_USE_MOCKS": "false",
-			}
+				"VSCODE_FABRIC_ENABLE_TEST_HOOKS": "true",
+				"VSCODE_FABRIC_ENABLE_TEST_FAKES": "true",
+			},
 		},
 		{
 			"name": "Debug Core UI Tests",
@@ -29,7 +29,8 @@
 			"console": "integratedTerminal",
 			"internalConsoleOptions": "neverOpen",
 			"env": {
-				"VSCODE_FABRIC_USE_FAKES": "true", // this does not work :/
+				"VSCODE_FABRIC_ENABLE_TEST_HOOKS": "true",
+				"VSCODE_FABRIC_ENABLE_TEST_FAKES": "true",
 			},
 		}
 	]

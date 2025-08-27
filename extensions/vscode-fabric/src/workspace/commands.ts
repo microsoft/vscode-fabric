@@ -1,20 +1,20 @@
 import * as vscode from 'vscode';
 import { commandNames } from '../constants';
-import { showSignInPrompt, showSelectWorkspacePrompt } from '../ui/prompts';
+import { showSignInPrompt } from '../ui/prompts';
 import { WorkspaceManagerBase } from './WorkspaceManager';
-
+import { WorkspaceTreeNode } from './treeNodes/WorkspaceTreeNode';
 import { showCreateWorkspaceWizard } from '../ui/showCreateWorkspaceWizard';
 import { showWorkspaceQuickPick } from '../ui/showWorkspaceQuickPick';
-import { IFabricApiClient, IWorkspace } from '@microsoft/vscode-fabric-api';
+import { IFabricApiClient, IWorkspace, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { TelemetryService, ILogger } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../authentication/interfaces';
-import { CapacityManager, ICapacityManager } from '../CapacityManager';
+import { ICapacityManager } from '../CapacityManager';
 
 let workspaceCommandDisposables: vscode.Disposable[] = [];
 
-function registerCommand(
+function registerCommand<T>(
     commandName: string,
-    callback: () => Promise<void>,
+    callback: (...args: any[]) => Promise<T>,
     context: vscode.ExtensionContext
 ): void {
     const disposable = vscode.commands.registerCommand(commandName, callback);
@@ -41,19 +41,11 @@ export function registerWorkspaceCommands(
     }, context);
 
     registerCommand(commandNames.createWorkspace, async () => {
-        await createWorkspace(workspaceManager, capacityManager, telemetryService, logger);
+        return await createWorkspace(workspaceManager, capacityManager, telemetryService, logger);
     }, context);
 
-    registerCommand(commandNames.openWorkspace, async () => {
-        await openWorkspace(workspaceManager, capacityManager, telemetryService, logger);
-    }, context);
-
-    registerCommand(commandNames.closeWorkSpace, async () => {
-        await closeWorkspace(workspaceManager);
-    }, context);
-
-    registerCommand(commandNames.selectWorkspaceLocalFolder, async () => {
-        await selectLocalFolder(workspaceManager);
+    registerCommand(commandNames.selectWorkspaceLocalFolder, async (treeNode?: WorkspaceTreeNode) => {
+        await selectLocalFolder(workspaceManager, treeNode);
     }, context);
 }
 
@@ -61,17 +53,20 @@ export function registerWorkspaceCommands(
  * If logged in, allows the user to enter a the name of a new workspace to create along with the capacity to use for the new workspace
  * @param manager Handles the Fabric workspaces for the user
  */
-async function createWorkspace(manager: WorkspaceManagerBase, capacityManager: ICapacityManager, telemetryService: TelemetryService | null, logger: ILogger): Promise<void> {
+async function createWorkspace(manager: WorkspaceManagerBase, capacityManager: ICapacityManager, telemetryService: TelemetryService | null, logger: ILogger): Promise<IWorkspace | undefined> {
     try {
         if (!(await manager.isConnected())) {
             await showSignInPrompt();
             return;
         }
 
-        const createdWorkspace: IWorkspace | undefined = await showCreateWorkspaceWizard(manager, capacityManager, telemetryService, logger);
+        const createdWorkspace: IWorkspace | undefined = await showCreateWorkspaceWizard(manager as unknown as IWorkspaceManager, capacityManager, telemetryService, logger);
         if (createdWorkspace) {
-            await manager.openWorkspaceById(createdWorkspace.objectId);
+            // Workspace is now available in workspaces collection
+            // No need to set as current workspace in multi-workspace model
         }
+
+        return createdWorkspace;
     }
     catch (error: any) {
         void vscode.window.showErrorMessage(error.message);
@@ -80,51 +75,22 @@ async function createWorkspace(manager: WorkspaceManagerBase, capacityManager: I
 }
 
 /**
- * If logged in, shows the user the available Fabric worskapces and allows for the selection of 1
- * @param manager Handles the Fabric workspaces for the user
- */
-async function openWorkspace(
-    manager: WorkspaceManagerBase, 
-    capacityManager: ICapacityManager,
-    telemetryService: TelemetryService | null, 
-    logger: ILogger): Promise<void> {
-    try {
-        if (!(await manager.isConnected())) {
-            await showSignInPrompt();
-            return;
-        }
-
-        const selectedWorkspace = await showWorkspaceQuickPick(manager, capacityManager, telemetryService, logger);
-        if (selectedWorkspace) {
-            await manager.setCurrentWorkspace(selectedWorkspace);
-            telemetryService?.sendTelemetryEvent('workspace/open', { workspaceId: manager.currentWorkspace!.objectId });
-        }
-    }
-    catch (error: any) {
-        void vscode.window.showErrorMessage(error.message);
-        logger.reportExceptionTelemetryAndLog('openWorkspace', 'workspace/open', error, telemetryService);
-    }
-}
-
-/**
  * If a workspace has been selected, shows the user to select a local folder to associate with the workspace
  * @param manager Handles the Fabric workspaces for the user
+ * @param treeNode Optional workspace tree node from context menu, contains the workspace to associate with a local folder
  */
-async function selectLocalFolder(manager: WorkspaceManagerBase): Promise<vscode.Uri | undefined> {
+async function selectLocalFolder(manager: WorkspaceManagerBase, treeNode?: WorkspaceTreeNode): Promise<vscode.Uri | undefined> {
     if (!(await manager.isConnected())) {
         await showSignInPrompt();
         return;
     }
-    if (!manager.currentWorkspace) {
-        await showSelectWorkspacePrompt();
-        return;
+
+    // If called from context menu, use the workspace from the tree node
+    if (treeNode && treeNode.workspace) {
+        return await manager.promptForLocalFolder(treeNode.workspace);
     }
 
-    return manager.promptForLocalFolder();
-}
-
-async function closeWorkspace(manager: WorkspaceManagerBase): Promise<void> {
-    if (!(await manager.isConnected())) {
-        await manager.closeWorkspace();
-    }
+    // If called from command palette without workspace context, show an error message
+    void vscode.window.showErrorMessage(vscode.l10n.t('Please right-click on a workspace in the Fabric explorer to associate it with a local folder.'));
+    return undefined;
 }

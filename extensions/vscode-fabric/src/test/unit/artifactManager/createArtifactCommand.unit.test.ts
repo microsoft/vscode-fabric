@@ -2,19 +2,26 @@ import { Mock, It, Times } from 'moq.ts';
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
-import { IApiClientResponse, IArtifact, IArtifactManager } from '@microsoft/vscode-fabric-api';
+import { IApiClientResponse, IArtifact, IArtifactManager, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { promptForArtifactTypeAndName, createArtifactCommand } from '../../../artifactManager/createArtifactCommand';
 import { IFabricExtensionManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
 import { ICreateItemsProvider, ItemCreationDetails, CreationCapability } from '../../../metadata/definitions';
-import { FabricError, ILogger, TelemetryActivity} from '@microsoft/vscode-fabric-util';
+import { FabricError, ILogger, TelemetryActivity, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../../../TelemetryEventNames';
 import { FabricWorkspaceDataProvider } from '../../../workspace/treeView';
 import { verifyAddOrUpdateProperties, verifyAddOrUpdatePropertiesNever } from '../../utilities/moqUtilities';
 import { UserCancelledError } from '@microsoft/vscode-fabric-util';
+import { ICapacityManager } from '../../../CapacityManager';
+import * as showWorkspaceQuickPickModule from '../../../ui/showWorkspaceQuickPick';
 
-describe('promptForArtifactTypeAndName', function() {
+describe('promptForArtifactParameters', function() {
     let contextMock: Mock<vscode.ExtensionContext>;
     let itemsProviderMock: Mock<ICreateItemsProvider>;
+    let workspaceManagerMock: Mock<IWorkspaceManager>;
+    let capacityManagerMock: Mock<ICapacityManager>;
+    let telemetryServiceMock: Mock<TelemetryService>;
+    let loggerMock: Mock<ILogger>;
+    let showWorkspaceQuickPickStub: sinon.SinonStub;
     
     let showQuickPickStub: sinon.SinonStub;
     let showInputBoxStub: sinon.SinonStub;
@@ -22,6 +29,14 @@ describe('promptForArtifactTypeAndName', function() {
     beforeEach(function() {
         contextMock = new Mock<vscode.ExtensionContext>();
         itemsProviderMock = new Mock<ICreateItemsProvider>();
+        workspaceManagerMock = new Mock<IWorkspaceManager>();
+        capacityManagerMock = new Mock<ICapacityManager>();
+        telemetryServiceMock = new Mock<TelemetryService>();
+        loggerMock = new Mock<ILogger>();
+
+        // Mock workspace selection
+        const testWorkspace = { objectId: 'test-workspace-id', displayName: 'TestWorkspaceDisplayName' } as any;
+        showWorkspaceQuickPickStub = sinon.stub(showWorkspaceQuickPickModule, 'showWorkspaceQuickPick').returns(Promise.resolve(testWorkspace));
 
         // Stub VS Code window methods
         showQuickPickStub = sinon.stub(vscode.window, 'showQuickPick');
@@ -109,10 +124,14 @@ describe('promptForArtifactTypeAndName', function() {
         assert(!result, 'Result should be undefined');
     });
 
-    async function act(): Promise<{ type: string, name: string } | undefined> {
+    async function act(): Promise<{ type: string, name: string, workspaceId: string } | undefined> {
         return await promptForArtifactTypeAndName(
             contextMock.object(),
             itemsProviderMock.object(),
+            workspaceManagerMock.object(),
+            capacityManagerMock.object(),
+            telemetryServiceMock.object(),
+            loggerMock.object()
         );
     }
 });

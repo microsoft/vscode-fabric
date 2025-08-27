@@ -3,13 +3,10 @@ param(
     [string]$SourceRepoPath = "C:\src\vscode-fabric.bsl",
     [string]$TargetRepoPath = "C:\src\vscode-fabric-pr",
     [string]$TargetSourceCommit, # The source commit you want to integrate
-    [switch]$DryRun
+    [switch]$DryRun,
+    [switch]$DetectDeletes, # If set, cleans both repos and detects orphan files for deletion
+    [string]$ConfigFile = "$PSScriptRoot\config.json"
 )
-
-[hashtable]$PathMap = @{
-    "Localize" = "localization"
-    # Add more mappings as needed
-}
 
 function Map-SourceToTargetPath {
     param([string]$sourcePath)
@@ -24,7 +21,9 @@ function Map-SourceToTargetPath {
 
 function Ensure-DirectoryExists {
     param([string]$dirPath)
+    Write-Verbose "Ensuring directory exists: $dirPath"
     if (-not (Test-Path $dirPath)) {
+        Write-Verbose "`tCreating directory: $dirPath"
         New-Item -ItemType Directory -Path $dirPath -Force | Out-Null
     }
 }
@@ -74,6 +73,49 @@ function Get-NonIntegrationCommits {
     $nonIntegrationCommits = $allCommits | Where-Object { $integrationCommits -notcontains $_ }
     Pop-Location
     return $nonIntegrationCommits
+}
+
+# Load PathMap and OrphanDetectionIgnore from JSON config file
+if (Test-Path $ConfigFile) {
+    $ConfigData = Get-Content $ConfigFile | ConvertFrom-Json
+    $PathMapRaw = $ConfigData.pathMap
+    if ($PathMapRaw) {
+        $PathMap = @{}
+        foreach ($prop in $PathMapRaw.PSObject.Properties) {
+            $PathMap[$prop.Name] = $prop.Value
+        }
+    } else {
+        $PathMap = @{}
+    }
+    Write-Verbose "Loaded PathMap from config:"
+    $PathMap.GetEnumerator() | ForEach-Object { Write-Verbose "  $($_.Key) => $($_.Value)" }
+
+    $DeleteSkipList = $ConfigData.deleteSkipList
+    if (-not $DeleteSkipList) { $DeleteSkipList = @() }
+    Write-Verbose "Loaded DeleteSkipList from config:"
+    $DeleteSkipList | ForEach-Object { Write-Verbose "  $_" }
+} else {
+    $PathMap = @{}
+    $DeleteSkipList = @()
+    Write-Host "No config file found. PathMap is empty."
+}
+
+# Clean and detect deletes if requested
+if ($DetectDeletes) {
+    Write-Host "WARNING: Cleaning untracked files and directories in both repos (git clean -fdx). This will delete ALL untracked files!"
+    $confirmation = Read-Host "Are you sure you want to continue? Type 'Yes' to proceed, 'No' to exit"
+    if ($confirmation -ne 'Yes') {
+        Write-Host "Aborted by user. No changes made."
+        exit
+    }
+    Write-Host "Cleaning source repo: $SourceRepoPath"
+    Push-Location $SourceRepoPath
+    git clean -fdx
+    Pop-Location
+    Write-Host "Cleaning target repo: $TargetRepoPath"
+    Push-Location $TargetRepoPath
+    git clean -fdx
+    Pop-Location
 }
 
  # Get latest integration tag info
@@ -268,6 +310,41 @@ if ($DryRun) {
         $conflicts | ForEach-Object { Write-Host $_ }
     } else {
         Write-Host "`nNo conflicts detected."
+    }
+    if ($DetectDeletes) {
+        # Orphan file detection (files in target repo not present in source repo after mapping)
+        # Get tracked files in source repo
+        Push-Location $SourceRepoPath
+        $sourceGitFiles = git ls-files
+        Pop-Location
+
+        $sourceFiles = $sourceGitFiles | ForEach-Object {
+            $mapped = Map-SourceToTargetPath $_
+            #Write-Verbose "Mapping source file: $_ -> $mapped"
+            $mapped -replace '\\', '/'
+        }
+        $targetFiles = Get-ChildItem -Path $TargetRepoPath -Recurse -File | ForEach-Object { ($_.FullName.Substring($TargetRepoPath.Length + 1)) -replace '\\', '/' }
+        # Only skip .git folder in target
+        $targetFiles = $targetFiles | Where-Object { $_ -notmatch "^\.git/" }
+
+        # Filter out ignored files and directories
+        $filteredOrphanFiles = @()
+        foreach ($file in $targetFiles | Where-Object { $sourceFiles -notcontains $_ }) {
+            $skip = $false
+            foreach ($ignore in $DeleteSkipList) {
+                if ($file -eq $ignore -or $file.StartsWith("$ignore/")) {
+                    $skip = $true
+                    break
+                }
+            }
+            if (-not $skip) { $filteredOrphanFiles += $file }
+        }
+        if ($filteredOrphanFiles.Count -gt 0) {
+            Write-Host "`nOrphan files in target repo (not present in source repo, consider deleting):"
+            $filteredOrphanFiles | ForEach-Object { Write-Host $_ }
+        } else {
+            Write-Host "`nNo orphan files detected in target repo."
+        }
     }
     Write-Host "`nIntegration complete. Tag the new commit in target repo:"
     Write-Host "    git tag integration/$TargetSourceCommit <new-target-commit>"

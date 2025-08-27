@@ -61,16 +61,16 @@ class MockWorkspaceManagerStub implements IWorkspaceManager {
     clearPriorStateIfAny(): void {
         throw new Error('Method not implemented.');
     }
-    openWorkspaceById(id: string): Promise<void> {
+    getWorkspaceById(workspaceId: string): IWorkspace | undefined {
         throw new Error('Method not implemented.');
-    }
-    get currentWorkspace(): IWorkspace | undefined {
-        throw new Error('Method not implemented.');
-    }
+    }    
     get fabricSharedUri(): string {
         throw new Error('Method not implemented.');
     }
     getLocalFolderForCurrentFabricWorkspace(options?: { createIfNotExists?: boolean | undefined; } | undefined): Promise<vscode.Uri | undefined> {
+        throw new Error('Method not implemented.');
+    }
+    getLocalFolderForFabricWorkspace(workspace: IWorkspace, options?: { createIfNotExists?: boolean | undefined; } | undefined): Promise<vscode.Uri | undefined> {
         throw new Error('Method not implemented.');
     }
     getLocalFolderForArtifact(artifact: IArtifact, options?: { createIfNotExists?: boolean | undefined; } | undefined): Promise<vscode.Uri | undefined> {
@@ -80,12 +80,15 @@ class MockWorkspaceManagerStub implements IWorkspaceManager {
     get onDidChangePropertyValue(): vscode.Event<string> {
         throw new Error('Method not implemented.');
     }
-    getItemsInWorkspace(): Promise<IArtifact[]> {
+    getItemsInWorkspace(workspaceId: string): Promise<IArtifact[]> {
         throw new Error('Method not implemented.');
     }
     isProcessingAutoLogin: boolean = false;
     fabricWorkspaceContext: string = 'fabricWorkspaceContext';
     isConnected(): Promise<boolean> {
+        throw new Error('Method not implemented.');
+    }
+    hasWorkspaces(): boolean {
         throw new Error('Method not implemented.');
     }
     treeView: vscode.TreeView<FabricTreeNode> | undefined = undefined;
@@ -141,6 +144,6 @@ export function initializeServiceCollection(
         apiClient = new Mock<IFabricApiClient>().object();
     }
 
-    const serviceCollection = new FabricExtensionServiceCollection(artifactManager, workspaceManager, apiClient);
+    const serviceCollection = new FabricExtensionServiceCollection(artifactManager, workspaceManager!, apiClient);
     return serviceCollection;
 }

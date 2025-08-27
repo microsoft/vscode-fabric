@@ -60,9 +60,6 @@ describe('importArtifactCommand', () => {
         workspaceManagerMock
             .setup(m => m.isConnected())
             .returnsAsync(true);
-        workspaceManagerMock
-            .setup(m => m.currentWorkspace)
-            .returns(undefined);
 
         readerMock
             .setup(r => r.read(It.IsAny()))
@@ -134,7 +131,7 @@ describe('importArtifactCommand', () => {
             Times.Once()
         );
         artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny()), Times.Never());
-        dataProviderMock.verify(x => x.refresh(), Times.Never());
+        dataProviderMock.verify(x => x.refresh(), Times.Once());
         assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called');
     });
 
@@ -143,10 +140,6 @@ describe('importArtifactCommand', () => {
         artifactManagerMock
             .setup(m => m.listArtifacts(It.IsAny()))
             .returnsAsync([]);
-
-        workspaceManagerMock
-            .setup(m => m.currentWorkspace)
-            .returns(fakeWorkspace);
 
         // Act
         await executeCommand();

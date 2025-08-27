@@ -19,8 +19,7 @@ export async function copyConnectionStringToClipboard(
 
     const event = new TelemetryEvent<TelemetryEventNames>('item/copy/connection-string', telemetryService);
     event.addOrUpdateProperties({
-        'workspaceId': databaseTreeNode.artifact.workspaceId,
-        'fabricWorkspaceName': workspaceManager.currentWorkspace!.displayName,
+        'workspaceId': databaseTreeNode.artifact.workspaceId,        
         'artifactId': databaseTreeNode.artifact.id,
         'itemType': databaseTreeNode.artifact.type,
         'fabricArtifactName': databaseTreeNode.artifact.displayName,

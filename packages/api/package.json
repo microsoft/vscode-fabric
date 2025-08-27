@@ -17,6 +17,7 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "test": "vscode-test --coverage",
+    "test:unit": "vscode-test --coverage --label unit",
     "lint": "eslint src/**/*.ts -c ../../.eslintrc.js",
     "clean": "npm exec rimraf out && npm exec rimraf lib"
   },

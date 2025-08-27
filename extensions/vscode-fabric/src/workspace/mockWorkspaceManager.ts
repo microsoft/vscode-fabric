@@ -87,42 +87,35 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
     }
 
     listWorkspaces(): Promise<IWorkspace[]> {
+        // Populate the workspace cache like the real WorkspaceManager does
+        this._workspacesCache = [...this.currentWorkspaces];
         return Promise.resolve(this.currentWorkspaces);
-    }
-    async openWorkspaceById(id: string): Promise<void> {
-        const workspaces = await this.listWorkspaces();
-        const workspace = workspaces.find((element) => element.objectId === id);
-        if (!workspace) {
-            const msg = 'Workspace id not found: ' + id;
-            throw new Error(msg);
-        }
-        await this.setCurrentWorkspace(workspace);
     }
 
     //override
-    public async getItemsInWorkspace<T>(): Promise<IArtifact[]> {
-        return this.getArtifacts();
+    public async getItemsInWorkspace<T>(workspaceId: string): Promise<IArtifact[]> {
+        return this.getArtifacts(workspaceId);
     }
 
-    getArtifacts(): IArtifact[] {
-        const workspace = this.currentWorkspace;
-        if (workspace) {
-            const artifacts = this.mapArtifacts.get(workspace.objectId);
+    getArtifacts(workspaceId?: string): IArtifact[] {
+        const workspaceObjectId = workspaceId;
+        if (workspaceObjectId) {
+            const artifacts = this.mapArtifacts.get(workspaceObjectId);
             if (artifacts) {
                 return artifacts;
             }
-            throw new Error(`workspace artifacts not found for '${workspace.displayName}', objectId '${workspace.objectId}'`);
+            throw new Error(`workspace artifacts not found for workspaceId '${workspaceObjectId}'`);
         }
         return [];
     }
 
-    addArtifact(art: IArtifact): void {
-        const workspace = this.currentWorkspace;
-        if (workspace) {
-            const artifacts = this.mapArtifacts.get(workspace.objectId);
-            artifacts?.push(art);
-            this.mapArtifacts.set(workspace.objectId, artifacts!);
+    async addArtifact(art: IArtifact): Promise<void> {
+        if (!this.mapArtifacts.has(art.workspaceId)) {
+            this.mapArtifacts.set(art.workspaceId, []);
         }
+        
+        const artifacts = this.mapArtifacts.get(art.workspaceId)!;
+        artifacts.push(art);
     }
 
     logToOutPutChannel(message: string): void {

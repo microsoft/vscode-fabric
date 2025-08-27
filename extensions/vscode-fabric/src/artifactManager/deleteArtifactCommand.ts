@@ -52,7 +52,7 @@ interface ICommandAction<T> extends vscode.MessageItem {
     execute(target: T): Promise<void>;
 }
 
-class DeleteArtifactRemoteOnlyAction implements ICommandAction<IArtifact> {
+export class DeleteArtifactRemoteOnlyAction implements ICommandAction<IArtifact> {
     constructor(
         public title: string,
         protected artifactManager: IArtifactManager,
@@ -66,7 +66,7 @@ class DeleteArtifactRemoteOnlyAction implements ICommandAction<IArtifact> {
 
     async execute(artifact: IArtifact): Promise<void> {
         const response: IApiClientResponse = await this.artifactManager.deleteArtifact(artifact);
-        this.telemetryActivity.addOrUpdateProperties({
+        this.telemetryActivity?.addOrUpdateProperties({
             'statusCode': response.status.toString(),
         });
 
@@ -75,7 +75,7 @@ class DeleteArtifactRemoteOnlyAction implements ICommandAction<IArtifact> {
             this.dataProvider.refresh();
         }
         else {
-            this.telemetryActivity.addOrUpdateProperties({
+            this.telemetryActivity?.addOrUpdateProperties({
                 'requestId': response.parsedBody?.requestId,
                 'errorCode': response.parsedBody?.errorCode
             });

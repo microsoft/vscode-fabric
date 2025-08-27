@@ -14,3 +14,5 @@ export * from './DisposableCollection';
 export * from './FabricError';
 export * from './MemoryFileSystem';
 export * from './UserCancelledError';
+export * from './testSupport';
+export * from './VSCodeUIBypass';

@@ -22,7 +22,8 @@ export abstract class FabricTreeNode extends vscode.TreeItem {
 
 /**
  * The representation of an artifact in the VS Code remote workspaces tree view.
- * Extenders providing child nodes should set the collapse state is set to Collapsed
+        super(context, artifact.displayName, vscode.TreeItemCollapsibleState.None);
+ * Extenders providing child nodes should set the collapse state to TreeItemCollapsibleState.Collapsed
  */
 export class ArtifactTreeNode extends FabricTreeNode {
     /**
