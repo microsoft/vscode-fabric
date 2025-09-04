@@ -7,54 +7,71 @@ Sign up for [Free Microsoft Fabric Trial capacity](https://learn.microsoft.com/f
 ## Data engineeering
 Data engineering in Microsoft Fabric enables users to design, build, and maintain infrastructures and systems that enable their organizations to collect, store, process, and analyze large volumes of data. With this extension , you can now develop in VS Code for data engineering needs. 
 
-## Get started with Fabric 
-Once you have a Free trial capacity, follow these steps to create a workspace  
+# Get started with Microsoft Fabric extension for VS Code
+The Fabric Workspaces extension for VS Code allows you to view, manage a Fabric workspace within VS Code. The Fabric workspaces extension is the Core extension that enables Fabric App development extension to support additional feature to develop data function sets within your workspace.
 
-1. Sign in to [Microsoft Fabric](https://app.fabric.microsoft.com)
-2. Open any Microsoft Fabric experience.
-3. Select Workspaces > New workspace.
-4. Give the workspace a unique name (mandatory).
-5. Provide a description of the workspace (optional).
-6. Assign the workspace to a domain (optional).
-7. Click on **Advanced** settings to define admins, setup you license for the workspace. If using Trial capacity , use Trial License. 
+## Sign in
+When you open Microsoft Fabric extension in VS Code, you will see a sign in 
 
-## Create items in a workspace 
-Select new item in your workspace and choose from all available fabric items types such as Lakehouse, Warehouse, Notebooks and more. See [how to create items](https://learn.microsoft.com/fabric/get-started/create-items-in-workspaces).
+## Sign out 
+You can sign out from the extension, by selecting **Accounts** and choose the user account using Fabric extension to sign out. 
 
-## Features of Microsoft Fabric extension 
+## View all your workspaces and items 
 
-1. Sign in and manage login to Fabric account with VS Code accounts.
-2. Creating and open workspaces in you Fabric account.
-2. View the items in your workspace and open in Fabric, rename and edit items. You can group them by item type or view then as list. 
-3. Open and edit notebooks 
-4. Configure a working directory to save workspace items locally.
-
-## Installation
-
-Intalling the Fabric extension will install all of the extensions that you need to work with Fabric. Currently, we support Notebooks, but will be adding support for more workloads in Fabric.
-
-## Sign In
-
-To sign in to your Fabric account,  is simple , simply press `F1` and type in `Fabric: Sign in` (or click on the `Sign in to Fabric...` node in the Explorer).
+You can view all your workspaces, items within it. You can filter the workspaces you want to work with in VS Code. 
+![image](/docs/images/readme/manage-workspace.png)
 
 
-> Note: You may be prompted for access to your computer's secure credential storage service  so you don't need to sign in every time you start VS Code.
+### Switch tenants
 
-Once signed in, `Select a Workspace` and then view the list of items in the Fabric explorer.
+You can enable Microsoft Fabric for your tenant  such that everyone in the tenant has access to Microsoft Fabric. You may have access to more than one tenant; you can switch between tenants using the tenant switcher.
 
-## Open a notebook
-You can open a notebook from Fabric explorer by right-clicking the notebook and selecting **Open in Synapse VS Code**. This will open the extension in Synapse extension for VS Code. You need to select the same workspace and open your notebook in Synapse extension. 
+1. Sign in to Microsoft Fabric.
+2. Select **Switch tenant**.
+![image](/docs/images/readme/switch-tenant.png)
+
+  
+### Create a Fabric item in VS Code
+
+With the Microsoft Fabric Extension, you can now create, delete, and rename any Fabric item directly within VS Code, streamlining your workflow without ever leaving VS Code. You can also view the newly created items in [Fabric portal](https://app.fabric.microsoft.com).
+
+1. Select your workspace in Fabric explorer. 
+2. Slect **+** next to the workspace and create item.
+3. Select the item type and provide a name to create the item in Fabric. 
+4. Select **Open in Explorer** to open an item definition to edit in Visual studio code. Here is a list of ([supported items](/rest/api/fabric/articles/item-management/definitions/item-definition-overview)).
+
+   ![image](/docs/images/readme/open-and-publish-notebook.gif)
+
+## Command pallete  
+You can access almost all Azure services provided by these extensions through the Command palette in VS Code. Press **F1**, then type in `Fabric` to find the available commands.
+![image](/doc/images/readme/command-pallette.png)
+
+## Open Fabric SQL database 
+You can open your Fabric SQL database in MSSQL extension to design your schema and query your data. 
+![image](/docs/images/readme/open-sql-database.gif)
+
+## Git and version control 
+- You can clone your git enabled workspace when opened in VS Code. 
+- You can open item definition in VS Code, make your changes commit them to your repository using source control experience in VS Code. 
+
+![image](/docs/images/readme/git-user-datafunction.gif)
 
 
-## Command Palette
+## Manage trusted extensions
 
-You can access almost all Azure Services provided by these extensions through the Command Palette. Simply press `F1`, then type in `Fabric` to find the available commands.
+You can manage which account can use Fabric extension using **Manage trusted extension** settings in VS Code when you open your account in VS Code. You can enable and remove extension for that user account as needed. 
+
+## Feedback 
+Provide feature requests or report issues [here](https://github.com/microsoft/vscode-fabric/issues/new).
 
 
-## Have feedback
-You can report issues or provide feedback, using either of these options 
-1. [Report issues](https://github.com/microsoft/microsoft-fabric-vscode-extension/issues) directly in our Github repository. 
-2. Use the `Feedback` section within the extension
+## Security reporting
+
+Please see [SECURITY.md](SECURITY.md) for information on how to report security vulnerabilities.
+
+## Code of Conduct
+
+Please see [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for information on our code of conduct.
 
 ## Telemetry 
 Read our privacy statement to learn more. If you don't wish to send usage data to Microsoft, you can set the telemetry.enableTelemetry setting to false. Learn more in our FAQ.
