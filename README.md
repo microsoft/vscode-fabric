@@ -10,11 +10,9 @@ Data engineering in Microsoft Fabric enables users to design, build, and maintai
 # Get started with Microsoft Fabric extension for VS Code
 The Fabric Workspaces extension for VS Code allows you to view, manage a Fabric workspace within VS Code. The Fabric workspaces extension is the Core extension that enables Fabric App development extension to support additional feature to develop data function sets within your workspace.
 
-## Sign in
-When you open Microsoft Fabric extension in VS Code, you will see a sign in 
-
-## Sign out 
-You can sign out from the extension, by selecting **Accounts** and choose the user account using Fabric extension to sign out. 
+## Sign in and Sign out
+- When you open Microsoft Fabric extension in VS Code, you will see a sign in 
+- You can sign out from the extension, by selecting **Accounts** and choose the user account using Fabric extension to sign out. 
 
 ## View all your workspaces and items 
 
