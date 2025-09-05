@@ -44,7 +44,6 @@ With the Microsoft Fabric Extension, you can now create, delete, and rename any 
 ## Command pallete  
 You can access almost all Azure services provided by these extensions through the Command palette in VS Code. Press **F1**, then type in `Fabric` to find the available commands.
 
-![image](/doc/images/readme/command-pallette.png)
 
 ## Open Fabric SQL database 
 You can open your Fabric SQL database in MSSQL extension to design your schema and query your data. 
