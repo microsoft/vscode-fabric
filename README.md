@@ -26,6 +26,7 @@ You can enable Microsoft Fabric for your tenant  such that everyone in the tenan
 
 1. Sign in to Microsoft Fabric.
 2. Select **Switch tenant**.
+   
 ![image](/docs/images/readme/switch-tenant.png)
 
   
@@ -42,6 +43,7 @@ With the Microsoft Fabric Extension, you can now create, delete, and rename any 
 
 ## Command pallete  
 You can access almost all Azure services provided by these extensions through the Command palette in VS Code. Press **F1**, then type in `Fabric` to find the available commands.
+
 ![image](/doc/images/readme/command-pallette.png)
 
 ## Open Fabric SQL database 
