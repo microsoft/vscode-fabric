@@ -137,7 +137,7 @@ describe('showLocalFolderQuickPick', () => {
 
         [
             { directoryName: undefined },
-            { directoryName: 'test/directory/name' }
+            { directoryName: 'test/directory/name' },
         ].forEach(({ directoryName }) => {
             it(`clones to ${directoryName || 'default'} directory`, async () => {
                 // Arrange

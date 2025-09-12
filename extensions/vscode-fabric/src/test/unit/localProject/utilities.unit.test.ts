@@ -18,8 +18,8 @@ describe('tryParseLocalProjectData', () => {
         const platformJson = {
             metadata: {
                 type: 'Notebook',
-                displayName: 'Test Notebook'
-            }
+                displayName: 'Test Notebook',
+            },
         };
         fileSystemMock
             .setup(fs => fs.readFile(It.IsAny()))
@@ -65,7 +65,7 @@ describe('tryParseLocalProjectData', () => {
 
     it('returns [name, type] for nested path', async () => {
         const uri = vscode.Uri.file('/some/path/Project.Type');
-        
+
         const result = await act(uri);
 
         assert.deepStrictEqual(result, { displayName: 'Project', type: 'Type' });

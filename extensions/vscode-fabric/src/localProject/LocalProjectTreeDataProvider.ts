@@ -9,7 +9,7 @@ import { commandNames } from '../constants';
 export class LocalProjectTreeDataProvider implements vscode.TreeDataProvider<FabricTreeNode> {
     private localProjects: LocalProjectTreeNodeCollection;
     private static refreshCommandDisposable: vscode.Disposable | null;
-    
+
     public constructor(private context: vscode.ExtensionContext, private readonly discovery: ILocalProjectDiscovery, private readonly extensionManager: IFabricExtensionManagerInternal, private readonly logger: ILogger, private readonly telemetryService: TelemetryService | null) {
         this.localProjects = new LocalProjectTreeNodeCollection(context, this.extensionManager);
         this.extensionManager.onExtensionsUpdated(() => this.refresh());
@@ -18,7 +18,7 @@ export class LocalProjectTreeDataProvider implements vscode.TreeDataProvider<Fab
         this.discovery.projects.onReset(() => this.refresh());
 
         LocalProjectTreeDataProvider.refreshCommandDisposable?.dispose();
-        LocalProjectTreeDataProvider.refreshCommandDisposable = 
+        LocalProjectTreeDataProvider.refreshCommandDisposable =
             vscode.commands.registerCommand(commandNames.refreshLocalProjectView, async (...cmdArgs) => {
                 await (withErrorHandling('refreshLocalProjectView', this.logger, this.telemetryService, async () => {
                     this.refresh();

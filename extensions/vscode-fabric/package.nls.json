@@ -8,7 +8,8 @@
     "extension.readArtifact.title":"View item",
     "extension.openArtifact.title":"Open in Explorer",
     "extension.exportArtifact.title":"Open in Explorer",
-    "extension.importArtifact.title":"Publish to Fabric...",
+    "extension.importArtifact.title":"To current workspace",
+    "extension.importArtifactPromptWorkspace.title":"To specific workspace...",
     "extension.openNotebook.title":"Open in Synapse VS Code",
     "extension.openSqlExtension.title":"Open in SQL Server Extension",
     "extension.copyConnectionString.title":"Copy Connection String",
@@ -22,8 +23,10 @@
     "extension.reportIssue.title":"Report Issue...",
     "extension.workspaceViewToList.title":"Sort by name",
     "extension.workspaceViewToTree.title":"Group by Fabric Item",
+    "extension.filterWorkspaces.title":"Filter Workspaces...",
+    "extension.clearWorkspaceFilter.title":"Clear Workspace Filter",
 
-    "extension.submenus.selectActions.label": "Workspace actions",
+    "extension.submenu.importArtifact.title": "Publish",
     
     "extension.views.Workspace.title":"Fabric Workspaces (remote)",
     "extension.views.Local.title":"Local Folder",

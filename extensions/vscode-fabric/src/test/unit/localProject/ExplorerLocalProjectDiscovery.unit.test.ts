@@ -9,8 +9,8 @@ import { ObservableArrayEventValidator } from './ObservableSet.unit.test';
 
 class MockWorkspaceFolderProvider implements IWorkspaceFolderProvider {
     public workspaceFolders: IObservableArray<Uri>;
-    
-    constructor (workspaceFolders: Uri[] = []) {
+
+    constructor(workspaceFolders: Uri[] = []) {
         this.workspaceFolders = new ObservableSet<Uri>(workspaceFolders);
     }
 }
@@ -42,7 +42,7 @@ describe('ExplorerLocalProjectDiscovery unit tests', () => {
 
     it('Events: basic adds and deletes', async () => {
         const initialFolder = Uri.file('/user/me/workspaces/Type2Item.type2');
-        const folderProvider = new MockWorkspaceFolderProvider([ initialFolder ]);
+        const folderProvider = new MockWorkspaceFolderProvider([initialFolder]);
         const discovery = await ExplorerLocalProjectDiscovery.create(folderProvider);
 
         const events = new ObservableArrayEventValidator(discovery.projects);
@@ -66,7 +66,7 @@ describe('ExplorerLocalProjectDiscovery unit tests', () => {
 
     it('Events: mis-matches', async () => {
         const initialFolder = Uri.file('/user/me/workspaces/Type2Item.type2');
-        const folderProvider = new MockWorkspaceFolderProvider([ initialFolder ]);
+        const folderProvider = new MockWorkspaceFolderProvider([initialFolder]);
         const discovery = await ExplorerLocalProjectDiscovery.create(folderProvider);
 
         const events = new ObservableArrayEventValidator(discovery.projects);

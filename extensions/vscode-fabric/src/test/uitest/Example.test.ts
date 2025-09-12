@@ -23,7 +23,7 @@ describe('UITEST: Example E2E UI Tests', () => {
     });
 
     // Skip for now b/c requires auth that is not set up in the pipelines yet
-    it.skip('Select Fabric Workspace', async function() {
+    it.skip('Select Fabric Workspace', async function () {
         await new Workbench().executeCommand('Fabric: Select Fabric workspace');
 
         const input = await InputBox.create();
@@ -41,7 +41,7 @@ describe('UITEST: Example E2E UI Tests', () => {
         assert.ok(labels.includes('Notebook (DoNotDelete)'));
     });
 
-    it('Expected items are in Feedback view', async function() {
+    it('Expected items are in Feedback view', async function () {
         const section = await fabricSidebBarViewContent.getSection('Feedback') as CustomTreeSection;
         await section.expand();
 
@@ -57,7 +57,7 @@ describe('UITEST: Example E2E UI Tests', () => {
 
 // TODO: how do we share code like this across UI tests in each extension? Do we just move this to
 // the Util package???
-// 
+//
 //  Utility function that waits for a condition to be false using polling.
 async function waitForCondition(check: () => Promise<boolean>, timeout = 10000, pollingInterval = 500): Promise<void> {
     const start = Date.now();
@@ -66,9 +66,9 @@ async function waitForCondition(check: () => Promise<boolean>, timeout = 10000, 
             if (await check()) {
                 return;
             }
-        } 
+        }
         catch (error: unknown) {
-            if (error instanceof Error && 
+            if (error instanceof Error &&
                 error.name !== 'ElementNotInteractableError') {
                 throw error;
             }

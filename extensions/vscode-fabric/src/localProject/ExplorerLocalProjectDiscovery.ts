@@ -7,7 +7,7 @@ import { ObservableSet } from '../collections/ObservableSet';
 // Default implementation of the ILocalProjectDiscovery interface
 export class ExplorerLocalProjectDiscovery implements ILocalProjectDiscovery {
     public projects: IObservableArray<ILocalProjectInformation> = new ObservableSet<ILocalProjectInformation>(
-        [], 
+        [],
         (a, b) => a.path.toString(true) === b.path.toString(true)
     );
 
@@ -16,7 +16,7 @@ export class ExplorerLocalProjectDiscovery implements ILocalProjectDiscovery {
 
     /**
      * Creates a new ExplorerLocalProjectDiscovery and begins monitoring workspace folders.
-     * 
+     *
      * Note: Updates to the `projects` collection in response to workspace folder changes
      * are handled asynchronously. This means that immediately after a folder is added or removed
      * from the workspace, the `projects` collection may not yet reflect the change.

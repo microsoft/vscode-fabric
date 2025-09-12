@@ -10,7 +10,7 @@ import { IAccountProvider } from '../../../authentication/interfaces';
 import { IApiClientResponse, IApiClientRequestOptions, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { IGitOperator } from '../../../apis/internal/fabricExtensionInternal';
 
-describe('WorkspaceManager', function() {
+describe('WorkspaceManager', function () {
     let mockExtensionSettingsStorage: Mock<IFabricExtensionsSettingStorage>;
     let mockLocalFolderManager: Mock<LocalFolderManager>;
     let mockAccountProvider: Mock<IAccountProvider>;
@@ -19,17 +19,17 @@ describe('WorkspaceManager', function() {
     let mockGitOperator: Mock<IGitOperator>;
     let mockLogger: Mock<ILogger>;
     let workspaceManager: WorkspaceManager;
-    
+
     // Event emitter mocks
     let onSignInChangedEmitter: vscode.EventEmitter<void>;
     let onTenantChangedEmitter: vscode.EventEmitter<void>;
     let onDidEnvironmentChangeEmitter: vscode.EventEmitter<void>;
-    
-    before(function() {
+
+    before(function () {
         // Setup operations that need to happen once before all tests
     });
-    
-    beforeEach(function() {
+
+    beforeEach(function () {
         // Initialize mocks for each test
         mockExtensionSettingsStorage = new Mock<IFabricExtensionsSettingStorage>();
         mockLocalFolderManager = new Mock<LocalFolderManager>();
@@ -38,24 +38,24 @@ describe('WorkspaceManager', function() {
         mockApiClient = new Mock<IFabricApiClient>();
         mockGitOperator = new Mock<IGitOperator>();
         mockLogger = new Mock<ILogger>();
-        
+
         // Create event emitters
         onSignInChangedEmitter = new vscode.EventEmitter<void>();
         onTenantChangedEmitter = new vscode.EventEmitter<void>();
         onDidEnvironmentChangeEmitter = new vscode.EventEmitter<void>();
-        
+
         // Setup event emitter mocks
         mockAccountProvider.setup(instance => instance.onSignInChanged).returns(onSignInChangedEmitter.event);
         mockAccountProvider.setup(instance => instance.onTenantChanged).returns(onTenantChangedEmitter.event);
         mockFabricEnvironmentProvider.setup(instance => instance.onDidEnvironmentChange).returns(onDidEnvironmentChangeEmitter.event);
-        
+
         // Setup common mock behaviors
         mockAccountProvider.setup(instance => instance.isSignedIn(It.IsAny())).returns(Promise.resolve(true));
         mockLogger.setup(instance => instance.log(It.IsAny())).returns(undefined);
-        
+
         // Mock the extensionSettingsStorage.load method since it's called in refreshConnectionToFabric
         mockExtensionSettingsStorage.setup(instance => instance.load()).returns(Promise.resolve(true));
-        
+
         // Initialize workspace manager with mocks
         workspaceManager = new WorkspaceManager(
             mockAccountProvider.object(),
@@ -67,72 +67,72 @@ describe('WorkspaceManager', function() {
             mockGitOperator.object()
         );
     });
-    
-    afterEach(function() {
+
+    afterEach(function () {
         // Clean up after each test
         onSignInChangedEmitter.dispose();
         onTenantChangedEmitter.dispose();
         onDidEnvironmentChangeEmitter.dispose();
         sinon.restore();
     });
-    
-    after(function() {
+
+    after(function () {
         // Teardown operations after all tests complete
     });
-    
-    it('should listen to onTenantChanged event and call refreshConnectionToFabric', async function() {
+
+    it('should listen to onTenantChanged event and call refreshConnectionToFabric', async function () {
         // Arrange
         const refreshSpy = sinon.spy(workspaceManager, 'refreshConnectionToFabric');
-        
+
         // Act
         // Fire the onTenantChanged event
         onTenantChangedEmitter.fire();
-        
+
         // Wait for async operations to complete
         await new Promise(resolve => setTimeout(resolve, 10));
-        
+
         // Assert
         assert.strictEqual(refreshSpy.calledOnce, true, 'refreshConnectionToFabric should be called when tenant changes');
     });
-    
-    it('should listen to onSignInChanged event and call refreshConnectionToFabric', async function() {
+
+    it('should listen to onSignInChanged event and call refreshConnectionToFabric', async function () {
         // Arrange
         const refreshSpy = sinon.spy(workspaceManager, 'refreshConnectionToFabric');
-        
+
         // Act
         // Fire the onSignInChanged event
         onSignInChangedEmitter.fire();
-        
+
         // Wait for async operations to complete
         await new Promise(resolve => setTimeout(resolve, 10));
-        
+
         // Assert
         assert.strictEqual(refreshSpy.calledOnce, true, 'refreshConnectionToFabric should be called when sign in status changes');
     });
-    
-    it('should register event listeners during construction', function() {
+
+    it('should register event listeners during construction', function () {
         // Arrange & Act - this happens during beforeEach when creating workspaceManager
-        
+
         // Assert
         // Verify that the event listeners were registered by checking the mock setup calls
         mockAccountProvider.verify(instance => instance.onSignInChanged, Times.Once());
         mockAccountProvider.verify(instance => instance.onTenantChanged, Times.Once());
         mockFabricEnvironmentProvider.verify(instance => instance.onDidEnvironmentChange, Times.Once());
     });
-    
-    it('should handle multiple tenant changed events correctly', async function() {
+
+    it('should handle multiple tenant changed events correctly', async function () {
         // Arrange
         const refreshSpy = sinon.spy(workspaceManager, 'refreshConnectionToFabric');
-        
+
         // Act
         // Fire the onTenantChanged event multiple times
         onTenantChangedEmitter.fire();
         onTenantChangedEmitter.fire();
         onTenantChangedEmitter.fire();
-        
+
         // Wait for async operations to complete
         await new Promise(resolve => setTimeout(resolve, 50));
-        
+
         // Assert
         assert.strictEqual(refreshSpy.callCount, 3, 'refreshConnectionToFabric should be called for each tenant change event');
     });
@@ -142,7 +142,7 @@ describe('WorkspaceManager', function() {
         { includeCapacity: false, includeDescription: true, status: 201 },
         { includeCapacity: true, includeDescription: false, status: 201 },
         { includeCapacity: false, includeDescription: false, status: 201 },
-        { includeCapacity: false, includeDescription: false, status: 400 }
+        { includeCapacity: false, includeDescription: false, status: 400 },
     ].forEach(({ includeCapacity, includeDescription,status }) => {
         it(`createWorkspace: includeCapacity ${includeCapacity}, includeDescription ${includeDescription}, response status ${status}`, async function () {
             const workspaceName = 'test-workspace';
@@ -173,7 +173,7 @@ describe('WorkspaceManager', function() {
                 workspaceName,
                 {
                     capacityId: includeCapacity ? 'capacity-id' : undefined,
-                    description: includeDescription ? 'Test workspace' : undefined
+                    description: includeDescription ? 'Test workspace' : undefined,
                 }
             );
 
@@ -209,7 +209,7 @@ describe('WorkspaceManager', function() {
                 assert.ok(err instanceof FabricError, 'Should throw a FabricError');
                 assert.ok(err!.message.includes('Currently not connected to Fabric'), 'Error message should indicate user is not connected to Fabric');
                 return true;
-            } 
+            }
         );
     });
 
@@ -227,9 +227,9 @@ describe('WorkspaceManager', function() {
                     { id: ws1.objectId, type: ws1.type, displayName: ws1.displayName, description: ws1.description, capacityId: ws1.capacityId },
                     { id: ws2.objectId, type: ws2.type, displayName: ws2.displayName, description: ws2.description, capacityId: ws2.capacityId },
                     { id: ws3.objectId, type: ws3.type, displayName: ws3.displayName, description: ws3.description, capacityId: ws3.capacityId },
-                    { id: ws4.objectId, type: ws4.type, displayName: ws4.displayName, description: ws4.description, }, // purposefully exclude the capacityId
-                ]
-            }
+                    { id: ws4.objectId, type: ws4.type, displayName: ws4.displayName, description: ws4.description }, // purposefully exclude the capacityId
+                ],
+            },
         };
         mockAccountProvider.setup(x => x.isSignedIn())
             .returns(Promise.resolve(true));
@@ -243,5 +243,90 @@ describe('WorkspaceManager', function() {
         // Assert
         const expectedOrder = [ws3, ws1, ws4, ws2];
         assert.deepStrictEqual(result, expectedOrder, 'Workspaces should be sorted alphabetically by type');
+    });
+
+    it('getWorkspaceById should return cached workspace without calling API', async function () {
+        // Arrange
+        const cached = { objectId: 'cached-ws', displayName: 'Cached', description: 'cached', type: 'Personal', capacityId: 'cap-cached' };
+        // inject into protected cache via any cast
+        (workspaceManager as any)._workspacesCache = [cached];
+
+        // Act
+        const result = await workspaceManager.getWorkspaceById('cached-ws');
+
+        // Assert
+        assert.deepStrictEqual(result, cached, 'Should return the cached workspace');
+        mockApiClient.verify(x => x.sendRequest(It.IsAny()), Times.Never());
+    });
+
+    it('getWorkspaceById should fetch from API on cache miss and cache the result', async function () {
+        // Arrange
+        (workspaceManager as any)._workspacesCache = [];
+        const workspaceId = 'ws-from-api';
+        const apiResponse: IApiClientResponse = {
+            status: 200,
+            parsedBody: {
+                id: workspaceId,
+                type: 'Workspace',
+                displayName: 'From API',
+                description: 'fetched desc',
+                capacityId: 'cap-api',
+            },
+        } as IApiClientResponse;
+
+        mockApiClient.setup(x => x.sendRequest(It.IsAny())).returns(Promise.resolve(apiResponse));
+        mockAccountProvider.setup(x => x.isSignedIn()).returns(Promise.resolve(true));
+
+        // Act
+        const result = await workspaceManager.getWorkspaceById(workspaceId);
+
+        // Assert
+        const expected = {
+            objectId: workspaceId,
+            type: 'Workspace',
+            displayName: 'From API',
+            description: 'fetched desc',
+            capacityId: 'cap-api',
+        };
+        assert.deepStrictEqual(result, expected, 'Should return workspace mapped from API response');
+        // cached
+        const cached = (workspaceManager as any)._workspacesCache.find((w: any) => w.objectId === workspaceId);
+        assert.deepStrictEqual(cached, expected, 'Workspace should have been cached');
+        mockApiClient.verify(x => x.sendRequest(It.Is<IApiClientRequestOptions>(req => {
+            return req.method === 'GET' && (req.pathTemplate ? req.pathTemplate.includes(workspaceId) : false);
+        })), Times.Once());
+    });
+
+    it('getWorkspaceById should return undefined and not call API when not connected and not cached', async function () {
+        // Arrange
+        (workspaceManager as any)._workspacesCache = [];
+        mockAccountProvider.setup(x => x.isSignedIn()).returns(Promise.resolve(false));
+
+        // Act
+        const result = await workspaceManager.getWorkspaceById('some-id');
+
+        // Assert
+        assert.strictEqual(result, undefined, 'Should return undefined when not connected and not cached');
+        mockApiClient.verify(x => x.sendRequest(It.IsAny()), Times.Never());
+    });
+
+    it('getWorkspaceById should return undefined when API responds with non-200 and should not cache', async function () {
+        // Arrange
+        (workspaceManager as any)._workspacesCache = [];
+        const workspaceId = 'not-found-ws';
+        const apiResponse: IApiClientResponse = { status: 404 } as IApiClientResponse;
+        mockApiClient.setup(x => x.sendRequest(It.IsAny())).returns(Promise.resolve(apiResponse));
+        mockAccountProvider.setup(x => x.isSignedIn()).returns(Promise.resolve(true));
+
+        // Act
+        const result = await workspaceManager.getWorkspaceById(workspaceId);
+
+        // Assert
+        assert.strictEqual(result, undefined, 'Should return undefined when API returns non-200');
+        const cached = (workspaceManager as any)._workspacesCache.find((w: any) => w.objectId === workspaceId);
+        assert.strictEqual(cached, undefined, 'Should not cache when API response is non-200');
+        mockApiClient.verify(x => x.sendRequest(It.Is<IApiClientRequestOptions>(req => {
+            return req.method === 'GET' && (req.pathTemplate ? req.pathTemplate.includes(workspaceId) : false);
+        })), Times.Once());
     });
 });

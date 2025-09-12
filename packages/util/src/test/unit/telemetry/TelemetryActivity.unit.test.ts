@@ -85,12 +85,11 @@ describe('TelemetryActivity', function () {
                     measurements['startTimeInMilliseconds'] === newStartTime
                 )
             ),
-            Times.Once()
+        Times.Once()
         );
 
         stub.restore();
     });
-
 
     it('should initialize with start time NOT set to 0', function () {
         const activity = new TelemetryActivity<TestEventNames>(testEventName, telemetryServiceMock.object());
@@ -106,7 +105,7 @@ describe('TelemetryActivity', function () {
                     measurements['startTimeInMilliseconds'] !== 0
                 )
             ),
-            Times.Once());
+        Times.Once());
     });
 
     it('should set start time when start() is called', function () {
@@ -121,7 +120,7 @@ describe('TelemetryActivity', function () {
                     measurements['startTimeInMilliseconds'] === startTime
                 )
             ),
-            Times.Once());
+        Times.Once());
     });
 
     it('should set end time when end() is called', function () {
@@ -153,7 +152,7 @@ describe('TelemetryActivity', function () {
                     measurements['endTimeInMilliseconds'] === endTime
                 )
             ),
-            Times.Once());
+        Times.Once());
     });
 
     it('should record successful activity with doTelemetryActivity()', async function () {
@@ -175,9 +174,8 @@ describe('TelemetryActivity', function () {
                     measurements['activityDurationInMilliseconds'] === (endTime - startTime)
                 )
             ),
-            Times.Once());
+        Times.Once());
     });
-
 
     it('should call start() with doTelemetryActivity', async function () {
         const startSpy = sinon.spy(telemetryActivity, 'start');
@@ -216,7 +214,7 @@ describe('TelemetryActivity', function () {
                         measurements['activityDurationInMilliseconds'] === (endTime - startTime)
                     )
                 ),
-                Times.Once());
+            Times.Once());
         }
     });
 
@@ -239,7 +237,7 @@ describe('TelemetryActivity', function () {
                     ),
                     It.IsAny()
                 ),
-                Times.Once());
+            Times.Once());
         }
     });
 });

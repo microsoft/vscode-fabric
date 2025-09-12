@@ -56,7 +56,7 @@ export class MockApiClient implements IFabricApiClient {
         }
         let curHeaders: azApi.RawHttpHeadersInput = {
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            'Authorization': 'some mock token'
+            'Authorization': 'some mock token',
         };
         if (options.headers) { // add any additional headers
             curHeaders = { ...curHeaders, ...options.headers };
@@ -75,7 +75,7 @@ export class MockApiClient implements IFabricApiClient {
                         const len = fs.statSync(filePath).size;
                         const baseFilename = path.basename(filePath);
                         if (baseFilename.endsWith('zip')) {
-                            // now determine how many zip entries 
+                            // now determine how many zip entries
                             const tempzipFolder = path.resolve(os.tmpdir(), 'MyZipFileTemp');
                             await fs.emptyDir(tempzipFolder);
                             const zipData = await unzipZipFile(vscode.Uri.file(filePath), vscode.Uri.file(tempzipFolder));
@@ -116,11 +116,11 @@ export class MockApiClient implements IFabricApiClient {
             strParams: strParams,
             NumZipEntries: numZipEntriesFirstFile,
             metadataJson: metadataJson,
-            FileData: fileparts
+            FileData: fileparts,
         };
         if (options.pathTemplate?.endsWith('metadata')) {
             responseJson = {
-                runtime: 'DOTNET'
+                runtime: 'DOTNET',
             };
         }
         let azApiresponse: IApiClientResponse = {

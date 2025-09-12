@@ -18,11 +18,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";extension.closeWorkspace.title" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";extension.clearWorkspaceFilter.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Close Workspace]]></Val>
+          <Val><![CDATA[Clear Workspace Filter]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ワークスペースを閉じる]]></Val>
+            <Val><![CDATA[ワークスペース フィルターのクリア]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -108,11 +108,32 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";extension.filterWorkspaces.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Filter Workspaces...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[ワークスペースのフィルター処理...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";extension.importArtifact.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Publish to Fabric...]]></Val>
+          <Val><![CDATA[To current workspace]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Fabric に公開...]]></Val>
+            <Val><![CDATA[現在のワークスペースへ]]></Val>
+          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Publish to Fabric...]]></Val>
+          </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.importArtifactPromptWorkspace.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[To specific workspace...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[特定のワークスペースへ...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -207,15 +228,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";extension.selectWorkspace.title" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select Fabric workspace...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Fabric ワークスペースを選択,...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";extension.selectWorkspaceLocalFolder.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select working directory...]]></Val>
@@ -243,11 +255,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";extension.submenus.selectActions.label" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";extension.submenu.importArtifact.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Workspace actions]]></Val>
+          <Val><![CDATA[Publish]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ワークスペースのアクション]]></Val>
+            <Val><![CDATA[公開]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -299,10 +311,13 @@
       </Item>
       <Item ItemId=";extension.views.Workspace.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Fabric Workspace]]></Val>
+          <Val><![CDATA[Fabric Workspaces (remote)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Fabric ワークスペース]]></Val>
+            <Val><![CDATA[Fabric ワークスペース (リモート)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Fabric Workspace]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -360,33 +375,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";extension.walkthrough.selectWorkspace.alttext" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[An image of the Select Fabric workspace picker which highlights the option to create a new workspace.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[新しいワークスペースを作成するオプションを強調表示する Fabric ワークスペース選択ピッカーの画像。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";extension.walkthrough.selectWorkspace.description" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Use the 'Fabric: Select Workspace...' command or select a workspace through the Fabric Explorer.]A;[Select Workspace]5D;(command:vscode-fabric.openWorkspace)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA['Fabric: Select Workspace...' コマンドを使用するか、Fabric エクスプローラーからワークスペースを選択します。]A;[ワークスペースを選択]5D;(command:vscode-fabric.openWorkspace)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";extension.walkthrough.selectWorkspace.title" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select Workspace]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ワークスペースを選択]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";extension.walkthrough.signIn.description" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Use the 'Fabric: Sign In' command or sign in through the Fabric Explorer.]A;[Sign in to Fabric]5D;(command:vscode-fabric.signIn)]]></Val>
@@ -414,21 +402,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";extension.welcomeTitle.chooseWorkspace" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[No workspace selected [learn more]5D;(https://learn.microsoft.com/en-us/fabric/).]A;[Select Fabric workspace]5D;(command:vscode-fabric.openWorkspace)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ワークスペースが選択されていません [詳細情報]5D;(https://learn.microsoft.com/en-us/fabric/)。]A;[Fabric ワークスペースを選択]5D;(command:vscode-fabric.openWorkspace)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";extension.welcomeTitle.emptyWorkspace" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Your workspace is empty. Create an item to get started with Microsoft Fabric.]A;[Create Fabric item]5D;(command:vscode-fabric.createArtifact)]]></Val>
+          <Val><![CDATA[This workspace is empty. Create an item to get started with Microsoft Fabric.]A;[Create Fabric item]5D;(command:vscode-fabric.createArtifact)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[ワークスペースが空です。Microsoft Fabric の使用を開始するには、項目を作成してください。]A;[Fabric 項目の作成]5D;(command:vscode-fabric.createArtifact)]]></Val>
+            <Val><![CDATA[このワークスペースは空です。Microsoft Fabric の使用を開始するには、項目を作成してください。]A;[Fabric 項目の作成]5D;(command:vscode-fabric.createArtifact)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Your workspace is empty. Create an item to get started with Microsoft Fabric.]A;[Create Fabric item]5D;(command:vscode-fabric.createArtifact)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>

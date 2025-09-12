@@ -37,7 +37,7 @@ export class TelemetryEvent<
 
     constructor(
 		protected readonly eventName: TEvent,
-		protected readonly telemetryService: TelemetryService | null,
+		protected readonly telemetryService: TelemetryService | null
     ) {
         this.properties = {};
         this.measurements = {};

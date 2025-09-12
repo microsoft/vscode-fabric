@@ -17,10 +17,10 @@ use(chaiAsPromised); //  chaiAsPromised is imported and then registered with Cha
 // Returns a strict mock object that throws on access to any unmocked member
 /*
 Reasons to want a strict mock from me:
-1. When I unit test a class, strict mocks help me to ensure that the class under test only interacts with its dependencies in the ways that I have explicitly defined in the test setup. 
-This helps me to catch unintended interactions or dependencies that might be introduced by changes to the class or its dependencies. 
+1. When I unit test a class, strict mocks help me to ensure that the class under test only interacts with its dependencies in the ways that I have explicitly defined in the test setup.
+This helps me to catch unintended interactions or dependencies that might be introduced by changes to the class or its dependencies.
 The members of the dependencies that are used are explicitly defined in the mock setup, so I can be confident that the test is only testing the intended interactions.
-2. Some methods might have optional parameters or default values that are not explicitly set in the mock. 
+2. Some methods might have optional parameters or default values that are not explicitly set in the mock.
 For example, I might mock ILogger.Log with 3 params, but the one with 1 param is not mocked, the test succeeds, but the log output doesn't correlate, and I don't understand what's happening.
 Strict mock helps me to catch cases where the class under test relies on these defaults, which might change in the future.
 3. A test might pass solely because an unmocked method returns undefined or a default value, even though the real implementation would behave differently. Strict mocks ensure that my tests only pass if all interactions with dependencies are intentional and explicitly defined.
@@ -74,11 +74,10 @@ function createStrictMock<T extends object>(mock: Mock<T>): T {
                 throw new Error(`Access to unmocked member: ${String(prop)}`);
             }
             return Reflect.get(target, prop, receiver);
-        }
+        },
     }) as T;
     return strictMock;
 }
-
 
 describe('FabricApiClient', () => {
     let authMock: Mock<IAccountProvider>;
@@ -130,7 +129,7 @@ describe('FabricApiClient', () => {
             sendRequest: async () => {
                 throw new Error('Not implemented');
             },
-            removePolicy: () => { }
+            removePolicy: () => { },
         };
         client = new FabricApiClient(
             createStrictMock(authMock),
@@ -154,7 +153,7 @@ describe('FabricApiClient', () => {
             headers: azApi.createHttpHeaders({ 'Content-Type': 'application/json' }),
             bodyAsText: '{"ok":true}',
             request: {},
-            get: () => undefined
+            get: () => undefined,
         } as any;
         pipelineMock.sendRequest = async () => fakeResponse;
         const result = await client.sendRequest({ pathTemplate: '/foo' });
@@ -185,7 +184,7 @@ describe('FabricApiClient', () => {
             headers: azApi.createHttpHeaders({ 'Content-Type': 'text/plain' }),
             bodyAsText: 'plain text',
             request: {},
-            get: () => undefined
+            get: () => undefined,
         } as any;
         pipelineMock.sendRequest = async () => fakeResponse;
         const result = await client.sendRequest({ pathTemplate: '/foo' });
@@ -201,7 +200,7 @@ describe('FabricApiClient', () => {
             headers: azApi.createHttpHeaders({ 'Content-Type': 'application/json' }),
             bodyAsText: '{"error":"fail"}',
             request: {},
-            get: () => undefined
+            get: () => undefined,
         } as any;
         pipelineMock.sendRequest = async () => fakeResponse;
         const telemetryPayloads: any[] = [];
@@ -228,7 +227,7 @@ describe('FabricApiClient', () => {
                 headers: azApi.createHttpHeaders({}),
                 bodyAsText: '',
                 request: {},
-                get: () => undefined
+                get: () => undefined,
             } as any;
         };
 
@@ -236,7 +235,6 @@ describe('FabricApiClient', () => {
         expect(receivedHeaders['authorization']).to.equal('Bearer abc123');
         expect(getTokenCalled).to.be.true;
     });
-
 
     it('should send custom headers if provided in request options', async () => {
         authMock.setup(x => x.getToken()).returnsAsync('abc123');
@@ -248,13 +246,13 @@ describe('FabricApiClient', () => {
                 headers: azApi.createHttpHeaders({}),
                 bodyAsText: '',
                 request: {},
-                get: () => undefined
+                get: () => undefined,
             } as any;
         };
         await client.sendRequest({
             pathTemplate: '/foo',
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            headers: { 'x-custom-header': 'value123' }
+            headers: { 'x-custom-header': 'value123' },
         });
         expect(receivedHeaders['x-custom-header']).to.equal('value123');
         expect(receivedHeaders['authorization']).to.equal('Bearer abc123');
@@ -271,13 +269,12 @@ describe('FabricApiClient', () => {
                 headers: azApi.createHttpHeaders({}),
                 bodyAsText: '',
                 request: {},
-                get: () => undefined
+                get: () => undefined,
             } as any;
         };
         await client.sendRequest({ pathTemplate: '/foo' });
         expect(receivedHeaders['authorization']).to.equal(`Bearer ${testToken}`);
     });
-
 
     it('should handle pipeline returning a response with missing bodyAsText', async () => {
         authMock.setup(x => x.getToken()).returnsAsync('abc123');
@@ -286,7 +283,7 @@ describe('FabricApiClient', () => {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             headers: azApi.createHttpHeaders({ 'Content-Type': 'application/json' }),
             request: {},
-            get: () => undefined
+            get: () => undefined,
         } as any);
         const result = await client.sendRequest({ pathTemplate: '/foo' });
         expect(result.status).to.equal(200);
@@ -302,13 +299,13 @@ describe('FabricApiClient', () => {
             headers: azApi.createHttpHeaders({ 'Content-Type': 'application/json' }),
             bodyAsText: '{invalidJson:}',
             request: {},
-            get: () => undefined
+            get: () => undefined,
         } as any);
         let exceptionWasThrown = false;
         try {
             await client.sendRequest({ pathTemplate: '/foo' });
         }
-        catch (error) { 
+        catch (error) {
             exceptionWasThrown = true;
             expect(error).to.be.instanceOf(Error);
             expect((error as Error).message).to.contain('Expected property name or'); // "Expected property name or '}' in JSON at position 1 (line 1 column 2)"
@@ -325,7 +322,7 @@ describe('FabricApiClient', () => {
             headers: azApi.createHttpHeaders({ 'Content-Type': 'application/json' }),
             bodyAsText: '{"error":"not found"}',
             request: {},
-            get: () => undefined
+            get: () => undefined,
         } as any;
         pipelineMock.sendRequest = async () => fakeResponse;
         let eventName: string | undefined;

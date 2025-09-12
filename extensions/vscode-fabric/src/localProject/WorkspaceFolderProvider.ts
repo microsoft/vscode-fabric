@@ -8,12 +8,12 @@ import { withErrorHandling, ILogger, TelemetryService } from '@microsoft/vscode-
 export class WorkspaceFolderProvider implements IWorkspaceFolderProvider, vscode.Disposable {
     /**
      * Observable collection of workspace folders.
-     * 
+     *
      * Note: Event handlers (such as onItemAdded/onItemRemoved) may be asynchronous.
      * The add/remove methods on this collection do not await completion of async event handlers.
      * As a result, consumers should not assume that all side effects of add/remove
      * (such as updates in dependent components) are complete immediately after mutation.
-     * 
+     *
      * This pattern results in eventual consistency: the collection and any listeners
      * will be updated asynchronously, but not necessarily synchronously.
      */

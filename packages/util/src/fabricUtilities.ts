@@ -17,7 +17,7 @@ export function sleep(msecs: number): Promise<any> {
 export async function doTaskWithTimeout(
     task: Promise<any>,
     msecs: number,
-    timeoutReason: string,
+    timeoutReason: string
 ): Promise<any> {
     const helper = new TaskHelperWithTimeout();
     let result = await helper.wrap(task, msecs, timeoutReason);
@@ -38,7 +38,7 @@ export async function doExecuteTerminalTask(cmd: string, timeout: number): Promi
                 disp.dispose();
                 if (terminal.exitStatus !== undefined) {
                     resolve(
-                        `Terminal Exited Code= ${terminal.exitStatus.code} Reason= ${terminal.exitStatus.reason} `,
+                        `Terminal Exited Code= ${terminal.exitStatus.code} Reason= ${terminal.exitStatus.reason} `
                     );
                 }
                 else {
@@ -55,7 +55,7 @@ export async function doExecuteTerminalTask(cmd: string, timeout: number): Promi
     let result = await myTimeoutHelper.wrap(
         terminalTask,
         timeout,
-        `Terminal Task ${cmd} TimedOut ${timeout}`,
+        `Terminal Task ${cmd} TimedOut ${timeout}`
     );
     return result;
 }

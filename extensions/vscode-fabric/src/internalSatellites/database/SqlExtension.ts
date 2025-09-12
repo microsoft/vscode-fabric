@@ -15,7 +15,7 @@ export class SqlExtension implements IFabricExtension, vscode.Disposable {
     public artifactTypes: string[] = ['SQLDatabase, SQLEndpoint'];
     public treeNodeProviders: IFabricTreeNodeProvider[] = [
         new SqlDatabaseTreeNodeProvider(this.context),
-        new SqlEndpointTreeNodeProvider(this.context)
+        new SqlEndpointTreeNodeProvider(this.context),
     ];
     public localProjectTreeNodeProviders: ILocalProjectTreeNodeProvider[] = [];
 
@@ -23,7 +23,7 @@ export class SqlExtension implements IFabricExtension, vscode.Disposable {
         private context: vscode.ExtensionContext,
         private telemetryService: TelemetryService,
         private logger: ILogger,
-        private extensionManager: IFabricExtensionManager,
+        private extensionManager: IFabricExtensionManager
     ) {
         const serviceCollection = extensionManager.addExtension(this);
 
@@ -36,7 +36,7 @@ export class SqlExtension implements IFabricExtension, vscode.Disposable {
             this.workspaceManager,
             this.artifactManager,
             this.apiClient,
-            this.telemetryService,
+            this.telemetryService
         );
     }
 

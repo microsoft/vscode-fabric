@@ -7,7 +7,7 @@ import { TelemetryService, TelemetryEvent } from '@microsoft/vscode-fabric-util'
 import { IFabricApiClient, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { AbstractDatabaseTreeNode } from '../../../../internalSatellites/database/AbstractDatabaseTreeNode';
 
-describe('openSqlExtensionInExternal', function() {
+describe('openSqlExtensionInExternal', function () {
     let telemetryServiceMock: Mock<TelemetryService>;
     let workspaceManagerMock: Mock<IWorkspaceManager>;
     let apiClientMock: Mock<IFabricApiClient>;
@@ -16,11 +16,11 @@ describe('openSqlExtensionInExternal', function() {
     let eventSendStub: sinon.SinonStub;
     let sandbox: sinon.SinonSandbox;
 
-    before(function() {
+    before(function () {
         // No global setup needed
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.createSandbox();
         telemetryServiceMock = new Mock<TelemetryService>();
         workspaceManagerMock = new Mock<IWorkspaceManager>();
@@ -32,7 +32,7 @@ describe('openSqlExtensionInExternal', function() {
             workspaceId: 'ws-123',
             id: 'db-456',
             type: 'SQLDatabase',
-            displayName: 'TestDB'
+            displayName: 'TestDB',
         } as any);
 
         // Setup getExternalUri
@@ -46,15 +46,15 @@ describe('openSqlExtensionInExternal', function() {
         sandbox.stub(TelemetryEvent.prototype, 'addOrUpdateProperties').callsFake(() => {});
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    after(function() {
+    after(function () {
         // No global teardown needed
     });
 
-    it('should open the external URI and send telemetry', async function() {
+    it('should open the external URI and send telemetry', async function () {
         // Act
         await openSqlExtensionInExternal(
             telemetryServiceMock.object(),

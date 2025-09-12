@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { IArtifact, FabricTreeNode, ArtifactTreeNode,  } from '@microsoft/vscode-fabric-api';
+import { IArtifact, FabricTreeNode, ArtifactTreeNode  } from '@microsoft/vscode-fabric-api';
 import { InstallExtensionTreeNode } from './InstallExtensionTreeNode';
 
 export class MissingExtensionArtifactTreeNode extends ArtifactTreeNode {
@@ -10,6 +10,6 @@ export class MissingExtensionArtifactTreeNode extends ArtifactTreeNode {
     }
 
     async getChildNodes(): Promise<FabricTreeNode[]> {
-        return [ new InstallExtensionTreeNode(this.context, this.extensionId) ];
+        return [new InstallExtensionTreeNode(this.context, this.extensionId)];
     }
 }

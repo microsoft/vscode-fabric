@@ -11,6 +11,7 @@ import { TelemetryService, TelemetryActivity, IFabricEnvironmentProvider, ILogge
 import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { IItemDefinitionWriter } from '../../../itemDefinition/ItemDefinitionWriter';
 import { ICapacityManager } from '../../../CapacityManager';
+import { IWorkspaceFilterManager } from '../../../workspace/WorkspaceFilterManager';
 
 describe('registerArtifactCommands', () => {
     let contextMock: Mock<vscode.ExtensionContext>;
@@ -20,6 +21,7 @@ describe('registerArtifactCommands', () => {
     let dataProviderMock: Mock<FabricWorkspaceDataProvider>;
     let extensionManagerMock: Mock<IFabricExtensionManagerInternal>;
     let capacityManagerMock: Mock<ICapacityManager>;
+    let workspaceFilterManagerMock: Mock<IWorkspaceFilterManager>;
     let telemetryServiceMock: Mock<TelemetryService>;
     let loggerMock: Mock<ILogger>;
     let itemDefinitionWriterMock: Mock<IItemDefinitionWriter>;
@@ -36,6 +38,7 @@ describe('registerArtifactCommands', () => {
         dataProviderMock = new Mock<FabricWorkspaceDataProvider>();
         extensionManagerMock = new Mock<IFabricExtensionManagerInternal>();
         capacityManagerMock = new Mock<ICapacityManager>();
+        workspaceFilterManagerMock = new Mock<IWorkspaceFilterManager>();
         telemetryServiceMock = new Mock<TelemetryService>();
         loggerMock = new Mock<ILogger>();
         itemDefinitionWriterMock = new Mock<IItemDefinitionWriter>();
@@ -63,11 +66,11 @@ describe('registerArtifactCommands', () => {
         { name: 'vscode-fabric.openArtifact' },
         { name: 'vscode-fabric.exportArtifact' },
         { name: 'vscode-fabric.refreshArtifactView' },
-        { name: 'vscode-fabric.openInPortal' },        
+        { name: 'vscode-fabric.openInPortal' },
     ].forEach(command => {
         it(`registers ${command.name} command`, async () => {
             await act();
-            
+
             // Find the registration for the command
             const commandRegistration = registerCommandStub.getCalls().find(call =>
                 call.args[0] === command.name
@@ -125,7 +128,7 @@ describe('registerArtifactCommands', () => {
 
             // Set up workspace for telemetry
             const testWorkspace = { objectId: 'test-workspace-id', displayName: 'TestWorkspaceDisplayName' } as IWorkspace;
-            workspaceManagerMock.setup(x => x.getWorkspaceById('test-workspace-id')).returns(testWorkspace);
+            workspaceManagerMock.setup(x => x.getWorkspaceById('test-workspace-id')).returns(Promise.resolve(testWorkspace));
 
             telemetryServiceMock.setup(x =>
                 x.sendTelemetryEvent(
@@ -138,7 +141,7 @@ describe('registerArtifactCommands', () => {
                 )
             ).returns(undefined);
         });
-        
+
         afterEach(() => {
             sinon.restore();
         });
@@ -149,31 +152,31 @@ describe('registerArtifactCommands', () => {
                 modulePath: '../../../artifactManager/createArtifactCommand',
                 stubName: 'createArtifactCommand',
                 telemetryEvent: 'item/create',
-                specialCase: true
+                specialCase: true,
             },
             {
                 commandName: 'vscode-fabric.readArtifact',
                 modulePath: '../../../artifactManager/readArtifactCommand',
                 stubName: 'readArtifactCommand',
-                telemetryEvent: 'item/read'
+                telemetryEvent: 'item/read',
             },
             {
                 commandName: 'vscode-fabric.renameArtifact',
                 modulePath: '../../../artifactManager/renameArtifactCommand',
                 stubName: 'renameArtifactCommand',
-                telemetryEvent: 'item/update'
+                telemetryEvent: 'item/update',
             },
             {
                 commandName: 'vscode-fabric.deleteArtifact',
                 modulePath: '../../../artifactManager/deleteArtifactCommand',
                 stubName: 'deleteArtifactCommand',
-                telemetryEvent: 'item/delete'
+                telemetryEvent: 'item/delete',
             },
             {
                 commandName: 'vscode-fabric.exportArtifact',
                 modulePath: '../../../artifactManager/exportArtifactCommand',
                 stubName: 'exportArtifactCommand',
-                telemetryEvent: 'item/export'
+                telemetryEvent: 'item/export',
             },
         ].forEach(({ commandName, modulePath, stubName, telemetryEvent, specialCase }) => {
             it(`executes ${stubName}`, async () => {
@@ -231,26 +234,25 @@ describe('registerArtifactCommands', () => {
             });
         });
 
-
         [
             {
                 commandName: 'vscode-fabric.readArtifact',
                 modulePath: '../../../artifactManager/readArtifactCommand',
                 stubName: 'readArtifactCommand',
-                telemetryEvent: 'item/read'
+                telemetryEvent: 'item/read',
             },
             {
                 commandName: 'vscode-fabric.renameArtifact',
                 modulePath: '../../../artifactManager/renameArtifactCommand',
                 stubName: 'renameArtifactCommand',
-                telemetryEvent: 'item/update'
+                telemetryEvent: 'item/update',
             },
             {
                 commandName: 'vscode-fabric.deleteArtifact',
                 modulePath: '../../../artifactManager/deleteArtifactCommand',
                 stubName: 'deleteArtifactCommand',
-                telemetryEvent: 'item/delete'
-            }
+                telemetryEvent: 'item/delete',
+            },
         ].forEach(({ commandName, modulePath, stubName, telemetryEvent }) => {
             it(`executes ${stubName} and handles user cancel`, async () => {
                 // Arrange
@@ -296,7 +298,7 @@ describe('registerArtifactCommands', () => {
 
                 assert.strictEqual(capturedTelemetryProps.result, 'Failed', 'result should be Failed');
             });
-        });        
+        });
 
         function verifyTelemetry(telemetryServiceMock: Mock<TelemetryService>, eventName: string, specialCase: boolean): void {
             telemetryServiceMock.verify(
@@ -324,10 +326,11 @@ describe('registerArtifactCommands', () => {
             artifactManagerMock.object(),
             dataProviderMock.object(),
             extensionManagerMock.object(),
+            workspaceFilterManagerMock.object(),
             capacityManagerMock.object(),
             telemetryServiceMock.object(),
-            loggerMock.object(),
+            loggerMock.object()
         );
     }
-    
+
 });

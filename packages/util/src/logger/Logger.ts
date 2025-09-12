@@ -29,7 +29,6 @@ export interface ILogger {
     ): void;
 }
 
-
 export abstract class LoggerBase {
     abstract log(message: string, importance?: LogImportance): void;
 }
@@ -72,7 +71,7 @@ export class Logger implements ILogger {
         errorEventName: string,
         exception: unknown,
         telemetryService: TelemetryService | null,
-        properties?: { [key: string]: string } | undefined,
+        properties?: { [key: string]: string } | undefined
     ) {
         let stack: string | null = null;
         let error: Error = exception as Error;
@@ -101,7 +100,7 @@ export class Logger implements ILogger {
 export class StepProgressLogger implements IProgress<StepProgress> {
     constructor(
         private readonly logger: LoggerBase,
-        private readonly name: string,
+        private readonly name: string
     ) { }
 
     report(data: StepProgress) {

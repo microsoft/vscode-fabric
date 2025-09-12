@@ -9,6 +9,7 @@ import { FabricWorkspaceDataProvider } from '../workspace/treeView';
 import { ICapacityManager } from '../CapacityManager';
 import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { showWorkspaceQuickPick } from '../ui/showWorkspaceQuickPick';
+import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 
 export class CreateItemTypeQuickPickItem implements vscode.QuickPickItem {
     constructor(public details: ItemCreationDetails) {
@@ -35,6 +36,7 @@ export async function promptForArtifactTypeAndName(
     itemsProvider: ICreateItemsProvider,
     workspaceManager: IWorkspaceManager,
     capacityManager: ICapacityManager,
+    workspaceFilterManager: IWorkspaceFilterManager,
     telemetryService: TelemetryService | null,
     logger: ILogger,
     preselectedWorkspaceId?: string  // Add optional workspaceId parameter
@@ -43,13 +45,13 @@ export async function promptForArtifactTypeAndName(
     const creatableItems: ItemCreationDetails[] = itemsProvider.getItemsForCreate(context.extensionUri);
 
     let selectedWorkspace: IWorkspace;
-    
+
     if (preselectedWorkspaceId) {
         // Workspace is preselected from context menu, find it in the cache
-        const workspace = workspaceManager.getWorkspaceById(preselectedWorkspaceId);
+        const workspace = await workspaceManager.getWorkspaceById(preselectedWorkspaceId);
         if (!workspace) {
             // Fallback to workspace selection if not found
-            const workspaceFromPicker = await showWorkspaceQuickPick(workspaceManager, capacityManager, telemetryService, logger);
+            const workspaceFromPicker = await showWorkspaceQuickPick(workspaceManager, workspaceFilterManager, capacityManager, telemetryService, logger);
             if (!workspaceFromPicker) {
                 return undefined;
             }
@@ -61,7 +63,7 @@ export async function promptForArtifactTypeAndName(
     }
     else {
         // Show workspace picker as before
-        const workspaceFromPicker = await showWorkspaceQuickPick(workspaceManager, capacityManager, telemetryService, logger);
+        const workspaceFromPicker = await showWorkspaceQuickPick(workspaceManager, workspaceFilterManager, capacityManager, telemetryService, logger);
         if (!workspaceFromPicker) {
             return undefined;
         }
@@ -83,7 +85,7 @@ export async function promptForArtifactTypeAndName(
     const artifactName = await vscode.window.showInputBox({
         prompt: vscode.l10n.t('Enter name'),
         value: '',
-        title: vscode.l10n.t('New {0}', selectedArtifactType.label)
+        title: vscode.l10n.t('New {0}', selectedArtifactType.label),
     });
 
     if (!artifactName || !artifactName.trim()) {
@@ -93,7 +95,7 @@ export async function promptForArtifactTypeAndName(
     return {
         type: selectedArtifactType.details.type,
         name: artifactName.trim(),
-        workspaceId: selectedWorkspace.objectId
+        workspaceId: selectedWorkspace.objectId,
     };
 }
 
@@ -102,7 +104,7 @@ export async function createArtifactCommand(
     extensionManager: IFabricExtensionManagerInternal,
     artifact: IArtifact,
     dataProvider: FabricWorkspaceDataProvider,
-    telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>,
+    telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>
 ): Promise<IArtifact | undefined> {
     let itemSpecificMetadata: any | undefined = undefined;
 
@@ -125,7 +127,7 @@ export async function createArtifactCommand(
         if (response.parsedBody?.id) {
             artifact.id = response.parsedBody.id;
             telemetryActivity.addOrUpdateProperties({
-                'artifactId': artifact.id
+                'artifactId': artifact.id,
             });
         }
         dataProvider.refresh();

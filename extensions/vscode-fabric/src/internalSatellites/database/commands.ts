@@ -21,7 +21,7 @@ export function registerDatabaseCommands(
     workspaceManager: IWorkspaceManager,
     artifactManager: IArtifactManager,
     apiClient: IFabricApiClient,
-    telemetryService: TelemetryService,
+    telemetryService: TelemetryService
 ): void {
     function registerCommand(
         commandName: string,

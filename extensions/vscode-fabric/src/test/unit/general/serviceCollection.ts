@@ -53,7 +53,7 @@ class MockWorkspaceManagerStub implements IWorkspaceManager {
         throw new Error('Method not implemented.');
     }
     listWorkspaces(): Promise<IWorkspace[]> {
-        throw new Error('Method not implemented.');        
+        throw new Error('Method not implemented.');
     }
     retrieveArtifacts(): Promise<IArtifact[]> {
         throw new Error('Method not implemented.');
@@ -61,9 +61,9 @@ class MockWorkspaceManagerStub implements IWorkspaceManager {
     clearPriorStateIfAny(): void {
         throw new Error('Method not implemented.');
     }
-    getWorkspaceById(workspaceId: string): IWorkspace | undefined {
+    getWorkspaceById(workspaceId: string): Promise<IWorkspace | undefined> {
         throw new Error('Method not implemented.');
-    }    
+    }
     get fabricSharedUri(): string {
         throw new Error('Method not implemented.');
     }
@@ -132,7 +132,7 @@ export function initializeServiceCollection(
     apiClient: IFabricApiClient | undefined
 ): IFabricExtensionServiceCollection {
     if (!artifactManager) {
-        artifactManager = new MockArtifactManagerStub(null!, null!, new MockFabricEnvironmentProvider(), null!, null!, null!, null!);
+        artifactManager = new MockArtifactManagerStub(null!, null!, null!, new MockFabricEnvironmentProvider(), null!, null!, null!, null!);
     }
     if (!workspaceManager) {
         workspaceManager = new MockWorkspaceManagerStub();

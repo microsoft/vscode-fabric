@@ -22,6 +22,8 @@ import { showSignInPrompt } from '../ui/prompts';
 import { ICapacityManager } from '../CapacityManager';
 import { showWorkspaceQuickPick } from '../ui/showWorkspaceQuickPick';
 import { WorkspaceTreeNode } from '../workspace/treeNodes/WorkspaceTreeNode';
+import { ItemDefinitionConflictDetector } from '../itemDefinition/ItemDefinitionConflictDetector';
+import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 
 let artifactCommandDisposables: vscode.Disposable[] = [];
 
@@ -41,9 +43,10 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
     artifactManager: IArtifactManagerInternal,
     dataProvider: FabricWorkspaceDataProvider,
     extensionManager: IFabricExtensionManagerInternal,
+    workspaceFilterManager: IWorkspaceFilterManager,
     capacityManager: ICapacityManager,
     telemetryService: TelemetryService | null,
-    logger: ILogger,
+    logger: ILogger
 ): Promise<void> {
 
     // Dispose of any existing commands
@@ -63,11 +66,12 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
             const preselectedWorkspaceId = workspaceTreeNode?.workspace.objectId;
 
             const promptResult: { type: string, name: string, workspaceId: string } | undefined = await promptForArtifactTypeAndName(
-                context, 
-                new CreateItemsProvider(fabricItemMetadata), 
-                workspaceManager, 
-                capacityManager, 
-                telemetryService, 
+                context,
+                new CreateItemsProvider(fabricItemMetadata),
+                workspaceManager,
+                capacityManager,
+                workspaceFilterManager,
+                telemetryService,
                 logger,
                 preselectedWorkspaceId
             );
@@ -81,7 +85,7 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                 displayName: promptResult.name,
                 description: '',
                 workspaceId: promptResult.workspaceId,
-                fabricEnvironment: fabricEnvironmentProvider.getCurrent().env
+                fabricEnvironment: fabricEnvironmentProvider.getCurrent().env,
             };
 
             if (artifactManager.shouldUseDeprecatedCommand(artifact.type, OperationRequestType.create)) {
@@ -166,12 +170,12 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
         context);
 
     registerCommand(
-        commandNames.exportArtifact, 
+        commandNames.exportArtifact,
         async (...cmdArgs) => {
             const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode | undefined;
             await doArtifactAction(
                 artifactTreeNode?.artifact,
-                'exportArtifact', 
+                'exportArtifact',
                 'item/export',
                 logger,
                 telemetryService,
@@ -180,9 +184,10 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                     await exportArtifactCommand(
                         item,
                         workspaceManager,
-                        artifactManager, 
+                        artifactManager,
+                        new ItemDefinitionConflictDetector(vscode.workspace.fs),
                         new ItemDefinitionWriter(vscode.workspace.fs),
-                        activity,
+                        activity
                     );
                 }
             );
@@ -190,7 +195,7 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
         context);
 
     registerCommand(
-        commandNames.openArtifact, 
+        commandNames.openArtifact,
         async (...cmdArgs) => {
             const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode;
             await doArtifactAction(
@@ -239,17 +244,17 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                 // Use the existing logic for artifact nodes or command palette
                 let isHandled = false;
                 await artifactManager.doContextMenuItem(cmdArgs, vscode.l10n.t('Open In Portal'), async (item) => {
-                    if (cmdArgs?.length > 1) { // if from tview context menu 
+                    if (cmdArgs?.length > 1) { // if from tview context menu
                         if (item) {
                             // Safe to assume that if there is an ArtifactTreeNode then there is a current workspace
                             artifact = item.artifact;
-                            selectedWorkspace = workspaceManager.getWorkspaceById(artifact.workspaceId);
+                            selectedWorkspace = await workspaceManager.getWorkspaceById(artifact.workspaceId);
                             portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, artifact.workspaceId, artifact);
                             isHandled = true;
                         }
                     }
                     else {
-                        selectedWorkspace = await showWorkspaceQuickPick(workspaceManager, capacityManager, telemetryService, logger);
+                        selectedWorkspace = await showWorkspaceQuickPick(workspaceManager, workspaceFilterManager, capacityManager, telemetryService, logger);
                         if (!selectedWorkspace) {
                             return;
                         }
@@ -257,13 +262,13 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                         isHandled = true;
                     }
                 });
-                
+
                 // If doContextMenuItem didn't handle the operation, return early
                 if (!isHandled || !portalUrl) {
                     return;
                 }
             }
-            
+
             const activity = new TelemetryActivity<CoreTelemetryEventNames>('item/open/portal', telemetryService);
             void activity.doTelemetryActivity(async () => {
                 activity.addOrUpdateProperties({
@@ -277,15 +282,15 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                         'fabricArtifactName': artifact.displayName,
                     });
                 }
-                
+
                 void vscode.env.openExternal(vscode.Uri.parse(portalUrl!));
             });
         })();
-    }, context);    
+    }, context);
 }
 
 export function formatPortalUrl(portalUri: string, workspaceId: string, artifact?: IArtifact): string {
-    
+
     if (artifact && artifact.type && artifact.id) {
         return `https://${portalUri}/groups/${workspaceId}/${getArtifactTypeFolder(artifact)}/${artifact.id}?experience=data-engineering`;
     }
@@ -338,7 +343,7 @@ function addCommonArtifactTelemetryProps(
         endpoint: fabricEnvironmentProvider.getCurrent().sharedUri,
         workspaceId: item.workspaceId,
         artifactId: item.id,
-        fabricArtifactName: item.displayName,        
-        itemType: item.type
+        fabricArtifactName: item.displayName,
+        itemType: item.type,
     });
 }

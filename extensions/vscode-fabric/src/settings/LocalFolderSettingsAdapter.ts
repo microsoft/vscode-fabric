@@ -48,6 +48,24 @@ export class LocalFolderSettingsAdapter implements ILocalFolderSettingsAdapter {
         }
         await this.storage.save();
     }
+
+    /**
+     * Returns the workspace ID associated with the given local folder path, or undefined if not found
+     * @param path The local folder path to look up
+     */
+    getWorkspaceFromFolder(path: string): string | undefined {
+        if (!path) {
+            return undefined;
+        }
+        // Normalize for comparison
+        const normalizedPath = path.trim().toLowerCase();
+        for (const ws of this.storage.settings.workspaces) {
+            if (ws.localFolder && ws.localFolder.trim().toLowerCase() === normalizedPath) {
+                return ws.workspaceId;
+            }
+        }
+        return undefined;
+    }
     // #endregion
 
     private findWorkspace(id: string): IFabricWorkspaceSettings | undefined {

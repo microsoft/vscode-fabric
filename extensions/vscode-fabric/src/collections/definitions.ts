@@ -71,5 +71,5 @@ export interface IObservableReadOnlyMap<K, V> {
     /**
      * Event that fires when an item is removed from the collection
      */
-    readonly onItemRemoved: vscode.Event<V>;    
+    readonly onItemRemoved: vscode.Event<V>;
 }

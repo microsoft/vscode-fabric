@@ -3,7 +3,6 @@ import * as assert from 'assert';
 import { ObservableSet } from '../../../collections/ObservableSet';
 import { IObservableArray } from '../../../collections/definitions';
 
-
 export class ObservableArrayEventValidator<T> {
     private added: T[] = [];
     private removed: T[] = [];

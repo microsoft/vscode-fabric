@@ -4,7 +4,7 @@ import * as assert from 'assert';
 import { RootTreeNodeProvider } from '../../../workspace/treeView';
 import { IRootTreeNodeProvider } from '../../../workspace/definitions';
 import { TenantTreeNode } from '../../../workspace/treeNodes/TenantTreeNode';
-import { ListViewWorkspaceTreeNode } from '../../../workspace/treeNodes/ListViewWorkspaceTreeNode'; 
+import { ListViewWorkspaceTreeNode } from '../../../workspace/treeNodes/ListViewWorkspaceTreeNode';
 import { TreeViewWorkspaceTreeNode } from '../../../workspace/treeNodes/TreeViewWorkspaceTreeNode';
 import { IFabricExtensionSettings, IFabricExtensionsSettingStorage } from '../../../settings/definitions';
 import { IFabricExtensionManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
@@ -43,7 +43,7 @@ describe('RootTreeNodeProvider', () => {
 
         // Set up workspace mock with objectId
         workspaceMock.setup(instance => instance.objectId).returns('test-workspace-id');
-        
+
         // Set up tenant mock
         tenantMock.setup(instance => instance.tenantId).returns('test-tenant-id');
         tenantMock.setup(instance => instance.defaultDomain).returns('test-domain.com');
@@ -93,7 +93,7 @@ describe('RootTreeNodeProvider', () => {
         workspaceManagerMock.setup(instance => instance.listWorkspaces()).returns(Promise.resolve([workspaceMock.object()]));
         workspaceManagerMock.setup(instance => instance.getItemsInWorkspace(It.IsAny())).returns(Promise.resolve([]));
         extensionManagerMock.setup(instance => instance.treeNodeProviders).returns(new ObservableMap<string, IFabricTreeNodeProvider>());
-        
+
         const provider = await createInstance(storageMock.object(), contextMock.object(), extensionManagerMock.object(), workspaceManagerMock.object(), accountProviderMock.object(), telemetryServiceMock.object());
 
         const rootNode = provider.create(tenantMock.object());
@@ -114,7 +114,7 @@ describe('RootTreeNodeProvider', () => {
         settingsMock.setup(instance => instance.displayStyle).returns('TreeView');
         storageMock.setup(instance => instance.settings).returns(settingsMock.object());
         workspaceManagerMock.setup(instance => instance.listWorkspaces()).returns(Promise.resolve([workspaceMock.object()]));
-        workspaceManagerMock.setup(instance => instance.getItemsInWorkspace(It.IsAny())).returns(Promise.resolve([ item2B, item2A, item1C ]));
+        workspaceManagerMock.setup(instance => instance.getItemsInWorkspace(It.IsAny())).returns(Promise.resolve([item2B, item2A, item1C]));
         extensionManagerMock.setup(instance => instance.treeNodeProviders).returns(new ObservableMap<string, IFabricTreeNodeProvider>());
         const provider = await createInstance(storageMock.object(), contextMock.object(), extensionManagerMock.object(), workspaceManagerMock.object(), accountProviderMock.object(), telemetryServiceMock.object());
 
@@ -134,7 +134,7 @@ describe('RootTreeNodeProvider', () => {
         workspaceManagerMock.verify(instance => instance.getItemsInWorkspace(It.IsAny()), Times.Once());
 
         // Make sure we have the correct items and they are sorted
-        const expectedNodeOrder = [ [item1C], [item2A, item2B] ];
+        const expectedNodeOrder = [[item1C], [item2A, item2B]];
         for (let i = 0; i < expectedNodeOrder.length; i++) {
             const artifactNodes: FabricTreeNode[] = await typeNodes[i].getChildNodes();
             assert.equal(artifactNodes.length, expectedNodeOrder[i].length, `Type node ${i} artifact count`);
@@ -155,12 +155,12 @@ describe('RootTreeNodeProvider', () => {
         treeNodeProviderMock.setup(instance => instance.createArtifactTreeNode(It.Is(artifact => artifact === item2A))).returns(Promise.resolve(new ArtifactTreeNode(contextMock.object(), item2A)));
         treeNodeProviderMock.setup(instance => instance.createArtifactTreeNode(It.Is(artifact => artifact === item2B))).returns(Promise.resolve(new ArtifactTreeNode(contextMock.object(), item2B)));
 
-        treeNodeProviders.set('Type2', treeNodeProviderMock.object());  
+        treeNodeProviders.set('Type2', treeNodeProviderMock.object());
 
         settingsMock.setup(instance => instance.displayStyle).returns('ListView');
         storageMock.setup(instance => instance.settings).returns(settingsMock.object());
         workspaceManagerMock.setup(instance => instance.listWorkspaces()).returns(Promise.resolve([workspaceMock.object()]));
-        workspaceManagerMock.setup(instance => instance.getItemsInWorkspace(It.IsAny())).returns(Promise.resolve([ item2B, item2A, item1C ]));
+        workspaceManagerMock.setup(instance => instance.getItemsInWorkspace(It.IsAny())).returns(Promise.resolve([item2B, item2A, item1C]));
         extensionManagerMock.setup(instance => instance.treeNodeProviders).returns(treeNodeProviders);
         const provider = await createInstance(storageMock.object(), contextMock.object(), extensionManagerMock.object(), workspaceManagerMock.object(), accountProviderMock.object(), telemetryServiceMock.object());
 
@@ -192,12 +192,12 @@ describe('RootTreeNodeProvider', () => {
         treeNodeProviderMock.setup(instance => instance.createArtifactTreeNode(It.Is(artifact => artifact === item2A))).returns(Promise.resolve(new ArtifactTreeNode(contextMock.object(), item2A)));
         treeNodeProviderMock.setup(instance => instance.createArtifactTreeNode(It.Is(artifact => artifact === item2B))).returns(Promise.resolve(new ArtifactTreeNode(contextMock.object(), item2B)));
 
-        treeNodeProviders.set('Type2', treeNodeProviderMock.object());  
+        treeNodeProviders.set('Type2', treeNodeProviderMock.object());
 
         settingsMock.setup(instance => instance.displayStyle).returns('TreeView');
         storageMock.setup(instance => instance.settings).returns(settingsMock.object());
         workspaceManagerMock.setup(instance => instance.listWorkspaces()).returns(Promise.resolve([workspaceMock.object()]));
-        workspaceManagerMock.setup(instance => instance.getItemsInWorkspace(It.IsAny())).returns(Promise.resolve([ item2B, item2A, item1C ]));
+        workspaceManagerMock.setup(instance => instance.getItemsInWorkspace(It.IsAny())).returns(Promise.resolve([item2B, item2A, item1C]));
         extensionManagerMock.setup(instance => instance.treeNodeProviders).returns(treeNodeProviders);
         const provider = await createInstance(storageMock.object(), contextMock.object(), extensionManagerMock.object(), workspaceManagerMock.object(), accountProviderMock.object(), telemetryServiceMock.object());
 
@@ -215,7 +215,7 @@ describe('RootTreeNodeProvider', () => {
         const typeNodes = await workspaceNode.getChildNodes();
 
         // Make sure the type nodes have a chance to be created
-        const expectedNodeOrder = [ [item1C], [item2A, item2B] ];
+        const expectedNodeOrder = [[item1C], [item2A, item2B]];
         for (let i = 0; i < expectedNodeOrder.length; i++) {
             await typeNodes[i].getChildNodes();
         }
@@ -226,8 +226,8 @@ describe('RootTreeNodeProvider', () => {
     });
 
     function createArtifact(type: string, displayName: string): IArtifact {
-        return { 
-            type: type, 
+        return {
+            type: type,
             displayName: displayName,
             id: `id-${type}-${displayName}`,
             workspaceId: `workspace-${type}-${displayName}`,

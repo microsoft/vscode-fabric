@@ -18,11 +18,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";extension.closeWorkspace.title" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";extension.clearWorkspaceFilter.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Close Workspace]]></Val>
+          <Val><![CDATA[Clear Workspace Filter]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zavřít pracovní prostor]]></Val>
+            <Val><![CDATA[Vymazat filtr pracovních prostorů]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -108,11 +108,32 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";extension.filterWorkspaces.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Filter Workspaces...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Filtrovat pracovní prostory...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";extension.importArtifact.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Publish to Fabric...]]></Val>
+          <Val><![CDATA[To current workspace]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Publikovat do Fabricu]]></Val>
+            <Val><![CDATA[Do aktuálního pracovního prostoru]]></Val>
+          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Publish to Fabric...]]></Val>
+          </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.importArtifactPromptWorkspace.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[To specific workspace...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Do konkrétního pracovního prostoru...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -207,15 +228,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";extension.selectWorkspace.title" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select Fabric workspace...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vybrat pracovní prostor Fabricu...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";extension.selectWorkspaceLocalFolder.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select working directory...]]></Val>
@@ -243,11 +255,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";extension.submenus.selectActions.label" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";extension.submenu.importArtifact.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Workspace actions]]></Val>
+          <Val><![CDATA[Publish]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Akce pracovního prostoru]]></Val>
+            <Val><![CDATA[Publikovat]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -299,10 +311,13 @@
       </Item>
       <Item ItemId=";extension.views.Workspace.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Fabric Workspace]]></Val>
+          <Val><![CDATA[Fabric Workspaces (remote)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Pracovní prostor Fabricu]]></Val>
+            <Val><![CDATA[Pracovní prostory Fabric (vzdálené)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Fabric Workspace]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -360,33 +375,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";extension.walkthrough.selectWorkspace.alttext" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[An image of the Select Fabric workspace picker which highlights the option to create a new workspace.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Obrázek ovládacího prvku pro výběr pracovního prostoru Fabricu, na kterém je zvýrazněna možnost vytvoření nového pracovního prostoru]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";extension.walkthrough.selectWorkspace.description" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Use the 'Fabric: Select Workspace...' command or select a workspace through the Fabric Explorer.]A;[Select Workspace]5D;(command:vscode-fabric.openWorkspace)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Použijte příkaz Fabric: Vybrat pracovní prostor nebo vyberte pracovní prostor prostřednictvím Fabric Exploreru.]A;[Vybrat pracovní prostor]5D;(command:vscode-fabric.openWorkspace)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";extension.walkthrough.selectWorkspace.title" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select Workspace]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vybrat pracovní prostor]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";extension.walkthrough.signIn.description" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Use the 'Fabric: Sign In' command or sign in through the Fabric Explorer.]A;[Sign in to Fabric]5D;(command:vscode-fabric.signIn)]]></Val>
@@ -414,21 +402,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";extension.welcomeTitle.chooseWorkspace" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[No workspace selected [learn more]5D;(https://learn.microsoft.com/en-us/fabric/).]A;[Select Fabric workspace]5D;(command:vscode-fabric.openWorkspace)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nevybral se žádný pracovní prostor [další informace]5D;(https://learn.microsoft.com/en-us/fabric/).]A;[Vybrat pracovní prostor Fabricu]5D;(command:vscode-fabric.openWorkspace)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";extension.welcomeTitle.emptyWorkspace" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Your workspace is empty. Create an item to get started with Microsoft Fabric.]A;[Create Fabric item]5D;(command:vscode-fabric.createArtifact)]]></Val>
+          <Val><![CDATA[This workspace is empty. Create an item to get started with Microsoft Fabric.]A;[Create Fabric item]5D;(command:vscode-fabric.createArtifact)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Váš pracovní prostor je prázdný. Pokud chcete začít používat Microsoft Fabric, vytvořte položku.]A;[Vytvořit položku Fabricu]5D;(command:vscode-fabric.createArtifact)]]></Val>
+            <Val><![CDATA[Pracovní prostor je prázdný. Pokud chcete začít používat Microsoft Fabric, vytvořte položku.]A;[Vytvořit položku Fabric]5D;(command:vscode-fabric.createArtifact)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Your workspace is empty. Create an item to get started with Microsoft Fabric.]A;[Create Fabric item]5D;(command:vscode-fabric.createArtifact)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>

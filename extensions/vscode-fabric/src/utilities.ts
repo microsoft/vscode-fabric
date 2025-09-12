@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { IApiClientResponse, IApiClientRequestOptions, IFabricApiClient } from '@microsoft/vscode-fabric-api';
-import { sleep, FabricError, TelemetryActivity } from '@microsoft/vscode-fabric-util';
+import { sleep, FabricError, TelemetryActivity, ILogger, LogImportance } from '@microsoft/vscode-fabric-util';
 
 /**
  * Checks whether or not the given URI is a directory. Symbolic links to directories will not be considered directories
@@ -43,7 +43,7 @@ export function workspaceContainsDirectory(uri: vscode.Uri): boolean {
 }
 
 /**
- * Checks if the response indicates a successful operation. 
+ * Checks if the response indicates a successful operation.
  * The expectation is that any status code in the range of 200-299 is considered successful
  * @param response The response to check
  */
@@ -88,7 +88,7 @@ export async function handleArtifactCreationErrorAndThrow(
         'errorCode': response.parsedBody?.errorCode,
     });
     let urlLearnMore: vscode.Uri | undefined = undefined;
-    
+
     if (response.status >= 400 && response.status < 500) { //400 == bad request. Show user error message and learn more link
         switch (response.parsedBody?.errorCode) {
             case 'UnsupportedCapacitySKU':
@@ -105,7 +105,7 @@ export async function handleArtifactCreationErrorAndThrow(
             default:
                 break;
         }
-        
+
         if (urlLearnMore) {
             const learnMoreAction = vscode.l10n.t('Learn more');
             const errorMessage = vscode.l10n.t('Failed to create "{0}": {1}', artifactDisplayName, response.parsedBody?.errorCode);
@@ -120,7 +120,7 @@ export async function handleArtifactCreationErrorAndThrow(
             });
         }
     }
-    
+
     throw new FabricError(
         `Create Artifact '${artifactDisplayName}' failed: ${response.status} ${response.response?.bodyAsText}`,
         `Create Artifact failed ${artifactType} ${response.status} ${response.parsedBody?.errorCode ?? ''}`,
@@ -136,38 +136,102 @@ export async function handleArtifactCreationErrorAndThrow(
  * @param response The first response from the long running operation
  * @returns The final response from the API after the operation completes
  */
-export async function handleLongRunningOperation(apiClient: IFabricApiClient, response: IApiClientResponse): Promise<IApiClientResponse> {
-    if (response.status === 202) {
-        const location = response.headers?.get('location');
-        const retryAfterSeconds: number = parseInt(response.headers?.get('retry-after') ?? '0');
-        const operationId = response.headers?.get('x-ms-operation-id');
 
-        if (location && operationId) {
-            let request: IApiClientRequestOptions = {
-                method: 'GET',
-                url: location,
-            };
+// Allow tests to override the sleep implementation without stubbing global setTimeout (which can interfere with VS Code's scheduler)
+let lroSleepImpl: (ms: number) => Promise<any> = sleep;
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export function __setLroSleep(impl: (ms: number) => Promise<any>): void {
+    lroSleepImpl = impl;
+}
 
-            // Observation: the operation is often ready faster than the header would indicate. Lets poll 5x more frequently
-            const sleepDurationSeconds = Math.max(Math.floor(retryAfterSeconds / 5), 1);
-            
-            // Poll for the operation to complete
-            do {
-                if (sleepDurationSeconds > 0) {
-                    await sleep(sleepDurationSeconds * 1000);
-                }
-                response = await apiClient.sendRequest(request);
+export async function handleLongRunningOperation(apiClient: IFabricApiClient, response: IApiClientResponse, logger?: ILogger): Promise<IApiClientResponse> {
+    const trace = (message: string): void => {
+        logger?.log(`[Fabric LRO2] ${message}`, LogImportance.normal);
+    };
 
-            } while (response.parsedBody?.status !== 'Succeeded' && response.parsedBody?.status !== 'Failed');
+    // Preserve the original 202 response for fallback scenarios.
+    const originalResponse: IApiClientResponse = response;
 
-            // Send another request to get the actual result
-            request = {
-                method: 'GET',
-                url: `${location}/result`,
-            };
-            response = await apiClient.sendRequest(request);
-        }
+    if (response.status !== 202) {
+        trace(`Initial response status ${response.status} is not 202; returning without polling.`);
+        return response;
     }
 
-    return response;
+    let location: string | undefined = response.headers?.get('location') || undefined;
+    const operationId: string | undefined = response.headers?.get('x-ms-operation-id') || undefined;
+    if (!location || !operationId) {
+        trace('Missing required headers (location and/or x-ms-operation-id); returning original response.');
+        return response;
+    }
+
+    trace(`Starting poll loop. location='${location}', operationId='${operationId}'.`);
+
+    // Poll strategy: start fast (400ms) and exponential backoff up to a modest ceiling (10s) to reduce load.
+    let waitMs: number = 400;
+    const maxWaitMs: number = 10_000;
+    const maxIterations: number = 600; // ~ >10 min worst case
+    let iteration: number = 0;
+    let lastSuccessfulPoll: IApiClientResponse = response;
+
+    while (true) { // eslint-disable-line no-constant-condition
+        iteration++;
+        if (iteration > maxIterations) {
+            trace(`Max iterations (${maxIterations}) reached; returning last successful poll (status ${lastSuccessfulPoll.status}).`);
+            return lastSuccessfulPoll;
+        }
+
+        trace(`Iteration ${iteration}: sleeping ${waitMs}ms before polling '${location}'.`);
+        await lroSleepImpl(waitMs);
+
+        const pollRequest: IApiClientRequestOptions = { method: 'GET', url: location };
+        let pollResponse: IApiClientResponse;
+        try {
+            pollResponse = await apiClient.sendRequest(pollRequest);
+        }
+        catch (e) {
+            trace(`Iteration ${iteration}: poll failed with error ${(e as Error).message}; returning original 202 response.`);
+            return originalResponse;
+        }
+
+        lastSuccessfulPoll = pollResponse;
+        const operationStatus: string | undefined = pollResponse.parsedBody?.status;
+        trace(`Iteration ${iteration}: httpStatus=${pollResponse.status}, opStatus='${operationStatus ?? 'n/a'}'.`);
+
+        // Always adopt Location from the latest poll response if present.
+        const latestLocation: string | undefined = pollResponse.headers?.get('location') || undefined;
+        if (latestLocation && latestLocation !== location) {
+            trace(`Iteration ${iteration}: Location header updated -> '${latestLocation}'.`);
+            location = latestLocation;
+        }
+
+        // Terminal states handled separately for clearer logic.
+        if (operationStatus === 'Failed') {
+            // Simplified: assume error details are present under parsedBody.error
+            const err = pollResponse.parsedBody?.error ?? {};
+            const failedErrorCode: string | undefined = typeof err.errorCode === 'string' ? err.errorCode : undefined;
+            const failedMessage: string | undefined = typeof err.message === 'string' ? err.message : undefined;
+            trace(`Iteration ${iteration}: Failure details errorCode='${failedErrorCode ?? 'n/a'}' message='${failedMessage ?? 'n/a'}'.`);
+            trace(`Iteration ${iteration}: Terminal status 'Failed'. Throwing FabricError.`);
+            throw new FabricError(
+                failedMessage ? `LRO failed: ${failedMessage}` : 'Long running operation failed',
+                failedErrorCode ? `lrofailed/${failedErrorCode}` : 'lrofailed/unknown',
+                { showInUserNotification: 'Error', showInFabricLog: true }
+            );
+        }
+
+        if (operationStatus === 'Succeeded') {
+            trace(`Iteration ${iteration}: Terminal status 'Succeeded'. Performing final fetch to latest location '${location}'.`);
+            if (!location) {
+                trace(`Iteration ${iteration}: No location available for final fetch; returning poll response.`);
+                return pollResponse;
+            }
+            const finalRequest: IApiClientRequestOptions = { method: 'GET', url: location };
+            const finalResponse = await apiClient.sendRequest(finalRequest);
+            trace(`Iteration ${iteration}: Final fetch status ${finalResponse.status}; returning final response.`);
+            return finalResponse;
+        }
+
+        // Backoff for next iteration.
+        waitMs = Math.min(waitMs * 2, maxWaitMs);
+    }
 }

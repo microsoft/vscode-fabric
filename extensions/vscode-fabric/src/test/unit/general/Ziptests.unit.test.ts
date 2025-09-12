@@ -13,11 +13,8 @@ import { PathLike } from 'fs';
 import { createZipFile } from '@microsoft/vscode-fabric-util';
 import { getOrCreateEmptyTempFolder } from '../../utils';
 
-
-
-
 describe('Zip Unit test', () => {
-    it('should zip and unzip', async function() {
+    it('should zip and unzip', async function () {
         this.timeout(1000000);
         let destdir = await getOrCreateEmptyTempFolder('tempdir');
         let srcdir: fs.PathLike = path.resolve(__dirname, '../../../../src');

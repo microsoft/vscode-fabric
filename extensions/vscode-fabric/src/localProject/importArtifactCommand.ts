@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { IArtifact, IWorkspaceManager, IArtifactManager, IWorkspace, IApiClientResponse, IItemDefinition } from '@microsoft/vscode-fabric-api';
+import { ILocalFolderManager } from '../LocalFolderManager';
 import { formatErrorResponse, succeeded } from '../utilities';
 import { FabricError, TelemetryActivity, TelemetryService, IFabricEnvironmentProvider, UserCancelledError, ILogger } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
@@ -9,11 +10,14 @@ import { showWorkspaceQuickPick } from '../ui/showWorkspaceQuickPick';
 import { showSignInPrompt } from '../ui/prompts';
 import { ICapacityManager } from '../CapacityManager';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
+import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 
 export async function importArtifactCommand(
     folder: vscode.Uri,
     workspaceManager: IWorkspaceManager,
     artifactManager: IArtifactManager,
+    localFolderManager: ILocalFolderManager,
+    workspaceFilterManager: IWorkspaceFilterManager,
     capacityManager: ICapacityManager,
     reader: IItemDefinitionReader,
     fabricEnvironmentProvider: IFabricEnvironmentProvider,
@@ -21,12 +25,13 @@ export async function importArtifactCommand(
     telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>,
     telemetryService: TelemetryService | null,
     logger: ILogger,
+    forcePromptForWorkspace: boolean
 ): Promise<void> {
     if (!(await workspaceManager.isConnected())) {
         void showSignInPrompt();
         throw new UserCancelledError('signIn');
     }
-    
+
     const projectData = await tryParseLocalProjectData(folder);
     if (!projectData) {
         throw new FabricError(
@@ -38,13 +43,33 @@ export async function importArtifactCommand(
     const targetType: string = projectData.type;
     telemetryActivity.addOrUpdateProperties({
         fabricArtifactName: displayName,
-        itemType: targetType
+        itemType: targetType,
     });
 
-    const targetWorkspace: IWorkspace | undefined = await showWorkspaceQuickPick(workspaceManager, capacityManager, telemetryService, logger);
+    // Try to infer workspace from folder using localFolderManager
+    let targetWorkspace: IWorkspace | undefined;
+    const parentFolder = vscode.Uri.joinPath(folder, '..');
+    if (!forcePromptForWorkspace) {
+        const inferredWorkspaceId = localFolderManager.getWorkspaceIdForLocalFolder(parentFolder);
+        if (inferredWorkspaceId) {
+            targetWorkspace = await workspaceManager.getWorkspaceById(inferredWorkspaceId);
+            telemetryActivity.addOrUpdateProperties({
+                targetDetermination: 'inferred',
+            });
+        }
+    }
+
+    // If not found, fall back to user selection
     if (!targetWorkspace) {
-        throw new UserCancelledError('selectWorkspace');
-    };
+        targetWorkspace = await showWorkspaceQuickPick(workspaceManager, workspaceFilterManager, capacityManager, telemetryService, logger);
+        if (!targetWorkspace) {
+            throw new UserCancelledError('selectWorkspace');
+        }
+
+        telemetryActivity.addOrUpdateProperties({
+            targetDetermination: forcePromptForWorkspace ? 'forced' : 'prompt',
+        });
+    }
 
     telemetryActivity.addOrUpdateProperties({
         workspaceId: targetWorkspace.objectId,
@@ -74,37 +99,46 @@ export async function importArtifactCommand(
             displayName: displayName,
             description: '',
             workspaceId: targetWorkspace.objectId,
-            fabricEnvironment: fabricEnvironmentProvider.getCurrent().env
+            fabricEnvironment: fabricEnvironmentProvider.getCurrent().env,
         };
 
-        response = await artifactManager.createArtifactWithDefinition(newArtifact, definition);
-        
+        response = await artifactManager.createArtifactWithDefinition(newArtifact, definition, folder);
+
         await dataProvider.refresh();
-        
     }
     else {
         telemetryActivity.addOrUpdateProperties({
             artifactId: artifact.id,
         });
 
-        response = await artifactManager.updateArtifactDefinition(artifact, definition);
+        // Make sure the user wants to overwrite the existing item
+        const confirm = await vscode.window.showInformationMessage(
+            vscode.l10n.t('An item named "{0}" already exists in workspace "{1}". Do you want to overwrite it?', displayName, targetWorkspace.displayName),
+            { modal: true },
+            vscode.l10n.t('Yes')
+        );
+        if (confirm !== vscode.l10n.t('Yes')) {
+            throw new UserCancelledError('overwriteConfirmation');
+        }
+
+        response = await artifactManager.updateArtifactDefinition(artifact, definition, folder);
     }
     telemetryActivity.addOrUpdateProperties({
         'statusCode': response?.status.toString(),
     });
-    
+
     if (succeeded(response)) {
         void vscode.window.showInformationMessage(vscode.l10n.t('Published {0}', displayName));
     }
     else {
         telemetryActivity.addOrUpdateProperties({
             'requestId': response.parsedBody?.requestId,
-            'errorCode': response.parsedBody?.errorCode
+            'errorCode': response.parsedBody?.errorCode,
         });
         throw new FabricError(
             formatErrorResponse(vscode.l10n.t('Error publishing {0}', displayName), response),
             response.parsedBody?.errorCode || `Publishing Artifact failed ${targetType} ${response.status}`,
             { showInUserNotification: 'Information' }
         );
-    }        
+    }
 }

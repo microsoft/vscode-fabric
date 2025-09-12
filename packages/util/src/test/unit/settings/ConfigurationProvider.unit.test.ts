@@ -5,20 +5,20 @@ import * as sinon from 'sinon';
 import { ConfigurationProvider } from '../../../settings/ConfigurationProvider';
 import { IDisposableCollection } from '../../../DisposableCollection';
 
-describe('ConfigurationProvider', function() {
+describe('ConfigurationProvider', function () {
     let disposableCollectionMock: Mock<IDisposableCollection>;
     let configurationProvider: ConfigurationProvider;
     let mockConfiguration: any;
     let configChangeHandler: Function;
     let getConfigurationStub: sinon.SinonStub;
 
-    beforeEach(function() {
+    beforeEach(function () {
         disposableCollectionMock = new Mock<IDisposableCollection>();
         disposableCollectionMock.setup(instance => instance.add(It.IsAny())).returns(undefined);
 
         mockConfiguration = {
             get: sinon.stub(),
-            update: sinon.stub().returns(Promise.resolve())
+            update: sinon.stub().returns(Promise.resolve()),
         };
 
         getConfigurationStub = sinon.stub(vscode.workspace, 'getConfiguration').returns(mockConfiguration);
@@ -32,12 +32,12 @@ describe('ConfigurationProvider', function() {
         configurationProvider = new ConfigurationProvider(disposableCollectionMock.object());
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sinon.restore();
     });
 
-    describe('get', function() {
-        it('should retrieve configuration value from VS Code workspace', function() {
+    describe('get', function () {
+        it('should retrieve configuration value from VS Code workspace', function () {
             const key = 'testKey';
             const defaultValue = 'defaultValue';
             const expectedValue = 'expectedValue';
@@ -50,7 +50,7 @@ describe('ConfigurationProvider', function() {
             assert(mockConfiguration.get.calledWith(key, defaultValue), 'Should call get with the correct parameters');
         });
 
-        it('should add key to the tracked keys set', function() {
+        it('should add key to the tracked keys set', function () {
             const key = 'newKey';
             const defaultValue = 'defaultValue';
             mockConfiguration.get.returns(defaultValue);
@@ -63,7 +63,7 @@ describe('ConfigurationProvider', function() {
             const event = {
                 affectsConfiguration: (section: string) => {
                     return section === 'Fabric' || section === 'Fabric.newKey';
-                }
+                },
             };
 
             configChangeHandler(event);
@@ -72,8 +72,8 @@ describe('ConfigurationProvider', function() {
         });
     });
 
-    describe('update', function() {
-        it('should update configuration value in VS Code global settings', async function() {
+    describe('update', function () {
+        it('should update configuration value in VS Code global settings', async function () {
             const key = 'updateKey';
             const value = 'newValue';
 
@@ -82,15 +82,15 @@ describe('ConfigurationProvider', function() {
             assert(getConfigurationStub.calledWith('Fabric'), 'Should call getConfiguration with Fabric section');
             assert(
                 mockConfiguration.update.calledWith(
-                    key, 
-                    value, 
+                    key,
+                    value,
                     vscode.ConfigurationTarget.Global
-                ), 
+                ),
                 'Should call update with the correct parameters'
             );
         });
 
-        it('should add key to the tracked keys set when updating', function() {
+        it('should add key to the tracked keys set when updating', function () {
             const key = 'updateTrackKey';
             const value = 'updateValue';
 
@@ -102,7 +102,7 @@ describe('ConfigurationProvider', function() {
             const event = {
                 affectsConfiguration: (section: string) => {
                     return section === 'Fabric' || section === 'Fabric.updateTrackKey';
-                }
+                },
             };
 
             configChangeHandler(event);
@@ -111,8 +111,8 @@ describe('ConfigurationProvider', function() {
         });
     });
 
-    describe('onDidConfigurationChange', function() {
-        it('should emit events only for tracked keys that changed', function() {
+    describe('onDidConfigurationChange', function () {
+        it('should emit events only for tracked keys that changed', function () {
             const key1 = 'trackedKey1';
             const key2 = 'trackedKey2';
             const key3 = 'trackedKey3';
@@ -126,17 +126,17 @@ describe('ConfigurationProvider', function() {
 
             const event = {
                 affectsConfiguration: (section: string) => {
-                    if (section === 'Fabric') { 
-                        return true; 
+                    if (section === 'Fabric') {
+                        return true;
                     }
-                    if (section === 'Fabric.trackedKey1') { 
-                        return true; 
+                    if (section === 'Fabric.trackedKey1') {
+                        return true;
                     }
-                    if (section === 'Fabric.trackedKey3') { 
-                        return true; 
+                    if (section === 'Fabric.trackedKey3') {
+                        return true;
                     }
                     return false;
-                }
+                },
             };
 
             configChangeHandler(event);
@@ -147,7 +147,7 @@ describe('ConfigurationProvider', function() {
             assert.strictEqual(eventHandler.neverCalledWith(key2), true, 'Should not fire event for key2');
         });
 
-        it('should not emit events when changes do not affect Fabric section', function() {
+        it('should not emit events when changes do not affect Fabric section', function () {
             const key = 'someKey';
             configurationProvider.get(key, null);
 
@@ -157,7 +157,7 @@ describe('ConfigurationProvider', function() {
             const event = {
                 affectsConfiguration: (section: string) => {
                     return section !== 'Fabric';
-                }
+                },
             };
 
             configChangeHandler(event);

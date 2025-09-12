@@ -7,6 +7,7 @@ export type CoreTelemetryEventNames = {
 	'workspace/create': { properties: WorkspacePropertyNames | ApiResultPropertyNames; measurements: never }
 	'workspace/open': { properties: ApiResultPropertyNames; measurements: never }
 	'workspace/load-items': { properties: ResultPropertyNames | 'itemCount' | 'displayStyle'; measurements: never }
+	'workspace/filter': { properties: ResultPropertyNames | 'totalWorkspaces' | 'selectedWorkspaces' | 'filterAction'; measurements: never }
 
 	// artifact manager
 	'item/create': { properties: ArtifactManagerResultPropertyNames; measurements: never },
@@ -14,7 +15,7 @@ export type CoreTelemetryEventNames = {
 	'item/update': { properties: ArtifactManagerResultPropertyNames; measurements: never },
 	'item/delete': { properties: ArtifactManagerResultPropertyNames; measurements: never },
 	'item/export': { properties: ArtifactManagerResultPropertyNames; measurements: never },
-	'item/import': { properties: ArtifactManagerResultPropertyNames; measurements: never },
+	'item/import': { properties: ArtifactManagerResultPropertyNames | 'targetDetermination'; measurements: never },
 	'item/open': { properties: ResultPropertyNames | ArtifactPropertyNames; measurements: never },
 	'item/open/portal': { properties: ArtifactPropertyNames; measurements: never },
 

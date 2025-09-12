@@ -4,11 +4,12 @@ import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { ArtifactManager } from '../../../artifactManager/ArtifactManager';
 import { IFabricExtensionManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
-import { IItemDefinition, PayloadType, IWorkspaceManager, IArtifact, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IArtifactHandler, IReadArtifactWorkflow, OperationRequestType, ICreateArtifactWorkflow, IWorkspace } from '@microsoft/vscode-fabric-api';
+import { IItemDefinition, PayloadType, IWorkspaceManager, IArtifact, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IArtifactHandler, IReadArtifactWorkflow, OperationRequestType, ICreateArtifactWorkflow, IWorkspace, IRenameArtifactWorkflow, IDeleteArtifactWorkflow, IGetArtifactDefinitionWorkflow, IUpdateArtifactDefinitionWorkflow, ICreateArtifactWithDefinitionWorkflow } from '@microsoft/vscode-fabric-api';
 import { FabricError, IFabricEnvironmentProvider, ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { FabricWorkspaceDataProvider } from '../../../workspace/treeView';
 import { IObservableReadOnlyMap } from '../../../collections/definitions';
 import * as utilities from '../../../utilities';
+import { IWorkspaceFilterManager } from 'extensions/vscode-fabric/src/workspace/WorkspaceFilterManager';
 
 describe('ArtifactManager', function () {
     let artifactMock: Mock<IArtifact>;
@@ -19,6 +20,8 @@ describe('ArtifactManager', function () {
     let loggerMock: Mock<ILogger>;
     let dataProviderMock: Mock<FabricWorkspaceDataProvider>;
     let telemetryServiceMock: Mock<TelemetryService>;
+    let workspaceFilterManagerMock: Mock<IWorkspaceFilterManager>;
+    let rootArtifactHandlersMock: Mock<IObservableReadOnlyMap<string, IArtifactHandler>>;
 
     let artifactManager: ArtifactManager;
     const artifactId = '5b218778-e7a5-4d73-8187-f10824047715';
@@ -34,6 +37,12 @@ describe('ArtifactManager', function () {
         loggerMock = new Mock<ILogger>();
         dataProviderMock = new Mock<FabricWorkspaceDataProvider>();
         telemetryServiceMock = new Mock<TelemetryService>();
+        workspaceFilterManagerMock = new Mock<IWorkspaceFilterManager>();
+
+        // Provide a default artifactHandlers map to satisfy ArtifactManager.getArtifactHandler
+        rootArtifactHandlersMock = new Mock<IObservableReadOnlyMap<string, IArtifactHandler>>();
+        rootArtifactHandlersMock.setup(m => m.get(It.IsAny())).returns(undefined);
+        extensionManagerMock.setup(x => x.artifactHandlers).returns(rootArtifactHandlersMock.object());
 
         artifactMock = new Mock<IArtifact>();
         artifactMock.setup(a => a.id)
@@ -51,6 +60,7 @@ describe('ArtifactManager', function () {
         artifactManager = new ArtifactManager(
             extensionManagerMock.object(),
             workspaceManagerMock.object(),
+            workspaceFilterManagerMock.object(),
             fabricEnvironmentProviderMock.object(),
             apiClientMock.object(),
             loggerMock.object(),
@@ -76,7 +86,7 @@ describe('ArtifactManager', function () {
                 displayName: 'MyNotebook',
                 description: 'desc',
                 workspaceId: 'ws1',
-                fabricEnvironment: 'env'
+                fabricEnvironment: 'env',
             };
             apiResponse = {
                 status: 201,
@@ -94,7 +104,7 @@ describe('ArtifactManager', function () {
 
         [
             { status: 201 },
-            { status: 400 }
+            { status: 400 },
         ].forEach(({ status }) => {
             it(`createArtifact (no handler): response status ${status}`, async function () {
                 // Arrange
@@ -102,7 +112,7 @@ describe('ArtifactManager', function () {
                     apiResponse = {
                         status: 400,
                         parsedBody: { errorCode: 'BadRequest', requestId: 'reqid' },
-                        response: { bodyAsText: 'Bad request' } as any
+                        response: { bodyAsText: 'Bad request' } as any,
                     };
                 }
 
@@ -142,7 +152,7 @@ describe('ArtifactManager', function () {
             const createWorkflowMock: ICreateArtifactWorkflow = {
                 showCreate: showCreateStub,
                 onBeforeCreate: onBeforeCreateStub,
-                onAfterCreate: onAfterCreateStub
+                onAfterCreate: onAfterCreateStub,
             };
 
             const artifactHandlerMock = new Mock<IArtifactHandler>()
@@ -251,7 +261,7 @@ describe('ArtifactManager', function () {
                 displayName: 'MyNotebook',
                 description: 'desc',
                 workspaceId: 'ws1',
-                fabricEnvironment: 'env'
+                fabricEnvironment: 'env',
             };
             apiResponse = {
                 status: 201,
@@ -277,6 +287,7 @@ describe('ArtifactManager', function () {
             artifactManager = new ArtifactManager(
                 extensionManagerMock.object(),
                 workspaceManagerMock.object(),
+                workspaceFilterManagerMock.object(),
                 fabricEnvironmentProviderMock.object(),
                 apiClientMock.object(),
                 loggerMock.object(),
@@ -322,12 +333,12 @@ describe('ArtifactManager', function () {
             const createWorkflowMock = {
                 showCreate: showCreateStub,
                 onBeforeCreate: onBeforeCreateStub,
-                onAfterCreate: onAfterCreateStub
+                onAfterCreate: onAfterCreateStub,
             };
 
             const handlerMock: IArtifactHandler = {
                 artifactType: 'Notebook',
-                createWorkflow: createWorkflowMock as any
+                createWorkflow: createWorkflowMock as any,
             };
 
             // Setup artifactHandlers to return the handler for 'Notebook'
@@ -372,7 +383,7 @@ describe('ArtifactManager', function () {
             const handlerMock: IArtifactHandler = {
                 artifactType: 'Notebook',
                 onBeforeRequest: onBeforeRequestStub,
-                onAfterRequest: onAfterRequestStub
+                onAfterRequest: onAfterRequestStub,
                 // No createWorkflow
             };
 
@@ -401,13 +412,12 @@ describe('ArtifactManager', function () {
             assert.deepStrictEqual(afterArgs[2], apiResponse, 'onAfterRequest third argument should be the apiResponse');
         });
 
-
         it('Error: 400 status with Learn more selection', async function () {
             // Arrange
             apiResponse = {
                 status: 400,
                 parsedBody: { errorCode: 'UnsupportedCapacitySKU', requestId: 'reqid' },
-                response: { bodyAsText: 'UnsupportedCapacitySKU' }
+                response: { bodyAsText: 'UnsupportedCapacitySKU' },
             } as any;
 
             apiClientMock.setup(x => x.sendRequest(It.IsAny()))
@@ -437,13 +447,12 @@ describe('ArtifactManager', function () {
             assert.strictEqual(openCall.args[0].toString(), 'https://aka.ms/SupportedCapacitySkus', 'Should open correct Learn more URL');
         });
 
-
         it('Error: 400 status with no Learn more selection', async function () {
             // Arrange
             apiResponse = {
                 status: 400,
                 parsedBody: { errorCode: 'UnsupportedCapacitySKU', requestId: 'reqid' },
-                response: { bodyAsText: 'UnsupportedCapacitySKU' }
+                response: { bodyAsText: 'UnsupportedCapacitySKU' },
             } as any;
 
             apiClientMock.setup(x => x.sendRequest(It.IsAny()))
@@ -475,7 +484,7 @@ describe('ArtifactManager', function () {
             apiResponse = {
                 status: 500,
                 parsedBody: { errorCode: 'InternalServerError', requestId: 'reqid' },
-                response: { bodyAsText: 'Internal server error' }
+                response: { bodyAsText: 'Internal server error' },
             } as any;
 
             apiClientMock.setup(x => x.sendRequest(It.IsAny()))
@@ -508,7 +517,7 @@ describe('ArtifactManager', function () {
                     description: 'Item 1 description',
                     type: artifactType,
                     workspaceId: workspaceId,
-                    id: artifactId
+                    id: artifactId,
                 },
             };
 
@@ -547,7 +556,6 @@ describe('ArtifactManager', function () {
                 .setup(h => h.readWorkflow)
                 .returns(readArtifactWorkflowMock.object());
 
-
             extensionManagerMock.setup(x => x.getArtifactHandler(It.Is(a => a === artifactType)))
                 .returns(artifactHandlerMock.object());
 
@@ -579,7 +587,7 @@ describe('ArtifactManager', function () {
             const artifactHandlerMock = new Mock<IArtifactHandler>()
                 .setup(h => h.readWorkflow)
                 .returns({
-                    onBeforeRead: onBeforeReadMock.object()
+                    onBeforeRead: onBeforeReadMock.object(),
                 });
 
             extensionManagerMock.setup(x => x.getArtifactHandler(It.Is(a => a === artifactType)))
@@ -634,9 +642,9 @@ describe('ArtifactManager', function () {
                 parsedBody: {
                     value: [
                         { id: 'a1', type: 'Lakehouse', displayName: 'Artifact 1', workspaceId: 'ws1' },
-                        { id: 'a2', type: 'Notebook', displayName: 'Artifact 2', workspaceId: 'ws1' }
-                    ]
-                }
+                        { id: 'a2', type: 'Notebook', displayName: 'Artifact 2', workspaceId: 'ws1' },
+                    ],
+                },
             };
             apiClientMock.setup(x => x.sendRequest(It.IsAny())).returns(Promise.resolve(apiResponse));
 
@@ -653,7 +661,7 @@ describe('ArtifactManager', function () {
         it('returns empty array when response is 200 and value is missing', async function () {
             apiResponse = {
                 status: 200,
-                parsedBody: {}
+                parsedBody: {},
             };
             apiClientMock.setup(x => x.sendRequest(It.IsAny())).returns(Promise.resolve(apiResponse));
 
@@ -667,7 +675,7 @@ describe('ArtifactManager', function () {
         it('throws FabricError when response status is not 200', async function () {
             apiResponse = {
                 status: 400,
-                parsedBody: { errorCode: 'BadRequest', value: [] }
+                parsedBody: { errorCode: 'BadRequest', value: [] },
             };
             apiClientMock.setup(x => x.sendRequest(It.IsAny())).returns(Promise.resolve(apiResponse));
 
@@ -683,9 +691,9 @@ describe('ArtifactManager', function () {
                 status: 200,
                 parsedBody: {
                     value: [
-                        { id: 'a1', type: 'Lakehouse', displayName: 'Artifact 1', workspaceId: 'ws1' }
-                    ]
-                }
+                        { id: 'a1', type: 'Lakehouse', displayName: 'Artifact 1', workspaceId: 'ws1' },
+                    ],
+                },
             };
             apiClientMock.setup(x => x.sendRequest(It.IsAny())).returns(Promise.resolve(apiResponse));
             const result = await artifactManager.listArtifacts(workspaceMock.object());
@@ -695,7 +703,7 @@ describe('ArtifactManager', function () {
 
     [
         { status: 200 },
-        { status: 400 }
+        { status: 400 },
     ].forEach(({ status }) => {
         it(`updateArtifact: response status ${status}`, async function () {
             // Arrange
@@ -706,7 +714,7 @@ describe('ArtifactManager', function () {
                     description: 'Item\'s New Description',
                     type: artifactType,
                     workspaceId: workspaceId,
-                    id: artifactId
+                    id: artifactId,
                 },
             };
 
@@ -739,9 +747,57 @@ describe('ArtifactManager', function () {
         });
     });
 
+    it('updateArtifact: invokes rename workflow hooks and modifies request', async function () {
+        // Arrange
+        const apiResponse: IApiClientResponse = { status: 200 } as any;
+        const body: Map<string, string> = new Map<string, string>();
+        body.set('displayName', 'New Name');
+        body.set('description', 'Updated');
+
+        const onBeforeRenameStub = sinon.stub().callsFake(async (_artifact: IArtifact, newName: string, options: IApiClientRequestOptions) => {
+            // mutate options to validate downstream usage
+            options.pathTemplate = options.pathTemplate + '?renamed=1';
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            options.headers = { ...(options.headers || {}), 'X-Test-Rename': 'true' };
+            return options;
+        });
+        const onAfterRenameStub = sinon.stub().resolves();
+        const renameWorkflow: IRenameArtifactWorkflow = {
+            onBeforeRename: onBeforeRenameStub,
+            onAfterRename: onAfterRenameStub,
+        };
+        const artifactHandlerMock = new Mock<IArtifactHandler>()
+            .setup(h => h.renameWorkflow)
+            .returns(renameWorkflow);
+        const mapMock = new Mock<IObservableReadOnlyMap<string, IArtifactHandler>>();
+        mapMock.setup(m => m.get(It.Is(a => a === artifactType))).returns(artifactHandlerMock.object());
+        extensionManagerMock.setup(x => x.artifactHandlers).returns(mapMock.object());
+
+        let sendRequestArgs: IApiClientRequestOptions | undefined;
+        apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+            .callback(({ args }) => {
+                sendRequestArgs = args[0];
+                return Promise.resolve(apiResponse);
+            });
+
+        // Act
+        const result = await artifactManager.updateArtifact(artifactMock.object(), body);
+
+        // Assert
+        assert.strictEqual(result, apiResponse, 'Should return API response');
+        assert.ok(onBeforeRenameStub.calledOnce, 'onBeforeRename should be called once');
+        assert.ok(onAfterRenameStub.calledOnce, 'onAfterRename should be called once');
+        const beforeArgs = onBeforeRenameStub.firstCall.args;
+        assert.strictEqual(beforeArgs[1], 'New Name', 'onBeforeRename newName argument');
+        assert.ok(sendRequestArgs, 'sendRequest should have been called');
+        assert.ok(sendRequestArgs, 'sendRequestArgs should be defined');
+        assert.ok(sendRequestArgs!.pathTemplate!.endsWith('?renamed=1'), 'Modified pathTemplate should include query');
+        assert.strictEqual(sendRequestArgs?.headers?.['X-Test-Rename'], 'true', 'Custom header should be present');
+    });
+
     [
         { status: 200 },
-        { status: 400 }
+        { status: 400 },
     ].forEach(({ status }) => {
         it(`deleteArtifact: response status ${status}`, async function () {
             // Arrange
@@ -762,7 +818,7 @@ describe('ArtifactManager', function () {
             // Assert
             assert.strictEqual(result, apiResponse);
 
-            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once(),);
+            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once());
             assert.ok(sendRequestArgs, 'sendRequest should have been called');
             assert.strictEqual(sendRequestArgs.method, 'DELETE', 'sendRequest: Method');
             assert.strictEqual(sendRequestArgs.pathTemplate, `/v1/workspaces/${workspaceId}/items/${artifactId}`, 'sendRequest: Path template');
@@ -772,16 +828,56 @@ describe('ArtifactManager', function () {
         });
     });
 
+    it('deleteArtifact: invokes delete workflow hooks and modifies request', async function () {
+        // Arrange
+        const apiResponse: IApiClientResponse = { status: 200 } as any;
+        const onBeforeDeleteStub = sinon.stub().callsFake(async (_artifact: IArtifact, options: IApiClientRequestOptions) => {
+            options.pathTemplate = options.pathTemplate + '?force=true';
+            return options;
+        });
+        const onAfterDeleteStub = sinon.stub().resolves();
+        const deleteWorkflow: IDeleteArtifactWorkflow = {
+            onBeforeDelete: onBeforeDeleteStub,
+            onAfterDelete: onAfterDeleteStub,
+        };
+        const artifactHandlerMock = new Mock<IArtifactHandler>()
+            .setup(h => h.deleteWorkflow)
+            .returns(deleteWorkflow);
+        const mapMock = new Mock<IObservableReadOnlyMap<string, IArtifactHandler>>();
+        mapMock.setup(m => m.get(It.Is(a => a === artifactType))).returns(artifactHandlerMock.object());
+        extensionManagerMock.setup(x => x.artifactHandlers).returns(mapMock.object());
+
+        let sendRequestArgs: IApiClientRequestOptions | undefined;
+        apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+            .callback(({ args }) => {
+                sendRequestArgs = args[0];
+                return Promise.resolve(apiResponse);
+            });
+
+        // Act
+        const result = await artifactManager.deleteArtifact(artifactMock.object());
+
+        // Assert
+        assert.strictEqual(result, apiResponse, 'Should return API response');
+        assert.ok(onBeforeDeleteStub.calledOnce, 'onBeforeDelete should be called once');
+        assert.ok(onAfterDeleteStub.calledOnce, 'onAfterDelete should be called once');
+        assert.ok(sendRequestArgs, 'sendRequestArgs should be defined');
+        assert.ok(sendRequestArgs!.pathTemplate!.endsWith('?force=true'), 'Path template should be modified by onBeforeDelete');
+    });
+
     [
         { status: 200 },
         { status: 202 },
-        { status: 400 }
+        { status: 400 },
     ].forEach(({ status }) => {
-        it(`getArtifactDefinition: response status ${status}`, async function() {
+        it(`getArtifactDefinition: response status ${status}`, async function () {
             // Arrange
             const apiResponse: IApiClientResponse = {
                 status: status,
             };
+            // Provide folder so workflow path (even if none) still calls workspaceManager without throwing
+            workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
+                .returns(Promise.resolve(vscode.Uri.file('/tmp/def')));
 
             let sendRequestArgs: IApiClientRequestOptions | undefined;
             apiClientMock.setup(x => x.sendRequest(It.IsAny()))
@@ -798,7 +894,7 @@ describe('ArtifactManager', function () {
             // Assert
             assert.strictEqual(result, apiResponse);
 
-            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once(),);
+            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once());
             assert.ok(sendRequestArgs, 'sendRequest should have been called');
             assert.strictEqual(sendRequestArgs.method, 'POST', 'sendRequest: Method');
             assert.strictEqual(sendRequestArgs.pathTemplate, `/v1/workspaces/${workspaceId}/items/${artifactId}/getDefinition`, 'sendRequest: Path template');
@@ -810,12 +906,57 @@ describe('ArtifactManager', function () {
         });
     });
 
+    it('getArtifactDefinition: invokes get definition workflow hooks and modifies request', async function () {
+        // Arrange
+        const apiResponse: IApiClientResponse = { status: 200 } as any;
+        const folderUri = vscode.Uri.file('/tmp/folder');
+        workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
+            .returns(Promise.resolve(folderUri));
+
+        const onBeforeGetDefinitionStub = sinon.stub().callsFake(async (_artifact: IArtifact, folder: vscode.Uri, options: IApiClientRequestOptions) => {
+            assert.strictEqual(folder.toString(), folderUri.toString(), 'Folder should match expected');
+            options.pathTemplate = options.pathTemplate + '?detail=full';
+            return options;
+        });
+        const onAfterGetDefinitionStub = sinon.stub().resolves();
+        const getWorkflow: IGetArtifactDefinitionWorkflow = {
+            onBeforeGetDefinition: onBeforeGetDefinitionStub,
+            onAfterGetDefinition: onAfterGetDefinitionStub,
+        };
+        const artifactHandlerMock = new Mock<IArtifactHandler>()
+            .setup(h => h.getDefinitionWorkflow)
+            .returns(getWorkflow);
+        const mapMock = new Mock<IObservableReadOnlyMap<string, IArtifactHandler>>();
+        mapMock.setup(m => m.get(It.Is(a => a === artifactType))).returns(artifactHandlerMock.object());
+        extensionManagerMock.setup(x => x.artifactHandlers).returns(mapMock.object());
+
+        const handleLongRunningOperationStub = sinon.stub(utilities, 'handleLongRunningOperation').resolves(apiResponse);
+
+        let sendRequestArgs: IApiClientRequestOptions | undefined;
+        apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+            .callback(({ args }) => {
+                sendRequestArgs = args[0];
+                return Promise.resolve(apiResponse);
+            });
+
+        // Act
+        const result = await artifactManager.getArtifactDefinition(artifactMock.object());
+
+        // Assert
+        assert.strictEqual(result, apiResponse, 'Should return final API response');
+        assert.ok(onBeforeGetDefinitionStub.calledOnce, 'onBeforeGetDefinition should be called once');
+        assert.ok(onAfterGetDefinitionStub.calledOnce, 'onAfterGetDefinition should be called once');
+        assert.ok(sendRequestArgs, 'sendRequestArgs should be defined');
+        assert.ok(sendRequestArgs!.pathTemplate!.endsWith('?detail=full'), 'Path template should be modified by onBeforeGetDefinition');
+        assert.ok(handleLongRunningOperationStub.calledOnce, 'handleLongRunningOperation should be called');
+    });
+
     [
         { status: 201 },
         { status: 202 },
-        { status: 400 }
+        { status: 400 },
     ].forEach(({ status }) => {
-        it(`createArtifactWithDefinition: response status ${status}`, async function() {
+        it(`createArtifactWithDefinition: response status ${status}`, async function () {
             // Arrange
             const apiResponse: IApiClientResponse = {
                 status: status,
@@ -825,14 +966,14 @@ describe('ArtifactManager', function () {
                     {
                         path: 'notebook-content.py',
                         payload: 'IyBGYWJyaW',
-                        payloadType: PayloadType.InlineBase64
+                        payloadType: PayloadType.InlineBase64,
                     },
                     {
                         path: '.platform',
                         payload: 'ewogICIkc2N',
-                        payloadType: PayloadType.InlineBase64
-                    }
-                ]
+                        payloadType: PayloadType.InlineBase64,
+                    },
+                ],
             };
 
             let sendRequestArgs: IApiClientRequestOptions | undefined;
@@ -845,12 +986,12 @@ describe('ArtifactManager', function () {
             const handleLongRunningOperationStub = sinon.stub(utilities, 'handleLongRunningOperation').resolves(apiResponse);
 
             // Act
-            const result = await artifactManager.createArtifactWithDefinition(artifactMock.object(), itemDefinition);
+            const result = await artifactManager.createArtifactWithDefinition(artifactMock.object(), itemDefinition, vscode.Uri.file('/tmp/create-def'));
 
             // Assert
             assert.strictEqual(result, apiResponse);
 
-            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once(),);
+            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once());
             assert.ok(sendRequestArgs, 'sendRequest should have been called');
             assert.strictEqual(sendRequestArgs.method, 'POST', 'sendRequest: Method');
             assert.strictEqual(sendRequestArgs.pathTemplate, `/v1/workspaces/${workspaceId}/items`, 'sendRequest: path template');
@@ -869,29 +1010,80 @@ describe('ArtifactManager', function () {
             assert.ok(handleLongRunningOperationStub.called, 'handleLongRunningOperation should be called');
         });
     });
+
+    it('createArtifactWithDefinition: invokes create-with-definition workflow hooks and modifies request', async function () {
+        // Arrange
+        const apiResponse: IApiClientResponse = { status: 201 } as any;
+        const itemDefinition: IItemDefinition = { parts: [] };
+        const folderUri = vscode.Uri.file('/tmp/folder-create-def');
+        workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
+            .returns(Promise.resolve(folderUri));
+
+        const onBeforeCreateWithDefinitionStub = sinon.stub().callsFake(async (_artifact: IArtifact, def: IItemDefinition, folder: vscode.Uri, options: IApiClientRequestOptions) => {
+            assert.strictEqual(def, itemDefinition, 'Definition should match');
+            assert.strictEqual(folder.toString(), folderUri.toString(), 'Folder should match expected');
+            options.pathTemplate = options.pathTemplate + '?init=true';
+            options.headers = { ...(options.headers || {}), 'X-Test-Create-With-Definition': 'true' };
+            return options;
+        });
+        const onAfterCreateWithDefinitionStub = sinon.stub().resolves();
+        const createWithDefinitionWorkflow: ICreateArtifactWithDefinitionWorkflow = {
+            onBeforeCreateWithDefinition: onBeforeCreateWithDefinitionStub,
+            onAfterCreateWithDefinition: onAfterCreateWithDefinitionStub,
+        };
+        const artifactHandlerMock = new Mock<IArtifactHandler>()
+            .setup(h => h.createWithDefinitionWorkflow)
+            .returns(createWithDefinitionWorkflow);
+        const mapMock = new Mock<IObservableReadOnlyMap<string, IArtifactHandler>>();
+        mapMock.setup(m => m.get(It.Is(a => a === artifactType))).returns(artifactHandlerMock.object());
+        extensionManagerMock.setup(x => x.artifactHandlers).returns(mapMock.object());
+
+        const handleLongRunningOperationStub = sinon.stub(utilities, 'handleLongRunningOperation').resolves(apiResponse);
+
+        let sendRequestArgs: IApiClientRequestOptions | undefined;
+        apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+            .callback(({ args }) => {
+                sendRequestArgs = args[0];
+                return Promise.resolve(apiResponse);
+            });
+
+        // Act
+    const result = await artifactManager.createArtifactWithDefinition(artifactMock.object(), itemDefinition, folderUri);
+
+        // Assert
+        assert.strictEqual(result, apiResponse, 'Should return final API response');
+        assert.ok(onBeforeCreateWithDefinitionStub.calledOnce, 'onBeforeCreateWithDefinition should be called once');
+        assert.ok(onAfterCreateWithDefinitionStub.calledOnce, 'onAfterCreateWithDefinition should be called once');
+        assert.ok(sendRequestArgs, 'sendRequestArgs should be defined');
+        assert.ok(sendRequestArgs!.pathTemplate!.endsWith('?init=true'), 'Path template should be modified by onBeforeCreateWithDefinition');
+        assert.strictEqual(sendRequestArgs?.headers?.['X-Test-Create-With-Definition'], 'true', 'Custom header should be present');
+        assert.ok(handleLongRunningOperationStub.calledOnce, 'handleLongRunningOperation should be called');
+    });
     [
         { status: 200 },
         { status: 202 },
-        { status: 400 }
+        { status: 400 },
     ].forEach(({ status }) => {
-        it(`updateArtifactDefinition: response status ${status}`, async function() {
+        it(`updateArtifactDefinition: response status ${status}`, async function () {
             // Arrange
             const apiResponse: IApiClientResponse = {
                 status: status,
             };
+            workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
+                .returns(Promise.resolve(vscode.Uri.file('/tmp/udef')));
             const itemDefinition: IItemDefinition = {
                 parts: [
                     {
                         path: 'notebook-content.py',
                         payload: 'IyBGYWJyaW',
-                        payloadType: PayloadType.InlineBase64
+                        payloadType: PayloadType.InlineBase64,
                     },
                     {
                         path: '.platform',
                         payload: 'ewogICIkc2N',
-                        payloadType: PayloadType.InlineBase64
-                    }
-                ]
+                        payloadType: PayloadType.InlineBase64,
+                    },
+                ],
             };
 
             let sendRequestArgs: IApiClientRequestOptions | undefined;
@@ -904,12 +1096,12 @@ describe('ArtifactManager', function () {
             const handleLongRunningOperationStub = sinon.stub(utilities, 'handleLongRunningOperation').resolves(apiResponse);
 
             // Act
-            const result = await artifactManager.updateArtifactDefinition(artifactMock.object(), itemDefinition);
+            const result = await artifactManager.updateArtifactDefinition(artifactMock.object(), itemDefinition, vscode.Uri.file('/tmp/udef'));
 
             // Assert
             assert.strictEqual(result, apiResponse);
 
-            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once(),);
+            apiClientMock.verify(x => x.sendRequest(It.IsAny()), Times.Once());
             assert.ok(sendRequestArgs, 'sendRequest should have been called');
             assert.strictEqual(sendRequestArgs.method, 'POST', 'sendRequest: Method');
             assert.strictEqual(sendRequestArgs.pathTemplate, `/v1/workspaces/${workspaceId}/items/${artifactId}/updateDefinition`, 'sendRequest: path template');
@@ -924,5 +1116,52 @@ describe('ArtifactManager', function () {
 
             assert.ok(handleLongRunningOperationStub.called, 'handleLongRunningOperation should be called');
         });
+    });
+
+    it('updateArtifactDefinition: invokes update definition workflow hooks and modifies request', async function () {
+        // Arrange
+        const apiResponse: IApiClientResponse = { status: 200 } as any;
+        const itemDefinition: IItemDefinition = { parts: [] };
+        const folderUri = vscode.Uri.file('/tmp/folder2');
+        workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
+            .returns(Promise.resolve(folderUri));
+
+        const onBeforeUpdateDefinitionStub = sinon.stub().callsFake(async (_artifact: IArtifact, def: IItemDefinition, folder: vscode.Uri, options: IApiClientRequestOptions) => {
+            assert.strictEqual(def, itemDefinition, 'Definition should match');
+            assert.strictEqual(folder.toString(), folderUri.toString(), 'Folder should match expected');
+            options.pathTemplate = options.pathTemplate + '?sync=true';
+            return options;
+        });
+        const onAfterUpdateDefinitionStub = sinon.stub().resolves();
+        const updateWorkflow: IUpdateArtifactDefinitionWorkflow = {
+            onBeforeUpdateDefinition: onBeforeUpdateDefinitionStub,
+            onAfterUpdateDefinition: onAfterUpdateDefinitionStub,
+        };
+        const artifactHandlerMock = new Mock<IArtifactHandler>()
+            .setup(h => h.updateDefinitionWorkflow)
+            .returns(updateWorkflow);
+        const mapMock = new Mock<IObservableReadOnlyMap<string, IArtifactHandler>>();
+        mapMock.setup(m => m.get(It.Is(a => a === artifactType))).returns(artifactHandlerMock.object());
+        extensionManagerMock.setup(x => x.artifactHandlers).returns(mapMock.object());
+
+        const handleLongRunningOperationStub = sinon.stub(utilities, 'handleLongRunningOperation').resolves(apiResponse);
+
+        let sendRequestArgs: IApiClientRequestOptions | undefined;
+        apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+            .callback(({ args }) => {
+                sendRequestArgs = args[0];
+                return Promise.resolve(apiResponse);
+            });
+
+        // Act
+    const result = await artifactManager.updateArtifactDefinition(artifactMock.object(), itemDefinition, folderUri);
+
+        // Assert
+        assert.strictEqual(result, apiResponse, 'Should return final API response');
+        assert.ok(onBeforeUpdateDefinitionStub.calledOnce, 'onBeforeUpdateDefinition should be called once');
+        assert.ok(onAfterUpdateDefinitionStub.calledOnce, 'onAfterUpdateDefinition should be called once');
+        assert.ok(sendRequestArgs, 'sendRequestArgs should be defined');
+        assert.ok(sendRequestArgs!.pathTemplate!.endsWith('?sync=true'), 'Path template should be modified by onBeforeUpdateDefinition');
+        assert.ok(handleLongRunningOperationStub.calledOnce, 'handleLongRunningOperation should be called');
     });
 });

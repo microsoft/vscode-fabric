@@ -86,10 +86,8 @@ export const BindingTypeToInputTypeMapping: { [key in BindingType]: string } = {
 };
 /* eslint-enable */
 
-
 export type RuntimeAttribute = RuntimeType.DotNet | RuntimeType.Python; // workload also has 'NOTASSIGNED', but we'll query user for value if not set
 export type InputTypeAttribute = InputType.Http | InputType.EventStream;
-
 
 export type ArtifactAttributes = {
     'runtime'?: RuntimeAttribute
@@ -107,7 +105,7 @@ export interface IArtifact {
     attributes?: ArtifactAttributes,
 
     /** Represent the Fabric environment this item exists in, like "DAILY" or "PROD".
-     * 
+     *
      * It's debatable whether this should be here as it's not part of the API response,
      * however we use IArtifact throughout the codebase and it's useful to have it here.
      */

@@ -4,11 +4,11 @@ import { showSignInPrompt } from '../ui/prompts';
 import { WorkspaceManagerBase } from './WorkspaceManager';
 import { WorkspaceTreeNode } from './treeNodes/WorkspaceTreeNode';
 import { showCreateWorkspaceWizard } from '../ui/showCreateWorkspaceWizard';
-import { showWorkspaceQuickPick } from '../ui/showWorkspaceQuickPick';
 import { IFabricApiClient, IWorkspace, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { TelemetryService, ILogger } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../authentication/interfaces';
 import { ICapacityManager } from '../CapacityManager';
+import { IWorkspaceFilterManager } from './WorkspaceFilterManager';
 
 let workspaceCommandDisposables: vscode.Disposable[] = [];
 
@@ -27,9 +27,9 @@ export function registerWorkspaceCommands(
     auth: IAccountProvider,
     workspaceManager: WorkspaceManagerBase,
     capacityManager: ICapacityManager,
-    apiClient: IFabricApiClient,
-    telemetryService: TelemetryService  | null, 
+    telemetryService: TelemetryService  | null,
     logger: ILogger,
+    workspaceFilterManager: IWorkspaceFilterManager
 ): void {
 
     // Dispose of any existing commands
@@ -41,11 +41,19 @@ export function registerWorkspaceCommands(
     }, context);
 
     registerCommand(commandNames.createWorkspace, async () => {
-        return await createWorkspace(workspaceManager, capacityManager, telemetryService, logger);
+        return await createWorkspace(workspaceManager, workspaceFilterManager, capacityManager, telemetryService, logger);
     }, context);
 
     registerCommand(commandNames.selectWorkspaceLocalFolder, async (treeNode?: WorkspaceTreeNode) => {
         await selectLocalFolder(workspaceManager, treeNode);
+    }, context);
+
+    registerCommand(commandNames.filterWorkspaces, async () => {
+        await workspaceFilterManager.showWorkspaceFilterDialog();
+    }, context);
+
+    registerCommand(commandNames.clearWorkspaceFilter, async () => {
+        await workspaceFilterManager.clearFilters();
     }, context);
 }
 
@@ -53,7 +61,7 @@ export function registerWorkspaceCommands(
  * If logged in, allows the user to enter a the name of a new workspace to create along with the capacity to use for the new workspace
  * @param manager Handles the Fabric workspaces for the user
  */
-async function createWorkspace(manager: WorkspaceManagerBase, capacityManager: ICapacityManager, telemetryService: TelemetryService | null, logger: ILogger): Promise<IWorkspace | undefined> {
+async function createWorkspace(manager: WorkspaceManagerBase, workspaceFilterManager: IWorkspaceFilterManager, capacityManager: ICapacityManager, telemetryService: TelemetryService | null, logger: ILogger): Promise<IWorkspace | undefined> {
     try {
         if (!(await manager.isConnected())) {
             await showSignInPrompt();
@@ -62,8 +70,7 @@ async function createWorkspace(manager: WorkspaceManagerBase, capacityManager: I
 
         const createdWorkspace: IWorkspace | undefined = await showCreateWorkspaceWizard(manager as unknown as IWorkspaceManager, capacityManager, telemetryService, logger);
         if (createdWorkspace) {
-            // Workspace is now available in workspaces collection
-            // No need to set as current workspace in multi-workspace model
+            await workspaceFilterManager.addWorkspaceToFilters(createdWorkspace.objectId);
         }
 
         return createdWorkspace;

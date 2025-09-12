@@ -4,7 +4,6 @@ import * as assert from 'assert';
 import { TokenAcquisitionService, VsCodeAuthentication } from '../../../authentication/index';
 import { FabricEnvironmentProvider, FakeConfigurationProvider, MockConsoleLogger, msSessionProvider, msSessionProviderPPE, sleep } from '@microsoft/vscode-fabric-util';
 
-
 describe('The TokenAcquisitionService', () => {
     let tokens: TokenAcquisitionService;
     let environmentProvider: FabricEnvironmentProvider;
@@ -35,14 +34,14 @@ describe('The TokenAcquisitionService', () => {
         const session = await tokens.getSessionInfo({ callerId: 'caller', requestReason: 'reason' });
 
         assert(session?.scopes.includes(`VSCODE_CLIENT_ID:${environmentProvider.getCurrent().clientId}`));
-        assert(session?.scopes.includes('VSCODE_TENANT:common'));
+        assert(session?.scopes.includes('VSCODE_TENANT:organizations'));
     });
 
     it('should add tenant id when provided', async () => {
         auth.isSessionAvailabe = true;
         const tenantId = 'fake-tenant-id';
         const session = await tokens.getSessionInfo({ callerId: 'caller', requestReason: 'reason' }, [], tenantId);
-        
+
         assert(session?.scopes.includes(`VSCODE_TENANT:${tenantId}`));
         assert(session?.scopes.includes(`VSCODE_CLIENT_ID:${environmentProvider.getCurrent().clientId}`));
     });
@@ -96,16 +95,16 @@ describe('The TokenAcquisitionService', () => {
     it('should include vscode scopes with the session', async () => {
         auth.isSessionAvailabe = true;
         const session = await tokens.getSessionInfo({ callerId: 'caller', requestReason: 'reason' });
-        
+
         // vscode scopes
         assert(session?.scopes.includes(`VSCODE_CLIENT_ID:${environmentProvider.getCurrent().clientId}`));
-        assert(session?.scopes.includes('VSCODE_TENANT:common'));
+        assert(session?.scopes.includes('VSCODE_TENANT:organizations'));
     });
 
     it('should include fabric scopes with the session', async () => {
         auth.isSessionAvailabe = true;
         const session = await tokens.getSessionInfo({ callerId: 'caller', requestReason: 'reason' });
-        
+
         // fabric scopes
         environmentProvider.getCurrent().scopes.forEach(scope => {
             assert(session?.scopes.includes(scope));
@@ -135,7 +134,7 @@ export class FakeVsCodeAuthentication implements VsCodeAuthentication {
     isSessionAvailabe: boolean = false;
 
     getSession(providerId: string, scopes: readonly string[], options: vscode.AuthenticationGetSessionOptions): Thenable<vscode.AuthenticationSession | undefined> {
-        return this.isSessionAvailabe ? 
+        return this.isSessionAvailabe ?
             Promise.resolve({
                 id: 'fake-session-id',
                 scopes: scopes,
@@ -143,7 +142,7 @@ export class FakeVsCodeAuthentication implements VsCodeAuthentication {
                 account: { id: 'fake-account-id', label: 'fake-account-label' },
                 // idToken: '{"email":"fake-user@microsoft.com", "tid":"fake-tenant-id"}'
                 idToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZha2UtdXNlckBtaWNyb3NvZnQuY29tIiwidGlkIjoiZmFrZS10ZW5hbnQtaWQiLCJpYXQiOjE3MzkzOTM1MDR9.xN_GwT4wulW4UI8Fhz2_pYa6wGfV87dGyPUtwGvMXP0', // jwt encoded
-            }) : 
+            }) :
             Promise.resolve(undefined);
     }
     onDidChangeSessionsEmitter: vscode.EventEmitter<vscode.AuthenticationSessionsChangeEvent> = new vscode.EventEmitter<vscode.AuthenticationSessionsChangeEvent>();

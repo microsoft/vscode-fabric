@@ -10,17 +10,17 @@ import { FakeFabricApiClient } from '../../fabric/FakeFabricApiClient';
 
 /**
  * Integration Test for Workspace and Artifact Management
- * 
+ *
  * This test follows the RFC 005 integration testing strategy using FakeFabricApiClient
  * to intercept HTTP calls while preserving all business logic execution.
- * 
+ *
  * Test Coverage:
  * - Workspace listing and selection
  * - Artifact creation, opening, updating, and deletion
  * - Tree view state management and UI integration
  * - VS Code editor integration
  */
-describe('Workspace and Artifact Management Integration Tests', function() {
+describe('Workspace and Artifact Management Integration Tests', function () {
     const sleepAmount = 1000;
     const testTimeOut = 60 * 1000;
 
@@ -29,24 +29,24 @@ describe('Workspace and Artifact Management Integration Tests', function() {
         if (!provider) {
             return undefined;
         }
-        
+
         const children = await provider.getChildren(parent);
         if (!children) {
             return undefined;
         }
-        
+
         for (const child of children) {
             if (child.label === label) {
                 return child;
             }
-            
+
             // Recursively search in children
             const found = await findTreeViewItem(provider, child, label);
             if (found) {
                 return found;
             }
         }
-        
+
         return undefined;
     }
 
@@ -65,29 +65,29 @@ describe('Workspace and Artifact Management Integration Tests', function() {
         }
     }
 
-    it('should manage workspace and artifact lifecycle with FakeFabricApiClient', async function() {
+    it('should manage workspace and artifact lifecycle with FakeFabricApiClient', async function () {
         this.timeout(testTimeOut);
-        
+
         console.log('Starting integration test with FakeFabricApiClient');
-        
+
         // Ensure test hooks and fakes are enabled
         const testHooksEnabled = process.env['VSCODE_FABRIC_ENABLE_TEST_HOOKS'] === 'true';
         const testFakesEnabled = process.env['VSCODE_FABRIC_ENABLE_TEST_FAKES'] === 'true';
-        
+
         if (!testHooksEnabled || !testFakesEnabled) {
             throw new Error('Test hooks and fakes must be enabled. Set VSCODE_FABRIC_ENABLE_TEST_HOOKS=true and VSCODE_FABRIC_ENABLE_TEST_FAKES=true');
         }
 
         // Activate the core extension
         const core = await activateCore();
-        
+
         assert(core, 'Failed to activate core extension');
         assert(core.testHooks, 'Failed to get test hooks from core');
-        
+
         // Get FakeFabricApiClient from test hooks
         const fakeFabricApiClient = core.testHooks['fakeFabricApiClient'] as FakeFabricApiClient;
         assert(fakeFabricApiClient, 'Failed to get FakeFabricApiClient from test hooks');
-        
+
         const coreApi = core.testHooks['serviceCollection'];
         assert(coreApi, 'Failed to get service collection');
 
@@ -104,20 +104,20 @@ describe('Workspace and Artifact Management Integration Tests', function() {
         // Initialize extension with progress indicator
         await vscode.window.withProgress({
             location: { viewId: 'vscode-fabric.view.workspace' },
-            cancellable: false
+            cancellable: false,
         }, async () => {
             await sleep(3000);
         });
 
         console.log('Extension initialized, testing workspace operations');
-        
+
         // Test workspace listing and selection
         const workspaceManager = coreApi.workspaceManager;
         assert(workspaceManager, 'WorkspaceManager not initialized');
 
         const workspaces = await workspaceManager.listWorkspaces();
         assert(workspaces && workspaces.length > 0, 'No workspaces found');
-        
+
         // Select the last workspace - use the workspace with proper ID
         const selectedWorkspace = workspaces.find((w: any) => w.objectId === 'test-workspace-2') || workspaces[workspaces.length - 1];
         console.log('Workspace selected:', selectedWorkspace.displayName, 'ID:', selectedWorkspace.objectId);
@@ -135,7 +135,7 @@ describe('Workspace and Artifact Management Integration Tests', function() {
             description: 'Test artifact description',
             workspaceId: selectedWorkspace.objectId,
             attributes: { runtime: RuntimeType.DotNet },
-            fabricEnvironment: FabricEnvironmentName.MOCK
+            fabricEnvironment: FabricEnvironmentName.MOCK,
         };
 
         await coreApi.artifactManager.createArtifact(newArtifact);
@@ -151,12 +151,12 @@ describe('Workspace and Artifact Management Integration Tests', function() {
         // Verify artifact appears in tree view
         const tvProvider = workspaceManager.tvProvider;
         assert(tvProvider, 'Tree view provider not available');
-        
+
         console.log('Searching for artifact in tree view...');
         const newNode = await findTreeViewItem(tvProvider, undefined, newArtifact.displayName);
         assert(newNode, `Unable to find created artifact '${newArtifact.displayName}' in tree view`);
 
-        // Test artifact opening in editor
+        // Test artifact opening in editor using openArtifact
         await vscode.commands.executeCommand(commandNames.openArtifact, newNode, 'Selected');
         await sleep(2 * sleepAmount);
 
@@ -165,9 +165,9 @@ describe('Workspace and Artifact Management Integration Tests', function() {
 
         const { document } = editor;
         console.log('Editor opened with file:', document.fileName);
-        
-        // Verify correct file is opened
-        assert.strictEqual(document.fileName, path.sep + `${artifactName}.json`);
+
+        // Verify correct file is opened (suffix match to avoid absolute path differences)
+        assert.ok(document.fileName.endsWith(`${artifactName}.json`), `Expected editor file to end with ${artifactName}.json, got ${document.fileName}`);
         assert.strictEqual((newNode as ArtifactTreeNode).label, artifactName);
 
         // Test artifact update
@@ -177,10 +177,10 @@ describe('Workspace and Artifact Management Integration Tests', function() {
         }, async (progress, token) => {
             const resp = await coreApi.artifactManager.updateArtifact(newArtifact, new Map<string, string>());
             assert(resp, 'Update response should not be null');
-            
+
             // Verify update response format
             console.log('Update response:', JSON.stringify(resp?.parsedBody));
-            assert(resp?.parsedBody?.Message?.startsWith('Artifact updated successfully'), 'Update response message incorrect');
+            assert(resp?.parsedBody?.message?.startsWith('Artifact updated successfully'), 'Update response message incorrect');
         });
 
         await sleep(sleepAmount);
@@ -203,7 +203,7 @@ describe('Workspace and Artifact Management Integration Tests', function() {
         // Test artifact deletion
         await coreApi.artifactManager.deleteArtifact(newArtifact);
         await sleep(sleepAmount);
-        
+
         await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
         await sleep(sleepAmount);
 
@@ -220,6 +220,112 @@ describe('Workspace and Artifact Management Integration Tests', function() {
 
         console.log('Integration test completed successfully');
     });
+
+    it('should open artifact via readArtifact command and render content', async function () {
+        this.timeout(testTimeOut);
+
+        // Ensure test hooks and fakes are enabled
+        const testHooksEnabled = process.env['VSCODE_FABRIC_ENABLE_TEST_HOOKS'] === 'true';
+        const testFakesEnabled = process.env['VSCODE_FABRIC_ENABLE_TEST_FAKES'] === 'true';
+        if (!testHooksEnabled || !testFakesEnabled) {
+            throw new Error('Test hooks and fakes must be enabled. Set VSCODE_FABRIC_ENABLE_TEST_HOOKS=true and VSCODE_FABRIC_ENABLE_TEST_FAKES=true');
+        }
+
+        const core = await activateCore();
+        assert(core, 'Failed to activate core extension');
+        const fakeFabricApiClient = core.testHooks['fakeFabricApiClient'] as any;
+        const coreApi = core.testHooks['serviceCollection'];
+        assert(fakeFabricApiClient && coreApi, 'Missing test hooks');
+
+        // Unique artifact name and sample content
+        const dateNow = new Date();
+        const artifactName = `ReadArtifact${dateNow.getHours()}${dateNow.getMinutes()}${dateNow.getSeconds()}`;
+        const sampleContent = {
+            payloadContentType: 'InlineJson',
+            workloadPayload: JSON.stringify({ hello: 'World', artifactName }),
+        };
+
+        // Configure HTTP responses for listing workspaces and items and reading artifact
+        const workspaceId = 'test-workspace-2';
+        fakeFabricApiClient.respondWith(async (request: azApi.PipelineRequest) => {
+            if (request.method === 'GET' && request.url?.includes('/workspaces') && !request.url?.includes('/items') && !request.url?.includes('/git')) {
+                return {
+                    status: 200,
+                    headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
+                    bodyAsText: JSON.stringify({ value: [{ id: workspaceId, displayName: 'WS', type: 'Workspace', capacityId: '1' }] }),
+                    request,
+                } as azApi.PipelineResponse;
+            }
+
+            if (request.method === 'GET' && request.url?.includes('/git/connection')) {
+                return {
+                    status: 200,
+                    headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
+                    bodyAsText: JSON.stringify({ gitProviderDetails: null }),
+                    request,
+                } as azApi.PipelineResponse;
+            }
+
+            if (request.method === 'GET' && request.url?.includes('/items') && !request.url?.match(/\/items\/[\w-]+$/)) {
+                return {
+                    status: 200,
+                    headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
+                    bodyAsText: JSON.stringify({ value: [{ id: 'item-1', displayName: artifactName, description: 'desc', workspaceId }] }),
+                    request,
+                } as azApi.PipelineResponse;
+            }
+
+            if (request.method === 'GET' && request.url?.match(/\/items\/[\w-]+$/)) {
+                // Return the artifact content directly as expected by readArtifactCommand
+                return {
+                    status: 200,
+                    headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
+                    bodyAsText: JSON.stringify(sampleContent),
+                    request,
+                } as azApi.PipelineResponse;
+            }
+
+            // Default
+            return {
+                status: 404,
+                headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
+                bodyAsText: JSON.stringify({ error: 'Not found' }),
+                request,
+            } as azApi.PipelineResponse;
+        });
+
+        // Activate extension view
+        await vscode.commands.executeCommand('workbench.view.extension.vscode-fabric_view_workspace');
+        await sleep(sleepAmount);
+
+        const workspaceManager = coreApi.workspaceManager;
+        assert(workspaceManager, 'WorkspaceManager not initialized');
+
+        // Force tree view refresh
+        // TODO: should it refresh automatically?
+        if (workspaceManager.tvProvider?.refresh) {
+            workspaceManager.tvProvider.refresh();
+        }
+        await sleep(sleepAmount);
+
+        // Find node and invoke readArtifact command
+        const tvProvider = workspaceManager.tvProvider;
+        const node = await findTreeViewItem(tvProvider, undefined, artifactName);
+        assert(node, 'Expected artifact not found');
+
+        await vscode.commands.executeCommand(commandNames.readArtifact, node);
+        await sleep(2 * sleepAmount);
+
+        const editor = vscode.window.activeTextEditor;
+        assert(editor, 'Editor not opened');
+        const text = editor.document.getText();
+        // The text provider parses inline JSON and prettifies it, so we assert on structure
+        assert(text.includes('"hello": "World"'));
+        assert(text.includes(`"artifactName": "${artifactName}"`));
+
+        await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+        await sleep(sleepAmount);
+    });
 });
 
 /**
@@ -228,7 +334,7 @@ describe('Workspace and Artifact Management Integration Tests', function() {
 function setupWorkspaceResponses(fakeFabricApiClient: FakeFabricApiClient): void {
     fakeFabricApiClient.respondWith(async (request: azApi.PipelineRequest) => {
         console.log(`HTTP Request: ${request.method} ${request.url}`);
-        
+
         // Handle workspace listing
         if (request.method === 'GET' && request.url?.includes('/workspaces') && !request.url?.includes('/items') && !request.url?.includes('/git')) {
             return {
@@ -237,22 +343,22 @@ function setupWorkspaceResponses(fakeFabricApiClient: FakeFabricApiClient): void
                 bodyAsText: JSON.stringify({
                     value: [
                         {
-                            objectId: 'test-workspace-1',
+                            id: 'test-workspace-1',
                             displayName: 'Test Workspace 1',
                             description: 'First test workspace',
                             type: 'Workspace',
-                            capacityId: '1'
+                            capacityId: '1',
                         },
                         {
-                            objectId: 'test-workspace-2', 
+                            id: 'test-workspace-2',
                             displayName: 'Test Workspace 2',
                             description: 'Second test workspace',
                             type: 'Workspace',
-                            capacityId: '2'
-                        }
-                    ]
+                            capacityId: '2',
+                        },
+                    ],
                 }),
-                request
+                request,
             };
         }
 
@@ -262,9 +368,9 @@ function setupWorkspaceResponses(fakeFabricApiClient: FakeFabricApiClient): void
                 status: 200,
                 headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
                 bodyAsText: JSON.stringify({
-                    gitProviderDetails: null
+                    gitProviderDetails: null,
                 }),
-                request
+                request,
             };
         }
 
@@ -274,9 +380,9 @@ function setupWorkspaceResponses(fakeFabricApiClient: FakeFabricApiClient): void
                 status: 200,
                 headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
                 bodyAsText: JSON.stringify({
-                    value: [] // Empty initially
+                    value: [], // Empty initially
                 }),
-                request
+                request,
             };
         }
 
@@ -285,7 +391,7 @@ function setupWorkspaceResponses(fakeFabricApiClient: FakeFabricApiClient): void
             status: 404,
             headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
             bodyAsText: JSON.stringify({ error: 'Not found' }),
-            request
+            request,
         };
     });
 }
@@ -296,10 +402,10 @@ function setupWorkspaceResponses(fakeFabricApiClient: FakeFabricApiClient): void
 function setupArtifactResponses(fakeFabricApiClient: FakeFabricApiClient, artifactName: string, workspaceId: string): void {
     // Simple state tracking for created artifacts
     const createdArtifacts: any[] = [];
-    
+
     fakeFabricApiClient.respondWith(async (request: azApi.PipelineRequest) => {
         console.log(`HTTP Request: ${request.method} ${request.url}`);
-        
+
         // Handle workspace listing (inherited from workspace setup)
         if (request.method === 'GET' && request.url?.includes('/workspaces') && !request.url?.includes('/items') && !request.url?.includes('/git')) {
             return {
@@ -308,22 +414,22 @@ function setupArtifactResponses(fakeFabricApiClient: FakeFabricApiClient, artifa
                 bodyAsText: JSON.stringify({
                     value: [
                         {
-                            objectId: 'test-workspace-1',
+                            id: 'test-workspace-1',
                             displayName: 'Test Workspace 1',
                             description: 'First test workspace',
                             type: 'Workspace',
-                            capacityId: '1'
+                            capacityId: '1',
                         },
                         {
-                            objectId: 'test-workspace-2',
-                            displayName: 'Test Workspace 2', 
+                            id: 'test-workspace-2',
+                            displayName: 'Test Workspace 2',
                             description: 'Second test workspace',
                             type: 'Workspace',
-                            capacityId: '2'
-                        }
-                    ]
+                            capacityId: '2',
+                        },
+                    ],
                 }),
-                request
+                request,
             };
         }
 
@@ -333,9 +439,9 @@ function setupArtifactResponses(fakeFabricApiClient: FakeFabricApiClient, artifa
                 status: 200,
                 headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
                 bodyAsText: JSON.stringify({
-                    gitProviderDetails: null
+                    gitProviderDetails: null,
                 }),
-                request
+                request,
             };
         }
 
@@ -345,9 +451,9 @@ function setupArtifactResponses(fakeFabricApiClient: FakeFabricApiClient, artifa
                 status: 200,
                 headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
                 bodyAsText: JSON.stringify({
-                    value: createdArtifacts
+                    value: createdArtifacts,
                 }),
-                request
+                request,
             };
         }
 
@@ -355,13 +461,13 @@ function setupArtifactResponses(fakeFabricApiClient: FakeFabricApiClient, artifa
         if (request.method === 'GET' && request.url?.match(/\/items\/[\w-]+$/)) {
             const artifactId = request.url.split('/').pop();
             const artifact = createdArtifacts.find(a => a.id === artifactId);
-            
+
             if (artifact) {
                 return {
                     status: 200,
                     headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
                     bodyAsText: JSON.stringify(artifact),
-                    request
+                    request,
                 };
             }
             else {
@@ -369,7 +475,7 @@ function setupArtifactResponses(fakeFabricApiClient: FakeFabricApiClient, artifa
                     status: 404,
                     headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
                     bodyAsText: JSON.stringify({ error: 'Artifact not found' }),
-                    request
+                    request,
                 };
             }
         }
@@ -383,17 +489,17 @@ function setupArtifactResponses(fakeFabricApiClient: FakeFabricApiClient, artifa
                 displayName: artifactName,
                 description: 'Test artifact description',
                 workspaceId: workspaceId,
-                definition: {}
+                definition: {},
             };
-            
+
             // Add to our state tracking
             createdArtifacts.push(newArtifact);
-            
+
             return {
                 status: 201,
                 headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
                 bodyAsText: JSON.stringify(newArtifact),
-                request
+                request,
             };
         }
 
@@ -404,16 +510,16 @@ function setupArtifactResponses(fakeFabricApiClient: FakeFabricApiClient, artifa
             if (artifact) {
                 artifact.description = 'Updated Artifact - Test artifact description';
             }
-            
+
             return {
                 status: 200,
                 headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
                 bodyAsText: JSON.stringify({
-                    Message: 'Artifact updated successfully',
+                    message: 'Artifact updated successfully',
                     artifactId: artifactName,
-                    description: 'Updated Artifact - Test artifact description'
+                    description: 'Updated Artifact - Test artifact description',
                 }),
-                request
+                request,
             };
         }
 
@@ -424,14 +530,14 @@ function setupArtifactResponses(fakeFabricApiClient: FakeFabricApiClient, artifa
             if (index >= 0) {
                 createdArtifacts.splice(index, 1);
             }
-            
+
             return {
                 status: 200,
                 headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
                 bodyAsText: JSON.stringify({
-                    Message: 'Artifact deleted successfully'
+                    message: 'Artifact deleted successfully',
                 }),
-                request
+                request,
             };
         }
 
@@ -439,11 +545,11 @@ function setupArtifactResponses(fakeFabricApiClient: FakeFabricApiClient, artifa
         if (request.method === 'PUT' || request.url?.includes('/uploadBinary')) {
             return {
                 status: 200,
-                headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
+                headers: azApi.createHttpHeaders({}),
                 bodyAsText: JSON.stringify({
-                    Message: 'UploadBinary called successfully'
+                    message: 'UploadBinary called successfully',
                 }),
-                request
+                request,
             };
         }
 
@@ -453,7 +559,7 @@ function setupArtifactResponses(fakeFabricApiClient: FakeFabricApiClient, artifa
             status: 404,
             headers: azApi.createHttpHeaders({ 'content-type': 'application/json' }),
             bodyAsText: JSON.stringify({ error: 'Not found' }),
-            request
+            request,
         };
     });
 }

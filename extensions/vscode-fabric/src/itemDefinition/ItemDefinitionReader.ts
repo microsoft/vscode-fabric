@@ -3,11 +3,15 @@ import { IItemDefinition, PayloadType } from '@microsoft/vscode-fabric-api';
 
 export interface IBase64Encoder {
     encode(content: Uint8Array): string;
+    decode(base64String: string): Uint8Array;
 }
 
-class Base64Encoder implements IBase64Encoder {
+export class Base64Encoder implements IBase64Encoder {
     public encode(content: Uint8Array): string {
         return Buffer.from(content).toString('base64');
+    }
+    public decode(base64String: string): Uint8Array {
+        return Buffer.from(base64String, 'base64');
     }
 }
 
@@ -18,8 +22,8 @@ export interface IItemDefinitionReader {
 export class ItemDefinitionReader implements IItemDefinitionReader {
     public constructor(
         private readonly fileSystem: vscode.FileSystem,
-        private readonly base64Encoder: IBase64Encoder = new Base64Encoder(),
-    ) { 
+        private readonly base64Encoder: IBase64Encoder = new Base64Encoder()
+    ) {
     }
 
     async read(rootFolder: vscode.Uri): Promise<IItemDefinition> {
@@ -39,7 +43,7 @@ export class ItemDefinitionReader implements IItemDefinitionReader {
             return {
                 path: relativePath,
                 payload: base64Content,
-                payloadType: PayloadType.InlineBase64
+                payloadType: PayloadType.InlineBase64,
             };
         });
 

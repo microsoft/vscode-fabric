@@ -14,6 +14,8 @@ import { FabricWorkspaceDataProvider } from '../../../workspace/treeView';
 import * as quickPick from '../../../ui/showWorkspaceQuickPick';
 import * as prompts from '../../../ui/prompts';
 import { ICapacityManager } from '../../../CapacityManager';
+import { ILocalFolderManager } from '../../../LocalFolderManager';
+import { IWorkspaceFilterManager } from '../../../workspace/WorkspaceFilterManager';
 
 const artifactDisplayName = 'Test Artifact DisplayName';
 const artifactType = 'Test Artifact Type';
@@ -21,7 +23,9 @@ const artifactType = 'Test Artifact Type';
 describe('importArtifactCommand', () => {
     let workspaceManagerMock: Mock<IWorkspaceManager>;
     let artifactManagerMock: Mock<IArtifactManager>;
+    let localFolderManagerMock: Mock<ILocalFolderManager>;
     let capacityManagerMock: Mock<ICapacityManager>;
+    let workspaceFilterManagerMock: Mock<IWorkspaceFilterManager>;
     let readerMock: Mock<IItemDefinitionReader>;
     let fabricEnvironmentProviderMock: Mock<IFabricEnvironmentProvider>;
     let dataProviderMock: Mock<FabricWorkspaceDataProvider>;
@@ -31,6 +35,7 @@ describe('importArtifactCommand', () => {
 
     let showWorkspaceQuickPickStub: sinon.SinonStub;
     let showSignInPromptStub: sinon.SinonStub;
+    let showConfirmOverwriteMessageStub: sinon.SinonStub;
 
     const folderUri = vscode.Uri.file(`/path/to/local/folder/${artifactDisplayName}.${artifactType}`);
     const fakeWorkspace: IWorkspace = { displayName: 'ws', type: 'test', objectId: 'id' } as IWorkspace;
@@ -40,7 +45,9 @@ describe('importArtifactCommand', () => {
     beforeEach(() => {
         workspaceManagerMock = new Mock<IWorkspaceManager>();
         artifactManagerMock = new Mock<IArtifactManager>();
+        localFolderManagerMock = new Mock<ILocalFolderManager>();
         capacityManagerMock = new Mock<ICapacityManager>();
+        workspaceFilterManagerMock = new Mock<IWorkspaceFilterManager>();
         readerMock = new Mock<IItemDefinitionReader>();
         fabricEnvironmentProviderMock = new Mock<IFabricEnvironmentProvider>();
         dataProviderMock = new Mock<FabricWorkspaceDataProvider>();
@@ -51,15 +58,19 @@ describe('importArtifactCommand', () => {
             .setup(m => m.listArtifacts(It.IsAny()))
             .returnsAsync([fakeArtifact]);
         artifactManagerMock
-            .setup(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny()))
+            .setup(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()))
             .returns(Promise.resolve({ status: 200 } as IApiClientResponse));
         artifactManagerMock
-            .setup(a => a.createArtifactWithDefinition(It.IsAny(), It.IsAny()))
+            .setup(a => a.createArtifactWithDefinition(It.IsAny(), It.IsAny(), It.IsAny()))
             .returns(Promise.resolve({ status: 201 } as IApiClientResponse));
 
         workspaceManagerMock
             .setup(m => m.isConnected())
             .returnsAsync(true);
+
+        localFolderManagerMock
+            .setup(m => m.getWorkspaceIdForLocalFolder(It.IsAny()))
+            .returns(undefined);
 
         readerMock
             .setup(r => r.read(It.IsAny()))
@@ -82,6 +93,9 @@ describe('importArtifactCommand', () => {
         showWorkspaceQuickPickStub.resolves(fakeWorkspace);
 
         showSignInPromptStub = sinon.stub(prompts, 'showSignInPrompt');
+
+        showConfirmOverwriteMessageStub = sinon.stub(vscode.window, 'showInformationMessage');
+        showConfirmOverwriteMessageStub.resolves('Yes'); // Default: user confirms overwrite
     });
 
     afterEach(() => {
@@ -96,17 +110,53 @@ describe('importArtifactCommand', () => {
 
         // Assert
         assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called');
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition));
+
+        assert.ok(showConfirmOverwriteMessageStub.called, 'Confirmation message should be shown');
+        const [message, options, yesButton] = showConfirmOverwriteMessageStub.firstCall.args;
+        assert.strictEqual(
+            message,
+            `An item named "${artifactDisplayName}" already exists in workspace "${fakeWorkspace.displayName}". Do you want to overwrite it?`
+        );
+        assert.deepStrictEqual(options, { modal: true });
+        assert.strictEqual(yesButton, 'Yes');
+
+    artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
         dataProviderMock.verify(x => x.refresh(), Times.Never());
+
+        const expectedParent = vscode.Uri.file('/path/to/local/folder');
 
         verifyAddOrUpdateProperties(telemetryActivityMock, 'statusCode', '200');
         verifyAddOrUpdateProperties(telemetryActivityMock, 'itemType', artifactType);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', fakeWorkspace.objectId);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'fabricWorkspaceName', fakeWorkspace.displayName);
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'targetDetermination', 'prompt');
         verifyAddOrUpdateProperties(telemetryActivityMock, 'artifactId', fakeArtifact.id);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'fabricArtifactName', artifactDisplayName);
         verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'requestId');
         verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'errorCode');
+    });
+
+    it('Uses inferred workspace', async () => {
+        // Arrange
+        const inferredWorkspaceId = 'id';
+        const expectedParent = vscode.Uri.file('/path/to/local/folder');
+        localFolderManagerMock
+            .setup(m => m.getWorkspaceIdForLocalFolder(It.Is<vscode.Uri>((uri) => uri.fsPath === expectedParent.fsPath)))
+            .returns(inferredWorkspaceId);
+        workspaceManagerMock
+            .setup(m => m.getWorkspaceById(inferredWorkspaceId))
+            .returns(Promise.resolve(fakeWorkspace));
+
+        // Act
+        await executeCommand();
+
+        // Assert
+        localFolderManagerMock.verify(m => m.getWorkspaceIdForLocalFolder(It.Is<vscode.Uri>((uri) => uri.fsPath === expectedParent.fsPath)), Times.Exactly(1));
+        assert.ok(showWorkspaceQuickPickStub.notCalled, 'showWorkspaceQuickPick should NOT be called');
+    artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', fakeWorkspace.objectId);
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'fabricWorkspaceName', fakeWorkspace.displayName);
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'targetDetermination', 'inferred');
     });
 
     it('Import creates artifact', async () => {
@@ -126,11 +176,12 @@ describe('importArtifactCommand', () => {
                     obj.type === artifactType &&
                     obj.displayName === artifactDisplayName
                 ),
-                fakeDefinition
+                fakeDefinition,
+                folderUri
             ),
             Times.Once()
         );
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny()), Times.Never());
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
         dataProviderMock.verify(x => x.refresh(), Times.Once());
         assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called');
     });
@@ -152,13 +203,51 @@ describe('importArtifactCommand', () => {
                     obj.type === artifactType &&
                     obj.displayName === artifactDisplayName
                 ),
-                fakeDefinition
+                fakeDefinition,
+                folderUri
             ),
             Times.Once()
         );
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny()), Times.Never());
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
         dataProviderMock.verify(x => x.refresh(), Times.Once());
         assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called');
+    });
+
+
+    it('Always prompts for workspace when forcePromptForWorkspace is true', async () => {
+        // Arrange
+        const inferredWorkspaceId = 'id';
+        const expectedParent = vscode.Uri.file('/path/to/local/folder');
+        localFolderManagerMock
+            .setup(m => m.getWorkspaceIdForLocalFolder(It.Is<vscode.Uri>((uri) => uri.fsPath === expectedParent.fsPath)))
+            .returns(inferredWorkspaceId);
+        workspaceManagerMock
+            .setup(m => m.getWorkspaceById(inferredWorkspaceId))
+            .returns(Promise.resolve(fakeWorkspace));
+
+        // Act
+        await executeCommand(true); // forcePromptForWorkspace = true
+
+        // Assert
+        // Should NOT use inferred workspace, should always prompt
+        assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called when forcePromptForWorkspace is true');
+        localFolderManagerMock.verify(m => m.getWorkspaceIdForLocalFolder(It.IsAny()), Times.Never());
+    artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', fakeWorkspace.objectId);
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'fabricWorkspaceName', fakeWorkspace.displayName);
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'targetDetermination', 'forced');
+    });
+
+    it('Does NOT call setLocalFolderForFabricWorkspace when forcePromptForWorkspace is true', async () => {
+        // Arrange
+        // Act
+        await executeCommand(true); // forcePromptForWorkspace = true
+
+        // Assert
+        localFolderManagerMock.verify(
+            m => m.setLocalFolderForFabricWorkspace(It.IsAny(), It.IsAny()),
+            Times.Never()
+        );
     });
 
     it('User is not signed in', async () => {
@@ -219,6 +308,33 @@ describe('importArtifactCommand', () => {
         verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'artifactId');
         verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'requestId');
         verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'errorCode');
+        verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'targetDetermination');
+    });
+
+    it('Cancel overwrite confirmation', async () => {
+        // Arrange
+        showConfirmOverwriteMessageStub.resolves(undefined); // Simulate cancel
+
+        // Act & Assert
+        await assert.rejects(
+            async () => {
+                await executeCommand();
+            },
+            (err: Error) => {
+                assert.ok(err instanceof UserCancelledError, 'Should throw a UserCancelledError');
+                assert.strictEqual((err as UserCancelledError).stepName, 'overwriteConfirmation');
+                return true;
+            }
+        );
+
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'itemType', artifactType);
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'fabricArtifactName', artifactDisplayName);
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', fakeWorkspace.objectId);
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'fabricWorkspaceName', fakeWorkspace.displayName);
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'artifactId', fakeArtifact.id);
+        verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'statusCode');
+        verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'requestId');
+        verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'errorCode');
     });
 
     it('Error: unable to parse source folder name', async () => {
@@ -257,7 +373,7 @@ describe('importArtifactCommand', () => {
         };
         apiClientResponseMock.setup(instance => instance.status).returns(400);
         apiClientResponseMock.setup(instance => instance.parsedBody).returns(errorResponseBody);
-        artifactManagerMock.setup(instance => instance.updateArtifactDefinition(It.IsAny(), It.IsAny()))
+        artifactManagerMock.setup(instance => instance.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()))
             .returns(Promise.resolve(apiClientResponseMock.object()));
 
         // Act
@@ -270,7 +386,7 @@ describe('importArtifactCommand', () => {
                 assert.ok(err instanceof FabricError, 'Should throw a FabricError');
                 error = err;
                 return true;
-            } 
+            }
         );
 
         // Assert
@@ -280,7 +396,7 @@ describe('importArtifactCommand', () => {
         verifyAddOrUpdateProperties(telemetryActivityMock, 'requestId', 'req-12345');
         verifyAddOrUpdateProperties(telemetryActivityMock, 'errorCode', 'InvalidInput');
     });
-    
+
     it('Error: reader.read throws an exception', async () => {
         // Arrange
         const errorText = 'Test - reader.read failed';
@@ -301,25 +417,28 @@ describe('importArtifactCommand', () => {
                 assert.ok(error!.message.includes(errorText), 'Error message should include errorText');
                 assert.strictEqual(error.options?.showInUserNotification, 'Information', 'Error options should show in user notification');
                 return true;
-            } 
+            }
         );
 
         // Assert
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny()), Times.Never());
+    artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
     });
 
-    async function executeCommand(): Promise<void> {
+    async function executeCommand(forcePromptForWorkspace: boolean = false): Promise<void> {
         await importArtifactCommand(
             folderUri,
             workspaceManagerMock.object(),
             artifactManagerMock.object(),
+            localFolderManagerMock.object(),
+            workspaceFilterManagerMock.object(),
             capacityManagerMock.object(),
             readerMock.object(),
             fabricEnvironmentProviderMock.object(),
             dataProviderMock.object(),
             telemetryActivityMock.object(),
             telemetryService,
-            logger
+            logger,
+            forcePromptForWorkspace
         );
     }
 });

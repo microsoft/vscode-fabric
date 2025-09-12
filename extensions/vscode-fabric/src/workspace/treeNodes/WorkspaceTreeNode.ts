@@ -5,23 +5,33 @@ import { CoreTelemetryEventNames } from '../../TelemetryEventNames';
 import { DisplayStyle } from '../definitions';
 import { TreeViewState } from '../treeViewState';
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
+import { getWorkspaceIconPath } from '../../metadata/fabricItemUtilities';
 
 export abstract class WorkspaceTreeNode extends FabricTreeNode {
-    constructor(context: vscode.ExtensionContext, 
-        protected extensionManager: IFabricExtensionManagerInternal, 
-        public readonly workspace: IWorkspace, 
+    constructor(context: vscode.ExtensionContext,
+        protected extensionManager: IFabricExtensionManagerInternal,
+        public readonly workspace: IWorkspace,
         private displayStyle: DisplayStyle,
         protected telemetryService: TelemetryService | null,
-        protected workspaceManager: IWorkspaceManager,
+        protected workspaceManager: IWorkspaceManager
     ) {
         super(context, workspace.displayName, vscode.TreeItemCollapsibleState.Collapsed);
         this.contextValue = 'WorkspaceTreeNode';
-        this.iconPath = new vscode.ThemeIcon('folder-library');
+
+        // Set the workspace icon based on type
+        const workspaceIconPath = getWorkspaceIconPath(context.extensionUri, workspace);
+        if (workspaceIconPath) {
+            this.iconPath = workspaceIconPath;
+        }
+        else {
+            // Fallback to the original theme icon if the utility function fails
+            this.iconPath = new vscode.ThemeIcon('folder-library');
+        }
     }
 
     /**
      * Finds and returns all of the top-level items of the Fabric workspace
-     * 
+     *
      * @returns The top-level items of the Fabric workspace
      */
     public async getChildNodes(): Promise<FabricTreeNode[]> {

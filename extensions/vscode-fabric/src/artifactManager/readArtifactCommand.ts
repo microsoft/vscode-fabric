@@ -8,7 +8,7 @@ import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 export async function readArtifactCommand(
     artifact: IArtifact,
     artifactManager: IArtifactManagerInternal,
-    telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>,
+    telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>
 ): Promise<void> {
     if (artifactManager.shouldUseDeprecatedCommand(artifact.type, OperationRequestType.select)) {
         await artifactManager.selectArtifact(artifact);
@@ -34,7 +34,7 @@ export async function readArtifactCommand(
     else {
         telemetryActivity.addOrUpdateProperties({
             'requestId': response.parsedBody?.requestId,
-            'errorCode': response.parsedBody?.errorCode
+            'errorCode': response.parsedBody?.errorCode,
         });
 
         throw new FabricError(

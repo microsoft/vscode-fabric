@@ -29,7 +29,7 @@ export interface IWorkspaceFolderProvider {
 
 /**
  * Finds local projects.
- * Expected to be consumed by the {@link LocalProjectTreeDataProvider} 
+ * Expected to be consumed by the {@link LocalProjectTreeDataProvider}
  */
 export interface ILocalProjectDiscovery {
     /**

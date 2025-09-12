@@ -32,22 +32,22 @@ describe('CapacityManager', function () {
                 displayName: 'F4 Capacity',
                 sku: 'F4',
                 region: 'West Central US',
-                state: 'Active'
+                state: 'Active',
             },
             {
                 id: '0b9a4952-b5e7-4a55-8739-3e7251a2fd43',
                 displayName: 'F8 Capacity',
                 sku: 'F8',
                 region: 'West Central US',
-                state: 'Inactive'
+                state: 'Inactive',
             },
             {
                 id: 'af196b7b-0bf8-4430-b383-ad48d14f4edf',
                 displayName: 'F16 Capacity',
                 sku: 'F16',
                 region: 'West Central US',
-                state: 'Active'
-            }
+                state: 'Active',
+            },
         ];
 
         apiClientMock.setup(x => x.sendRequest(It.IsAny<IApiClientRequestOptions>()))
@@ -89,9 +89,9 @@ describe('CapacityManager', function () {
         // Arrange
         const errorResponse: IApiClientResponse = {
             status: 500,
-            parsedBody: { errorCode: 'InternalError', message: 'Internal server error' }
+            parsedBody: { errorCode: 'InternalError', message: 'Internal server error' },
         };
-        
+
         apiClientMock.setup(x => x.sendRequest(It.IsAny<IApiClientRequestOptions>()))
             .returns(Promise.resolve(errorResponse));
 
@@ -103,7 +103,7 @@ describe('CapacityManager', function () {
             (err: Error) => {
                 assert.ok(err instanceof FabricError, 'Should throw a FabricError');
                 return true;
-            } 
+            }
         );
 
         // Assert

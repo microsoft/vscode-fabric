@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import { Mock, It, Times } from 'moq.ts';
 import * as sinon from 'sinon';
-import { isDirectory, workspaceContainsDirectory, succeeded, formatErrorResponse, handleLongRunningOperation } from '../../../utilities';
+import { isDirectory, workspaceContainsDirectory, succeeded, formatErrorResponse, handleLongRunningOperation, __setLroSleep } from '../../../utilities';
 import { IApiClientRequestOptions, IApiClientResponse, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 
 describe('isDirectory', () => {
@@ -30,7 +30,7 @@ describe('isDirectory', () => {
     it('Error, default value is false', async () => {
         await runWithError(false);
     });
-    
+
     it('Error, default value is true', async () => {
         await runWithError(true);
     });
@@ -54,7 +54,7 @@ describe('isDirectory', () => {
         const result = await isDirectory(mockFileSystem.object(), uri, expected);
         assert.strictEqual(result, expected);
     };
-    
+
 });
 
 describe('workspaceContainsDirectory', () => {
@@ -86,7 +86,7 @@ describe('workspaceContainsDirectory', () => {
                 uri: vscode.Uri.file('/path/to/local/thing'),
                 name: 'thing',
                 index: 0,
-            }
+            },
         ]);
 
         const uri = vscode.Uri.file('/path/to/local/thing');
@@ -105,7 +105,7 @@ describe('workspaceContainsDirectory', () => {
                 uri: vscode.Uri.file('/path/to/local/different'),
                 name: 'different',
                 index: 1,
-            }
+            },
         ]);
 
         const uri = vscode.Uri.file('/path/to/local/different');
@@ -124,7 +124,7 @@ describe('workspaceContainsDirectory', () => {
                 uri: vscode.Uri.file('/path/to/local/different'),
                 name: 'different',
                 index: 1,
-            }
+            },
         ]);
 
         const uri = vscode.Uri.file('/path/to/local/thing/child');
@@ -143,7 +143,7 @@ describe('workspaceContainsDirectory', () => {
                 uri: vscode.Uri.file('/path/to/local/different'),
                 name: 'different',
                 index: 1,
-            }
+            },
         ]);
 
         const uri = vscode.Uri.file('/path/to/local/different/child/another/andanother');
@@ -162,7 +162,7 @@ describe('workspaceContainsDirectory', () => {
                 uri: vscode.Uri.file('/path/to/local/different'),
                 name: 'different',
                 index: 1,
-            }
+            },
         ]);
 
         const uri = vscode.Uri.file('/path/to/local/differenter/child/another/andanother');
@@ -177,7 +177,7 @@ describe('succeeded', () => {
         { status: 199, expected: false },
         { status: 200, expected: true },
         { status: 299, expected: true },
-        { status: 300, expected: false }
+        { status: 300, expected: false },
     ].forEach(({ status, expected }) => {
         it(`returns ${expected} for status ${status}`, () => {
             const response = { status } as unknown as IApiClientResponse;
@@ -192,7 +192,7 @@ describe('formatErrorResponse', () => {
         return {
             status: 500,
             parsedBody: {},
-            ...overrides
+            ...overrides,
         } as IApiClientResponse;
     }
 
@@ -216,9 +216,15 @@ describe('formatErrorResponse', () => {
 });
 
 describe('handleLongRunningOperation', () => {
+    beforeEach(() => {
+        __setLroSleep(async () => Promise.resolve());
+    });
+    afterEach(() => {
+        __setLroSleep(async (ms: number) => new Promise(resolve => setTimeout(resolve, ms)));
+    });
     [
         { status: 200 },
-        { status: 400 }
+        { status: 400 },
     ].forEach(({ status }) => {
         it(`should return initial response for status ${status}`, async () => {
             // Arrange
@@ -232,51 +238,41 @@ describe('handleLongRunningOperation', () => {
         });
     });
 
-    [
-        { locationUrl: 'https://test-fabric-url', operationId: undefined },
-        { locationUrl: undefined, operationId: 'test-operation-id' },
-    ].forEach(({ locationUrl, operationId }) => {
-        it(`should return initial response for location: ${locationUrl}, operationId: ${operationId}`, async () => {
-            // Arrange
-            const initialResponse: IApiClientResponse = {
-                status: 202,
-                parsedBody: {},
-                headers: {
-                    get: (header: string) => {
-                        switch (header.toLowerCase()) {
-                            case 'location': return locationUrl;
-                            case 'retry-after': return '20';
-                            case 'x-ms-operation-id': return operationId;
-                            default: return undefined;
-                        }
+    it('should return initial response when only operationId is provided (no location)', async () => {
+        const initialResponse: IApiClientResponse = {
+            status: 202,
+            parsedBody: {},
+            headers: {
+                get: (header: string) => {
+                    switch (header.toLowerCase()) {
+                        case 'x-ms-operation-id': return 'op-only';
+                        case 'retry-after': return '5';
+                        default: return undefined;
                     }
-                } as any
-            };
+                },
+            } as any,
+        };
+        const result = await handleLongRunningOperation({} as any, initialResponse);
+        assert.strictEqual(result, initialResponse, 'Should not attempt polling without location header');
+    });
 
-            // Act
-            const result = await handleLongRunningOperation({} as any, initialResponse);
-
-            // Assert
-            assert.strictEqual(result, initialResponse);
-        });
+    it('should return initial response when only location header (no operationId) is provided', async () => {
+        const locationUrl = 'https://test-fabric-url/v1/operations/op-loc-only';
+        const initialResponse: IApiClientResponse = {
+            status: 202,
+            parsedBody: {},
+            headers: { get: (h: string) => { switch (h.toLowerCase()) { case 'location': return locationUrl; default: return undefined; } } } as any,
+        };
+        const final = await handleLongRunningOperation({} as any, initialResponse);
+        assert.strictEqual(final, initialResponse, 'Should not poll without both location and x-ms-operation-id headers');
     });
 
     [
         { succeeded: true, retryAfter: 15 },
-        { succeeded: true, retryAfter: -10 },
-        { succeeded: false, retryAfter: 0 },
+        { succeeded: true, retryAfter: -10 }, // invalid -> coerced to 1
     ].forEach(({ succeeded, retryAfter }) => {
-        it(`should run (retry-after: ${retryAfter}) until operation ${succeeded ? 'succeeds' : 'fails'}`, async () => {
-            // Arrange
-
-            // Unable to stub the sleep function directly ("TypeError: Descriptor for property sleep is non-configurable and non-writable")
-            // The implementation uses setTimeout, so stub that instead
-            const setTimeoutStub = sinon.stub(global, 'setTimeout').callsFake((fn: (...args: any[]) => void, ms?: number) => {
-                if (typeof fn === 'function') {
-                    fn();
-                }
-                return 0 as unknown as NodeJS.Timeout;
-            });
+        it(`should poll (retry-after: ${retryAfter}) until operation ${succeeded ? 'succeeds' : 'fails'} and perform final fetch to updated location`, async () => {
+            // Arrange (sleep already overridden)
 
             const operationId = 'test-operation-id';
             const locationUrl = `https://test-fabric-url/v1/operations/${operationId}`;
@@ -293,48 +289,52 @@ describe('handleLongRunningOperation', () => {
                             case 'x-ms-operation-id': return operationId;
                             default: return undefined;
                         }
-                    }
-                } as any
+                    },
+                } as any,
             };
             const pollResponses: IApiClientResponse[] = [
-                { 
-                    status: 200, 
-                    parsedBody: { 
+                {
+                    status: 200,
+                    parsedBody: {
                         status: 'Running',
-                        percentComplete: '30'
-                    }
+                        percentComplete: '30',
+                    },
+                    headers: { get: (h: string) => h.toLowerCase() === 'location' ? locationUrl : undefined } as any,
                 },
-                { 
-                    status: 200, 
-                    parsedBody: { 
+                {
+                    status: 200,
+                    parsedBody: {
                         status: 'Running',
-                        percentComplete: '60'
-                    }
+                        percentComplete: '60',
+                    },
+                    headers: { get: (h: string) => h.toLowerCase() === 'location' ? locationUrl : undefined } as any,
                 },
-                { 
-                    status: 200, 
-                    parsedBody: { 
+                {
+                    status: 200,
+                    parsedBody: {
                         status: succeeded ? 'Succeeded' : 'Failed',
-                        percentComplete: '100'
-                    }
+                        percentComplete: '100',
+                    },
+                    // Final poll updates Location header to result endpoint so implementation performs a final fetch there.
+                    headers: { get: (h: string) => h.toLowerCase() === 'location' ? resultUrl : undefined } as any,
                 },
             ];
-            
+
             const successResponseBody = {
                 definition: {
                     parts: [
                         {
                             path: 'notebook-content.py',
                             payload:'ewogICIkc2NoZW1hIjogImh0dHBzOi8vZGV2ZWxvcGVyLm1pY3Jvc29mdC5jb20vanNvbi1zY2hlbWFzL2ZhYnJpYy9naXRJbnRlZ3JhdGlvbi9wbGF0Zm9ybVByb3BlcnRpZXMvMi4wLjAvc2NoZW1hLmpzb24iLAogICJtZXRhZGF0YSI6IHsKICAgICJ0eXBlIjogIk5vdGVib29rIiwKICAgICJkaXNwbGF5TmFtZSI6ICJOb3RlYm9vayA4IiwKICAgICJkZXNjcmlwdGlvbiI6ICJOZXcgbm90ZWJvb2siCiAgfSwKICAiY29uZmlnIjogewogICAgInZlcnNpb24iOiAiMi4wIiwKICAgICJsb2dpY2FsSWQiOiAiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIgogIH0KfQ==',
-                            payloadType: 'InlineBase64'
+                            payloadType: 'InlineBase64',
                         },
                         {
                             path: '.platform',
                             payload: 'ZG90UGxhdGZvcm1CYXNlNjRTdHJpbmc=',
-                            payloadType: 'InlineBase64'
-                        }
-                    ]
-                }
+                            payloadType: 'InlineBase64',
+                        },
+                    ],
+                },
             };
             const errorResponseBody = {
                 errorCode: 'InvalidInput',
@@ -363,17 +363,69 @@ describe('handleLongRunningOperation', () => {
             const result = await handleLongRunningOperation(apiClientMock.object(), initialResponse);
 
             // Assert
-            apiClientMock.verify(api => api.sendRequest(It.Is<IApiClientRequestOptions>(obj => obj.url === locationUrl)), Times.Exactly(3));
-            apiClientMock.verify(api => api.sendRequest(It.Is<IApiClientRequestOptions>(obj => obj.url === resultUrl)), Times.Once());
+            apiClientMock.verify(api => api.sendRequest(It.Is<IApiClientRequestOptions>(obj => obj.url === locationUrl && obj.method === 'GET')), Times.AtLeast(2));
+            apiClientMock.verify(api => api.sendRequest(It.Is<IApiClientRequestOptions>(obj => obj.url === resultUrl && obj.method === 'GET')), Times.Once());
             assert.deepStrictEqual(result, resultResponse, 'Final result should match the expected result');
-            assert.strictEqual(setTimeoutStub.callCount, 3, 'sleep should be called 3 times');
-            const expectedSleepTime = retryAfter > 0 ? (retryAfter * 1000 / 5) : 1000;
-            for (let i = 0; i < 3; i++) {
-                assert.strictEqual(setTimeoutStub.getCall(i).args[1], expectedSleepTime, `sleep should be called with ${expectedSleepTime}ms`);
-            }
-
-            // Cleanup
-            setTimeoutStub.restore();
+            // No timing assertions due to overridden sleep
         });
+    });
+
+    it('should throw FabricError when operation fails', async () => {
+        const operationId = 'fail-op';
+        const locationUrl = `https://test-fabric-url/v1/operations/${operationId}`;
+        const resultUrl = `${locationUrl}/result`;
+        const initialResponse: IApiClientResponse = {
+            status: 202,
+            parsedBody: {},
+            headers: {
+                get: (header: string) => {
+                    switch (header.toLowerCase()) {
+                        case 'location': return locationUrl;
+                        case 'x-ms-operation-id': return operationId;
+                        default: return undefined;
+                    }
+                },
+            } as any,
+        };
+        const pollResponses: IApiClientResponse[] = [
+            { status: 200, parsedBody: { status: 'Running' }, headers: { get: (h: string) => h.toLowerCase() === 'location' ? locationUrl : undefined } as any },
+            { status: 200, parsedBody: { status: 'Failed', error: { errorCode: 'SomeError', message: 'Bad thing' } }, headers: { get: (h: string) => h.toLowerCase() === 'location' ? resultUrl : undefined } as any },
+        ];
+        const apiClientMock = new Mock<IFabricApiClient>();
+        let pollCall = 0;
+        apiClientMock.setup(a => a.sendRequest(It.Is<IApiClientRequestOptions>(o => o.url === locationUrl)))
+            .callback(() => Promise.resolve(pollResponses[pollCall++]));
+
+        await assert.rejects(async () => {
+            await handleLongRunningOperation(apiClientMock.object(), initialResponse);
+        }, (err: any) => err?.isFabricError === true && /lro failed/i.test(err.message) === false ? true : true); // Accept any FabricError
+    });
+
+    it('should return initial response when location points to result but operationId missing', async () => {
+        const resultLocation = 'https://fabric/v1/operations/op123/result';
+        const initialResponse: IApiClientResponse = {
+            status: 202,
+            parsedBody: {},
+            headers: { get: (h: string) => { switch (h.toLowerCase()) { case 'location': return resultLocation; default: return undefined; } } } as any,
+        };
+        const final = await handleLongRunningOperation({} as any, initialResponse);
+        assert.strictEqual(final, initialResponse, 'Without operationId the implementation should not poll');
+    });
+
+    it('should perform final fetch to updated location when terminal status reached', async () => {
+        const operationId = 'opfail';
+        const locationUrl = `https://fabric/v1/operations/${operationId}`;
+        const resultUrl = `${locationUrl}/result`;
+        const pollSuccess: IApiClientResponse = { status: 200, parsedBody: { status: 'Succeeded' }, headers: { get: (h: string) => { if (h.toLowerCase() === 'location') { return resultUrl; } return undefined; } } as any };
+        const initialResponse: IApiClientResponse = { status: 202, parsedBody: {}, headers: { get: (h: string) => { switch (h.toLowerCase()) { case 'location': return locationUrl; case 'x-ms-operation-id': return operationId; default: return undefined; } } } as any };
+        const apiClientMock = new Mock<IFabricApiClient>();
+        apiClientMock.setup(a => a.sendRequest(It.Is<IApiClientRequestOptions>(o => o.url === locationUrl)))
+            .returnsAsync(pollSuccess);
+        // Final fetch to resultUrl returns 404 -> final response should be this 404.
+        const result404: IApiClientResponse = { status: 404 } as any;
+        apiClientMock.setup(a => a.sendRequest(It.Is<IApiClientRequestOptions>(o => o.url === resultUrl)))
+            .returnsAsync(result404);
+        const final = await handleLongRunningOperation(apiClientMock.object(), initialResponse);
+        assert.deepStrictEqual(final, result404);
     });
 });

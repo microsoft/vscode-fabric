@@ -7,20 +7,22 @@ import { MockWorkspaceManager } from '../workspace/mockWorkspaceManager';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
 import { IFabricEnvironmentProvider, ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 
 export class MockArtifactManager extends ArtifactManager {
-    public mapArtifacts: Map<string, IArtifact[]> = new Map<string, IArtifact[]>(); // wspaceid 
+    public mapArtifacts: Map<string, IArtifact[]> = new Map<string, IArtifact[]>(); // wspaceid
     private allArtifacts: IArtifact[] = []; // Local storage for all artifacts
 
     constructor(
         extensionManager: IFabricExtensionManagerInternal,
         workspaceManager: IWorkspaceManager,
+        workspaceFilterManager: IWorkspaceFilterManager,
         fabricEnvironmentProvider: IFabricEnvironmentProvider,
         apiClient: IFabricApiClient,
         logger: ILogger,
         telemetrySevice: TelemetryService | null,
         dataProvider: FabricWorkspaceDataProvider) {
-        super(extensionManager, workspaceManager, fabricEnvironmentProvider, apiClient, logger, telemetrySevice, dataProvider);
+        super(extensionManager, workspaceManager, workspaceFilterManager, fabricEnvironmentProvider, apiClient, logger, telemetrySevice, dataProvider);
     }
 
     /**
@@ -32,17 +34,17 @@ export class MockArtifactManager extends ArtifactManager {
 
     async createArtifact(artifact: IArtifact): Promise<IApiClientResponse> {
         artifact.id = String(this.artifacts.length);
-        
+
         // Add to local storage first
         this.allArtifacts.push(artifact);
-        
+
         const mockWorkspaceManager = this.workspaceManager! as MockWorkspaceManager;
         await mockWorkspaceManager.addArtifact(artifact);
-        
+
         this.dataProvider.refresh();
-        
+
         return Promise.resolve({
-            status: 200
+            status: 200,
         });
     }
 
@@ -59,7 +61,7 @@ export class MockArtifactManager extends ArtifactManager {
 
         let response: IApiClientResponse = {
             status: 200,
-            bodyAsText: `{"sometext": "some mock test text for artifact ${artifact.type}"}`
+            bodyAsText: `{"sometext": "some mock test text for artifact ${artifact.type}"}`,
         };
 
         if (artifactHandler?.onAfterRequest) {
@@ -81,7 +83,7 @@ export class MockArtifactManager extends ArtifactManager {
         const options: IApiClientRequestOptions =
         {
             method: 'GET',
-            pathTemplate: pathTemplate
+            pathTemplate: pathTemplate,
         };
         const response = await this.apiClient.sendRequest(options);
         if (response?.status !== 200) {
@@ -93,7 +95,7 @@ export class MockArtifactManager extends ArtifactManager {
 
     async updateArtifact(artifact: IArtifact, body: Map<string, string>): Promise<IApiClientResponse> {
         const index = this.artifacts.findIndex((item) => item.id === artifact.id);
-        
+
         if (index > -1) {
             const foundArtifact = this.artifacts[index];
             let request: IApiClientRequestOptions = {
@@ -106,7 +108,7 @@ export class MockArtifactManager extends ArtifactManager {
                 body: {
                     displayName: foundArtifact.displayName,
                     description: foundArtifact.description + ' Updated Artifact ' + Date(), // make a change so we can tell it changed
-                }
+                },
             };
             foundArtifact.description += ' Updated Artifact' + Date();
 
@@ -134,7 +136,7 @@ export class MockArtifactManager extends ArtifactManager {
         if (index > -1) {
             this.artifacts.splice(index, 1);
         }
-        
+
         // Also remove from workspace manager
         const mockWorkspaceManager = this.workspaceManager! as MockWorkspaceManager;
         const workspaceArtifacts = mockWorkspaceManager.mapArtifacts.get(artifact.workspaceId);
@@ -144,10 +146,10 @@ export class MockArtifactManager extends ArtifactManager {
                 workspaceArtifacts.splice(wsIndex, 1);
             }
         }
-        
+
         this.dataProvider.refresh();
         return Promise.resolve({
-            status: 200
+            status: 200,
         });
     }
 
@@ -161,7 +163,7 @@ export class MockArtifactManager extends ArtifactManager {
     async getArtifact(artifact: IArtifact): Promise<IApiClientResponse> {
         return Promise.resolve({
             status: 200,
-            bodyAsText: `{"sometext": "some mock test text for artifact ${artifact.type}"}`
+            bodyAsText: `{"sometext": "some mock test text for artifact ${artifact.type}"}`,
         });
     }
 }

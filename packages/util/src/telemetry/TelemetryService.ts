@@ -2,7 +2,7 @@ import TelemetryReporter from '@vscode/extension-telemetry';
 
 // Need to accomodate multiple TelemetryService instances, one for each extension (core/sat), and to allow a single common properties object to be shared across all instances.
 // So we need a way to allow the satellite extensions to get the (possibly updated) default properties in the core extension for every telemetry event
-// The core extension will hold the default properties and will have updateDefaultPropertiesFunction == null. 
+// The core extension will hold the default properties and will have updateDefaultPropertiesFunction == null.
 // Sat instances will have a copy of the core extension's, updated to be the same as the core's.
 // Satellite extensions will have updateDefaultPropertiesFunction set to a function that returns the same properties from the core, so that those
 // common properties are included in all telemetry events. updateDefaultPropertiesFunction will be called before every sat telemetry event is sent.
@@ -21,7 +21,7 @@ export class TelemetryService {
         options?: {
             extensionMode?: number, // only set this from core extension
             updateDefaultPropertiesFunction?: () => { [key: string]: string } // only set this from non-core extensions
-        },
+        }
     ) {
         this.updateDefaultPropertiesFunction = options?.updateDefaultPropertiesFunction;
         if (options?.extensionMode) { // if we're not in satellite extension

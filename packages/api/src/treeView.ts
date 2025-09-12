@@ -39,7 +39,7 @@ export class ArtifactTreeNode extends FabricTreeNode {
      */
     constructor(context: vscode.ExtensionContext, public readonly artifact: IArtifact) {
         super(context, artifact.displayName, vscode.TreeItemCollapsibleState.None);
-        
+
         this.contextValue = `Item${artifact.type}`; // like 'ItemfunctionSet' or 'ItemNotebook'
 
         let desc = '';
@@ -51,31 +51,35 @@ export class ArtifactTreeNode extends FabricTreeNode {
         this.command = { // specify a command to execute when selected
             command: 'vscode-fabric.readArtifact',
             title: 'Read Item',
-            arguments: [this]
-        }; 
+            arguments: [this],
+        };
+
+        // Stable id for VS Code view state restoration
+        // Include env and workspace to avoid collisions across contexts
+        const envPart = artifact.fabricEnvironment || 'unknown';
+        this.id = `art:${envPart}:${artifact.workspaceId}:${artifact.type}:${artifact.id}`;
 
         const wspaceFolders = vscode.workspace.workspaceFolders;
         const expectedFolderName = `${artifact.displayName}.${artifact.type}`;
         if (wspaceFolders && // already a VSCFolder open
             wspaceFolders.find(f => f.name === expectedFolderName)) {
-            this.description = '(currently open)';
-            this.contextValue +='currentlyopen';
-        } 
+            this.contextValue += 'currentlyopen';
+        }
         else {
-            this.contextValue +='notopen';
+            this.contextValue += 'notopen';
         }
     }
 
     /**
-     * The allowed context menu items for this artifact. 
-     * If not specified, the tree view will contain the ArtifactContextValues.default values. 
-     * To specify no context menu items, use ArtifactContextValues.none.  
+     * The allowed context menu items for this artifact.
+     * If not specified, the tree view will contain the ArtifactContextValues.default values.
+     * To specify no context menu items, use ArtifactContextValues.none.
      */
     allowedDesignActions?: ArtifactDesignerActions;
 
     /**
      * Satellite extensions should override this method to create child nodes for the artifact
-     * @returns The {@link FabricTreeNode}s to display below this tree node 
+     * @returns The {@link FabricTreeNode}s to display below this tree node
      */
     async getChildNodes(): Promise<FabricTreeNode[]> {
         return [];
@@ -92,7 +96,7 @@ export class ArtifactTreeNodeProvider implements IFabricTreeNodeProvider {
      */
     public constructor(private context: vscode.ExtensionContext, public artifactType: string) {
     }
-    
+
     /**
      * Creates a tree node for the specified artifact
      * @param artifact - The {@link IArtifact} to create a node for
@@ -125,7 +129,7 @@ export class LocalProjectTreeNode extends FabricTreeNode {
 
     /**
      * Satellite extensions should override this method to create child nodes for the local project
-     * @returns The {@link FabricTreeNode}s to display below this tree node 
+     * @returns The {@link FabricTreeNode}s to display below this tree node
      */
     async getChildNodes(): Promise<FabricTreeNode[]> {
         return [];
@@ -158,4 +162,3 @@ export class LocalProjectTreeNodeProvider implements ILocalProjectTreeNodeProvid
         return new LocalProjectTreeNode(this.context, displayName, localPath);
     }
 }
-

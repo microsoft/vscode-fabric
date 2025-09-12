@@ -7,18 +7,18 @@ import { IArtifact, IFabricApiClient, IApiClientRequestOptions, IApiClientRespon
 import { AbstractDatabaseTreeNode } from '../../../../internalSatellites/database/AbstractDatabaseTreeNode';
 import { SqlDatabaseApiResponse } from '../../../../internalSatellites/database/ApiResponseModels';
 
-describe('SqlDatabaseTreeNode', function() {
+describe('SqlDatabaseTreeNode', function () {
     let contextMock: Mock<vscode.ExtensionContext>;
     let artifact: IArtifact;
     let apiClientMock: Mock<IFabricApiClient>;
     let node: SqlDatabaseTreeNode;
     let sandbox: sinon.SinonSandbox;
 
-    before(function() {
+    before(function () {
         // No global setup needed
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.createSandbox();
         contextMock = new Mock<vscode.ExtensionContext>();
         artifact = { id: 'db1', workspaceId: 'ws1' } as IArtifact;
@@ -26,22 +26,22 @@ describe('SqlDatabaseTreeNode', function() {
         node = new SqlDatabaseTreeNode(contextMock.object(), artifact);
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    after(function() {
+    after(function () {
         // No global teardown needed
     });
 
-    it('getConnectionString should return the connection string from API response', async function() {
+    it('getConnectionString should return the connection string from API response', async function () {
         // Arrange
         const fakeResponse: SqlDatabaseApiResponse = {
             properties: {
                 connectionString: 'Server=myserver;Database=mydb;',
                 serverFqdn: 'myserver.database.windows.net',
-                databaseName: 'mydb'
-            }
+                databaseName: 'mydb',
+            },
         } as SqlDatabaseApiResponse;
         sandbox.stub<any, any>(node, 'callApi').resolves(fakeResponse);
 
@@ -52,14 +52,14 @@ describe('SqlDatabaseTreeNode', function() {
         assert.equal(result, 'Server=myserver;Database=mydb;', 'Should return the correct connection string');
     });
 
-    it('getExternalUri should construct the external URI from API response', async function() {
+    it('getExternalUri should construct the external URI from API response', async function () {
         // Arrange
         const fakeResponse: SqlDatabaseApiResponse = {
             properties: {
                 connectionString: 'irrelevant',
                 serverFqdn: 'myserver.database.windows.net,1433',
-                databaseName: 'mydb'
-            }
+                databaseName: 'mydb',
+            },
         } as SqlDatabaseApiResponse;
         sandbox.stub<any, any>(node, 'callApi').resolves(fakeResponse);
         const constructExternalUriStub = sandbox.stub<any, any>(node, 'constructExternalUri').returns('https://external.uri');

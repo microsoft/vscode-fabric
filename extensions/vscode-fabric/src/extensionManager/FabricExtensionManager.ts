@@ -12,6 +12,7 @@ const satelliteExtensionIds = [
 const internalSatelliteIds = [
     'fabric.internal-satellite-notebook',
     'fabric.internal-satellite-sql',
+    'fabric.internal-satellite-report',
     'fabric.vscode-tests',
 ];
 
@@ -104,8 +105,8 @@ export class FabricExtensionManager implements IFabricExtensionManagerInternal {
     }
 
     public isAvailable(extensionId: string): boolean {
-        // Ideally, there would be way to verify that the extension is enabled and active. 
-        // However, vscode doesn't expose enable/disbale state and this call could be happening from the extension's activate method. 
+        // Ideally, there would be way to verify that the extension is enabled and active.
+        // However, vscode doesn't expose enable/disbale state and this call could be happening from the extension's activate method.
         // So let's settle for making sure that the extension is installed
         return !!vscode.extensions.getExtension(extensionId);
     }

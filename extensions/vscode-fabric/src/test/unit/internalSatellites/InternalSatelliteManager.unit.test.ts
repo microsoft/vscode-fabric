@@ -5,9 +5,10 @@ import * as sinon from 'sinon';
 import { InternalSatelliteManager } from '../../../internalSatellites/InternalSatelliteManager';
 import { IWorkspaceManager, IArtifactManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { IWorkspaceFilterManager } from '../../../workspace/WorkspaceFilterManager';
 import { IFabricExtensionManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
 
-describe('InternalSatelliteManager', function() {
+describe('InternalSatelliteManager', function () {
     let contextMock: Mock<vscode.ExtensionContext>;
     let workspaceManagerMock: Mock<IWorkspaceManager>;
     let artifactManagerMock: Mock<IArtifactManager>;
@@ -15,14 +16,15 @@ describe('InternalSatelliteManager', function() {
     let telemetryServiceMock: Mock<TelemetryService>;
     let loggerMock: Mock<ILogger>;
     let extensionManagerMock: Mock<IFabricExtensionManagerInternal>;
+    let workspaceFilterManagerMock: Mock<IWorkspaceFilterManager>;
     let serviceCollection: any;
     let registerCommandStub: sinon.SinonStub;
 
-    before(function() {
+    before(function () {
         // No global setup required
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         contextMock = new Mock<vscode.ExtensionContext>();
         workspaceManagerMock = new Mock<IWorkspaceManager>();
         artifactManagerMock = new Mock<IArtifactManager>();
@@ -30,10 +32,11 @@ describe('InternalSatelliteManager', function() {
         telemetryServiceMock = new Mock<TelemetryService>();
         loggerMock = new Mock<ILogger>();
         extensionManagerMock = new Mock<IFabricExtensionManagerInternal>();
+        workspaceFilterManagerMock = new Mock<IWorkspaceFilterManager>();
         serviceCollection = {
             workspaceManager: workspaceManagerMock.object(),
             artifactManager: artifactManagerMock.object(),
-            apiClient: apiClientMock.object()
+            apiClient: apiClientMock.object(),
         };
         extensionManagerMock.setup(x => x.addExtension(It.IsAny())).returns(serviceCollection);
         // Ensure context.subscriptions is an array for all extension instances
@@ -43,27 +46,28 @@ describe('InternalSatelliteManager', function() {
         registerCommandStub = sinon.stub(vscode.commands, 'registerCommand').callsFake(() => ({ dispose: () => {} }));
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sinon.restore();
     });
 
-    after(function() {
+    after(function () {
         // No global teardown required
     });
 
-    it('should construct and have extensionClasses for SqlExtension and NotebookExtension', function() {
+    it('should construct and have extensionClasses for SqlExtension and NotebookExtension', function () {
         // Act
         const manager = new InternalSatelliteManager(
             contextMock.object(),
             telemetryServiceMock.object(),
             loggerMock.object(),
-            extensionManagerMock.object()
+            extensionManagerMock.object(),
+            workspaceFilterManagerMock.object()
         );
         // Assert
         assert.ok(manager.extensionClasses.length >= 2, 'Should have at least two extension classes');
     });
 
-    it('should activate all extensions and return their identities', function() {
+    it('should activate all extensions and return their identities', function () {
         // Arrange
         const context = contextMock.object();
         (context as any).subscriptions = [];
@@ -71,7 +75,8 @@ describe('InternalSatelliteManager', function() {
             context,
             telemetryServiceMock.object(),
             loggerMock.object(),
-            extensionManagerMock.object()
+            extensionManagerMock.object(),
+            workspaceFilterManagerMock.object()
         );
         // Act
         manager.activateAll();
@@ -81,7 +86,7 @@ describe('InternalSatelliteManager', function() {
         assert.ok(ids.length >= 2, 'Should have at least two satellite ids after activation');
     });
 
-    it('should dispose all extensions without error', function() {
+    it('should dispose all extensions without error', function () {
         // Arrange
         const context = contextMock.object();
         (context as any).subscriptions = [];
@@ -89,7 +94,8 @@ describe('InternalSatelliteManager', function() {
             context,
             telemetryServiceMock.object(),
             loggerMock.object(),
-            extensionManagerMock.object()
+            extensionManagerMock.object(),
+            workspaceFilterManagerMock.object()
         );
         manager.activateAll();
         // Act & Assert

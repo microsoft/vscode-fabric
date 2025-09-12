@@ -10,15 +10,19 @@ import { TelemetryService, IFabricEnvironmentProvider, ILogger } from '@microsof
 import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { ICapacityManager } from '../../../CapacityManager';
 import { FabricWorkspaceDataProvider } from '../../../workspace/treeView';
+import { ILocalFolderManager } from '../../../LocalFolderManager';
+import { IWorkspaceFilterManager } from '../../../workspace/WorkspaceFilterManager';
 
 describe('registerLocalProjectCommands', () => {
     let contextMock: Mock<vscode.ExtensionContext>;
     let workspaceManagerMock: Mock<IWorkspaceManager>;
     let fabricEnvironmentProviderMock: Mock<IFabricEnvironmentProvider>;
     let artifactManagerMock: Mock<IArtifactManagerInternal>;
+    let localFolderManagerMock: Mock<ILocalFolderManager>;
     let telemetryServiceMock: Mock<TelemetryService>;
     let loggerMock: Mock<ILogger>;
     let capacityManagerMock: Mock<ICapacityManager>;
+    let workspaceFilterManagerMock: Mock<IWorkspaceFilterManager>;
     let dataProviderMock: Mock<FabricWorkspaceDataProvider>;
 
     let registerCommandStub: sinon.SinonStub;
@@ -30,12 +34,16 @@ describe('registerLocalProjectCommands', () => {
         workspaceManagerMock = new Mock<IWorkspaceManager>();
         fabricEnvironmentProviderMock = new Mock<IFabricEnvironmentProvider>();
         artifactManagerMock = new Mock<IArtifactManagerInternal>();
+        localFolderManagerMock = new Mock<ILocalFolderManager>();
         telemetryServiceMock = new Mock<TelemetryService>();
         loggerMock = new Mock<ILogger>();
         capacityManagerMock = new Mock<ICapacityManager>();
+        workspaceFilterManagerMock = new Mock<IWorkspaceFilterManager>();
         dataProviderMock = new Mock<FabricWorkspaceDataProvider>();
 
         contextMock.setup(x => x.subscriptions).returns([]);
+
+        localFolderManagerMock.setup(x => x.getWorkspaceIdForLocalFolder(It.IsAny<vscode.Uri>())).returns(undefined);
 
         // Stub vscode.commands.registerCommand to capture registrations
         //registerCommandStub = sinon.stub();
@@ -55,7 +63,7 @@ describe('registerLocalProjectCommands', () => {
     ].forEach(command => {
         it(`registers ${command.name} command`, async () => {
             await act();
-            
+
             // Find the registration for the command
             const commandRegistration = registerCommandStub.getCalls().find(call =>
                 call.args[0] === command.name
@@ -92,7 +100,7 @@ describe('registerLocalProjectCommands', () => {
 
         // Should be called after second registration
         assert.strictEqual(disposeSpy.called, true, 'dispose should be called after second registration');
-        assert.strictEqual(disposeSpy.callCount, 1, 'dispose should be called for each registered command');
+        assert.strictEqual(disposeSpy.callCount, 2, 'dispose should be called for each registered command');
     });
 
     describe('Execute callbacks', () => {
@@ -106,7 +114,7 @@ describe('registerLocalProjectCommands', () => {
 
             const testWorkspace = { objectId: 'test-workspace-id', displayName: 'TestWorkspaceDisplayName' } as IWorkspace;
             workspaceManagerMock.setup(x => x.listWorkspaces()).returns(Promise.resolve([testWorkspace]));
-            workspaceManagerMock.setup(x => x.getWorkspaceById('test-workspace-id')).returns(testWorkspace);
+            workspaceManagerMock.setup(x => x.getWorkspaceById('test-workspace-id')).returns(Promise.resolve(testWorkspace));
 
             telemetryServiceMock.setup(x =>
                 x.sendTelemetryEvent(
@@ -119,7 +127,7 @@ describe('registerLocalProjectCommands', () => {
                 )
             ).returns(undefined);
         });
-        
+
         afterEach(() => {
             sinon.restore();
         });
@@ -160,7 +168,7 @@ describe('registerLocalProjectCommands', () => {
                 commandName: 'vscode-fabric.importArtifact',
                 modulePath: '../../../localProject/importArtifactCommand',
                 stubName: 'importArtifactCommand',
-                telemetryEvent: 'item/import'
+                telemetryEvent: 'item/import',
             },
         ].forEach(({ commandName, modulePath, stubName, telemetryEvent }) => {
             it(`executes ${stubName} and handles user cancel`, async () => {
@@ -207,7 +215,7 @@ describe('registerLocalProjectCommands', () => {
 
                 assert.strictEqual(capturedTelemetryProps.result, 'Failed', 'result should be Failed');
             });
-        });        
+        });
     });
 
     async function act(): Promise<void> {
@@ -216,11 +224,13 @@ describe('registerLocalProjectCommands', () => {
             workspaceManagerMock.object(),
             fabricEnvironmentProviderMock.object(),
             artifactManagerMock.object(),
+            localFolderManagerMock.object(),
+            workspaceFilterManagerMock.object(),
             capacityManagerMock.object(),
             dataProviderMock.object(),
             telemetryServiceMock.object(),
-            loggerMock.object(),
+            loggerMock.object()
         );
     }
-    
+
 });

@@ -116,7 +116,7 @@ describe('readArtifactCommand', () => {
                 assert.ok(err instanceof FabricError, 'Should throw a FabricError');
                 error = err;
                 return true;
-            } 
+            }
         );
 
         //Assert
@@ -134,7 +134,7 @@ describe('readArtifactCommand', () => {
         { useWorkflow: false, useBeforeRequest: false, useAfterRequest: false, expectUseLegacy: false },
         { useWorkflow: false, useBeforeRequest: true, useAfterRequest: false, expectUseLegacy: true },
         { useWorkflow: false, useBeforeRequest: false, useAfterRequest: true, expectUseLegacy: true },
-        { useWorkflow: true, useBeforeRequest: false, useAfterRequest: false, expectUseLegacy: false }
+        { useWorkflow: true, useBeforeRequest: false, useAfterRequest: false, expectUseLegacy: false },
     ].forEach(({ useWorkflow, useBeforeRequest, useAfterRequest, expectUseLegacy }) => {
         it(`Use Legacy (${expectUseLegacy}): useWorkflow ${useWorkflow}, useBeforeRequest ${useBeforeRequest}, useAfterRequest ${useAfterRequest}`, async () => {
             // Arrange
@@ -181,7 +181,7 @@ describe('readArtifactCommand', () => {
         await readArtifactCommand(
             artifactMock.object(),
             artifactManagerMock.object(),
-            telemetryActivityMock.object(),
+            telemetryActivityMock.object()
         );
     }
 

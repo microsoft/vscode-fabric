@@ -9,7 +9,7 @@ type TelemetryEventNames = {
 };
 
 export async function openNotebookInSynapse(
-    telemetryService: TelemetryService,    
+    telemetryService: TelemetryService,
     treeNode: NotebookTreeNode): Promise<void> {
     const targetUrl = await treeNode.getExternalUri();
 

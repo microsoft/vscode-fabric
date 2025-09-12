@@ -4,7 +4,7 @@ export class FabricExtensionServiceCollection implements IFabricExtensionService
     public constructor(
         public readonly artifactManager: IArtifactManager,
         public readonly workspaceManager: IWorkspaceManager,
-        public readonly apiClient: IFabricApiClient,
+        public readonly apiClient: IFabricApiClient
     ) {
     }
 }

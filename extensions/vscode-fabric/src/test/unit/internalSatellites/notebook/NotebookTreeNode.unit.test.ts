@@ -5,30 +5,30 @@ import { Mock } from 'moq.ts';
 import { NotebookTreeNode } from '../../../../internalSatellites/notebook/NotebookTreeNode';
 import { IArtifact } from '@microsoft/vscode-fabric-api';
 
-describe('NotebookTreeNode', function() {
+describe('NotebookTreeNode', function () {
     let contextMock: Mock<vscode.ExtensionContext>;
     let artifact: IArtifact;
     let node: NotebookTreeNode;
 
-    before(function() {
+    before(function () {
         // No global setup needed
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         contextMock = new Mock<vscode.ExtensionContext>();
         artifact = { id: 'notebook-123', workspaceId: 'ws1' } as IArtifact;
         node = new NotebookTreeNode(contextMock.object(), artifact);
     });
 
-    afterEach(function() {
+    afterEach(function () {
         // No teardown needed
     });
 
-    after(function() {
+    after(function () {
         // No global teardown needed
     });
 
-    it('getExternalUri should return the correct URI for the notebook', async function() {
+    it('getExternalUri should return the correct URI for the notebook', async function () {
         const expectedUri = `${vscode.env.uriScheme}://SynapseVSCode.synapse?workspaceId=ws1&artifactId=notebook-123`;
 
         // Act

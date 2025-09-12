@@ -13,7 +13,6 @@ import { MockFabricExtensionManager } from '../../../extensionManager/MockFabric
 import { MockConsoleLogger } from '@microsoft/vscode-fabric-util';
 import { Mock } from 'moq.ts';
 
-
 interface ILocalProjectInformationTesting extends ILocalProjectInformation {
     displayName: string;
 }
@@ -58,9 +57,9 @@ describe('LocalProjectTreeDataProvider unit tests', () => {
         };
 
         const manager = MockFabricExtensionManager.create(satelliteExtensionIds);
-        manager.addExtension(TestExtension.create(satelliteExtensionIds[0], [ 'type1' ], true));
-        manager.addExtension(TestExtension.create(satelliteExtensionIds[1], [ 'type2' ], true));
-        manager.addExtension(TestExtension.create(satelliteExtensionIds[2], [ 'type3' ], true));
+        manager.addExtension(TestExtension.create(satelliteExtensionIds[0], ['type1'], true));
+        manager.addExtension(TestExtension.create(satelliteExtensionIds[1], ['type2'], true));
+        manager.addExtension(TestExtension.create(satelliteExtensionIds[2], ['type3'], true));
 
         const provider = new LocalProjectTreeDataProvider(mockContext.object(), discovery, manager, logger, null);
         const nodes = await provider.getChildren(undefined);
@@ -72,7 +71,7 @@ describe('LocalProjectTreeDataProvider unit tests', () => {
         let childNodes = await provider.getChildren(nodes[0]);
         assert.equal(childNodes.length, 1, 'child nodes count');
         validateNode(childNodes[0], discovery.projects.items[1]);
-        
+
         childNodes = await provider.getChildren(nodes[1]);
         assert.equal(childNodes.length, 2, 'child nodescount ');
         validateNode(childNodes[0], discovery.projects.items[2]);
@@ -88,7 +87,7 @@ describe('LocalProjectTreeDataProvider unit tests', () => {
         };
 
         const manager = MockFabricExtensionManager.create(satelliteExtensionIds);
-        manager.addExtension(TestExtension.create(satelliteExtensionIds[0], [ 'type1' ], true));
+        manager.addExtension(TestExtension.create(satelliteExtensionIds[0], ['type1'], true));
 
         const provider = new LocalProjectTreeDataProvider(mockContext.object(), discovery, manager, logger, null);
         const nodes = await provider.getChildren(undefined);
@@ -103,7 +102,7 @@ describe('LocalProjectTreeDataProvider unit tests', () => {
         };
 
         const manager = MockFabricExtensionManager.create(satelliteExtensionIds);
-        manager.addExtension(TestExtension.create(satelliteExtensionIds[0], [ 'type1' ], true));
+        manager.addExtension(TestExtension.create(satelliteExtensionIds[0], ['type1'], true));
 
         const provider = new LocalProjectTreeDataProvider(mockContext.object(), discovery, manager, logger, null);
 

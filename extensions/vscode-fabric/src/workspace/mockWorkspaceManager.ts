@@ -32,19 +32,19 @@ export const unfeaturedTreeViewBaseArtifactType = 'UnfeaturedMockArtifact';
  */
 export class MockWorkspaceManager extends WorkspaceManagerBase {
     public currentWorkspaces: IWorkspace[] = [];
-    public mapArtifacts: Map<string, IArtifact[]> = new Map<string, IArtifact[]>(); // workspace id=>Artifacts 
+    public mapArtifacts: Map<string, IArtifact[]> = new Map<string, IArtifact[]>(); // workspace id=>Artifacts
     public static numWorkspaceItems: number = 10;
-    
+
     constructor(storage: IFabricExtensionsSettingStorage,
         account: IAccountProvider,
         fabricEnvironmentProvider: IFabricEnvironmentProvider,
         apiClient: IFabricApiClient,
         gitOperator: IGitOperator,
-        logger: ILogger,
+        logger: ILogger
     ) {
         super(storage, new LocalFolderManager(storage, fabricEnvironmentProvider), account, fabricEnvironmentProvider, apiClient, gitOperator, logger);
 
-        const workspaceIds: string[] = Array.from({length: 4}, (e, i) => `wspaceId${i}`);
+        const workspaceIds: string[] = Array.from({ length: 4 }, (e, i) => `wspaceId${i}`);
         workspaceIds.push(mockGuidWorkspaceId);
         for (let i = 0; i < workspaceIds.length; i++) {
             const workspace: IWorkspace = {
@@ -52,7 +52,7 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
                 displayName: 'MockWorkspace' + i,
                 description: 'mockdescription' + i,
                 type: 'MockType',
-                capacityId: '2'
+                capacityId: '2',
             };
             this.currentWorkspaces.push(workspace);
             this.mapArtifacts.set(workspace.objectId, []);
@@ -60,7 +60,7 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
 
         const workspacesWithArtifacts: string[] = ['wspaceId3', mockGuidWorkspaceId];
         workspacesWithArtifacts.forEach((workspaceId) => {
-            const artifactIds: string[] = Array.from({length: MockWorkspaceManager.numWorkspaceItems - 1}, (e, i) => i + '');
+            const artifactIds: string[] = Array.from({ length: MockWorkspaceManager.numWorkspaceItems - 1 }, (e, i) => i + '');
             artifactIds.push(mockGuidArtifactId);
             const arrArtifacts: IArtifact[] = [];
             artifactIds.forEach((artifactId) => {
@@ -71,7 +71,7 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
                     displayName: `${workspaceId} MockItem${artifactId}`,
                     workspaceId: `wspaceId${artifactId}`,
                     attributes: { runtime: RuntimeType.DotNet },
-                    fabricEnvironment: fabricEnvironmentProvider.getCurrent().env
+                    fabricEnvironment: fabricEnvironmentProvider.getCurrent().env,
                 };
                 arrArtifacts.push(artifact);
             });
@@ -113,7 +113,7 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
         if (!this.mapArtifacts.has(art.workspaceId)) {
             this.mapArtifacts.set(art.workspaceId, []);
         }
-        
+
         const artifacts = this.mapArtifacts.get(art.workspaceId)!;
         artifacts.push(art);
     }
@@ -137,7 +137,7 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
             displayName: workspaceName,
             description: workspaceName + 'description',
             type: 'MockType',
-            capacityId: '2'
+            capacityId: '2',
         };
 
         // Add artifacts to the workspace
@@ -152,7 +152,7 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
                     displayName: `${workspaceName} ${artifactType} ${j}`,
                     workspaceId: `wspaceId${i}`,
                     attributes: { runtime: RuntimeType.DotNet },
-                    fabricEnvironment: this.fabricEnvironmentProvider.getCurrent().env
+                    fabricEnvironment: this.fabricEnvironmentProvider.getCurrent().env,
                 };
                 artifacts.push(artifact);
             }
@@ -172,7 +172,7 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
             displayName: workspaceName,
             description: `${workspaceName} description`,
             type: 'MockType',
-            capacityId: '2'
+            capacityId: '2',
         };
 
         // Add artifacts to the workspace

@@ -27,7 +27,7 @@ export class FakeFabricApiClient extends FabricApiClient implements IFakeFabricA
         // Create a custom pipeline factory that uses our callback
         const customPipelineFactory = () => {
             const pipeline = azApi.createPipelineFromOptions({
-                retryOptions: { maxRetries: 0 }
+                retryOptions: { maxRetries: 0 },
             });
 
             // Override the sendRequest method of the pipeline
@@ -57,7 +57,7 @@ export class FakeFabricApiClient extends FabricApiClient implements IFakeFabricA
                 status: status,
                 headers: headers,
                 bodyAsText: JSON.stringify(body),
-                request: request
+                request: request,
             };
         };
     }
@@ -73,7 +73,7 @@ export class FakeFabricApiClient extends FabricApiClient implements IFakeFabricA
                 status: status,
                 headers: headers,
                 bodyAsText: text,
-                request: request
+                request: request,
             };
         };
     }

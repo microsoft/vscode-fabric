@@ -12,7 +12,7 @@ export class FabricUriHandler implements vscode.UriHandler {
     // This function will get run when something redirects to VS Code
     // with your extension id as the authority.
     /**
-   * 
+   *
    * vscode://fabric.vscode-fabric/?workspaceId=1e9dc47d-a7a9-4f99-a339-0c4a1e7e989c&artifactId=39fa26de-0355-48df-b79a-358849079f07
             <ActionButton
                 text="Open in VS Code"
@@ -36,10 +36,10 @@ export class FabricUriHandler implements vscode.UriHandler {
         this.telemetry = telemetry;
         this.logger = logger;
     }
-    
+
     handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
         const activity = new TelemetryActivity('handle-uri', this.telemetry);
-        return doFabricAction({fabricLogger: this.logger, telemetryActivity: activity}, async () => {
+        return doFabricAction({ fabricLogger: this.logger, telemetryActivity: activity }, async () => {
             const searchParams = new URLSearchParams(uri.query);
             const workspaceId = searchParams.get('workspaceId') || '';
             const artifactId = searchParams.get('artifactId') || '';
@@ -50,7 +50,7 @@ export class FabricUriHandler implements vscode.UriHandler {
                 'targetEnvironment': environmentId,
                 'workspaceId': workspaceId,
                 'artifactId': artifactId,
-                'uriQuery': uri.query
+                'uriQuery': uri.query,
             });
 
             if (!isValidWorkspaceId(workspaceId) || !isValidArtifactId(artifactId)) {
@@ -80,7 +80,7 @@ export class FabricUriHandler implements vscode.UriHandler {
             }
             activity.addOrUpdateProperties(
                 {
-                    'openArtifact': openArtifact.toString()
+                    'openArtifact': openArtifact.toString(),
                 }
             );
 

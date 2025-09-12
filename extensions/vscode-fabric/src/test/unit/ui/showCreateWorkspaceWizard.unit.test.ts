@@ -20,8 +20,8 @@ describe('showCreateWorkspaceWizard', () => {
 
     let capturedTelemetryProps: any = undefined;
 
-    const baseCapacity: ICapacity= { 
-        displayName: 'test capacity - display name', 
+    const baseCapacity: ICapacity = {
+        displayName: 'test capacity - display name',
         id: 'test capacity - id',
         state: 'Active',
         region: 'test capacity - region',
@@ -52,7 +52,7 @@ describe('showCreateWorkspaceWizard', () => {
                     description: expectedWorkspace.description,
                     type: expectedWorkspace.type,
                     capacityId: expectedWorkspace.capacityId,
-                }
+                },
             }));
 
         telemetryServiceMock.setup(x =>
@@ -116,7 +116,7 @@ describe('showCreateWorkspaceWizard', () => {
         assert.strictEqual(capturedTelemetryProps.workspaceId, expectedWorkspace.objectId, 'workspaceId');
         assert.strictEqual(capturedTelemetryProps.fabricWorkspaceName, expectedWorkspace.displayName, 'fabricWorkspaceName');
     });
-    
+
     it('Success, no capacities', async () => {
         // Arrange
         capacityManagerMock.setup(m => m.listCapacities()).returns(Promise.resolve([]));
@@ -278,7 +278,7 @@ describe('showCreateWorkspaceWizard', () => {
                 assert.ok(err instanceof FabricError, 'Should throw a FabricError');
                 error = err;
                 return true;
-            } 
+            }
         );
 
         // Assert
@@ -297,7 +297,7 @@ describe('showCreateWorkspaceWizard', () => {
             workspaceManagerMock.object(),
             capacityManagerMock.object(),
             telemetryServiceMock.object(),
-            loggerMock.object(),
+            loggerMock.object()
         );
     }
 

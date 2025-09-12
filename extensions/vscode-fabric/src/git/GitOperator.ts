@@ -37,15 +37,15 @@ export class GitOperator implements IGitOperator {
         }
 
         try {
-            const args: string[] = ['clone', url, folderPath.fsPath, '--progress' ];
+            const args: string[] = ['clone', url, folderPath.fsPath, '--progress'];
             if (branchName) {
                 args.push('-b', branchName);
             }
-    
+
             await vscode.window.withProgress({
                 location: vscode.ProgressLocation.Notification,
                 title: vscode.l10n.t('Cloning git repository "{0}"...', url),
-                cancellable: true
+                cancellable: true,
             }, async (progress, token) => {
                 const progressReporter = new GitCloneProgressReporter(progress);
                 return this.spawnProcess(this.gitPath(), args, progressReporter, token);
@@ -66,7 +66,7 @@ export class GitOperator implements IGitOperator {
             const selection = await vscode.window.showErrorMessage(
                 `Fabric: ${message}`,
                 { modal: true },
-                showLogText,
+                showLogText
             );
             if (selection === showLogText) {
                 this.logger.show();
@@ -152,7 +152,7 @@ class GitCloneProgressReporter {
         }
 
         if (this.totalProgress !== this.previousProgress) {
-            this.progress?.report({ increment: this.totalProgress - this.previousProgress});
+            this.progress?.report({ increment: this.totalProgress - this.previousProgress });
             this.previousProgress = this.totalProgress;
         }
     }

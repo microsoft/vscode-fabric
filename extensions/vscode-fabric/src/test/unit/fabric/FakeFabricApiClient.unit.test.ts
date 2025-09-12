@@ -17,7 +17,7 @@ function createStrictMock<T extends object>(mock: Mock<T>): T {
                 throw new Error(`Access to unmocked member: ${String(prop)}`);
             }
             return Reflect.get(target, prop, receiver);
-        }
+        },
     }) as T;
     return strictMock;
 }
@@ -55,7 +55,7 @@ describe('FakeFabricApiClient', () => {
 
     it('should intercept requests and return JSON response using respondWithJson', async () => {
         authMock.setup(x => x.getToken()).returnsAsync('test-token');
-        
+
         const testResponse = { message: 'Hello from fake API', id: 123 };
         client.respondWithJson(200, testResponse);
 
@@ -68,7 +68,7 @@ describe('FakeFabricApiClient', () => {
 
     it('should intercept requests and return text response using respondWithText', async () => {
         authMock.setup(x => x.getToken()).returnsAsync('test-token');
-        
+
         client.respondWithText(404, 'Not Found');
 
         const result = await client.sendRequest({ pathTemplate: '/api/missing' });
@@ -80,22 +80,22 @@ describe('FakeFabricApiClient', () => {
 
     it('should allow custom request inspection using respondWith', async () => {
         authMock.setup(x => x.getToken()).returnsAsync('test-token');
-        
+
         let capturedRequest: azApi.PipelineRequest | undefined;
-        
+
         client.respondWith((request) => {
             capturedRequest = request;
             return {
                 status: 200,
                 headers: azApi.createHttpHeaders({ 'x-custom': 'response' }),
                 bodyAsText: 'Custom response',
-                request: request
+                request: request,
             };
         });
 
-        await client.sendRequest({ 
+        await client.sendRequest({
             pathTemplate: '/api/custom',
-            headers: { 'x-test-header': 'test-value' }
+            headers: { 'x-test-header': 'test-value' },
         });
 
         // Verify the request was captured and contains expected data
@@ -107,7 +107,7 @@ describe('FakeFabricApiClient', () => {
 
     it('should throw specified error using throwOnSend', async () => {
         authMock.setup(x => x.getToken()).returnsAsync('test-token');
-        
+
         const testError = new AbortError('Connection timeout');
         client.throwOnSend(testError);
 
@@ -120,16 +120,16 @@ describe('FakeFabricApiClient', () => {
 
     it('should still process requests through base FabricApiClient logic', async () => {
         authMock.setup(x => x.getToken()).returnsAsync('my-auth-token');
-        
+
         let receivedAuthHeader: string | undefined;
-        
+
         client.respondWith((request) => {
             receivedAuthHeader = request.headers.get('authorization');
             return {
                 status: 200,
                 headers: azApi.createHttpHeaders({}),
                 bodyAsText: '{}',
-                request: request
+                request: request,
             };
         });
 
@@ -141,22 +141,22 @@ describe('FakeFabricApiClient', () => {
 
     it('should handle DELETE requests and remove decompression policy', async () => {
         authMock.setup(x => x.getToken()).returnsAsync('test-token');
-        
+
         let requestMethod: string | undefined;
-        
+
         client.respondWith((request) => {
             requestMethod = request.method;
             return {
                 status: 204,
                 headers: azApi.createHttpHeaders({}),
                 bodyAsText: '',
-                request: request
+                request: request,
             };
         });
 
-        await client.sendRequest({ 
+        await client.sendRequest({
             pathTemplate: '/api/delete-test',
-            method: 'DELETE'
+            method: 'DELETE',
         });
 
         // Verify DELETE request was processed

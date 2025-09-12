@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { IApiClientResponse, IArtifact, IItemDefinition, IWorkspace, IApiClientRequestOptions, IFabricApiClient, OperationRequestType, IArtifactHandler, IArtifactManager, ArtifactTreeNode, IWorkspaceManager, } from '@microsoft/vscode-fabric-api';
+import { IApiClientResponse, IArtifact, IItemDefinition, IWorkspace, IApiClientRequestOptions, IFabricApiClient, OperationRequestType, IArtifactHandler, IArtifactManager, ArtifactTreeNode, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { doFabricAction, FabricError, IFabricEnvironmentProvider, ILogger, sleep, TelemetryActivity, TelemetryService, withErrorHandling, UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { DefaultArtifactHandler } from '../DefaultArtifactHandler';
 import { fabricViewWorkspace } from '../constants';
@@ -9,12 +9,14 @@ import { FabricWorkspaceDataProvider } from '../workspace/treeView';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { handleArtifactCreationErrorAndThrow, handleLongRunningOperation, succeeded } from '../utilities';
 import { formatErrorResponse } from '../utilities';
+import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 
 export class ArtifactManager implements IArtifactManagerInternal {
     protected disposables: vscode.Disposable[] = [];
 
     constructor(protected extensionManager: IFabricExtensionManagerInternal,
         protected workspaceManager: IWorkspaceManager,
+        protected workspaceFilterManager: IWorkspaceFilterManager,
         protected fabricEnvironmentProvider: IFabricEnvironmentProvider,
         protected apiClient: IFabricApiClient,
         protected logger: ILogger,
@@ -85,7 +87,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
     public async createArtifactDeprecated(artifact: IArtifact): Promise<IApiClientResponse> {
         return await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
-            title: vscode.l10n.t('Creating "{0}"', artifact.displayName)
+            title: vscode.l10n.t('Creating "{0}"', artifact.displayName),
         }, async (progress, token) => {
             // todo: pass progress and token to satellite extensions
             progress.report({ increment: 0 });
@@ -103,7 +105,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
                         displayName: artifact.displayName,
                         description: artifact.description,
                         type: artifact.type,
-                    }
+                    },
                 };
 
                 // Get the custom Artifact Handler class to which we delegate any custom CRUD operations
@@ -129,7 +131,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
                 if (response.parsedBody?.id) {
                     artifact.id = response.parsedBody.id;
                     activity.addOrUpdateProperties({
-                        'artifactId': artifact.id
+                        'artifactId': artifact.id,
                     });
                 }
                 if (artifactHandler?.onAfterRequest) {
@@ -164,7 +166,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
                 displayName: artifact.displayName,
                 description: artifact.description,
                 type: artifact.type,
-            }
+            },
         };
 
         // Get the custom Artifact Handler to delegate any custom CRUD operations
@@ -182,25 +184,46 @@ export class ArtifactManager implements IArtifactManagerInternal {
         return response;
     }
 
-    public async createArtifactWithDefinition(artifact: IArtifact, definition: IItemDefinition): Promise<IApiClientResponse> {
-        const options: IApiClientRequestOptions =
-        {
+    public async createArtifactWithDefinition(artifact: IArtifact, definition: IItemDefinition, folder: vscode.Uri): Promise<IApiClientResponse> {
+        let options: IApiClientRequestOptions = {
             method: 'POST',
             pathTemplate: `/v1/workspaces/${artifact.workspaceId}/items`,
             headers: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'Content-Type': 'application/json; charset=utf-8',
             },
-            body: { 
+            body: {
                 displayName: artifact.displayName,
                 description: artifact.description,
                 type: artifact.type,
-                definition
-            }
+                definition,
+            },
         };
 
+        const artifactHandler = this.getArtifactHandler(artifact);
+
+        // Allow handler to customize request before sending create-with-definition
+        if (artifactHandler?.createWithDefinitionWorkflow?.onBeforeCreateWithDefinition) {
+            options = await artifactHandler.createWithDefinitionWorkflow.onBeforeCreateWithDefinition(
+                artifact,
+                definition,
+                folder,
+                options
+            );
+        }
+
         const response = await this.apiClient.sendRequest(options);
-        return handleLongRunningOperation(this.apiClient, response);    
+        const finalResponse = await handleLongRunningOperation(this.apiClient, response, this.logger);
+
+        if (artifactHandler?.createWithDefinitionWorkflow?.onAfterCreateWithDefinition) {
+            await artifactHandler.createWithDefinitionWorkflow.onAfterCreateWithDefinition(
+                artifact,
+                definition,
+                folder,
+                finalResponse
+            );
+        }
+        return finalResponse;
     }
 
     public async getArtifact(artifact: IArtifact): Promise<IApiClientResponse> {
@@ -208,7 +231,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
         const pathTemplate = `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}`;
         let options: IApiClientRequestOptions = {
             method: 'GET',
-            pathTemplate: pathTemplate
+            pathTemplate: pathTemplate,
         };
 
         // Get the custom Artifact Handler to delegate any custom CRUD operations
@@ -223,7 +246,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
     public async listArtifacts(workspace: IWorkspace): Promise<IArtifact[]> {
         const options: IApiClientRequestOptions = {
             method: 'GET',
-            pathTemplate: `/v1/workspaces/${workspace.objectId}/items`
+            pathTemplate: `/v1/workspaces/${workspace.objectId}/items`,
         };
 
         const response = await this.apiClient.sendRequest(options);
@@ -248,7 +271,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
     }
 
     public async updateArtifact(artifact: IArtifact, body: Map<string, string>): Promise<IApiClientResponse> {
-        const options: IApiClientRequestOptions =
+        let options: IApiClientRequestOptions =
         {
             method: 'PATCH',
             pathTemplate: `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}`,
@@ -256,37 +279,67 @@ export class ArtifactManager implements IArtifactManagerInternal {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'Content-Type': 'application/json; charset=utf-8',
             },
-            body: Object.fromEntries(body)
+            body: Object.fromEntries(body),
         };
 
+        const artifactHandler = this.getArtifactHandler(artifact);
+        const newName = body.get('displayName');
+        if (newName && artifactHandler?.renameWorkflow?.onBeforeRename) {
+            options = await artifactHandler.renameWorkflow.onBeforeRename(artifact, newName, options);
+        }
+
         const response = await this.apiClient.sendRequest(options);
+
+        if (newName && artifactHandler?.renameWorkflow?.onAfterRename) {
+            await artifactHandler.renameWorkflow.onAfterRename(artifact, newName, response);
+        }
         return response;
     }
 
     public async deleteArtifact(artifact: IArtifact): Promise<IApiClientResponse> {
-        const options: IApiClientRequestOptions =
+        let options: IApiClientRequestOptions =
         {
             method: 'DELETE',
-            pathTemplate: `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}`
+            pathTemplate: `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}`,
         };
 
+        const artifactHandler = this.getArtifactHandler(artifact);
+        if (artifactHandler?.deleteWorkflow?.onBeforeDelete) {
+            options = await artifactHandler.deleteWorkflow.onBeforeDelete(artifact, options);
+        }
+
         const response = await this.apiClient.sendRequest(options);
+
+        if (artifactHandler?.deleteWorkflow?.onAfterDelete) {
+            await artifactHandler.deleteWorkflow.onAfterDelete(artifact, response);
+        }
         return response;
     }
 
     public async getArtifactDefinition(artifact: IArtifact): Promise<IApiClientResponse> {
-        const options: IApiClientRequestOptions =
+        let options: IApiClientRequestOptions =
         {
             method: 'POST',
-            pathTemplate: `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}/getDefinition`
+            pathTemplate: `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}/getDefinition`,
         };
 
+        const artifactHandler = this.getArtifactHandler(artifact);
+        const targetFolder = await this.workspaceManager.getLocalFolderForArtifact(artifact, { createIfNotExists: false });
+        if (artifactHandler?.getDefinitionWorkflow?.onBeforeGetDefinition && targetFolder) {
+            options = await artifactHandler.getDefinitionWorkflow.onBeforeGetDefinition(artifact, targetFolder, options);
+        }
+
         const response = await this.apiClient.sendRequest(options);
-        return handleLongRunningOperation(this.apiClient, response);
+        const finalResponse = await handleLongRunningOperation(this.apiClient, response, this.logger);
+
+        if (artifactHandler?.getDefinitionWorkflow?.onAfterGetDefinition && targetFolder) {
+            await artifactHandler.getDefinitionWorkflow.onAfterGetDefinition(artifact, targetFolder, finalResponse);
+        }
+        return finalResponse;
     }
 
-    public async updateArtifactDefinition(artifact: IArtifact, definition: IItemDefinition): Promise<IApiClientResponse> {
-        const options: IApiClientRequestOptions =
+    public async updateArtifactDefinition(artifact: IArtifact, definition: IItemDefinition, folder: vscode.Uri): Promise<IApiClientResponse> {
+        let options: IApiClientRequestOptions =
         {
             method: 'POST',
             pathTemplate: `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}/updateDefinition`,
@@ -294,11 +347,32 @@ export class ArtifactManager implements IArtifactManagerInternal {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'Content-Type': 'application/json; charset=utf-8',
             },
-            body: { definition }
+            body: { definition },
         };
 
+        const artifactHandler = this.getArtifactHandler(artifact);
+        // Allow handler to customize request before sending update definition
+        if (artifactHandler?.updateDefinitionWorkflow?.onBeforeUpdateDefinition && folder) {
+            options = await artifactHandler.updateDefinitionWorkflow.onBeforeUpdateDefinition(
+                artifact,
+                definition,
+                folder,
+                options
+            );
+        }
+
         const response = await this.apiClient.sendRequest(options);
-        return handleLongRunningOperation(this.apiClient, response);    
+        const finalResponse = await handleLongRunningOperation(this.apiClient, response, this.logger);
+
+        if (artifactHandler?.updateDefinitionWorkflow?.onAfterUpdateDefinition && folder) {
+            await artifactHandler.updateDefinitionWorkflow.onAfterUpdateDefinition(
+                artifact,
+                definition,
+                folder,
+                finalResponse
+            );
+        }
+        return finalResponse;
     }
 
     public shouldUseDeprecatedCommand(artifactType: string, operationRequestType: OperationRequestType): boolean {
@@ -327,7 +401,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         'Content-Type': 'application/json; charset=utf-8',
                     },
-                    body: Object.fromEntries(body)
+                    body: Object.fromEntries(body),
                 };
 
                 const artifactHandler = this.getArtifactHandler(artifact);
@@ -343,12 +417,12 @@ export class ArtifactManager implements IArtifactManagerInternal {
                     'workspaceId': artifact.workspaceId,
                     'artifactId': artifact.id,
                     'fabricArtifactName': artifact.displayName,
-                    'itemType': artifact.type
+                    'itemType': artifact.type,
                 });
                 if (response.status !== 200) {
                     activity.addOrUpdateProperties({
                         'requestId': response.parsedBody?.requestId,
-                        'errorCode': response.parsedBody?.errorCode
+                        'errorCode': response.parsedBody?.errorCode,
                     });
                     throw new Error(`UpdateArtifact failed: ${response.parsedBody?.error}`);
                 }
@@ -383,7 +457,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
         const options: IApiClientRequestOptions =
         {
             method: 'GET',
-            pathTemplate: pathTemplate
+            pathTemplate: pathTemplate,
         };
         if (beforeaction) {
             await beforeaction(artifact, options);
@@ -434,15 +508,18 @@ export class ArtifactManager implements IArtifactManagerInternal {
 
     public async openArtifact(artifact: IArtifact): Promise<void> {
         const artifactHandler = this.getArtifactHandler(artifact);
-        if (artifactHandler?.onOpen) {                    
-            const targetFolder: vscode.Uri | undefined = await this.workspaceManager.getLocalFolderForArtifact(artifact, { createIfNotExists: true });
-            if (!targetFolder) {
-                throw new UserCancelledError('localFolderSelection');
-            }
-            const openSuccessful: boolean = await artifactHandler.onOpen(artifact, { folder: targetFolder });
-            if (openSuccessful) {
-                await vscode.commands.executeCommand('vscode.openFolder', targetFolder); // default to open in current window
-            }
+        if (!artifactHandler?.onOpen) {
+            return;
+        }
+
+        const targetFolder: vscode.Uri | undefined = await this.workspaceManager.getLocalFolderForArtifact(artifact, { createIfNotExists: true });
+        if (!targetFolder) {
+            throw new UserCancelledError('localFolderSelection');
+        }
+        const openSuccessful: boolean = await artifactHandler.onOpen(artifact, { folder: targetFolder });
+        await this.workspaceFilterManager.addWorkspaceToFilters(artifact.workspaceId); // make sure the workspace is in the filter list
+        if (openSuccessful) {
+            await vscode.commands.executeCommand('vscode.openFolder', targetFolder); // default to open in current window
         }
     }
 }

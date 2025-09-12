@@ -13,24 +13,27 @@ import { verifyAddOrUpdateProperties, verifyAddOrUpdatePropertiesNever } from '.
 import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { ICapacityManager } from '../../../CapacityManager';
 import * as showWorkspaceQuickPickModule from '../../../ui/showWorkspaceQuickPick';
+import { IWorkspaceFilterManager } from '../../../workspace/WorkspaceFilterManager';
 
-describe('promptForArtifactParameters', function() {
+describe('promptForArtifactParameters', function () {
     let contextMock: Mock<vscode.ExtensionContext>;
     let itemsProviderMock: Mock<ICreateItemsProvider>;
     let workspaceManagerMock: Mock<IWorkspaceManager>;
     let capacityManagerMock: Mock<ICapacityManager>;
+    let workspaceFilterManagerMock: Mock<IWorkspaceFilterManager>;
     let telemetryServiceMock: Mock<TelemetryService>;
     let loggerMock: Mock<ILogger>;
     let showWorkspaceQuickPickStub: sinon.SinonStub;
-    
+
     let showQuickPickStub: sinon.SinonStub;
     let showInputBoxStub: sinon.SinonStub;
 
-    beforeEach(function() {
+    beforeEach(function () {
         contextMock = new Mock<vscode.ExtensionContext>();
         itemsProviderMock = new Mock<ICreateItemsProvider>();
         workspaceManagerMock = new Mock<IWorkspaceManager>();
         capacityManagerMock = new Mock<ICapacityManager>();
+        workspaceFilterManagerMock = new Mock<IWorkspaceFilterManager>();
         telemetryServiceMock = new Mock<TelemetryService>();
         loggerMock = new Mock<ILogger>();
 
@@ -43,29 +46,29 @@ describe('promptForArtifactParameters', function() {
         showInputBoxStub = sinon.stub(vscode.window, 'showInputBox');
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sinon.restore();
     });
 
-    it('Item type selection is alphabetized by display name', async function() {
+    it('Item type selection is alphabetized by display name', async function () {
         // Arrange
         const itemA: ItemCreationDetails = {
             type: 'type1',
             displayName: 'Alpha',
             description: 'Create type1',
-            creationCapability: CreationCapability.supported
+            creationCapability: CreationCapability.supported,
         };
         const itemC: ItemCreationDetails = {
             type: 'type2',
             displayName: 'Charlie',
             description: 'Create type2',
-            creationCapability: CreationCapability.supported
+            creationCapability: CreationCapability.supported,
         };
         const itemB: ItemCreationDetails = {
             type: 'type3',
             displayName: 'Bravo',
             description: 'Create type3',
-            creationCapability: CreationCapability.supported
+            creationCapability: CreationCapability.supported,
         };
         // Provide items out of order
         itemsProviderMock
@@ -93,7 +96,7 @@ describe('promptForArtifactParameters', function() {
         assert.deepStrictEqual(displayNames, sorted, 'Items should be alphabetized by displayName');
     });
 
-    it('User cancels type selection', async function() {
+    it('User cancels type selection', async function () {
         // Arrange
         itemsProviderMock.setup(x => x.getItemsForCreate(It.IsAny())).returns([]);
         showQuickPickStub.resolves(undefined);
@@ -105,13 +108,13 @@ describe('promptForArtifactParameters', function() {
         assert(!result, 'Result should be undefined');
     });
 
-    it('User cancels name', async function() {
+    it('User cancels name', async function () {
         // Arrange
         const itemDetails: ItemCreationDetails = {
             type: 'Notebook',
             displayName: 'Notebook',
             description: 'Create a new Notebook',
-            creationCapability: CreationCapability.supported
+            creationCapability: CreationCapability.supported,
         };
         itemsProviderMock.setup(x => x.getItemsForCreate(It.IsAny())).returns([itemDetails]);
         showQuickPickStub.resolves({ details: itemDetails, label: 'Notebook' });
@@ -130,23 +133,24 @@ describe('promptForArtifactParameters', function() {
             itemsProviderMock.object(),
             workspaceManagerMock.object(),
             capacityManagerMock.object(),
+            workspaceFilterManagerMock.object(),
             telemetryServiceMock.object(),
             loggerMock.object()
         );
     }
 });
 
-describe('createArtifactCommand', function() {
+describe('createArtifactCommand', function () {
     let artifactManagerMock: Mock<IArtifactManager>;
     let extensionManagerMock: Mock<IFabricExtensionManagerInternal>;
-    let artifactMock: Mock<IArtifact>;    
+    let artifactMock: Mock<IArtifact>;
     let telemetryActivityMock: Mock<TelemetryActivity<CoreTelemetryEventNames>>;
     let loggerMock: Mock<ILogger>;
     let dataProviderMock: Mock<FabricWorkspaceDataProvider>;
 
     let showInformationMessageStub: sinon.SinonStub;
 
-    beforeEach(function() {
+    beforeEach(function () {
         artifactManagerMock = new Mock<IArtifactManager>();
         extensionManagerMock = new Mock<IFabricExtensionManagerInternal>();
         artifactMock = new Mock<IArtifact>();
@@ -167,14 +171,14 @@ describe('createArtifactCommand', function() {
         artifactManagerMock.setup(x => x.createArtifact(It.IsAny(), It.IsAny())).returns(Promise.resolve({ status: 200, parsedBody: { id: 'test-created-artifact-id' } } as IApiClientResponse));
         extensionManagerMock.setup(x => x.getArtifactHandler(It.IsAny())).returns(undefined);
 
-        showInformationMessageStub = sinon.stub(vscode.window, 'showInformationMessage');        
+        showInformationMessageStub = sinon.stub(vscode.window, 'showInformationMessage');
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sinon.restore();
     });
 
-    it('No custom wizard', async function() {
+    it('No custom wizard', async function () {
         // Arrange
 
         // Act
@@ -210,7 +214,7 @@ describe('createArtifactCommand', function() {
         );
     });
 
-    it('Custom wizard', async function() {
+    it('Custom wizard', async function () {
         // Arrange
         artifactMock.setup(x => x.type).returns('Notebook');
 
@@ -232,7 +236,7 @@ describe('createArtifactCommand', function() {
         // Assert
         createArtifactWorkflowMock.verify(
             x => x.showCreate(
-                artifactMock.object(),
+                artifactMock.object()
             ),
             Times.Once()
         );
@@ -245,10 +249,10 @@ describe('createArtifactCommand', function() {
         );
     });
 
-    it('Custom wizard, cancel', async function() {
+    it('Custom wizard, cancel', async function () {
         // Arrange
         artifactMock.setup(x => x.type).returns('Notebook');
-        
+
         // Mock ICreateArtifactWorkflow and its showCreate method
         const createArtifactWorkflowMock = new Mock<{ showCreate: (artifact: IArtifact) => Promise<any> }>();
         createArtifactWorkflowMock
@@ -270,13 +274,13 @@ describe('createArtifactCommand', function() {
                 assert.ok(err.stepName, 'Should have a stepName');
                 assert.strictEqual(err.stepName!, 'createWorkflow', 'Step name');
                 return true;
-            } 
+            }
         );
 
         // Assert
         createArtifactWorkflowMock.verify(
             x => x.showCreate(
-                artifactMock.object(),
+                artifactMock.object()
             ),
             Times.Once()
         );
@@ -297,7 +301,7 @@ describe('createArtifactCommand', function() {
 
     });
 
-    it('Error handling', async function() {
+    it('Error handling', async function () {
         // Arrange
         const apiClientResponseMock = new Mock<IApiClientResponse>();
         const errorResponseBody = {
@@ -320,7 +324,7 @@ describe('createArtifactCommand', function() {
                 assert.ok(err instanceof FabricError, 'Should throw a FabricError');
                 error = err;
                 return true;
-            } 
+            }
         );
 
         // Assert
@@ -351,8 +355,7 @@ describe('createArtifactCommand', function() {
             extensionManagerMock.object(),
             artifactMock.object(),
             dataProviderMock.object(),
-            telemetryActivityMock.object(),
+            telemetryActivityMock.object()
         );
     }
-
 });

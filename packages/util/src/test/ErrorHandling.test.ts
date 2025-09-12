@@ -26,7 +26,6 @@ describe('ErrorHandling tests', () => {
         assert(fabricError, 'casting as FabricError yields  ' + fabricError);
         logger.logMessagesArray = [];
 
-
         const dialogStub = sinon.stub(vscode.window, 'showInformationMessage').returns(Promise.resolve('Yes'));
         try {
             const fabricError = new FabricError('localized error message', 'error message', { showInUserNotification: 'Information' });
@@ -108,7 +107,6 @@ describe('ErrorHandling tests', () => {
         }
     });
 
-
     it('FabricErrorTest with Promise.Reject()', async () => {
         logger.log('Testing Error()');
         const errorObj = new Error('simple Error() object');
@@ -159,7 +157,7 @@ describe('ErrorHandling tests', () => {
                         // Standard pattern
                         telemetryEvents.push({ eventName: 'extension/error', properties: properties || {}, measurements: measurements || {} });
                     }
-                }
+                },
             };
         });
 
@@ -177,7 +175,7 @@ describe('ErrorHandling tests', () => {
             );
 
             assert(actionExecuted, 'Expected action to be executed');
-            
+
             // Verify telemetry was sent with correct result
             assert(telemetryEvents.length === 1, `Expected 1 telemetry event, got ${telemetryEvents.length}`);
             const event = telemetryEvents[0];
@@ -201,7 +199,7 @@ describe('ErrorHandling tests', () => {
 
             // Test passed if no exception was thrown
             assert(true, 'Canceled operation should be handled gracefully');
-            
+
             // Verify telemetry was sent with correct result and lastStep
             assert(telemetryEvents.length === 1, `Expected 1 telemetry event, got ${telemetryEvents.length}`);
             const event = telemetryEvents[0];
@@ -226,7 +224,7 @@ describe('ErrorHandling tests', () => {
 
             // Test passed if no exception was thrown
             assert(true, 'Canceled operation without stepName should be handled gracefully');
-            
+
             // Verify telemetry was sent with correct result and no lastStep
             assert(telemetryEvents.length === 1, `Expected 1 telemetry event, got ${telemetryEvents.length}`);
             const event = telemetryEvents[0];
@@ -237,11 +235,11 @@ describe('ErrorHandling tests', () => {
 
         it('should handle FabricError correctly and set result to Failed', async () => {
             const dialogStub = sinon.stub(vscode.window, 'showErrorMessage').returns(Promise.resolve('OK'));
-            
+
             try {
                 const fabricError = new FabricError(
-                    'Something went wrong', 
-                    'operation-failed', 
+                    'Something went wrong',
+                    'operation-failed',
                     { showInUserNotification: 'Error' }
                 );
 
@@ -257,25 +255,25 @@ describe('ErrorHandling tests', () => {
 
                 // Check that FabricError was processed
                 assert(fabricError.didProcessFabricError, 'Expected FabricError to be processed');
-                
+
                 // Check that error notification was shown
                 assert(dialogStub.calledOnce, 'Expected showErrorMessage to be called once');
-                
+
                 // Check that error was logged
-                assert(logger.logMessagesArray.some(log => log.includes('Something went wrong')), 
+                assert(logger.logMessagesArray.some(log => log.includes('Something went wrong')),
                     'Expected error message to be logged');
-                
+
                 // Verify telemetry was sent with Failed result
                 assert(telemetryEvents.length === 2, `Expected 2 telemetry events, got ${telemetryEvents.length}`);
                 const activityEvent = telemetryEvents.find(e => e.eventName === 'test/event');
                 assert(activityEvent, 'Expected to find TelemetryActivity event');
                 assert(activityEvent.properties.result === 'Failed', `Expected result 'Failed', got '${activityEvent.properties.result}'`);
-                
+
                 // Verify the second telemetry event is from withErrorHandling for FabricError
                 const fabricErrorEvent = telemetryEvents.find(e => e.eventName === 'unhandled/fabricerror');
                 assert(fabricErrorEvent, 'Expected to find withErrorHandling FabricError telemetry event');
                 assert(fabricErrorEvent.properties.fault === 'Something went wrong', `Expected fault 'Something went wrong', got '${fabricErrorEvent.properties.fault}'`);
-                    
+
             }
             finally {
                 dialogStub.restore();
@@ -294,19 +292,19 @@ describe('ErrorHandling tests', () => {
                     throw regularError;
                 }
             );
-            
+
             // Check that the error was logged through withErrorHandling
-            const errorInLogs = logger.logMessagesArray.some(log => 
+            const errorInLogs = logger.logMessagesArray.some(log =>
                 log.includes('Regular error occurred')
             );
             assert(errorInLogs, 'Expected regular error to be logged');
-            
+
             // Verify telemetry was sent with Failed result
             assert(telemetryEvents.length === 2, `Expected 2 telemetry events, got ${telemetryEvents.length}`);
             const activityEvent = telemetryEvents.find(e => e.eventName === 'test/event');
             assert(activityEvent, 'Expected to find TelemetryActivity event');
             assert(activityEvent.properties.result === 'Failed', `Expected result 'Failed', got '${activityEvent.properties.result}'`);
-            
+
             // Verify the second telemetry event is from withErrorHandling for regular Error
             const regularErrorEvent = telemetryEvents.find(e => e.eventName === 'unhandled/error');
             assert(regularErrorEvent, 'Expected to find withErrorHandling regular Error telemetry event');

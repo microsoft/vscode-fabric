@@ -8,9 +8,9 @@ import { MissingExtensionArtifactTreeNode } from './MissingExtensionArtifactTree
  * Creates an artifact tree node with proper icon and context
  */
 export async function createArtifactTreeNode(
-    context: vscode.ExtensionContext, 
-    artifact: IArtifact, 
-    extensionManager: IFabricExtensionManagerInternal, 
+    context: vscode.ExtensionContext,
+    artifact: IArtifact,
+    extensionManager: IFabricExtensionManagerInternal,
     treeNodeProvider: IFabricTreeNodeProvider | undefined
 ): Promise<ArtifactTreeNode> {
     let artifactNode: ArtifactTreeNode;

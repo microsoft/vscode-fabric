@@ -9,7 +9,7 @@ const transformer = (program: Program) => {
 
     return {
         before: diTransformer.before,
-        after: diTransformer.after
+        after: diTransformer.after,
     };
 };
 

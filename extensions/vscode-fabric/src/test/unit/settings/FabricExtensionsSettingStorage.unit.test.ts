@@ -67,6 +67,8 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             ],
             displayStyle: 'MockDisplayStyle',
             currentTenant: undefined,
+            viewState: {},
+            workspaceFilters: undefined
         };
         await memento.update(settingsFabricWorkspace, expectedSettings);
         const storage = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
@@ -156,17 +158,17 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
         const loadResult: boolean = await storage.load();
         assert(loadResult, 'Settings load should have succeeded');
 
-        storage.settings.artifacts = [ { artifactId: 'mockArtifact1'}, { artifactId: 'mockArtifact2'} ];
-        storage.settings.workspaces = [ createWorkspaceFolder('mockWorkspace1'), createWorkspaceFolder('mockWorkspace2'), ];
+        storage.settings.artifacts = [{ artifactId: 'mockArtifact1' }, { artifactId: 'mockArtifact2' }];
+        storage.settings.workspaces = [createWorkspaceFolder('mockWorkspace1'), createWorkspaceFolder('mockWorkspace2')];
 
         await storage.save();
-        const savedSettings: IFabricExtensionSettings | undefined= memento.get(settingsFabricWorkspace);
+        const savedSettings: IFabricExtensionSettings | undefined = memento.get(settingsFabricWorkspace);
         assert(savedSettings, 'Settings should have been saved');
         const expectedSettings: IFabricExtensionSettings = {
             version: fabricWorkspaceSettingsVersion,
-            artifacts: [ 
-                { artifactId: 'mockArtifact1'}, 
-                { artifactId: 'mockArtifact2'}, 
+            artifacts: [
+                { artifactId: 'mockArtifact1' },
+                { artifactId: 'mockArtifact2' },
             ],
             workspaces: [
                 createWorkspaceFolder('mockWorkspace1'),
@@ -175,6 +177,8 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             loginState: undefined,
             displayStyle: undefined,
             currentTenant: undefined,
+            viewState: {},
+            workspaceFilters: undefined
         };
         assert.deepEqual(savedSettings, expectedSettings, 'Saved settings');
 
@@ -186,7 +190,7 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             version: fabricWorkspaceSettingsVersion,
             loginState: false,
             workspaces: [],
-            artifacts: []
+            artifacts: [],
         };
         await memento.update(settingsFabricWorkspace, settings);
         const storage = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
@@ -205,6 +209,8 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             artifacts: [],
             displayStyle: undefined,
             currentTenant: undefined,
+            viewState: {},
+            workspaceFilters: undefined
         };
         assert.deepEqual(memento.get(settingsFabricWorkspace), expectedSettings, 'Updated most recent workspace should have modified save order of workspace folders');
 
@@ -222,7 +228,7 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             artifacts: [
                 { artifactId: 'mockArtifact1' },
                 { artifactId: 'mockArtifact2' },
-            ]
+            ],
         };
         await memento.update(settingsFabricWorkspace, settings);
         const storage = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
@@ -245,6 +251,8 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             ],
             displayStyle: undefined,
             currentTenant: undefined,
+            viewState: {},
+            workspaceFilters: undefined
         };
         assert.deepEqual(memento.get(settingsFabricWorkspace), expectedSettings, 'Updated most recent workspace should have modified save order of workspace folders');
 
@@ -262,7 +270,7 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             artifacts: [
                 { artifactId: 'mockArtifact1' },
                 { artifactId: 'mockArtifact2' },
-            ]
+            ],
         };
         await memento.update(settingsFabricWorkspace, settings);
         const storage = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
@@ -285,6 +293,8 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             ],
             displayStyle: undefined,
             currentTenant: undefined,
+            viewState: {},
+            workspaceFilters: undefined
         };
         assert.equal(storage.settings.workspaces.length, expectedSettings.workspaces.length, 'Count of saved workspaces');
         assert.deepEqual(memento.get(settingsFabricWorkspace), expectedSettings, 'Updated most recent workspace should have maintained save order of workspace folders');
@@ -303,7 +313,7 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             artifacts: [
                 { artifactId: 'mockArtifact1' },
                 { artifactId: 'mockArtifact2' },
-            ]
+            ],
         };
         await memento.update(settingsFabricWorkspace, settings);
         const storage = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
@@ -327,6 +337,8 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             ],
             displayStyle: undefined,
             currentTenant: undefined,
+            viewState: {},
+            workspaceFilters: undefined
         };
         assert.deepEqual(memento.get(settingsFabricWorkspace), expectedSettings, 'Updated most recent workspace should have modified save order of workspace folders');
     });
@@ -342,7 +354,7 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
                 createWorkspaceFolder('customEnvironmentMockWorkspace2'),
                 createWorkspaceFolder('defaultEnvironmentMockWorkspace2', FabricEnvironmentName.PROD),
             ],
-            artifacts: []
+            artifacts: [],
         };
         await memento.update(settingsFabricWorkspace, settings);
         const storage = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
@@ -362,20 +374,20 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
                 createWorkspaceFolder('WorkspaceB', 'MOCK'),
                 createWorkspaceFolder('WorkspaceA', 'PROD'),
             ],
-            artifacts: []
+            artifacts: [],
         };
         await memento.update(settingsFabricWorkspace, settings);
         const storage = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
-       
+
         const loadResult: boolean = await storage.load();
         assert(loadResult, 'Settings load should have succeeded');
 
         // Previously, mostRecentWorkspace setter did not check the environment which sometimes resulted
-        // in the workspace being left in the last array position but with the wrong environment 
+        // in the workspace being left in the last array position but with the wrong environment
         // (in this test it would have left 'WorkspaceA, GLOBAL' instead of making 'WorkspaceA, MOCK' be the last element).
         storage.mostRecentWorkspace = 'WorkspaceA';
-        
-        // So, when mostRecentWorkspace getter was called at a later time, it would work backwards 
+
+        // So, when mostRecentWorkspace getter was called at a later time, it would work backwards
         // from the end of the array to find the first workspace that matched the current environment.
         // (in this test it would have skipped 'WorkspaceA, GLOBAL' and selected 'WorkspaceB, MOCK')
         assert.equal(storage.mostRecentWorkspace, 'WorkspaceA');
@@ -383,5 +395,106 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
         assert.equal(storage.settings.workspaces[2].fabricEnv, 'MOCK');
     });
 
-}); 
+    it('Workspace filters are saved and loaded correctly', async () => {
+        const memento = new MockMemento();
+        const testWorkspaceFilters: { [key: string]: string[] } = {};
+        testWorkspaceFilters['PROD:tenant-123'] = ['workspace-1', 'workspace-2'];
+        testWorkspaceFilters['MOCK:tenant-456'] = ['workspace-3'];
+        testWorkspaceFilters['DAILY:tenant-789'] = ['workspace-4', 'workspace-5', 'workspace-6'];
+        
+        const settings: IFabricExtensionSettings = {
+            version: fabricWorkspaceSettingsVersion,
+            loginState: true,
+            workspaces: [
+                createWorkspaceFolder('workspace-1'),
+                createWorkspaceFolder('workspace-2'),
+            ],
+            artifacts: [
+                { artifactId: 'artifact-1' },
+            ],
+            displayStyle: 'TreeView',
+            currentTenant: { 
+                tenantId: 'tenant-123', 
+                displayName: 'Test Tenant',
+                defaultDomain: 'test.onmicrosoft.com'
+            },
+            workspaceFilters: testWorkspaceFilters
+        };
+        
+        await memento.update(settingsFabricWorkspace, settings);
+        const storage = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
 
+        // Test loading
+        const loadResult: boolean = await storage.load();
+        assert(loadResult, 'Settings load should have succeeded');
+        
+        // Verify workspace filters were loaded correctly
+        assert.deepEqual(storage.settings.workspaceFilters, testWorkspaceFilters, 'Workspace filters should be loaded correctly');
+        assert.deepEqual(storage.settings.workspaceFilters!['PROD:tenant-123'], ['workspace-1', 'workspace-2'], 'PROD environment filters should be correct');
+        assert.deepEqual(storage.settings.workspaceFilters!['MOCK:tenant-456'], ['workspace-3'], 'MOCK environment filters should be correct');
+        assert.deepEqual(storage.settings.workspaceFilters!['DAILY:tenant-789'], ['workspace-4', 'workspace-5', 'workspace-6'], 'DAILY environment filters should be correct');
+
+        // Test modifying and saving workspace filters
+        storage.settings.workspaceFilters!['PROD:tenant-123'] = ['workspace-1', 'workspace-7'];
+        storage.settings.workspaceFilters!['TEST:tenant-999'] = ['workspace-8'];
+        delete storage.settings.workspaceFilters!['MOCK:tenant-456'];
+
+        await storage.save();
+        
+        // Verify the saved data
+        const savedSettings: IFabricExtensionSettings | undefined = memento.get(settingsFabricWorkspace);
+        assert(savedSettings, 'Settings should have been saved');
+        assert(savedSettings.workspaceFilters, 'Workspace filters should be present in saved settings');
+        
+        const expectedFilters: { [key: string]: string[] } = {};
+        expectedFilters['PROD:tenant-123'] = ['workspace-1', 'workspace-7'];
+        expectedFilters['DAILY:tenant-789'] = ['workspace-4', 'workspace-5', 'workspace-6'];
+        expectedFilters['TEST:tenant-999'] = ['workspace-8'];
+        
+        assert.deepEqual(savedSettings.workspaceFilters, expectedFilters, 'Modified workspace filters should be saved correctly');
+        assert.equal(savedSettings.workspaceFilters!['MOCK:tenant-456'], undefined, 'Deleted filter should not exist in saved settings');
+    });
+
+    it('Workspace filters handle undefined and empty values correctly', async () => {
+        const memento = new MockMemento();
+        
+        // Test with undefined workspaceFilters
+        const settingsWithUndefinedFilters: IFabricExtensionSettings = {
+            version: fabricWorkspaceSettingsVersion,
+            workspaces: [],
+            artifacts: [],
+            workspaceFilters: undefined
+        };
+        
+        await memento.update(settingsFabricWorkspace, settingsWithUndefinedFilters);
+        const storage1 = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
+        
+        const loadResult1: boolean = await storage1.load();
+        assert(loadResult1, 'Settings load should have succeeded with undefined filters');
+        assert.equal(storage1.settings.workspaceFilters, undefined, 'Workspace filters should remain undefined');
+        
+        // Test with empty workspaceFilters object
+        const settingsWithEmptyFilters: IFabricExtensionSettings = {
+            version: fabricWorkspaceSettingsVersion,
+            workspaces: [],
+            artifacts: [],
+            workspaceFilters: {}
+        };
+        
+        await memento.update(settingsFabricWorkspace, settingsWithEmptyFilters);
+        const storage2 = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
+        
+        const loadResult2: boolean = await storage2.load();
+        assert(loadResult2, 'Settings load should have succeeded with empty filters');
+        assert.deepEqual(storage2.settings.workspaceFilters, {}, 'Workspace filters should be empty object');
+        
+        // Test saving empty filters
+        storage2.settings.workspaceFilters = {};
+        await storage2.save();
+        
+        const savedSettings: IFabricExtensionSettings | undefined = memento.get(settingsFabricWorkspace);
+        assert(savedSettings, 'Settings should have been saved');
+        assert.deepEqual(savedSettings.workspaceFilters, {}, 'Empty workspace filters should be saved correctly');
+    });
+
+}); 

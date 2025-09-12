@@ -6,7 +6,7 @@ import { ICanceledError } from './FabricError';
  */
 export class UserCancelledError extends Error implements ICanceledError {
     public readonly isCanceledError = true as const;
-    /** 
+    /**
      * The name of the step that was cancelled, if applicable.
      */
     public readonly stepName: string | undefined;

@@ -62,7 +62,7 @@ describe('renameArtifactCommand', () => {
             assert.strictEqual(items.length, 0);
             return undefined;
         });
-        
+
         // Act
         await executeCommand();
 
@@ -96,7 +96,7 @@ describe('renameArtifactCommand', () => {
         verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'requestId');
         verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'errorCode');
     });
-    
+
     [
         { newName: undefined },
         { newName: originalName },
@@ -113,7 +113,7 @@ describe('renameArtifactCommand', () => {
                 (err: Error) => {
                     assert.ok(err instanceof UserCancelledError, 'Should throw a UserCancelledError');
                     return true;
-                } 
+                }
             );
 
             // Assert
@@ -146,7 +146,7 @@ describe('renameArtifactCommand', () => {
             .returns(Promise.resolve(apiClientResponseMock.object()));
 
         showInputBoxStub.resolves('Some New Name');
-        
+
         // Act & Assert
         let error: Error | undefined = undefined;
         await assert.rejects(
@@ -157,7 +157,7 @@ describe('renameArtifactCommand', () => {
                 assert.ok(err instanceof FabricError, 'Should throw a FabricError');
                 error = err;
                 return true;
-            } 
+            }
         );
 
         dataProviderMock.verify(
@@ -177,7 +177,7 @@ describe('renameArtifactCommand', () => {
             artifactMock.object(),
             artifactManagerMock.object(),
             dataProviderMock.object(),
-            telemetryActivityMock.object(),
+            telemetryActivityMock.object()
         );
     }
 

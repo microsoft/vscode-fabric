@@ -19,6 +19,7 @@ import { WorkspaceFolderProvider } from './localProject/WorkspaceFolderProvider'
 import { IFabricExtensionsSettingStorage } from './settings/definitions';
 import { IFabricExtensionManagerInternal, IGitOperator } from './apis/internal/fabricExtensionInternal';
 import { FabricWorkspaceDataProvider, RootTreeNodeProvider } from './workspace/treeView';
+import { recordExpansionChange } from './workspace/viewExpansionState';
 import { IRootTreeNodeProvider } from './workspace/definitions';
 import { registerArtifactCommands } from './artifactManager/commands';
 import { registerWorkspaceCommands } from './workspace/commands';
@@ -38,6 +39,7 @@ import { ArtifactManager } from './artifactManager/ArtifactManager';
 import { MockArtifactManager } from './artifactManager/MockArtifactManager';
 import { MockWorkspaceManager } from './workspace/mockWorkspaceManager';
 import { InternalSatelliteManager } from './internalSatellites/InternalSatelliteManager';
+import { WorkspaceFilterManager, IWorkspaceFilterManager } from './workspace/WorkspaceFilterManager';
 import { FakeTokenAcquisitionService } from './authentication';
 
 let app: FabricVsCodeExtension;
@@ -66,23 +68,43 @@ export class FabricVsCodeExtension {
 
             // Create feedback view
             context.subscriptions.push(vscode.window.createTreeView('vscode-fabric.view.feedback', {
-                treeDataProvider: new FeedbackTreeDataProvider(context)
+                treeDataProvider: new FeedbackTreeDataProvider(context),
             }));
 
             const storage = this.container.get<IFabricExtensionsSettingStorage>();
             await storage.load();
-            
+
             const extensionManager = this.container.get<IFabricExtensionManagerInternal>();
             const account = this.container.get<IAccountProvider>();
             const workspaceManager = this.container.get<IWorkspaceManager>() as WorkspaceManagerBase;
+            const workspaceFilterManager = this.container.get<IWorkspaceFilterManager>();
             const dataProvider = this.container.get<FabricWorkspaceDataProvider>();
             const artifactManager = this.container.get<IArtifactManagerInternal>();
+            const localFolderManager = this.container.get<LocalFolderManager>();
             const apiClient = this.container.get<IFabricApiClient>();
             const fabricEnvironmentProvider = this.container.get<IFabricEnvironmentProvider>();
             const capacityManager = this.container.get<ICapacityManager>();
 
             const treeView: vscode.TreeView<FabricTreeNode> = vscode.window.createTreeView('vscode-fabric.view.workspace',
-                { treeDataProvider: dataProvider, showCollapseAll: true, });
+                { treeDataProvider: dataProvider, showCollapseAll: true });
+
+            // Persist top-level expansion state (Option C)
+            const updateExpansionState = async (element: FabricTreeNode | undefined, expand: boolean) => {
+                try {
+                    if (!element || !('id' in element) || !element.id) {
+                        return;
+                    }
+                    const id = (element as any).id as string;
+                    if (!id.startsWith('tenant:') && !id.startsWith('ws:') && !id.startsWith('grp:')) {
+                        return;
+                    }
+                    await recordExpansionChange(storage, fabricEnvironmentProvider, account, id, expand);
+                }
+                catch { /* ignore */ }
+            };
+
+            treeView.onDidExpandElement(async (e) => updateExpansionState(e.element, true));
+            treeView.onDidCollapseElement(async (e) => updateExpansionState(e.element, false));
 
             const rootTreeNodeProvider = this.container.get<IRootTreeNodeProvider>() as RootTreeNodeProvider;
             await rootTreeNodeProvider.enableCommands();
@@ -92,10 +114,10 @@ export class FabricVsCodeExtension {
             workspaceManager.tvProvider = dataProvider;
             workspaceManager.treeView = treeView;
 
-            registerWorkspaceCommands(context, account, workspaceManager, capacityManager, apiClient, telemetryService, logger);
+            registerWorkspaceCommands(context, account, workspaceManager, capacityManager, telemetryService, logger, workspaceFilterManager);
             registerTenantCommands(context, account, telemetryService, logger);
-            await registerArtifactCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, dataProvider, extensionManager, capacityManager, telemetryService, logger);
-            registerLocalProjectCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, capacityManager, dataProvider, telemetryService, logger);
+            await registerArtifactCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, dataProvider, extensionManager, workspaceFilterManager, capacityManager, telemetryService, logger);
+            registerLocalProjectCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, localFolderManager, workspaceFilterManager, capacityManager, dataProvider, telemetryService, logger);
 
             const coreServiceCollection: IFabricExtensionServiceCollection = this.container.get<IFabricExtensionServiceCollection>();
             extensionManager.serviceCollection = coreServiceCollection;
@@ -106,7 +128,7 @@ export class FabricVsCodeExtension {
             // Create/register the local project tree view
             const explorerLocalProjectDiscovery = await ExplorerLocalProjectDiscovery.create(workspaceFolderProvider);
             context.subscriptions.push(vscode.window.createTreeView('vscode-fabric.view.local', {
-                treeDataProvider: new LocalProjectTreeDataProvider(context, explorerLocalProjectDiscovery, extensionManager, logger, telemetryService)
+                treeDataProvider: new LocalProjectTreeDataProvider(context, explorerLocalProjectDiscovery, extensionManager, logger, telemetryService),
             }));
 
             // Register the virtual document provider
@@ -180,11 +202,11 @@ export class FabricVsCodeExtension {
             context.subscriptions.push(
                 vscode.window.registerUriHandler(this.container.get<FabricUriHandler>())
             );
-            
+
             const internalSatelliteManger = this.container.get<InternalSatelliteManager>();
             internalSatelliteManger.activateAll();
             context.subscriptions.push(internalSatelliteManger);
-        
+
             activateActivity.end();
             activateActivity.sendTelemetry();
 
@@ -194,9 +216,9 @@ export class FabricVsCodeExtension {
             // We want to have as much of the extension initialized as possible before we refresh the connection, causing
             // much code to execute. This is to ensure that the extension is initialized before we start executing code
             // So we call refreshConnectionToFabric() but don't await it.
-            // This solves the problem of calling the code to draw tree nodes before the extension is completely initialized 
+            // This solves the problem of calling the code to draw tree nodes before the extension is completely initialized
             void workspaceManager.refreshConnectionToFabric();
-            
+
             return extensionManager;
         }
         catch (ex) {
@@ -221,8 +243,8 @@ export class FabricVsCodeExtension {
                 // Copy array first to avoid issues with disposal potentially modifying the array
                 [...context.subscriptions].forEach(sub => sub.dispose());
 
-                // Clear the array to prevent double disposal by VS Code. 
-                // Not entirely necessary, but good insurance against improperly 
+                // Clear the array to prevent double disposal by VS Code.
+                // Not entirely necessary, but good insurance against improperly
                 // implemented disposableslemented disposables that are potentially
                 // not idempotent.
                 context.subscriptions.length = 0;
@@ -302,6 +324,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<LocalFolderManager>();
     container.registerSingleton<IWorkspaceManager, WorkspaceManager>();
     container.registerSingleton<IRootTreeNodeProvider, RootTreeNodeProvider>();
+    container.registerSingleton<IWorkspaceFilterManager, WorkspaceFilterManager>();
     container.registerSingleton<FabricWorkspaceDataProvider>();
 
     container.registerSingleton<IArtifactManager, ArtifactManager>();

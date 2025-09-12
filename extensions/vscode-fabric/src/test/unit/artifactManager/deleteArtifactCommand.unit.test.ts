@@ -4,7 +4,7 @@ import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
 import { deleteArtifactCommand } from '../../../artifactManager/deleteArtifactCommand';
 import { IApiClientResponse, IArtifactManager, IWorkspaceManager, IArtifact } from '@microsoft/vscode-fabric-api';
-import { FabricError, ILogger, TelemetryActivity} from '@microsoft/vscode-fabric-util';
+import { FabricError, ILogger, TelemetryActivity } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../../../TelemetryEventNames';
 import { FabricWorkspaceDataProvider } from '../../../workspace/treeView';
 import { verifyAddOrUpdateProperties, verifyAddOrUpdatePropertiesNever } from '../../utilities/moqUtilities';
@@ -54,7 +54,7 @@ describe('deleteArtifactCommand', () => {
         telemetryActivityMock = new Mock<TelemetryActivity<CoreTelemetryEventNames>>();
         telemetryActivityMock.setup(instance => instance.addOrUpdateProperties(It.IsAny()))
             .returns(undefined);
-        
+
         dataProviderMock = new Mock<FabricWorkspaceDataProvider>();
         dataProviderMock.setup(instance => instance.refresh())
             .returns(undefined);
@@ -93,9 +93,9 @@ describe('deleteArtifactCommand', () => {
         );
         workspaceManagerMock.verify(
             wm => wm.getLocalFolderForArtifact(
-                It.Is<IArtifact>(a => a.id === artifactId), 
+                It.Is<IArtifact>(a => a.id === artifactId),
                 It.Is<{ createIfNotExists: boolean }>(options => options.createIfNotExists === false)
-            ), 
+            ),
             Times.Once()
         );
         fileSystemMock.verify(
@@ -106,7 +106,7 @@ describe('deleteArtifactCommand', () => {
             fs => fs.delete(It.IsAny(), It.IsAny()),
             Times.Never()
         );
-        
+
         assert.strictEqual(showInformationMessageStub.callCount, 1, 'showInformationMessage call count');
         assert.strictEqual(showWarningMessageStub.callCount, 1, 'showWarningMessage call count');
         assert.strictEqual(showErrorMessageStub.callCount, 0, 'showErrorMessage call count');
@@ -136,7 +136,7 @@ describe('deleteArtifactCommand', () => {
                 assert.ok(err.stepName, 'Should have a stepName');
                 assert.strictEqual(err.stepName!, 'remoteOnly', 'Step name');
                 return true;
-            } 
+            }
         );
 
         // Assert
@@ -148,9 +148,9 @@ describe('deleteArtifactCommand', () => {
         );
         workspaceManagerMock.verify(
             wm => wm.getLocalFolderForArtifact(
-                It.Is<IArtifact>(a => a.id === artifactId), 
+                It.Is<IArtifact>(a => a.id === artifactId),
                 It.Is<{ createIfNotExists: boolean }>(options => options.createIfNotExists === false)
-            ), 
+            ),
             Times.Once()
         );
         fileSystemMock.verify(
@@ -189,9 +189,9 @@ describe('deleteArtifactCommand', () => {
         );
         workspaceManagerMock.verify(
             wm => wm.getLocalFolderForArtifact(
-                It.Is<IArtifact>(a => a.id === artifactId), 
+                It.Is<IArtifact>(a => a.id === artifactId),
                 It.Is<{ createIfNotExists: boolean }>(options => options.createIfNotExists === false)
-            ), 
+            ),
             Times.Once()
         );
         fileSystemMock.verify(
@@ -228,9 +228,9 @@ describe('deleteArtifactCommand', () => {
         );
         workspaceManagerMock.verify(
             wm => wm.getLocalFolderForArtifact(
-                It.Is<IArtifact>(a => a.id === artifactId), 
+                It.Is<IArtifact>(a => a.id === artifactId),
                 It.Is<{ createIfNotExists: boolean }>(options => options.createIfNotExists === false)
-            ), 
+            ),
             Times.Once()
         );
         fileSystemMock.verify(
@@ -253,7 +253,7 @@ describe('deleteArtifactCommand', () => {
             .setup(wm => wm.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
             .returns(Promise.resolve(localFolder));
         workspaceFoldersStub.value([
-            { uri: vscode.Uri.file('/path/to/local'), name: 'local', index: 0 } as vscode.WorkspaceFolder
+            { uri: vscode.Uri.file('/path/to/local'), name: 'local', index: 0 } as vscode.WorkspaceFolder,
         ]);
         // Simulate user choosing "Local and Remote" (second item)
         showWarningMessageStub.onFirstCall().callsFake(async (msg, opts, ...items) => {
@@ -279,7 +279,7 @@ describe('deleteArtifactCommand', () => {
                 assert.ok(err.stepName, 'Should have a stepName');
                 assert.strictEqual(err.stepName!, 'folderActive', 'Step name');
                 return true;
-            } 
+            }
         );
 
         // Assert
@@ -291,9 +291,9 @@ describe('deleteArtifactCommand', () => {
         );
         workspaceManagerMock.verify(
             wm => wm.getLocalFolderForArtifact(
-                It.Is<IArtifact>(a => a.id === artifactId), 
+                It.Is<IArtifact>(a => a.id === artifactId),
                 It.Is<{ createIfNotExists: boolean }>(options => options.createIfNotExists === false)
-            ), 
+            ),
             Times.Once()
         );
         fileSystemMock.verify(
@@ -316,7 +316,7 @@ describe('deleteArtifactCommand', () => {
             .setup(wm => wm.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
             .returns(Promise.resolve(localFolder));
         workspaceFoldersStub.value([
-            { uri: vscode.Uri.file('/path/to/different'), name: 'different', index: 0 } as vscode.WorkspaceFolder
+            { uri: vscode.Uri.file('/path/to/different'), name: 'different', index: 0 } as vscode.WorkspaceFolder,
         ]);
         showWarningMessageStub.onFirstCall().callsFake(async (msg, opts, ...items) => {
             assert.strictEqual(opts.modal, true);
@@ -336,9 +336,9 @@ describe('deleteArtifactCommand', () => {
         );
         workspaceManagerMock.verify(
             wm => wm.getLocalFolderForArtifact(
-                It.Is<IArtifact>(a => a.id === artifactId), 
+                It.Is<IArtifact>(a => a.id === artifactId),
                 It.Is<{ createIfNotExists: boolean }>(options => options.createIfNotExists === false)
-            ), 
+            ),
             Times.Once()
         );
         fileSystemMock.verify(
@@ -382,7 +382,7 @@ describe('deleteArtifactCommand', () => {
                 assert.ok(err.stepName, 'Should have a stepName');
                 assert.strictEqual(err.stepName!, 'folderOpened', 'Step name');
                 return true;
-            } 
+            }
         );
 
         // Assert
@@ -394,9 +394,9 @@ describe('deleteArtifactCommand', () => {
         );
         workspaceManagerMock.verify(
             wm => wm.getLocalFolderForArtifact(
-                It.Is<IArtifact>(a => a.id === artifactId), 
+                It.Is<IArtifact>(a => a.id === artifactId),
                 It.Is<{ createIfNotExists: boolean }>(options => options.createIfNotExists === false)
-            ), 
+            ),
             Times.Once()
         );
         fileSystemMock.verify(
@@ -439,9 +439,9 @@ describe('deleteArtifactCommand', () => {
         );
         workspaceManagerMock.verify(
             wm => wm.getLocalFolderForArtifact(
-                It.Is<IArtifact>(a => a.id === artifactId), 
+                It.Is<IArtifact>(a => a.id === artifactId),
                 It.Is<{ createIfNotExists: boolean }>(options => options.createIfNotExists === false)
-            ), 
+            ),
             Times.Once()
         );
         fileSystemMock.verify(
@@ -482,7 +482,7 @@ describe('deleteArtifactCommand', () => {
                 assert.ok(err.stepName, 'Should have a stepName');
                 assert.strictEqual(err.stepName!, 'remoteOnly', 'Step name');
                 return true;
-            } 
+            }
         );
 
         // Assert
@@ -494,9 +494,9 @@ describe('deleteArtifactCommand', () => {
         );
         workspaceManagerMock.verify(
             wm => wm.getLocalFolderForArtifact(
-                It.Is<IArtifact>(a => a.id === artifactId), 
+                It.Is<IArtifact>(a => a.id === artifactId),
                 It.Is<{ createIfNotExists: boolean }>(options => options.createIfNotExists === false)
-            ), 
+            ),
             Times.Once()
         );
         fileSystemMock.verify(
@@ -560,9 +560,9 @@ describe('deleteArtifactCommand', () => {
         );
         workspaceManagerMock.verify(
             wm => wm.getLocalFolderForArtifact(
-                It.Is<IArtifact>(a => a.id === artifactId), 
+                It.Is<IArtifact>(a => a.id === artifactId),
                 It.Is<{ createIfNotExists: boolean }>(options => options.createIfNotExists === false)
-            ), 
+            ),
             Times.Once()
         );
         fileSystemMock.verify(
@@ -573,7 +573,7 @@ describe('deleteArtifactCommand', () => {
             fs => fs.delete(It.IsAny(), It.IsAny()),
             Times.Never()
         );
-        
+
         assert.strictEqual(showInformationMessageStub.callCount, 0, 'showInformationMessage call count');
         assert.strictEqual(showWarningMessageStub.callCount, 1, 'showWarningMessage call count');
         assert.strictEqual(showErrorMessageStub.callCount, 0, 'showErrorMessage call count');
@@ -585,7 +585,7 @@ describe('deleteArtifactCommand', () => {
         );
 
         assert.ok(error!.message.includes('Error deleting'), 'Error message content should include "Error deleting"');
-        
+
         verifyAddOrUpdateProperties(telemetryActivityMock, 'statusCode', '400');
         verifyAddOrUpdateProperties(telemetryActivityMock, 'requestId', 'req-12345');
         verifyAddOrUpdateProperties(telemetryActivityMock, 'errorCode', 'InvalidInput');
@@ -622,9 +622,9 @@ describe('deleteArtifactCommand', () => {
         );
         workspaceManagerMock.verify(
             wm => wm.getLocalFolderForArtifact(
-                It.Is<IArtifact>(a => a.id === artifactId), 
+                It.Is<IArtifact>(a => a.id === artifactId),
                 It.Is<{ createIfNotExists: boolean }>(options => options.createIfNotExists === false)
-            ), 
+            ),
             Times.Once()
         );
         fileSystemMock.verify(
@@ -640,7 +640,7 @@ describe('deleteArtifactCommand', () => {
         assert.strictEqual(workspaceFoldersStub.callCount, 0, 'workspaceFoldersStub call count');
 
         // Second information message should be about the failure to delete the local folder
-        assert.ok(showInformationMessageStub.secondCall.args[0].includes(errorText), 'Error message should be shown');        
+        assert.ok(showInformationMessageStub.secondCall.args[0].includes(errorText), 'Error message should be shown');
     });
 
     async function executeCommand(): Promise<void> {
@@ -652,7 +652,7 @@ describe('deleteArtifactCommand', () => {
             null, // telemetryService is not used in this test
             loggerMock.object(),
             dataProviderMock.object(),
-            telemetryActivityMock.object(),
+            telemetryActivityMock.object()
         );
     }
 

@@ -13,6 +13,7 @@ export class FabricExtensionsSettingStorage implements IFabricExtensionsSettingS
             version: fabricWorkspaceSettingsVersion,
             workspaces: new Array<IFabricWorkspaceSettings>(),
             artifacts: new Array<IFabricArtifactSettings>(),
+            viewState: {},
         };
     }
 
@@ -23,11 +24,12 @@ export class FabricExtensionsSettingStorage implements IFabricExtensionsSettingS
                 this.settings.loginState = storedSettings.loginState;
                 this.settings.displayStyle = storedSettings.displayStyle;
                 this.settings.currentTenant = storedSettings.currentTenant;
+                this.settings.viewState = storedSettings.viewState ?? {};
 
                 // shallow copy the arrays
                 this.settings.artifacts = storedSettings.artifacts?.slice();
                 this.settings.workspaces = storedSettings.workspaces.slice();
-
+                this.settings.workspaceFilters = storedSettings.workspaceFilters;
                 return true;
             }
             else {

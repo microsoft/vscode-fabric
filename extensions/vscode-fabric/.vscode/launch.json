@@ -16,8 +16,8 @@
 				"webpack://vscode-fabric/*": "${workspaceFolder}/*",
 			},
 			"env": {
-				"VSCODE_FABRIC_ENABLE_TEST_HOOKS": "true",
-				"VSCODE_FABRIC_ENABLE_TEST_FAKES": "true",
+				// "VSCODE_FABRIC_ENABLE_TEST_HOOKS": "true",
+				// "VSCODE_FABRIC_ENABLE_TEST_FAKES": "true",
 			},
 		},
 		{

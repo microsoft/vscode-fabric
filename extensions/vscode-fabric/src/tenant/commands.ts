@@ -21,7 +21,7 @@ export function registerTenantCommands(
     context: vscode.ExtensionContext,
     auth: IAccountProvider,
     telemetryService: TelemetryService | null,
-    logger: ILogger,
+    logger: ILogger
 ): void {
     // Dispose of any existing commands
     tenantCommandDisposables.forEach(disposable => disposable.dispose());

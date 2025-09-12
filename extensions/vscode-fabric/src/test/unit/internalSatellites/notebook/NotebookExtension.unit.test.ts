@@ -6,7 +6,7 @@ import { NotebookExtension } from '../../../../internalSatellites/notebook/Noteb
 import { IFabricExtensionManager, IWorkspaceManager, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { TelemetryService } from '@microsoft/vscode-fabric-util';
 
-describe('NotebookExtension', function() {
+describe('NotebookExtension', function () {
     let contextMock: Mock<vscode.ExtensionContext>;
     let workspaceManagerMock: Mock<IWorkspaceManager>;
     let artifactManagerMock: Mock<IArtifactManager>;
@@ -15,11 +15,11 @@ describe('NotebookExtension', function() {
     let serviceCollection: any;
     let registerCommandStub: sinon.SinonStub;
 
-    before(function() {
+    before(function () {
         // No global setup required
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         contextMock = new Mock<vscode.ExtensionContext>();
         workspaceManagerMock = new Mock<IWorkspaceManager>();
         artifactManagerMock = new Mock<IArtifactManager>();
@@ -27,7 +27,7 @@ describe('NotebookExtension', function() {
         extensionManagerMock = new Mock<IFabricExtensionManager>();
         serviceCollection = {
             workspaceManager: workspaceManagerMock.object(),
-            artifactManager: artifactManagerMock.object()
+            artifactManager: artifactManagerMock.object(),
         };
         extensionManagerMock.setup(x => x.addExtension(It.IsAny())).returns(serviceCollection);
         // Ensure context.subscriptions is an array
@@ -37,15 +37,15 @@ describe('NotebookExtension', function() {
         registerCommandStub = sinon.stub(vscode.commands, 'registerCommand').callsFake(() => ({ dispose: () => {} }));
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sinon.restore();
     });
 
-    after(function() {
+    after(function () {
         // No global teardown required
     });
 
-    it('should register itself and initialize services on construction', function() {
+    it('should register itself and initialize services on construction', function () {
         // Arrange
         const context = contextMock.object();
         (context as any).subscriptions = [];
@@ -61,7 +61,7 @@ describe('NotebookExtension', function() {
         extensionManagerMock.verify(x => x.addExtension(It.IsAny()), Times.Once());
     });
 
-    it('should dispose without error', function() {
+    it('should dispose without error', function () {
         // Arrange
         const context = contextMock.object();
         (context as any).subscriptions = [];

@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 import { IFabricTreeNodeProvider, ArtifactTreeNode, IArtifact } from '@microsoft/vscode-fabric-api';
 import { SqlDatabaseTreeNode } from './SqlDatabaseTreeNode';
 
-
 export class SqlDatabaseTreeNodeProvider implements IFabricTreeNodeProvider {
     public readonly artifactType = 'SQLDatabase';
 

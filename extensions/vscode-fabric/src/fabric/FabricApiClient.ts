@@ -47,11 +47,11 @@ export class FabricApiClient implements IFabricApiClient {
         pipelineFactory?: () => azApi.Pipeline) {
         this.azapiClient = azApi.createDefaultHttpClient();
         this.pipelineFactory = pipelineFactory ?? (() => azApi.createPipelineFromOptions({ // used by tests
-            retryOptions: { maxRetries: 0 }
+            retryOptions: { maxRetries: 0 },
         }));
     }
     /**
-     * gets a token from the identity service which uses VS Code MS auth provider 
+     * gets a token from the identity service which uses VS Code MS auth provider
      * @returns raw token without "Bearer ".
      */
     private async getToken(): Promise<string> {
@@ -146,9 +146,9 @@ export class FabricApiClient implements IFabricApiClient {
                 // Use injected pipeline factory for testability
                 const pipeLine = this.pipelineFactory();
                 if (req.method === 'DELETE') {
-                    // The decompressResponsePolicy adds "Accept-Encoding = gzip,deflate" header to the request, which causes 
+                    // The decompressResponsePolicy adds "Accept-Encoding = gzip,deflate" header to the request, which causes
                     // exception in pipeline: RestError: Error reading response as text: unexpected end of file
-                    // core-rest-pipeline\src\nodeHttpCliett.ts line 349 (Gunzip.emit). 
+                    // core-rest-pipeline\src\nodeHttpCliett.ts line 349 (Gunzip.emit).
                     // Workaround: remove the decompressResponsePolicy from the pipeline
                     pipeLine.removePolicy({ name: 'decompressResponsePolicy' });
                 }
@@ -158,13 +158,13 @@ export class FabricApiClient implements IFabricApiClient {
                 if (error instanceof AbortError || error?.name === 'AbortError') {
                     const elapsedms = sw();
                     const errmsgasjson: any = {
-                        'error': `Timeout error ${elapsedms}ms ${req.url}`
+                        'error': `Timeout error ${elapsedms}ms ${req.url}`,
                     };
                     azApiresponse = {
                         status: 408, // TIMEOUT
                         request: req,
                         headers: headers,
-                        bodyAsText: JSON.stringify(errmsgasjson)
+                        bodyAsText: JSON.stringify(errmsgasjson),
                     };
                 }
                 else {
@@ -175,7 +175,7 @@ export class FabricApiClient implements IFabricApiClient {
                 activity.addOrUpdateProperties({
                     'endpoint': baseUrl,
                     'httpmethod': req.method,
-                    'resourcePath': JSON.stringify((options.pathTemplate ?? theUrl).split('/'))
+                    'resourcePath': JSON.stringify((options.pathTemplate ?? theUrl).split('/')),
                 });
             }
             const elapsedms = sw();
@@ -201,7 +201,7 @@ export class FabricApiClient implements IFabricApiClient {
                 response: azApiresponse,
                 url: theUrl,
                 status: azApiresponse.status,
-                headers: azApiresponse.headers
+                headers: azApiresponse.headers,
             };
             // for non-successful responses, add the body to the telemetry properties
             if (azApiresponse.bodyAsText) {

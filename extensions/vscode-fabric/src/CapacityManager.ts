@@ -24,7 +24,7 @@ export class CapacityManager implements ICapacityManager {
     async listCapacities(): Promise<ICapacity[]> {
         const requestCapacities: IApiClientRequestOptions = {
             method: 'GET',
-            pathTemplate: '/v1/capacities'
+            pathTemplate: '/v1/capacities',
         };
 
         const response: IApiClientResponse = await this.apiClient.sendRequest(requestCapacities);
@@ -35,7 +35,7 @@ export class CapacityManager implements ICapacityManager {
                 displayName: item.displayName,
                 sku: item.sku,
                 region: item.region,
-                state: item.state as CapacityState
+                state: item.state as CapacityState,
             }));
             return capacities;
         }

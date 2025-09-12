@@ -98,9 +98,9 @@ export class AccountProvider implements IAccountProvider, IDisposable {
             getToken: async (scopes: string | string[], options?: any) => {
                 return {
                     token: token,
-                    expiresOnTimestamp: 0
+                    expiresOnTimestamp: 0,
                 };
-            }
+            },
         };
 
         const configuredAzureEnv = getConfiguredAzureEnv();
@@ -114,7 +114,7 @@ export class AccountProvider implements IAccountProvider, IDisposable {
             tenants.push({
                 tenantId: tenant.tenantId,
                 displayName: tenant.displayName ?? '',
-                defaultDomain: tenant.defaultDomain ?? ''
+                defaultDomain: tenant.defaultDomain ?? '',
             });
         }
 
@@ -124,7 +124,7 @@ export class AccountProvider implements IAccountProvider, IDisposable {
     async getToken(tenantId?: string): Promise<string | null> {
         return await this.tokenService.getMsAccessToken({
             ...this.tokenOptions,
-            silent: true
+            silent: true,
         }, undefined, tenantId ?? this._mostRecentlyUsedTenantId);
     }
 
@@ -143,7 +143,7 @@ export class AccountProvider implements IAccountProvider, IDisposable {
         const result: boolean = !!account;
         if (result) {
             this.onSuccessfulSignInEmitter.fire();
-            
+
             // If successfully signed in to a specific tenant, remember that tenantId
             if (tenantId && this._mostRecentlyUsedTenantId !== tenantId) {
                 this._mostRecentlyUsedTenantId = tenantId;

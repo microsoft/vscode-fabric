@@ -10,16 +10,16 @@ export async function renameArtifactCommand(
     artifact: IArtifact,
     artifactManager: IArtifactManager,
     dataProvider: FabricWorkspaceDataProvider,
-    activity: TelemetryActivity<CoreTelemetryEventNames>,
+    activity: TelemetryActivity<CoreTelemetryEventNames>
 ): Promise<void> {
     const displayName = artifact.displayName as string;
     const updatedDisplayName = await vscode.window.showInputBox({ prompt: vscode.l10n.t('Enter Item Name'), value: displayName, title: vscode.l10n.t('Update Display Name') });
     if (!updatedDisplayName || updatedDisplayName === displayName) {
         throw new UserCancelledError();
     }
-    
+
     const body = new Map<string, string>([
-        ['displayName', updatedDisplayName]
+        ['displayName', updatedDisplayName],
     ]);
     const response = await artifactManager.updateArtifact(artifact, body);
 
@@ -34,7 +34,7 @@ export async function renameArtifactCommand(
     else {
         activity.addOrUpdateProperties({
             'requestId': response.parsedBody?.requestId,
-            'errorCode': response.parsedBody?.errorCode
+            'errorCode': response.parsedBody?.errorCode,
         });
 
         throw new FabricError(

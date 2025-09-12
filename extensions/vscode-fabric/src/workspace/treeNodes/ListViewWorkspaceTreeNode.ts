@@ -16,9 +16,17 @@ export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
         extensionManager: IFabricExtensionManagerInternal,
         workspace: IWorkspace,
         telemetryService: TelemetryService | null,
-        workspaceManager: IWorkspaceManager
+        workspaceManager: IWorkspaceManager,
+        private tenantId: string | undefined,
+        private shouldExpand?: (id: string | undefined) => boolean
     ) {
         super(context, extensionManager, workspace, DisplayStyle.list, telemetryService, workspaceManager);
+        // Stable id for VS Code view state restoration
+        const tenantPart = tenantIdOrNone(tenantId);
+        this.id = `ws:${tenantPart}:${workspace.objectId}`;
+        if (this.shouldExpand?.(this.id)) {
+            this.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
+        }
     }
 
     protected async addArtifact(artifact: IArtifact): Promise<void> {
@@ -55,4 +63,8 @@ export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
 
         return [];
     }
+}
+
+function tenantIdOrNone(tenantId: string | undefined): string {
+    return tenantId && tenantId.length > 0 ? tenantId : 'none';
 }

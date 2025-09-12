@@ -74,7 +74,32 @@ export interface IFabricExtensionSettings {
     /**
      * Tenant-specific settings (present only after the user switches from their home tenant)
      */
-    currentTenant?: ITenantSettings
+    currentTenant?: ITenantSettings,
+
+    /**
+     * Workspace filter preferences - stores which workspaces should be visible
+     * Key: environment + tenant combination, Value: array of workspace IDs to show
+     * If undefined or empty, all workspaces are shown (no filtering)
+     */
+    workspaceFilters?: { [environmentKey: string]: string[] }
+
+    /**
+     * Persisted view state per environment/tenant/display style context
+     * key format suggestion: `${env}:${tenantIdOrNone}:${displayStyle}`
+     */
+    viewState?: { [contextKey: string]: IFabricViewState }
+}
+
+/**
+ * Top-level expansion state for the workspace tree
+ */
+export interface IFabricViewState {
+    /**
+     * Expanded tenant node ids (e.g., 'tenant:<tenantId>')
+     */
+    expandedTenants?: string[];
+    expandedWorkspaces: string[]; // list of workspace ids (ws:...)
+    expandedGroupsByWorkspace: { [workspaceKey: string]: string[] }; // map ws:... -> [grp:...]
 }
 
 /**
@@ -148,4 +173,10 @@ export interface ILocalFolderSettingsAdapter {
      * @param path Local folder information for the workspace
      */
     setWorkspaceFolder(id: string, path: string): Promise<void>;
+
+    /**
+     * Returns the workspace ID associated with the given local folder path, or undefined if not found
+     * @param path The local folder path to look up
+     */
+    getWorkspaceFromFolder(path: string): string | undefined;
 }

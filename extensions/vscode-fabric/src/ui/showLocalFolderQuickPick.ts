@@ -5,7 +5,7 @@ import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
 
 const selectFolderText = vscode.l10n.t('Select the working directory for Fabric workspace');
 export async function showLocalFolderQuickPick(
-    folderPath: vscode.Uri, 
+    folderPath: vscode.Uri,
     currentWorkspace: IWorkspace,
     gitOperator: IGitOperator
 ): Promise<vscode.Uri | undefined> {
@@ -62,7 +62,7 @@ class BrowseFolderQuickPickItem extends FolderQuickPickItem {
             canSelectFolders: true,
             canSelectMany: false,
             openLabel: vscode.l10n.t('Select Folder'),
-            title: selectFolderText
+            title: selectFolderText,
         });
 
         if (uri && uri.length > 0) {

@@ -13,7 +13,7 @@ const testMetadata = {
         displayNamePlural: 'The themed icons',
         iconInformation: { fileName: 'themed.svg', isThemed: true },
         extensionId: 'fabric.themedIcon',
-        portalFolder: 'themed-icons'
+        portalFolder: 'themed-icons',
     },
     NonThemedIcon: {
         iconInformation: { fileName: 'nonthemed.svg', isThemed: false },

@@ -5,7 +5,7 @@ import { ArtifactTreeNode, FabricTreeNode } from './treeView';
 
 /**
  * The kind of operation that can be requested of an artifact. See {@link IArtifactManager}
- * 
+ *
  * @deprecated - Use artifact workflows instead
  */
 export enum OperationRequestType {
@@ -27,7 +27,7 @@ export enum FunctionalityStatus {
 }
 
 export namespace Schema {
-    export const fabric = 'fabric'; // make our own private scheme, like "fabric:/"    
+    export const fabric = 'fabric'; // make our own private scheme, like "fabric:/"
     export const fabricVirtualDoc = 'fabric-virtual-doc';
 }
 
@@ -35,15 +35,14 @@ export interface IOpenArtifactOptions {
     folder: vscode.Uri;
 }
 
-
 /**
  * A set of services implemented by the core Fabric extension to be consumed by satellite extensions
- * 
+ *
  * @example
- * 
+ *
  * ``` ts
  * import * as fabricExt from '@microsoft/vscode-fabric-api';
- * 
+ *
  * export function activate(context: vscode.ExtensionContext) {
  *   const fabricExtensionServices: fabricExt.IFabricExtensionServiceCollection = <fabricExt.IFabricExtensionServiceCollection>vscode.extensions.getExtension('fabric.vscode-fabric')!.exports;
  */
@@ -59,45 +58,46 @@ export interface IFabricExtensionServiceCollection {
 export interface IArtifactManager {
     /**
      * Creates the specified artifact on the Fabric back end
-     * 
+     *
      * @param artifact - The artifact to create
      */
     createArtifact(artifact: IArtifact, itemSpecificMetadata?: any): Promise<IApiClientResponse>;
 
     /**
      * Creates an item in the specified workspace using the specified definition
-     * 
+     *
      * @param artifact - The artifact to create
      * @param definition - The item definition to use for creating the artifact
+     * @param folder - The folder where the item definition was created from
      */
-    createArtifactWithDefinition(artifact: IArtifact, definition: IItemDefinition): Promise<IApiClientResponse>;
+    createArtifactWithDefinition(artifact: IArtifact, definition: IItemDefinition, folder: vscode.Uri): Promise<IApiClientResponse>;
 
     /**
      * Gets the specified artifact on the Fabric back end
-     * 
+     *
      * @param artifact - The artifact to get
      */
     getArtifact(artifact: IArtifact): Promise<IApiClientResponse>;
 
     /**
      * Returns a list of items from the specified workspace
-     * 
+     *
      * @param workspace - The workspace to list artifacts for
      * @returns A list of artifacts in the specified workspace
      * @throws FabricError if the request fails
      */
     listArtifacts(workspace: IWorkspace): Promise<IArtifact[]>;
-   
+
     /**
      * Updates the specified artifact from the Fabric back end
-     * 
+     *
      * @param artifact - The artifact to update
      */
     updateArtifact(artifact: IArtifact, body: Map<string, string>): Promise<IApiClientResponse>;
 
     /**
      * Deletes the specified artifact from the Fabric back end
-     * 
+     *
      * @param artifact - The artifact to delete
      */
     deleteArtifact(artifact: IArtifact): Promise<IApiClientResponse>;
@@ -109,12 +109,16 @@ export interface IArtifactManager {
 
     /**
      * Updates the definition for the specified artifact on the Fabric back end
+     * 
+     * @param artifact - The artifact to update
+     * @param definition - The item definition to use for updating the artifact
+     * @param folder - The folder where the item definition was created from
      */
-    updateArtifactDefinition(artifact: IArtifact, definition: IItemDefinition): Promise<IApiClientResponse>;
+    updateArtifactDefinition(artifact: IArtifact, definition: IItemDefinition, folder: vscode.Uri): Promise<IApiClientResponse>;
 
     /**
      * Gets the specified artifact from the Fabric back end
-     * 
+     *
      * @deprecated - use IReadArtifactWorkflow instead
      * @param artifact - The artifact to fetch
      */
@@ -122,7 +126,7 @@ export interface IArtifactManager {
 
     /**
      * Opens the artifact with the specified options
-     * 
+     *
      * @deprecated - use getArtifactDefinition instead
      * @param artifact - The artifact to open
      * @remarks  The request is fully handled by the {@link IArtifactHandler}
@@ -134,7 +138,7 @@ export interface IArtifactManager {
 
     /**
      * Execute context menu items one at a time: disallow other context menu items until prior one completed.
-     * 
+     *
      * @deprecated - This will be removed in a future release
      * @param cmdArgs the command arguments if any
      * @param callback  the code to call when cmd invoked, passing in the ArtifactTreeNode as a parameter
@@ -144,14 +148,14 @@ export interface IArtifactManager {
 
 /**
  * The filesystem provides a way for extensions to write files in consistent manner for all Fabric extensions.
- * 
+ *
  * @remarks The filesystem  works with {@link Uri uris} and assumes hierarchical
  * paths, e.g. `foo:/my/path` is a child of `foo:/my/` and a parent of `foo:/my/path/deeper`.
  */
 export interface ILocalFileSystem {
     /**
      * Creates a Fabric-specific Uri for the specified file path
-     * 
+     *
      * @param filePath - The full path for the filesystem entity to be created
      */
     createUri(filePath: string): vscode.Uri;
@@ -207,7 +211,7 @@ export interface IWorkspaceManager {
     isConnected(): Promise<boolean>;
     treeView: vscode.TreeView<FabricTreeNode> | undefined;
     clearPriorStateIfAny(): void;
-    getWorkspaceById(workspaceId: string): IWorkspace | undefined;
+    getWorkspaceById(workspaceId: string): Promise<IWorkspace | undefined>;
 }
 
 /**

@@ -334,7 +334,7 @@ export async function createZipFile(
             const zipContent = await zipCreate.generateAsync({
                 type: 'uint8array',
                 compression: 'DEFLATE',
-                compressionOptions: { level: 9 }
+                compressionOptions: { level: 9 },
             });
 
             // Write zip file using VSCode file system

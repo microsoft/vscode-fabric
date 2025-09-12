@@ -56,7 +56,7 @@ export class FabricError extends Error implements IFabricError {
         /**
 https://www.dannyguo.com/blog/how-to-fix-instanceof-not-working-for-custom-errors-in-typescript/
 instanceof is broken when class extends Error type https://github.com/microsoft/TypeScript/issues/13965
-         * 
+         *
          */
         //        Object.setPrototypeOf(this, FabricError.prototype);
     }
@@ -77,7 +77,7 @@ export interface FabricActionOptions {
  * This is a helper function that wraps a delegate with common error handling. The delegate should
  * use the FabricError class to throw errors, which will allow control over logging and telemetry.
  *
- *  FabricError.options?: { 
+ *  FabricError.options?: {
  *      showInUserNotification?: 'Information' | 'Error';
  *      showInFabricLog?: LogImportance | boolean;
  *  }
@@ -93,7 +93,7 @@ export interface FabricActionOptions {
  */
 export async function doFabricAction<R>(
     options: FabricActionOptions,
-    action: () => Promise<R>,
+    action: () => Promise<R>
 ): Promise<R> {
     if (options.telemetryActivity) {
         return await options.telemetryActivity.doTelemetryActivity(async () => {
@@ -110,7 +110,7 @@ export async function doFabricAction<R>(
  */
 async function doFabricActionInternal<R>(
     options: FabricActionOptions,
-    action: () => Promise<R>,
+    action: () => Promise<R>
 ): Promise<R> {
     try {
         return await action();
@@ -158,7 +158,7 @@ use the FabricError class to throw errors, which will allow control over logging
 The delegate is NOT invoked by this function. It is returned for later invocation.
 Also useful for wrapping a chunk of code in a common error handler.
 */
-export function withErrorHandling<T extends (...args: any[]) => any>(description: string, logger: ILogger, telemetryService: TelemetryService | null, fn: T): (...args: Parameters<T>) => Promise<any> {
+export function withErrorHandling<T extends(...args: any[]) => any>(description: string, logger: ILogger, telemetryService: TelemetryService | null, fn: T): (...args: Parameters<T>) => Promise<any> {
     const returnedFunc = async (...args: Parameters<T>) => {
         try {
             return await fn(...args);
@@ -170,7 +170,7 @@ export function withErrorHandling<T extends (...args: any[]) => any>(description
                 return;
             }
             if (error instanceof Error) {
-                // If it's some other error, we definitely want to know about it. 
+                // If it's some other error, we definitely want to know about it.
                 logger.reportExceptionTelemetryAndLog(description, 'unhandled/error', error, telemetryService);
                 return;
             }
@@ -185,13 +185,13 @@ export function withErrorHandling<T extends (...args: any[]) => any>(description
  * Helper function that wraps an action with comprehensive error handling, telemetry tracking,
  * and special handling for user cancellations. This function combines multiple layers of error
  * handling to provide consistent behavior across cancellable operations.
- * 
+ *
  * The function provides:
  * - Telemetry tracking with success/failure/cancellation outcomes
  * - Special handling for user cancellations (ICanceledError) that don't show as failures
  * - FabricError processing for controlled user notifications and logging
  * - General error safety net for unexpected errors
- * 
+ *
  * @param description - Description of the operation for logging and telemetry
  * @param eventName - Telemetry event name as a string
  * @param logger - Logger instance for error reporting

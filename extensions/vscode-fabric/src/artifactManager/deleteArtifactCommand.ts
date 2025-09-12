@@ -59,7 +59,7 @@ export class DeleteArtifactRemoteOnlyAction implements ICommandAction<IArtifact>
         protected dataProvider: FabricWorkspaceDataProvider,
         protected telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>,
         protected telemetryService: TelemetryService | null,
-        protected logger: ILogger,
+        protected logger: ILogger
     ) {
         this.title = title;
     }
@@ -77,7 +77,7 @@ export class DeleteArtifactRemoteOnlyAction implements ICommandAction<IArtifact>
         else {
             this.telemetryActivity?.addOrUpdateProperties({
                 'requestId': response.parsedBody?.requestId,
-                'errorCode': response.parsedBody?.errorCode
+                'errorCode': response.parsedBody?.errorCode,
             });
             throw new FabricError(
                 formatErrorResponse(vscode.l10n.t('Error deleting {0}', artifact.displayName), response),
@@ -90,14 +90,14 @@ export class DeleteArtifactRemoteOnlyAction implements ICommandAction<IArtifact>
 
 class DeleteArtifactAllAction extends DeleteArtifactRemoteOnlyAction {
     constructor(
-        public title: string, 
-        artifactManager: IArtifactManager, 
+        public title: string,
+        artifactManager: IArtifactManager,
         dataProvider: FabricWorkspaceDataProvider,
         telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>,
-        private localFolder: vscode.Uri, 
-        private fileSystem: vscode.FileSystem, 
+        private localFolder: vscode.Uri,
+        private fileSystem: vscode.FileSystem,
         telemetryService: TelemetryService | null,
-        logger: ILogger,
+        logger: ILogger
     ) {
         super(title, artifactManager, dataProvider, telemetryActivity, telemetryService, logger);
     }
@@ -107,7 +107,7 @@ class DeleteArtifactAllAction extends DeleteArtifactRemoteOnlyAction {
         if (workspaceContainsDirectory(this.localFolder)) {
             void vscode.window.showWarningMessage(
                 vscode.l10n.t('Unable to delete item "{0}" because the local folder "{1}" is currently open in the workspace. Please close the folder and try again.',
-                    artifact.displayName, 
+                    artifact.displayName,
                     this.localFolder.fsPath),
                 { modal: false }
             );

@@ -23,9 +23,9 @@ export async function switchTenantCommand(auth: IAccountProvider, activity: Tele
         tenantIdToSignIn = await vscode.window.showInputBox({
             prompt: vscode.l10n.t('Enter a tenant'),
             placeHolder: vscode.l10n.t('example: contoso.onmicrosoft.com'),
-            title: vscode.l10n.t('Enter a tenant...')
+            title: vscode.l10n.t('Enter a tenant...'),
         });
-        
+
         if (!tenantIdToSignIn || tenantIdToSignIn.trim() === '') {
             throw new UserCancelledError('tenantEntry');
         }
@@ -35,18 +35,18 @@ export async function switchTenantCommand(auth: IAccountProvider, activity: Tele
         const tenantItems = tenants.map((tenant: ITenantSettings) => ({
             label: tenant.displayName || tenant.tenantId || vscode.l10n.t('Unknown tenant'),
             description: (tenant.defaultDomain || '') + (currentTenant && tenant.tenantId === currentTenant.tenantId ? vscode.l10n.t(' (currently active)') : ''),
-            id: tenant.tenantId
+            id: tenant.tenantId,
         }));
 
         const selectedTenant = await vscode.window.showQuickPick(tenantItems, {
             placeHolder: vscode.l10n.t('Select a tenant'),
-            title: vscode.l10n.t('Switch tenant...')
+            title: vscode.l10n.t('Switch tenant...'),
         });
 
         if (!selectedTenant) {
             throw new UserCancelledError('tenantSelection');
         }
-        
+
         tenantIdToSignIn = selectedTenant.id;
     }
 

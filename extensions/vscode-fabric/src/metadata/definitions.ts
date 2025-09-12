@@ -66,7 +66,7 @@ export interface ItemCreationDetails {
  */
 export interface FabricItemMetadata {
     /**
-     * Whether or not the item type can be created. 
+     * Whether or not the item type can be created.
      * Defaults to CreationCapability.unsupported if not specified
      */
     creationCapability?: CreationCapability; // If not specified, default to CreationStatus.unsupported

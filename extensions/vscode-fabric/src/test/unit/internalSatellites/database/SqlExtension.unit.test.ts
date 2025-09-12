@@ -6,7 +6,7 @@ import { SqlExtension } from '../../../../internalSatellites/database/SqlExtensi
 import { IFabricExtensionManager, IWorkspaceManager, IArtifactManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 
-describe('SqlExtension', function() {
+describe('SqlExtension', function () {
     let contextMock: Mock<vscode.ExtensionContext>;
     let telemetryServiceMock: Mock<TelemetryService>;
     let loggerMock: Mock<ILogger>;
@@ -14,11 +14,11 @@ describe('SqlExtension', function() {
     let serviceCollection: any;
     let registerCommandStub: sinon.SinonStub;
 
-    before(function() {
+    before(function () {
         // No global setup required
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         contextMock = new Mock<vscode.ExtensionContext>();
         telemetryServiceMock = new Mock<TelemetryService>();
         loggerMock = new Mock<ILogger>();
@@ -26,7 +26,7 @@ describe('SqlExtension', function() {
         serviceCollection = {
             workspaceManager: new Mock<IWorkspaceManager>().object(),
             artifactManager: new Mock<IArtifactManager>().object(),
-            apiClient: new Mock<IFabricApiClient>().object()
+            apiClient: new Mock<IFabricApiClient>().object(),
         };
         extensionManagerMock.setup(x => x.addExtension(It.IsAny())).returns(serviceCollection);
         // Ensure context.subscriptions is an array
@@ -36,15 +36,15 @@ describe('SqlExtension', function() {
         registerCommandStub = sinon.stub(vscode.commands, 'registerCommand').callsFake(() => ({ dispose: () => {} }));
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sinon.restore();
     });
 
-    after(function() {
+    after(function () {
         // No global teardown required
     });
 
-    it('should register itself and initialize services on construction', function() {
+    it('should register itself and initialize services on construction', function () {
         // Arrange
         const context = contextMock.object();
         (context as any).subscriptions = [];
@@ -61,7 +61,7 @@ describe('SqlExtension', function() {
         extensionManagerMock.verify(x => x.addExtension(It.IsAny()), Times.Once());
     });
 
-    it('should dispose without error', function() {
+    it('should dispose without error', function () {
         // Arrange
         const context = contextMock.object();
         (context as any).subscriptions = [];

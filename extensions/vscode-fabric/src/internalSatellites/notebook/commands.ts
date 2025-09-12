@@ -12,7 +12,7 @@ export function registerNotebookCommands(
     context: vscode.ExtensionContext,
     workspaceManager: IWorkspaceManager,
     artifactManager: IArtifactManager,
-    telemetryService: TelemetryService,
+    telemetryService: TelemetryService
 ): void {
     const callback = async (...cmdArgs: any[]) => {
         await artifactManager.doContextMenuItem(cmdArgs, vscode.l10n.t('Open in Synapse VS Code'), async (item) => {
@@ -20,8 +20,8 @@ export function registerNotebookCommands(
                 return;
             }
 
-            const notebookTreeNode = item as NotebookTreeNode;                        
-            const workspaceId = notebookTreeNode.artifact.workspaceId;            
+            const notebookTreeNode = item as NotebookTreeNode;
+            const workspaceId = notebookTreeNode.artifact.workspaceId;
 
             await openNotebookInSynapse(telemetryService, notebookTreeNode);
         });

@@ -6,7 +6,43 @@ import * as path from 'path';
 import { LocalFolderSettingsAdapter } from './settings/LocalFolderSettingsAdapter';
 import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 
-export class LocalFolderManager {
+/**
+ * Manages local folder associations for Fabric workspaces and artifacts.
+ */
+export interface ILocalFolderManager {
+    /**
+     * Returns the default local folder URI for the given workspace, based on user settings and tenant context.
+     * @param workspace The workspace to resolve the folder for
+     */
+    defaultLocalFolderForFabricWorkspace(workspace: IWorkspace): vscode.Uri;
+
+    /**
+     * Gets the local folder URI for the specified workspace, if set.
+     * @param workspace The workspace to look up
+     */
+    getLocalFolderForFabricWorkspace(workspace: IWorkspace): vscode.Uri | undefined;
+
+    /**
+     * Sets the local folder for the specified workspace.
+     * @param workspace The workspace to associate
+     * @param workspaceFolder The local folder URI to set
+     */
+    setLocalFolderForFabricWorkspace(workspace: IWorkspace, workspaceFolder: vscode.Uri): Promise<void>;
+
+    /**
+     * Gets the local folder URI for the specified artifact, if set.
+     * @param artifact The artifact to look up
+     */
+    getLocalFolderForFabricArtifact(artifact: IArtifact): Promise<vscode.Uri | undefined>;
+
+    /**
+     * Returns the workspace ID associated with the given local folder URI, or undefined if not found.
+     * @param folder The local folder URI to look up
+     */
+    getWorkspaceIdForLocalFolder(folder: vscode.Uri): string | undefined;
+}
+
+export class LocalFolderManager implements ILocalFolderManager {
     private adapter: ILocalFolderSettingsAdapter;
 
     public constructor(private storage: IFabricExtensionsSettingStorage, environmentProvider: IFabricEnvironmentProvider) {
@@ -45,7 +81,7 @@ export class LocalFolderManager {
         if (!workspaceFolder) {
             return undefined;
         }
-        
+
         let artifactFolder: string | undefined = this.adapter.getArtifactFolder(artifact.id);
         if (!artifactFolder || artifactFolder.length === 0) {
             artifactFolder = artifact.displayName;
@@ -54,5 +90,14 @@ export class LocalFolderManager {
 
         const localFolder: vscode.Uri = vscode.Uri.joinPath(vscode.Uri.file(workspaceFolder), `${artifact.displayName}.${artifact.type}`);
         return localFolder;
+    }
+
+    /**
+     * Returns the workspace ID associated with the given local folder path, or undefined if not found
+     * @param folder The local folder path to look up
+     */
+    public getWorkspaceIdForLocalFolder(folder: vscode.Uri): string | undefined {
+        // Use fsPath for comparison
+        return this.adapter.getWorkspaceFromFolder(folder.fsPath);
     }
 }

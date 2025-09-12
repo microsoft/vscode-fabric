@@ -46,8 +46,8 @@ describe('ItemDefinitionReader', () => {
             {
                 path: 'file1.txt',
                 payload: 'encoded-content',
-                payloadType: PayloadType.InlineBase64
-            }
+                payloadType: PayloadType.InlineBase64,
+            },
         ]);
         encoderMock.verify(e => e.encode(It.IsAny()), Times.Once());
     });
@@ -58,14 +58,14 @@ describe('ItemDefinitionReader', () => {
             .returns(Promise.resolve(
                 [
                     ['file1.txt', vscode.FileType.File],
-                    ['dir', vscode.FileType.Directory]
+                    ['dir', vscode.FileType.Directory],
                 ]
             ));
         fileSystemMock
             .setup(fs => fs.readDirectory(It.Is<vscode.Uri>(v => v.fsPath.endsWith('dir'))))
             .returns(Promise.resolve(
                 [
-                    ['file2.txt', vscode.FileType.File]
+                    ['file2.txt', vscode.FileType.File],
                 ]
             ));
         fileSystemMock
@@ -84,13 +84,13 @@ describe('ItemDefinitionReader', () => {
             {
                 path: 'file1.txt',
                 payload: 'encoded',
-                payloadType: PayloadType.InlineBase64
+                payloadType: PayloadType.InlineBase64,
             },
             {
                 path: 'dir/file2.txt',
                 payload: 'encoded',
-                payloadType: PayloadType.InlineBase64
-            }
+                payloadType: PayloadType.InlineBase64,
+            },
         ]);
         encoderMock.verify(e => e.encode(It.IsAny()), Times.Exactly(2));
     });
@@ -101,7 +101,7 @@ describe('ItemDefinitionReader', () => {
             .returns(Promise.resolve(
                 [
                     ['.platform', vscode.FileType.File],
-                    ['file1.txt', vscode.FileType.File]
+                    ['file1.txt', vscode.FileType.File],
                 ]
             ));
         fileSystemMock
@@ -117,8 +117,8 @@ describe('ItemDefinitionReader', () => {
             {
                 path: 'file1.txt',
                 payload: 'encoded',
-                payloadType: PayloadType.InlineBase64
-            }
+                payloadType: PayloadType.InlineBase64,
+            },
         ]);
     });
 
@@ -129,7 +129,7 @@ describe('ItemDefinitionReader', () => {
             .setup(fs => fs.readDirectory(rootUri))
             .returns(Promise.resolve(
                 [
-                    ['file1.txt', vscode.FileType.File]
+                    ['file1.txt', vscode.FileType.File],
                 ]
             ));
         fileSystemMock
@@ -150,5 +150,5 @@ describe('ItemDefinitionReader', () => {
             /File system error/
         );
     });
-    
+
 });

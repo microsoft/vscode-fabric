@@ -5,7 +5,7 @@ import { AbstractDatabaseTreeNode, SqlArtifactType } from '../../../../internalS
 import { IApiClientResponse, IArtifact, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { FabricError } from '@microsoft/vscode-fabric-util';
 
-describe('AbstractDatabaseTreeNode (protected methods)', function() {
+describe('AbstractDatabaseTreeNode (protected methods)', function () {
     class TestDatabaseTreeNode extends AbstractDatabaseTreeNode {
         protected artifactType: SqlArtifactType = 'SQLDatabase';
         public getConnectionString(apiClient: IFabricApiClient): Promise<string> {
@@ -26,13 +26,13 @@ describe('AbstractDatabaseTreeNode (protected methods)', function() {
     let artifact: IArtifact;
     let node: TestDatabaseTreeNode;
 
-    beforeEach(function() {
+    beforeEach(function () {
         contextMock = new Mock<vscode.ExtensionContext>();
         artifact = { id: 'db-1' } as IArtifact;
         node = new TestDatabaseTreeNode(contextMock.object(), artifact);
     });
 
-    it('validateResponse should not throw for status 200', function() {
+    it('validateResponse should not throw for status 200', function () {
         // Arrange
         const response: IApiClientResponse = {
             status: 200,
@@ -42,7 +42,7 @@ describe('AbstractDatabaseTreeNode (protected methods)', function() {
         assert.doesNotThrow(() => node.callValidateResponse(response));
     });
 
-    it('validateResponse should throw FabricError for non-200 status', function() {
+    it('validateResponse should throw FabricError for non-200 status', function () {
         // Arrange
         const response: IApiClientResponse = {
             status: 500,
@@ -56,7 +56,7 @@ describe('AbstractDatabaseTreeNode (protected methods)', function() {
         );
     });
 
-    it('constructExternalUri should return correct URI without databaseName', function() {
+    it('constructExternalUri should return correct URI without databaseName', function () {
         // Arrange
         const serverName = 'myserver.database.windows.net';
         const expected = `${vscode.env.uriScheme}://ms-mssql.mssql/connect?server=${serverName}&authenticationType=AzureMFA`;
@@ -66,7 +66,7 @@ describe('AbstractDatabaseTreeNode (protected methods)', function() {
         assert.equal(result, expected, 'Should return correct URI without databaseName');
     });
 
-    it('constructExternalUri should return correct URI with databaseName', function() {
+    it('constructExternalUri should return correct URI with databaseName', function () {
         // Arrange
         const serverName = 'myserver.database.windows.net';
         const databaseName = 'mydb';

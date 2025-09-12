@@ -1,12 +1,13 @@
 import * as vscode from 'vscode';
 import { IItemDefinition } from '@microsoft/vscode-fabric-api';
+import { getItemDefinitionPathUri } from './pathUtils';
 
 export interface IItemDefinitionWriter {
     save(itemDefinition: IItemDefinition, destination: vscode.Uri): Promise<void>;
 }
 
 export class ItemDefinitionWriter implements IItemDefinitionWriter {
-    public constructor(private readonly fileSystem: vscode.FileSystem) { 
+    public constructor(private readonly fileSystem: vscode.FileSystem) {
     }
 
     async save(itemDefinition: IItemDefinition, destination: vscode.Uri): Promise<void> {
@@ -14,8 +15,7 @@ export class ItemDefinitionWriter implements IItemDefinitionWriter {
             for (let part of itemDefinition.parts) {
                 if (part.payloadType === 'InlineBase64') {
                     const payload = Buffer.from(part.payload, 'base64').toString();
-                    const sanitizedPath = part.path.replace(/(\.\.(\/|\\))/g, '');
-                    var filePath = vscode.Uri.joinPath(destination, sanitizedPath);
+                    const filePath = getItemDefinitionPathUri(part.path, destination);
                     await this.fileSystem.writeFile(filePath, Buffer.from(payload, 'utf-8'));
                 }
             }

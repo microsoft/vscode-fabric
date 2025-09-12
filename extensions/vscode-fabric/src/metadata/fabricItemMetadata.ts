@@ -6,7 +6,7 @@ import { CreationCapability, FabricItemMetadata } from './definitions';
 //   - AppDev icons (graph_ql_32 and function_set_32)
 //      - Came from a hand-off from Seung Yang
 //      - Converted to light/dark by changing 'fill="black"' to 'fill="white"' in the .svg files
-// The other icons are themed by adding 'fill="white"' into the .svg files 
+// The other icons are themed by adding 'fill="white"' into the .svg files
 export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
     /* eslint-disable @typescript-eslint/naming-convention*/
     'CopyJob': {
@@ -97,7 +97,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         creationCapability: CreationCapability.supported,
         creationDescription: vscode.l10n.t('Rapidly load structured, unstructured, and streaming data for querying.'),
         displayName: vscode.l10n.t('KQL Database'),
-        displayNamePlural: vscode.l10n.t('Databases'),
+        displayNamePlural: vscode.l10n.t('KQL Databases'),
         iconInformation: { fileName: 'kql_database_24.svg', isThemed: true },
         portalFolder: 'databases',
         supportsArtifactWithDefinition: true,
@@ -217,7 +217,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         supportsArtifactWithDefinition: true,
     },
     'UserDataFunction': {
-        creationCapability: CreationCapability.preview,
+        creationCapability: CreationCapability.supported,
         creationDescription: vscode.l10n.t('Author, host, and manage serverless user data functions optimized for Fabric.'),
         displayName: vscode.l10n.t('User data functions'),
         displayNamePlural: vscode.l10n.t('User data functions'),
@@ -226,7 +226,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         portalFolder: 'userdatafunctions',
     },
     'VariableLibrary': {
-        creationCapability: CreationCapability.preview,
+        creationCapability: CreationCapability.supported,
         creationDescription: vscode.l10n.t('Create item variables that can be referenced across this workspace.'),
         displayName: vscode.l10n.t('Variable library'),
         displayNamePlural: vscode.l10n.t('Variable libraries'),
@@ -368,7 +368,6 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         iconInformation: { fileName: 'sql_database_24.svg', isThemed: true },
     },
 
-
     'KustoEventHouse': {
         displayName: vscode.l10n.t('Event House'),
         displayNamePlural: vscode.l10n.t('Event Houses'),
@@ -384,7 +383,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
     },
     'PgSQLDbNative': {
         displayName: vscode.l10n.t('PostgreSQL Database'),
-        displayNamePlural: vscode.l10n.t('PostgreSQL Databases')
+        displayNamePlural: vscode.l10n.t('PostgreSQL Databases'),
     },
     'SustainabilityDataManager': {
         displayName: vscode.l10n.t('Sustainability Data Manager (Preview)'),

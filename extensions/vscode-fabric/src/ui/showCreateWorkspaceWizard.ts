@@ -9,12 +9,12 @@ import { formatErrorResponse } from '../utilities';
 
 /**
  * Gathers information from the user for creating a new workspace, then creates the workspace.
- * 
+ *
  * @param workspaceManager The workspace manager
  * @param apiClient The API client
  * @param telemetryService The telemetry service
  * @param logger The logger
- * 
+ *
  * @returns The created workspace or undefined if cancelled
  *
  * @throws A {@link NotSignedInError} If the user is not signed in to Fabric.
@@ -24,7 +24,7 @@ export async function showCreateWorkspaceWizard(
     workspaceManager: IWorkspaceManager,
     capacityManager: ICapacityManager,
     telemetryService: TelemetryService | null,
-    logger: ILogger
+    logger?: ILogger
 ): Promise<IWorkspace | undefined> {
     if (!(await workspaceManager.isConnected())) {
         throw new NotSignedInError();
@@ -59,7 +59,7 @@ export async function showCreateWorkspaceWizard(
         const createOptions: any = selectedCapacity ? { capacityId: selectedCapacity.id } : {};
         const responseCreateWorkspace = await workspaceManager.createWorkspace(workspaceName, createOptions);
         createActivity.addOrUpdateProperties({
-            'statusCode': responseCreateWorkspace.status.toString()
+            'statusCode': responseCreateWorkspace.status.toString(),
         });
         if (responseCreateWorkspace.status === 201) {
             const workspace = responseCreateWorkspace.parsedBody;
@@ -73,7 +73,7 @@ export async function showCreateWorkspaceWizard(
                 description: workspace.description,
                 type: workspace.type,
                 displayName: workspace.displayName,
-                capacityId: workspace.capacityId
+                capacityId: workspace.capacityId,
             };
 
             return newWorkspace;

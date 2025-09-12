@@ -7,7 +7,7 @@ import { TelemetryService, TelemetryEvent } from '@microsoft/vscode-fabric-util'
 import { IFabricApiClient, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { AbstractDatabaseTreeNode } from '../../../../internalSatellites/database/AbstractDatabaseTreeNode';
 
-describe('copyConnectionStringToClipboard', function() {
+describe('copyConnectionStringToClipboard', function () {
     let telemetryServiceMock: Mock<TelemetryService>;
     let workspaceManagerMock: Mock<IWorkspaceManager>;
     let apiClientMock: Mock<IFabricApiClient>;
@@ -16,23 +16,23 @@ describe('copyConnectionStringToClipboard', function() {
     let eventSendStub: sinon.SinonStub;
     let sandbox: sinon.SinonSandbox;
 
-    before(function() {
+    before(function () {
         // No global setup needed
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.createSandbox();
         telemetryServiceMock = new Mock<TelemetryService>();
         workspaceManagerMock = new Mock<IWorkspaceManager>();
         apiClientMock = new Mock<IFabricApiClient>();
-        databaseTreeNodeMock = new Mock<AbstractDatabaseTreeNode>();    
+        databaseTreeNodeMock = new Mock<AbstractDatabaseTreeNode>();
 
         // Setup databaseTreeNode.artifact
         databaseTreeNodeMock.setup(x => x.artifact).returns({
             workspaceId: 'ws-123',
             id: 'db-456',
             type: 'SQLDatabase',
-            displayName: 'TestDB'
+            displayName: 'TestDB',
         } as any);
 
         // Setup getConnectionString
@@ -43,16 +43,16 @@ describe('copyConnectionStringToClipboard', function() {
         sandbox.stub(TelemetryEvent.prototype, 'addOrUpdateProperties').callsFake(() => {});
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
         sinon.restore();
     });
 
-    after(function() {
+    after(function () {
         // No global teardown needed
     });
-    
-    it('should copy the connection string to clipboard and send telemetry', async function() {
+
+    it('should copy the connection string to clipboard and send telemetry', async function () {
         // Act
         await copyConnectionStringToClipboard(
             telemetryServiceMock.object(),

@@ -46,7 +46,7 @@ describe('TelemetryService', () => {
         // Build expected merged properties (custom + default)
         const expectedProps: Record<string, string> = {
             ...props,
-            'common.version': '1.0.0'
+            'common.version': '1.0.0',
         };
 
         // Send telemetry event, should include both custom and default props
@@ -61,7 +61,7 @@ describe('TelemetryService', () => {
                 ),
                 It.IsAny()
             ),
-            Times.Once(),
+            Times.Once()
         );
     });
 
@@ -87,7 +87,7 @@ describe('TelemetryService', () => {
                 It.Is<Record<string, string>>(p => p['common.updatedProp'] === 'updatedValue'),
                 undefined
             ),
-            Times.Once(),
+            Times.Once()
         );
     });
 
@@ -117,7 +117,7 @@ describe('TelemetryService', () => {
                 ),
                 undefined
             ),
-            Times.Once(),
+            Times.Once()
         );
     });
 
@@ -137,7 +137,7 @@ describe('TelemetryService', () => {
                 It.Is<Record<string, string>>(p => p['errormessage'] === 'String error message'),
                 undefined
             ),
-            Times.Once(),
+            Times.Once()
         );
     });
 
@@ -165,10 +165,10 @@ describe('TelemetryService', () => {
         // Add a property first
         service.addOrUpdateDefaultProperty('removeTest', 'someValue');
         assert.strictEqual(service.defaultProps['common.removeTest'], 'someValue');
-        
+
         // Then remove it by passing undefined
         service.addOrUpdateDefaultProperty('removeTest', undefined);
-        
+
         // Verify the property has been removed
         assert.strictEqual(service.defaultProps['common.removeTest'], undefined);
     });
@@ -182,19 +182,19 @@ describe('TelemetryService', () => {
         // Add a property first
         service.addOrUpdateDefaultProperty('updateTest', 'initialValue');
         assert.strictEqual(service.defaultProps['common.updateTest'], 'initialValue');
-        
+
         // Get the number of properties before update
         const propsCountBefore = Object.keys(service.defaultProps).length;
-        
+
         // Update the property
         service.addOrUpdateDefaultProperty('updateTest', 'updatedValue');
-        
+
         // Get the number of properties after update
         const propsCountAfter = Object.keys(service.defaultProps).length;
-        
+
         // Verify the property was updated
         assert.strictEqual(service.defaultProps['common.updateTest'], 'updatedValue');
-        
+
         // Verify no new entry was added (count remains the same)
         assert.strictEqual(propsCountBefore, propsCountAfter);
     });
@@ -211,7 +211,7 @@ describe('TelemetryService', () => {
         // Verify that attempting to update properties throws the expected error
         assert.throws(
             () => service.addOrUpdateDefaultProperty('x', 'y'),
-            /Cannot update default properties in a satellite extension/,
+            /Cannot update default properties in a satellite extension/
         );
     });
 
@@ -237,19 +237,19 @@ describe('TelemetryService', () => {
         // Add multiple properties
         service.addOrUpdateDefaultProperty('prop1', 'value1');
         service.addOrUpdateDefaultProperty('prop2', 'value2');
-        
+
         // Verify all properties have the common. prefix
         assert.strictEqual(service.defaultProps['common.prop1'], 'value1');
         assert.strictEqual(service.defaultProps['common.prop2'], 'value2');
-        
+
         // Make sure properties are accessible in telemetry events
         service.sendTelemetryEvent('test-event');
-        
+
         telemetryReporterMock.verify(
             i => i.sendTelemetryEvent(
                 'test-event',
-                It.Is<Record<string, string>>(p => 
-                    p['common.prop1'] === 'value1' && 
+                It.Is<Record<string, string>>(p =>
+                    p['common.prop1'] === 'value1' &&
                     p['common.prop2'] === 'value2'
                 ),
                 undefined
@@ -268,29 +268,29 @@ describe('TelemetryService', () => {
         service.addOrUpdateDefaultProperty('ismicrosoftinternal', 'true');
         service.addOrUpdateDefaultProperty('tenantid', 'some-tenant-id');
         service.addOrUpdateDefaultProperty('useralias', 'alias');
-        
+
         // Verify they exist
         assert.strictEqual(service.defaultProps['common.ismicrosoftinternal'], 'true');
         assert.strictEqual(service.defaultProps['common.tenantid'], 'some-tenant-id');
         assert.strictEqual(service.defaultProps['common.useralias'], 'alias');
-        
+
         // Now clear them using undefined
         service.addOrUpdateDefaultProperty('ismicrosoftinternal', undefined);
         service.addOrUpdateDefaultProperty('tenantid', undefined);
         service.addOrUpdateDefaultProperty('useralias', undefined);
-        
+
         // Verify they are removed
         assert.strictEqual(service.defaultProps['common.ismicrosoftinternal'], undefined);
         assert.strictEqual(service.defaultProps['common.tenantid'], undefined);
         assert.strictEqual(service.defaultProps['common.useralias'], undefined);
-        
+
         // Ensure they don't appear in sent telemetry
         service.sendTelemetryEvent('test-event');
-        
+
         telemetryReporterMock.verify(
             i => i.sendTelemetryEvent(
                 'test-event',
-                It.Is<Record<string, string>>(p => 
+                It.Is<Record<string, string>>(p =>
                     p['common.ismicrosoftinternal'] === undefined &&
                     p['common.tenantid'] === undefined &&
                     p['common.useralias'] === undefined

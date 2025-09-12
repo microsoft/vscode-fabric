@@ -12,7 +12,7 @@ describe('CreateItemsProvider', () => {
 
     beforeEach(() => {
         getArtifactIconPathStub = sinon.stub(fabricItemUtilities, 'getArtifactIconPath');
-        getArtifactDefaultIconPathStub = sinon.stub(fabricItemUtilities, 'getArtifactDefaultIconPath'); 
+        getArtifactDefaultIconPathStub = sinon.stub(fabricItemUtilities, 'getArtifactDefaultIconPath');
     });
 
     afterEach(() => {
@@ -27,12 +27,12 @@ describe('CreateItemsProvider', () => {
             },
             lakehouse: {
                 displayName: 'Lakehouse',
-                creationCapability: CreationCapability.preview
+                creationCapability: CreationCapability.preview,
             },
             deprecated: {
                 displayName: 'Deprecated',
-                creationCapability: CreationCapability.unsupported
-            }
+                creationCapability: CreationCapability.unsupported,
+            },
         };
 
         const provider = new CreateItemsProvider(metadata);
@@ -50,8 +50,8 @@ describe('CreateItemsProvider', () => {
         const metadata: Record<string, FabricItemMetadata> = {
             onlyUnsupported: {
                 displayName: 'None',
-                creationCapability: CreationCapability.unsupported
-            }
+                creationCapability: CreationCapability.unsupported,
+            },
         };
         const provider = new CreateItemsProvider(metadata);
         const items = provider.getItemsForCreate(baseUri);
@@ -61,8 +61,8 @@ describe('CreateItemsProvider', () => {
     it('defaults creationCapability to unsupported if missing', () => {
         const metadata: Record<string, FabricItemMetadata> = {
             noCapability: {
-                displayName: 'Default'
-            }
+                displayName: 'Default',
+            },
         };
         const provider = new CreateItemsProvider(metadata);
         const items = provider.getItemsForCreate(baseUri);
@@ -77,7 +77,7 @@ describe('CreateItemsProvider', () => {
                 displayName: 'Complete data',
                 creationCapability: CreationCapability.supported,
                 creationDescription: 'Fancy description',
-                iconInformation: { fileName: 'complete.svg', isThemed: true }
+                iconInformation: { fileName: 'complete.svg', isThemed: true },
             },
             'NoMetadata': {
                 creationCapability: CreationCapability.supported,

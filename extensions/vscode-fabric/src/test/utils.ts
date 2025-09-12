@@ -14,8 +14,8 @@ export function isRepoUser(): boolean {
     return isInuserlist;
 }
 
-/** Get empty folder as subfolder of out  
- * 
+/** Get empty folder as subfolder of out
+ *
 */
 export async function getOrCreateEmptyTempFolder(name: string): Promise<string> {
     let destdir: fs.PathLike = path.resolve(__dirname, name);

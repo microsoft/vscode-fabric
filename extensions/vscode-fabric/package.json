@@ -29,7 +29,6 @@
   "activationEvents": [
     "onUri"
   ],
-  "preview": true,
   "main": "./dist/extension.js",
   "l10n": "./l10n",
   "license": "SEE LICENSE IN LICENSE.md",
@@ -87,6 +86,12 @@
       {
         "command": "vscode-fabric.importArtifact",
         "title": "%extension.importArtifact.title%",
+        "category": "Fabric",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "vscode-fabric.importArtifactPromptWorkspace",
+        "title": "%extension.importArtifactPromptWorkspace.title%",
         "category": "Fabric",
         "icon": "$(cloud-upload)"
       },
@@ -160,6 +165,18 @@
         "title": "%extension.installFabricExtension.title%",
         "category": "Fabric",
         "icon": "$(extensions)"
+      },
+      {
+        "command": "vscode-fabric.filterWorkspaces",
+        "title": "%extension.filterWorkspaces.title%",
+        "category": "Fabric",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "vscode-fabric.clearWorkspaceFilter",
+        "title": "%extension.clearWorkspaceFilter.title%",
+        "category": "Fabric",
+        "icon": "$(clear-all)"
       }
     ],
     "views": {
@@ -212,8 +229,19 @@
         "contents": "%extension.view.local.welcome%"
       }
     ],
+    "submenus": [
+      {
+        "id": "vscode-fabric.submenu.importArtifact",
+        "label": "%extension.submenu.importArtifact.title%",
+        "icon": "$(cloud-upload)"
+      }
+    ],
     "menus": {
       "commandPalette": [
+        {
+          "command": "vscode-fabric.openInPortal",
+          "when": "false"
+        },
         {
           "command": "vscode-fabric.deleteArtifact",
           "when": "false"
@@ -232,6 +260,10 @@
         },
         {
           "command": "vscode-fabric.importArtifact",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.importArtifactPromptWorkspace",
           "when": "false"
         },
         {
@@ -267,6 +299,16 @@
           "when": "false"
         }
       ],
+      "vscode-fabric.submenu.importArtifact": [
+        {
+          "command": "vscode-fabric.importArtifact",
+          "group": "1@1"
+        },
+        {
+          "command": "vscode-fabric.importArtifactPromptWorkspace",
+          "group": "1@2"
+        }
+      ],
       "view/title": [
         {
           "command": "vscode-fabric.createWorkspace",
@@ -287,6 +329,11 @@
           "command": "vscode-fabric.workspaceViewToTree",
           "when": "view == vscode-fabric.view.workspace && vscode-fabric.workspaceViewDisplayStyle && vscode-fabric.workspaceViewDisplayStyle != TreeView",
           "group": "navigation@3"
+        },
+        {
+          "command": "vscode-fabric.filterWorkspaces",
+          "when": "view == vscode-fabric.view.workspace",
+          "group": "navigation@4"
         },
         {
           "command": "vscode-fabric.refreshArtifactView",
@@ -376,7 +423,7 @@
           "group": "inline"
         },
         {
-          "command": "vscode-fabric.importArtifact",
+          "submenu": "vscode-fabric.submenu.importArtifact",
           "when": "view == vscode-fabric.view.local && viewItem =~ /item-import/",
           "group": "6@1"
         },
@@ -497,7 +544,7 @@
     "test:unit": "vscode-test --coverage --label unit",
     "test:integration": "vscode-test --coverage --label integration",
     "test:e2e": "vscode-test --coverage --label e2e",
-    "vsix": "vsce package --allow-missing-repository --pre-release --no-dependencies",
+    "vsix": "vsce package --allow-missing-repository --pre-release --no-dependencies --baseImagesUrl https://raw.githubusercontent.com/microsoft/microsoft-fabric-vscode-extension/main/",
     "localization": "npx @vscode/l10n-dev export -o ./l10n ./src",
     "clean": "npm exec rimraf out && npm exec rimraf dist",
     "uitest": "cross-env VSCODE_FABRIC_ENABLE_TEST_FAKES=true extest setup-and-run './out/test/uitest/*.test.js' -e ./out/.test-extensions -o ./src/test/uitest/settings.json -c max",

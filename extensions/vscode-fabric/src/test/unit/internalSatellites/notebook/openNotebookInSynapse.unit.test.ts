@@ -6,18 +6,18 @@ import { openNotebookInSynapse } from '../../../../internalSatellites/notebook/o
 import { TelemetryService, TelemetryEvent } from '@microsoft/vscode-fabric-util';
 import { NotebookTreeNode } from '../../../../internalSatellites/notebook/NotebookTreeNode';
 
-describe('openNotebookInSynapse', function() {
+describe('openNotebookInSynapse', function () {
     let telemetryServiceMock: Mock<TelemetryService>;
     let treeNodeMock: Mock<NotebookTreeNode>;
     let openExternalStub: sinon.SinonStub;
     let eventSendStub: sinon.SinonStub;
     let sandbox: sinon.SinonSandbox;
 
-    before(function() {  
+    before(function () {
         // No global setup needed
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.createSandbox();
         telemetryServiceMock = new Mock<TelemetryService>();
         treeNodeMock = new Mock<NotebookTreeNode>();
@@ -27,7 +27,7 @@ describe('openNotebookInSynapse', function() {
             id: 'notebook-123',
             type: 'Notebook',
             displayName: 'TestNotebook',
-            workspaceId: 'ws-123'
+            workspaceId: 'ws-123',
         } as any);
 
         // Setup getExternalUri
@@ -41,19 +41,19 @@ describe('openNotebookInSynapse', function() {
         sandbox.stub(TelemetryEvent.prototype, 'addOrUpdateProperties').callsFake(() => {});
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    after(function() {
+    after(function () {
         // No global teardown needed
     });
 
-    it('should open the notebook external URI and send telemetry', async function() {
+    it('should open the notebook external URI and send telemetry', async function () {
         // Act
         await openNotebookInSynapse(
             telemetryServiceMock.object(),
-            treeNodeMock.object(),
+            treeNodeMock.object()
         );
 
         // Assert

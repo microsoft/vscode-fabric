@@ -1,6 +1,6 @@
 /* eslint-disable security/detect-object-injection */
 import * as vscode from 'vscode';
-import { IArtifact } from '@microsoft/vscode-fabric-api';
+import { IArtifact, IWorkspace } from '@microsoft/vscode-fabric-api';
 import { fabricItemMetadata } from './fabricItemMetadata';
 
 export function getDisplayName(artifact: IArtifact | string): string {
@@ -60,6 +60,25 @@ export function getSupportsArtifactWithDefinition(artifact: IArtifact | string):
     return !!fabricItemMetadata[artifactType]?.supportsArtifactWithDefinition;
 }
 
+/**
+ * Gets the themed icon path for a workspace based on its type
+ * @param baseUri The base URI for the extension
+ * @param workspace The workspace to get the icon for
+ * @returns Themed icon paths for light and dark modes, or undefined if baseUri is not provided
+ */
+export function getWorkspaceIconPath(baseUri: vscode.Uri, workspace: IWorkspace): { light: vscode.Uri, dark: vscode.Uri } | undefined {
+    if (!baseUri) {
+        return undefined;
+    }
+
+    const fileName = workspace.type === 'Personal' ? 'workspace_personal_24.svg' : 'workspace_group_24.svg';
+
+    return {
+        light: vscode.Uri.joinPath(baseUri, 'resources', 'light', 'artifacts', fileName),
+        dark: vscode.Uri.joinPath(baseUri, 'resources', 'dark', 'artifacts', fileName),
+    };
+}
+
 function getThemedArtifactIconPath(baseUri: vscode.Uri, fileName: string): { light: vscode.Uri, dark: vscode.Uri } | undefined {
     if (!baseUri) {
         return undefined;
@@ -67,7 +86,7 @@ function getThemedArtifactIconPath(baseUri: vscode.Uri, fileName: string): { lig
 
     return {
         light: vscode.Uri.joinPath(baseUri, 'resources', 'light', 'artifacts', fileName),
-        dark: vscode.Uri.joinPath(baseUri, 'resources', 'dark', 'artifacts', fileName)
+        dark: vscode.Uri.joinPath(baseUri, 'resources', 'dark', 'artifacts', fileName),
     };
 }
 

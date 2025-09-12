@@ -2,10 +2,10 @@ import * as vscode from 'vscode';
 import { commandNames } from '../constants';
 
 export class FeedbackTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
-    constructor(context: vscode.ExtensionContext) { 
+    constructor(context: vscode.ExtensionContext) {
         context.subscriptions.push(vscode.commands.registerCommand(commandNames.viewIssues, async () => {
             void vscode.env.openExternal('https://aka.ms/fabric/vscode/issues' as unknown as vscode.Uri);
-        }));    
+        }));
         context.subscriptions.push(vscode.commands.registerCommand(commandNames.reportIssue, async () => {
             void vscode.env.openExternal('https://aka.ms/fabric/vscode/issues/new' as unknown as vscode.Uri);
         }));

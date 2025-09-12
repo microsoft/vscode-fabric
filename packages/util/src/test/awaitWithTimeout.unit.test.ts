@@ -74,7 +74,7 @@ describe('Test Await with Timout', () => {
         await sleep(1000);
         assert(didtimeout, 'expected didtimeout to occur');
     });
-    
+
     it('await another way', async () => {
         let expectedResult = 'result!';
 
@@ -87,7 +87,7 @@ describe('Test Await with Timout', () => {
         let resp = await Promise.race(
             [
                 fakeApi(300 * delaymult),
-                sleep(1000 * delaymult)
+                sleep(1000 * delaymult),
             ]
         );
         assert(expectedResult === resp, 'Promise.race response');
@@ -98,7 +98,7 @@ describe('Test Await with Timout', () => {
             let resp2 = await Promise.race(
                 [
                     fakeApi(3000 * delaymult),
-                    sleep(1000 * delaymult)
+                    sleep(1000 * delaymult),
                 ]
             );
             if (!resp2) { // returns undef on timeout: let's throw

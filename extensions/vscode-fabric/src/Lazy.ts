@@ -1,8 +1,8 @@
-/** 
- * Lazy loaded and cached value 
+/**
+ * Lazy loaded and cached value
  */
 export interface Lazy<T> {
-    /** 
+    /**
      * Get the cached value or call the loader if the value is falsy.
      * @returns the cached value if it's not falsy, or the result of the loader if it is a function; otherwise, undefined.
      */

@@ -10,12 +10,17 @@ steps:
 
   - ${{ if eq(parameters.acquireE2EToken, true) }}:
     - task: AzureCLI@2
+      name: 'GetE2EToken'
       displayName: 'Get E2E Tests Service Principal Token'
+      continueOnError: true
       inputs:
         azureSubscription: E2E Tests Service Principal
         scriptType: pscore
         scriptLocation: scriptPath
         scriptPath: pipelines/scripts/Get-E2EToken.ps1
+    - script: echo "##vso[task.setvariable variable=E2ETokenAcquired]true"
+      displayName: 'Set E2E token success flag'
+      condition: eq(variables['Agent.JobStatus'], 'Succeeded')
 
   - task: Npm@1
     displayName: 'npm ci'

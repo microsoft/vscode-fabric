@@ -4,7 +4,6 @@ import { IArtifact, IFabricApiClient, IApiClientRequestOptions, IApiClientRespon
 import { AbstractDatabaseTreeNode } from './AbstractDatabaseTreeNode';
 import { SqlDatabaseApiResponse } from './ApiResponseModels';
 
-
 export class SqlDatabaseTreeNode extends AbstractDatabaseTreeNode {
     constructor(context: vscode.ExtensionContext, public readonly artifact: IArtifact) {
         super(context, artifact);

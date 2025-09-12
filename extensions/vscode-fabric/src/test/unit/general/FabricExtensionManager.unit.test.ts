@@ -32,10 +32,10 @@ describe('FabricExtensionManager unit tests', () => {
 
     it('addExtension: Satellite contributions are added', async () => {
         const manager = MockFabricExtensionManager.create();
-        const extension1: IFabricExtension = TestExtension.create(satelliteExtensionIds[0], [ 'artifact-type-1' ], true);
-        const extension2: IFabricExtension = TestExtension.create(satelliteExtensionIds[1], [ 'artifact-type-2' ], true);
-        const extension3: IFabricExtension = TestExtension.create(satelliteExtensionIds[2], [ 'artifact-type-3' ], false);
-    
+        const extension1: IFabricExtension = TestExtension.create(satelliteExtensionIds[0], ['artifact-type-1'], true);
+        const extension2: IFabricExtension = TestExtension.create(satelliteExtensionIds[1], ['artifact-type-2'], true);
+        const extension3: IFabricExtension = TestExtension.create(satelliteExtensionIds[2], ['artifact-type-3'], false);
+
         manager.addExtension(extension1);
         manager.addExtension(extension2);
         manager.addExtension(extension3);
@@ -69,7 +69,7 @@ describe('FabricExtensionManager unit tests', () => {
     it('Error: extension has already been added', async () => {
         const manager = MockFabricExtensionManager.create();
         const extension: IFabricExtension = TestExtension.create();
-        const extension2: IFabricExtension = TestExtension.create(undefined, [ 'test2' ]);
+        const extension2: IFabricExtension = TestExtension.create(undefined, ['test2']);
 
         // Verify there is an error when the extension is added a second time
         manager.addExtension(extension);
@@ -91,15 +91,15 @@ describe('FabricExtensionManager unit tests', () => {
         // Error: major version higher
         let extension: IFabricExtension = TestExtension.create(undefined, undefined, undefined, '2.6');
         assert.throws(() => manager.addExtension(extension), `addExtension should throw because ${extension.identity} requires API version ${extension.apiVersion} but the manager is ${testApiVersion}`);
-        
+
         // Error: major version lower
         extension = TestExtension.create(undefined, undefined, undefined, '0.9');
         assert.throws(() => manager.addExtension(extension), `addExtension should throw because ${extension.identity} requires API version ${extension.apiVersion} but the manager is ${testApiVersion}`);
-        
+
         // Error: minor version higher
         extension = TestExtension.create(undefined, undefined, undefined, '1.61');
         assert.throws(() => manager.addExtension(extension), `addExtension should throw because ${extension.identity} requires API version ${extension.apiVersion} but the manager is ${testApiVersion}`);
-        
+
         // Error: minor version lower
         extension = TestExtension.create(undefined, undefined, undefined, '1.4');
         assert.throws(() => manager.addExtension(extension), `addExtension should throw because ${extension.identity} requires API version ${extension.apiVersion} but the manager is ${testApiVersion}`);
@@ -107,19 +107,19 @@ describe('FabricExtensionManager unit tests', () => {
         // Error: no minor version specified
         extension = TestExtension.create(undefined, undefined, undefined, '1');
         assert.throws(() => manager.addExtension(extension), `addExtension should throw because ${extension.identity} requires API version ${extension.apiVersion} but the manager is ${testApiVersion}`);
-        
+
         // Validate: patch version exists
         extension = TestExtension.create(undefined, undefined, undefined, '1.6.1');
         manager.addExtension(extension);
     });
 
     it('addExtension: Satellite contributions for valid extensions remain', async () => {
-        // Create an extension manager with allowed extensions 
+        // Create an extension manager with allowed extensions
         const manager = MockFabricExtensionManager.create();
         const originalExtension: IFabricExtension = TestExtension.create();
-        const validExtension: IFabricExtension = TestExtension.create(satelliteExtensionIds[1], [ 'valid' ], true);
-        const duplicatedExtension: IFabricExtension = TestExtension.create(undefined, [ 'duplicated' ]);
-    
+        const validExtension: IFabricExtension = TestExtension.create(satelliteExtensionIds[1], ['valid'], true);
+        const duplicatedExtension: IFabricExtension = TestExtension.create(undefined, ['duplicated']);
+
         manager.addExtension(originalExtension);
         manager.addExtension(validExtension);
         assert.throws(() => manager.addExtension(duplicatedExtension), `addExtension should throw because ${originalExtension.identity} is already registered`);
@@ -132,4 +132,3 @@ describe('FabricExtensionManager unit tests', () => {
         assert.strictEqual(manager.getArtifactHandler(validExtension.artifactTypes[0]), validExtension.artifactHandlers![0], 'getArtifactHandler should return the expected handler');
     });
 });
-

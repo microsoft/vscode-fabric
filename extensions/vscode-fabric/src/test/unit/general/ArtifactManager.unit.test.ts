@@ -4,7 +4,7 @@ import {
     IApiClientResponse,
     IArtifact,
     RuntimeType,
-    InputType
+    InputType,
 } from '@microsoft/vscode-fabric-api';
 import { FabricEnvironmentName, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { MockArtifactManagerStub, MockFabricEnvironmentProvider, MockLoggerStub, initializeServiceCollection } from './serviceCollection';
@@ -14,9 +14,9 @@ class MockArtifactManager extends MockArtifactManagerStub {
         const returnData: IApiClientResponse = {
             parsedBody: {
                 payloadContentType: 'InlineJson',
-                workloadPayload: 'boom'
+                workloadPayload: 'boom',
             },
-            status: 200
+            status: 200,
         };
         return Promise.resolve(returnData);
     }
@@ -47,7 +47,7 @@ class MockLogger extends MockLoggerStub {
 describe('ArtifactManager tests that do not require VSCode', () => {
     it('getArtifactPayload: Invalid JSON', async () => {
         const logger: MockLogger = new MockLogger();
-        const artifactManager: MockArtifactManager = new MockArtifactManager(null!, null!, new MockFabricEnvironmentProvider(), null!, logger, null, null!);
+        const artifactManager: MockArtifactManager = new MockArtifactManager(null!, null!, null!, new MockFabricEnvironmentProvider(), null!, logger, null, null!);
         const artifact: IArtifact = {
             id: 'FakeId',
             type: 'FakeType',
@@ -55,7 +55,7 @@ describe('ArtifactManager tests that do not require VSCode', () => {
             description: 'FakeDescription',
             workspaceId: 'FakeWorkspaceId',
             attributes: { runtime: RuntimeType.DotNet },
-            fabricEnvironment: FabricEnvironmentName.MOCK
+            fabricEnvironment: FabricEnvironmentName.MOCK,
         };
         initializeServiceCollection(artifactManager, undefined, logger, undefined);
         try {

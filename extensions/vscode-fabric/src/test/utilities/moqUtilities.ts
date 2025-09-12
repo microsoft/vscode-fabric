@@ -1,7 +1,7 @@
 /* eslint-disable security/detect-object-injection */
 import { Mock, It, Times } from 'moq.ts';
 import { TelemetryActivity, TelemetryEventRecord } from '@microsoft/vscode-fabric-util';
- 
+
 export function verifyAddOrUpdateProperties<T extends TelemetryEventRecord>(
     telemetryActivity: Mock<TelemetryActivity<T>>,
     propertyName: string,
@@ -9,7 +9,7 @@ export function verifyAddOrUpdateProperties<T extends TelemetryEventRecord>(
 ): void {
     telemetryActivity.verify(
         t => t.addOrUpdateProperties(It.Is<any>(props =>
-            propertyName in props && 
+            propertyName in props &&
             props[propertyName] === expectedValue
         )),
         Times.AtLeastOnce()

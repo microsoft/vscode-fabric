@@ -15,7 +15,7 @@ export class ConfigurationProvider implements IConfigurationProvider {
 
     private readonly onDidConfigurationChangeEmitter = new vscode.EventEmitter<string>();
     readonly onDidConfigurationChange = this.onDidConfigurationChangeEmitter.event;
-    
+
     public constructor(private disposables: IDisposableCollection) {
         this.disposables.add(vscode.workspace.onDidChangeConfiguration(async e => {
             if (e.affectsConfiguration(this.section)) {
@@ -39,4 +39,3 @@ export class ConfigurationProvider implements IConfigurationProvider {
         return vscode.workspace.getConfiguration(this.section).update(key, value, vscode.ConfigurationTarget.Global);
     }
 }
-

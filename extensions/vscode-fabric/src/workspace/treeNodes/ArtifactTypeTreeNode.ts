@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 import { getDisplayNamePlural, getArtifactDefaultIconPath, getArtifactIconPath } from '../../metadata/fabricItemUtilities';
-import { IArtifact, FabricTreeNode, IFabricTreeNodeProvider, ArtifactTreeNode,  } from '@microsoft/vscode-fabric-api';
+import { IArtifact, FabricTreeNode, IFabricTreeNodeProvider, ArtifactTreeNode  } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
 import { createArtifactTreeNode } from './artifactTreeNodeFactory';
-
 
 export class ArtifactTypeTreeNode extends FabricTreeNode {
     private _children = new Map<string, IArtifact>();
@@ -13,11 +12,24 @@ export class ArtifactTypeTreeNode extends FabricTreeNode {
         return getDisplayNamePlural(this.artifactType) ?? this.artifactType;
     };
 
-    constructor(context: vscode.ExtensionContext, protected extensionManager: IFabricExtensionManagerInternal, public artifactType: string) {
+    constructor(
+        context: vscode.ExtensionContext,
+        protected extensionManager: IFabricExtensionManagerInternal,
+        public artifactType: string,
+        private workspaceId: string,
+        private tenantId: string | undefined,
+        private shouldExpand?: (id: string | undefined) => boolean
+    ) {
         super(context, getDisplayNamePlural(artifactType) ?? artifactType, vscode.TreeItemCollapsibleState.Collapsed);
         this.treeNodeProvider = this.extensionManager.treeNodeProviders.get(artifactType);
         this.contextValue = 'ItemType';
         this.iconPath = getArtifactIconPath(this.context.extensionUri, artifactType) ?? getArtifactDefaultIconPath(this.context.extensionUri);
+        // Stable id for VS Code view state restoration
+        const tenantPart = this.tenantId && this.tenantId.length > 0 ? this.tenantId : 'none';
+        this.id = `grp:${tenantPart}:${this.workspaceId}:${this.artifactType}`;
+        if (this.shouldExpand?.(this.id)) {
+            this.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
+        }
     }
 
     addArtifact(artifact: IArtifact) {

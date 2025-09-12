@@ -4,52 +4,86 @@ import { showCreateWorkspaceWizard } from './showCreateWorkspaceWizard';
 import { IWorkspace, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { TelemetryService, ILogger } from '@microsoft/vscode-fabric-util';
 import { ICapacityManager } from '../CapacityManager';
+import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 
 /**
  * Shows a selection list of available workspaces, including the option to create a new workspace.
- * 
+ *
  * @param workspaceManager Lists available workspaces
  * @param capacityManager Lists available capacities
  * @param telemetryService The telemetry service
  * @param logger The logger
- * 
+ *
  * @returns The selected workspace or undefined if cancelled
- * 
+ *
  * @throws A {@link NotSignedInError} If the user is not signed in to Fabric.
  */
 export async function showWorkspaceQuickPick(
     workspaceManager: IWorkspaceManager,
-    capacityManager: ICapacityManager,
+    workspaceFilterManager: IWorkspaceFilterManager | undefined,
+    capacityManager: ICapacityManager | undefined,
     telemetryService: TelemetryService | null,
-    logger: ILogger
+    logger?: ILogger
 ): Promise<IWorkspace | undefined> {
     if (!(await workspaceManager.isConnected())) {
         throw new NotSignedInError();
     }
+    const allWorkspaces = await workspaceManager.listWorkspaces();
 
-    const workspaces = await workspaceManager.listWorkspaces();
-    
-    // Prepare items array with "Create new..." option first
-    const workspaceItems: string[] = [];
-    const createString = vscode.l10n.t('Create a new Fabric Workspace...');
-    workspaceItems.push(`$(add) ${createString}`);
-    
-    // Add workspaces (already sorted by listWorkspaces) - explicitly preserve order
-    for (const workspace of workspaces) {
-        workspaceItems.push(workspace.displayName);
-    }
+    // If filter manager not provided just treat all as "remaining" for a flat list.
+    const filteredIdsSet = workspaceFilterManager
+        ? new Set(workspaceFilterManager.getVisibleWorkspaceIds().filter(id => id !== '__HIDE_ALL__'))
+        : new Set<string>();
 
-    const pick: string | undefined = await vscode.window.showQuickPick(workspaceItems, { canPickMany: false, placeHolder: 'Select Fabric workspace' });
-    if (pick) {
-        for (const workspace of workspaces) {
-            if (workspace.displayName === pick) {
-                return workspace;
+    let filteredWorkspaces: IWorkspace[] = [];
+    let remainingWorkspaces: IWorkspace[] = [];
+    if (workspaceFilterManager && filteredIdsSet.size > 0) {
+        for (const ws of allWorkspaces) {
+            if (filteredIdsSet.has(ws.objectId)) {
+                filteredWorkspaces.push(ws);
+            }
+            else {
+                remainingWorkspaces.push(ws);
             }
         }
-
-        // User selected the Create new workspace option
-        return showCreateWorkspaceWizard(workspaceManager, capacityManager, telemetryService, logger);
+    }
+    else {
+        remainingWorkspaces = allWorkspaces.slice();
     }
 
+    // Prepare QuickPick items
+    const workspaceItems: (vscode.QuickPickItem & { workspace?: IWorkspace })[] = [];
+    if (capacityManager) { // Only show create option if we can service it
+        const createString = vscode.l10n.t('Create a new Fabric Workspace...');
+        workspaceItems.push({ label: `$(add) ${createString}` });
+    }
+
+    // Add filtered workspaces
+    for (const ws of filteredWorkspaces) {
+        workspaceItems.push({ label: ws.displayName, workspace: ws });
+    }
+
+    // Add separator
+    if (filteredWorkspaces.length > 0 && remainingWorkspaces.length > 0) {
+        workspaceItems.push({ label: '', kind: vscode.QuickPickItemKind.Separator });
+    }
+
+    // Add remaining workspaces
+    for (const ws of remainingWorkspaces) {
+        workspaceItems.push({ label: ws.displayName, workspace: ws });
+    }
+
+    const titlePlaceholder = vscode.l10n.t('Select Fabric Workspace...');
+    const pick = await vscode.window.showQuickPick(workspaceItems, { canPickMany: false, placeHolder: titlePlaceholder, title: titlePlaceholder });
+    if (pick) {
+        if (!('workspace' in pick)) {
+            if (capacityManager) {
+                // User selected the Create new workspace option
+                return showCreateWorkspaceWizard(workspaceManager, capacityManager, telemetryService, logger);
+            }
+            return undefined; // create option not available (should not happen because not shown)
+        }
+        return pick.workspace;
+    }
     return undefined;
 }

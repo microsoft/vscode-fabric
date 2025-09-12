@@ -3,7 +3,7 @@
 
 // export async function sessionLogin(sessionProvider: BaseAuthenticationSessionProvider) {
 //     const session = await sessionProvider.request();
-//     if (session) { 
+//     if (session) {
 //         vscode.window.showInformationMessage(`Successfully created authentication session for ${sessionProvider.name}. Logged in as '${session.account.label}`);
 //     }
 //     else {

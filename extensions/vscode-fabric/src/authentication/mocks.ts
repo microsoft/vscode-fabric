@@ -76,7 +76,7 @@ export class MockAccountProvider implements IAccountProvider {
     async getDefaultTelemetryProperties(): Promise<{ [key: string]: string }> {
         return {
             'common.tenantid': 'ten-ant-id',
-            'common.extmode': '2'
+            'common.extmode': '2',
         };
     }
     async getToken(): Promise<string> {

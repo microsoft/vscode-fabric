@@ -13,7 +13,7 @@ export type SendRequestCallback = (
  * Interface for FakeFabricApiClient used in testing scenarios.
  * This extends the standard IFabricApiClient with additional methods for controlling
  * HTTP responses during tests.
- * 
+ *
  * Satellite extensions should use this interface type and access concrete instances
  * through the extension manager's test hooks system.
  */

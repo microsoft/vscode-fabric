@@ -11,6 +11,8 @@ import { importArtifactCommand } from './importArtifactCommand';
 import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { ItemDefinitionReader } from '../itemDefinition/ItemDefinitionReader';
 import { ICapacityManager } from '../CapacityManager';
+import { ILocalFolderManager } from '../LocalFolderManager';
+import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 
 let commandDisposables: vscode.Disposable[] = [];
 
@@ -25,51 +27,66 @@ function registerCommand(
 }
 
 export function registerLocalProjectCommands(context: vscode.ExtensionContext,
-    workspaceManager: IWorkspaceManager, 
+    workspaceManager: IWorkspaceManager,
     fabricEnvironmentProvider: IFabricEnvironmentProvider,
-    artifactManager: IArtifactManagerInternal, 
+    artifactManager: IArtifactManagerInternal,
+    localFolderManager: ILocalFolderManager,
+    workspaceFilterManager: IWorkspaceFilterManager,
     capacityManager: ICapacityManager,
     dataProvider: FabricWorkspaceDataProvider,
     telemetryService: TelemetryService | null,
-    logger: ILogger,
+    logger: ILogger
 ): void {
 
     // Dispose of any existing commands
     commandDisposables.forEach(disposable => disposable.dispose());
     commandDisposables = [];
 
-    registerCommand(
-        commandNames.importArtifact, 
-        async (...cmdArgs) => {
-            const localProjectTreeNode = cmdArgs[0] as LocalProjectTreeNode;
-            if (localProjectTreeNode) {
-                await doAction(
-                    localProjectTreeNode.folder,
-                    'importArtifact', 
-                    'item/import',
-                    logger,
-                    telemetryService,
-                    async (activity, folder) => {
-                        activity.addOrUpdateProperties({
-                            endpoint: fabricEnvironmentProvider.getCurrent().sharedUri,
-                        });
-                        await importArtifactCommand(
-                            folder,
-                            workspaceManager,
-                            artifactManager,
-                            capacityManager,
-                            new ItemDefinitionReader(vscode.workspace.fs),
-                            fabricEnvironmentProvider,
-                            dataProvider,
-                            activity,
-                            telemetryService,
-                            logger,
-                        );
-                    }
-                );
-            }
-        },
-        context);
+    const registerImportArtifactCommand = async (
+        commandName: string,
+        description: string,
+        forcePromptForWorkspace: boolean
+    ) => {
+        registerCommand(
+            commandName,
+            async (...cmdArgs) => {
+                const localProjectTreeNode = cmdArgs[0] as LocalProjectTreeNode;
+                if (localProjectTreeNode) {
+                    await doAction(
+                        localProjectTreeNode.folder,
+                        description,
+                        'item/import',
+                        logger,
+                        telemetryService,
+                        async (activity, folder) => {
+                            activity.addOrUpdateProperties({
+                                endpoint: fabricEnvironmentProvider.getCurrent().sharedUri,
+                            });
+                            await importArtifactCommand(
+                                folder,
+                                workspaceManager,
+                                artifactManager,
+                                localFolderManager,
+                                workspaceFilterManager,
+                                capacityManager,
+                                new ItemDefinitionReader(vscode.workspace.fs),
+                                fabricEnvironmentProvider,
+                                dataProvider,
+                                activity,
+                                telemetryService,
+                                logger,
+                                forcePromptForWorkspace
+                            );
+                        }
+                    );
+                }
+            },
+            context
+        );
+    };
+
+    registerImportArtifactCommand(commandNames.importArtifact, 'importArtifact', false);
+    registerImportArtifactCommand(commandNames.importArtifactPromptWorkspace, 'importArtifactPromptWorkspace', true);
 }
 
 async function doAction(

@@ -8,7 +8,7 @@ export class DefaultArtifactHandler implements IArtifactHandler {
     public async onAfterRequest(action: OperationRequestType, artifact: IArtifact, response: IApiClientResponse): Promise<void> {
         if (OperationRequestType.select === (action & OperationRequestType.select)) {
             await this.onAfterSelect(artifact, response);
-        } 
+        }
     }
 
     private async onAfterSelect( artifact: IArtifact, response: IApiClientResponse): Promise<void> {

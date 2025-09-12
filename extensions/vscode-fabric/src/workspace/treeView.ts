@@ -12,7 +12,10 @@ import { TenantTreeNode } from './treeNodes/TenantTreeNode';
 import { RootTreeNode } from './treeNodes/RootTreeNode';
 import { DisplayStyle, IRootTreeNodeProvider } from './definitions';
 import { TreeViewState } from './treeViewState';
+import { IWorkspaceFilterManager } from './WorkspaceFilterManager';
 import { IAccountProvider, ITenantSettings } from '../authentication';
+import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
+import { makeShouldExpand } from './viewExpansionState';
 
 /**
  * Provides tree data for a Fabric workspace
@@ -21,13 +24,17 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
     private disposables: vscode.Disposable[] = [];
     private rootNode: FabricTreeNode | undefined;
 
-    constructor(private context: vscode.ExtensionContext, 
+    constructor(private context: vscode.ExtensionContext,
         private readonly extensionManager: IFabricExtensionManagerInternal,
         private readonly workspaceManager: IWorkspaceManager,
         private rootTreeNodeProvider: IRootTreeNodeProvider,
         private readonly logger: ILogger,
         private telemetryService: TelemetryService | null,
-        private readonly accountProvider: IAccountProvider ) {
+        private readonly accountProvider: IAccountProvider,
+        private readonly workspaceFilterManager: IWorkspaceFilterManager,
+        private readonly storage: IFabricExtensionsSettingStorage,
+        private readonly fabricEnvironmentProvider: IFabricEnvironmentProvider) {
+
         extensionManager.onExtensionsUpdated(() => this.refresh());
 
         let disposable = workspaceManager.onDidChangePropertyValue((propertyName: string) => {
@@ -94,23 +101,33 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
                         this.logger.log('Error loading workspaces: ' + error);
                         return;
                     }
-                    
+
                     if (workspaces && workspaces.length > 0) {
+                        // Apply workspace filtering
+                        const filteredWorkspaces = workspaces.filter(workspace =>
+                            this.workspaceFilterManager.isWorkspaceVisible(workspace.objectId));
+
                         if (TreeViewState.needsUpdate) {
                             this.rootNode = undefined;
                         }
-                        
+
                         // Create the root node which will handle both tenant and no-tenant cases
+                        // Always pass the filtered workspaces, even if empty (for proper filtering display)
                         if (this.rootNode === undefined) {
                             const currentDisplayStyle = this.rootTreeNodeProvider.getCurrentDisplayStyle();
+                            const shouldExpand = await makeShouldExpand(this.storage, this.fabricEnvironmentProvider, this.accountProvider);
                             this.rootNode = new RootTreeNode(
                                 this.context,
                                 this.extensionManager,
                                 this.telemetryService,
                                 this.workspaceManager,
                                 this.accountProvider,
-                                currentDisplayStyle
+                                currentDisplayStyle,
+                                shouldExpand,
+                                filteredWorkspaces // Pass filtered workspaces to root node
                             );
+
+                            this.updateTreeViewDescription();
                         }
 
                         if (this.rootNode) {
@@ -181,11 +198,18 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
         return undefined;
     }
 
-    private getTreeViewDescription(displayName: string | undefined): string {
-        const remoteSuffix = vscode.l10n.t('(remote)');
-        return displayName
-            ? `${displayName} ${remoteSuffix}`
-            : '';
+    private updateTreeViewDescription(): void {
+        if (!this.workspaceManager.treeView) {
+            return;
+        }
+
+        const hasFilters = this.workspaceFilterManager.hasActiveFilters();
+        if (hasFilters) {
+            this.workspaceManager.treeView.title = vscode.l10n.t('Fabric Workspaces (remote: filtered)');
+        }
+        else {
+            this.workspaceManager.treeView.title = vscode.l10n.t('Fabric Workspaces (remote)');
+        }
     }
 }
 
@@ -262,9 +286,9 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
         RootTreeNodeProvider.disposables.push(this.onDisplayStyleChangedEmitter);
     }
 
-    public create(tenant: ITenantSettings): FabricTreeNode {  
+    public create(tenant: ITenantSettings): FabricTreeNode {
         const displayStyle = this.storage.settings.displayStyle as DisplayStyle;
-        return new TenantTreeNode(this.context, this.extensionManager, this.telemetryService, this.workspaceManager, tenant, displayStyle);
+        return new TenantTreeNode(this.context, this.extensionManager, this.telemetryService, this.workspaceManager, tenant, displayStyle, undefined);
     }
 
     public getCurrentDisplayStyle(): DisplayStyle {
