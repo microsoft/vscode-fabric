@@ -1,0 +1,55 @@
+{
+	"name": "VS Code Fabric Dev Container",
+	// Use a custom Dockerfile so we can bake in a pinned npm version.
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": {
+			"NODE_IMAGE": "mcr.microsoft.com/devcontainers/typescript-node:20",
+			"NPM_VERSION": "11.6.0"
+		}
+	},
+
+	"features": {
+		"ghcr.io/devcontainers/features/git:1": {}
+	},
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"ms-vscode.vscode-typescript-next",
+				"hbenl.vscode-mocha-test-adapter",
+				"ms-vscode.test-adapter-converter",
+				"ms-vscode.extension-test-runner"
+			],
+			"settings": {
+				"files.eol": "\n",
+				"editor.tabSize": 4,
+				"editor.insertSpaces": true,
+				"editor.formatOnSave": true,
+				"files.trimTrailingWhitespace": true,
+				"typescript.tsdk": "node_modules/typescript/lib",
+				"eslint.workingDirectories": [
+					{ "mode": "auto" }
+				],
+				"testExplorer.useNativeTesting": true
+			}
+		}
+	},
+
+	"workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+	// NOTE: Opening a multi-root .code-workspace file automatically from inside
+	// the container via the VS Code CLI ("code ...") is not supported because
+	// the CLI binary is not available in the container context at start time.
+	// To use the multi-root workspace: after the container opens, run
+	// "File > Open Workspace from File..." and pick vscode-fabric.code-workspace
+	// (at repo root).
+
+	// Just install dependencies now; npm already baked into the image.
+	"postCreateCommand": "npm install",
+
+	"remoteUser": "node"
+}
