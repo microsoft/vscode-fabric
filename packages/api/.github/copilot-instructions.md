@@ -1,1 +1,0 @@
-This document provides guidelines for working with the `vscode-fabric-api` package within the Fabric extensions for vscode-fabric monorepo. This package contains the interfaces and types for interop between the core extension and satellite extensions. The `vscode-fabric-api` package is a dependency of the `vscode-fabric` extension.

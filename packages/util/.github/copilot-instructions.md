@@ -1,1 +1,0 @@
-This document provides guidelines for working with the `vscode-fabric-util` package within the Fabric extensions for vscode-fabric monorepo. This package contains shared utilities and helpers used across the extensions. The `vscode-fabric-util` package is a dependency of the `vscode-fabric` extension.

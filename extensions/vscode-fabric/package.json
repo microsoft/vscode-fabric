@@ -532,27 +532,23 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tspc -p . --outDir out",
-    "watch-tests": "tspc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "lint": "eslint src/**/*.ts -c ../../.eslintrc.js --fix",
-    "test": "vscode-test --coverage",
-    "test:unit": "vscode-test --coverage --label unit",
-    "test:integration": "vscode-test --coverage --label integration",
-    "test:e2e": "vscode-test --coverage --label e2e",
-    "vsix": "vsce package --allow-missing-repository --pre-release --no-dependencies --baseImagesUrl https://raw.githubusercontent.com/microsoft/microsoft-fabric-vscode-extension/main/",
-    "localization": "npx @vscode/l10n-dev export -o ./l10n ./src",
-    "clean": "npm exec rimraf out && npm exec rimraf dist",
-    "uitest": "cross-env VSCODE_FABRIC_ENABLE_TEST_FAKES=true extest setup-and-run './out/test/uitest/*.test.js' -e ./out/.test-extensions -o ./src/test/uitest/settings.json -c max",
-    "uitest-no-vsix-build": "cross-env VSCODE_FABRIC_ENABLE_TEST_FAKES=true extest run-tests './out/test/uitest/*.test.js' -e ./out/.test-extensions -o ./src/test/uitest/settings.json"
+    "build": "concurrently --names tsc,webpack \"tsc\" \"webpack\"",
+    "watch": "concurrently --restart-tries 1 --names tsc,webpack \"tsc -w --preserveWatchOutput\" \"webpack --watch\"",
+    "test:unit": "vscode-test --label unit",
+    "test:integration": "vscode-test --label integration",
+    "test:e2e": "vscode-test --label e2e",
+    "test:ui": "cross-env VSCODE_FABRIC_ENABLE_TEST_FAKES=true extest setup-and-run './out/test/uitest/*.test.js' -e ./out/.test-extensions -o ./src/test/uitest/settings.json -c max",
+  "lint:check": "eslint",
+  "lint": "eslint --fix",
+    "bundle": "webpack --mode production --devtool hidden-source-map",
+    "vsix": "npm run bundle && vsce package --allow-missing-repository --pre-release --no-dependencies --baseImagesUrl https://raw.githubusercontent.com/microsoft/microsoft-fabric-vscode-extension/main/",
+    "clean": "npm exec rimraf dist out .test-extensions",
+    "clean:all": "npm run clean && npm exec rimraf node_modules",
+    "localization": "npx @vscode/l10n-dev export -o ./l10n ./src"
   },
   "dependencies": {
     "@azure/core-rest-pipeline": "^1.14.0",
-    "@microsoft/vscode-azext-azureauth": "^4.1.1",
+    "@microsoft/vscode-azext-azureauth": "~4.1.1",
     "@microsoft/vscode-fabric-api": "^0.31.0-preview",
     "@microsoft/vscode-fabric-util": "^0.31.0-preview",
     "@types/fs-extra": "^11.0.1",
@@ -560,26 +556,7 @@
     "fs-extra": "^11.1.1",
     "jszip": "^3.10.1"
   },
-  "devDependencies": {
-    "@types/mocha": "^10.0.1",
-    "@types/node": "16.x",
-    "@types/sinon": "^17.0.3",
-    "@types/vscode": "^1.77.0",
-    "@typescript-eslint/eslint-plugin": "^6.10.0",
-    "@typescript-eslint/parser": "^6.10.0",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1",
-    "@vscode/vsce": "^2.19.0",
-    "eslint": "^8.36.0",
-    "moq.ts": "^10.0.8",
-    "nerdbank-gitversioning": "^3.6.132",
-    "sinon": "^17.0.1",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.2.2",
-    "vscode-extension-tester": "^8.12.0",
-    "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.4"
-  }
+  "devDependencies": {}
 }
 
 

@@ -9,9 +9,6 @@
 			"ES2020", "DOM"
 		],
 		"baseUrl": "./",
-		"resolveJsonModule": true,
-		"plugins": [
-			{ "transform": "../../transformer.ts" }
-		]
+		"resolveJsonModule": true
 	}
 }

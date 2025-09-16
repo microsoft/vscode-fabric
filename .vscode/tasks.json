@@ -2,38 +2,18 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Watch All",
+			"label": "Build",
 			"type": "shell",
 			"command": "npm",
 			"args": [
-				"exec",
-				"concurrently",
-				"--",
-				"--kill-others-on-fail",
-				"--restart-tries",
-				"3",
-				"--names",
-				"fabric,appdev,testplatform,api,util,fabric-tests,appdev-tests,api-tests,util-tests",
-				"--prefix-colors",
-				"cyan,magenta,yellow,green,blue,brightCyan,brightMagenta,brightYellow,brightGreen",
-				"npm run watch -w extensions/vscode-fabric",
-				"npm run watch -w extensions/vscode-fabric-appdev",
-				"npm run watch -w extensions/TestPlatform",
-				"npm run watch -w packages/api",
-				"npm run watch -w packages/util",
-				"npm run watch-tests -w extensions/vscode-fabric",
-				"npm run watch-tests -w extensions/vscode-fabric-appdev",
-				"npm run watch-tests -w packages/api",
-				"npm run watch-tests -w packages/util"
+				"run",
+				"build"
 			],
 			"group": "build",
 			"isBackground": true,
 			"problemMatcher": [
-				"$tsc-watch"
-			],
-			"runOptions": {
-				"runOn": "folderOpen"
-			}
+				"$ts-webpack-watch"
+			]
 		}
 	]
 }

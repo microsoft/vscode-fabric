@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 
-import { ActivityBar, CustomTreeSection, InputBox, ViewContent, VSBrowser, WebDriver, Workbench } from 'vscode-extension-tester';
+import { ActivityBar, CustomTreeSection, InputBox, ViewContent, VSBrowser, WebDriver, Workbench, ViewControl } from 'vscode-extension-tester';
+import { waitFor } from '../utilities/asyncWait';
 
 const FABRIC_ACTIVITY_BAR_NAME = 'Microsoft Fabric';
 
@@ -15,11 +16,15 @@ describe('UITEST: Example E2E UI Tests', () => {
         driver = browser.driver;
 
         const activityBar = new ActivityBar();
-        const fabricViewControl = await activityBar.getViewControl(FABRIC_ACTIVITY_BAR_NAME);
-        assert.ok(fabricViewControl, `${FABRIC_ACTIVITY_BAR_NAME} ActivityView not found`);
+        // Wait for the Fabric activity bar icon/view control to appear (extension may activate lazily)
+        const fabricViewControl = await waitFor<ViewControl | undefined>(async () => {
+            const vc = await activityBar.getViewControl(FABRIC_ACTIVITY_BAR_NAME);
+            return vc ?? undefined;
+        }, 15000, 500);
+        assert.ok(fabricViewControl, `${FABRIC_ACTIVITY_BAR_NAME} ActivityView not found after waiting`);
 
         const fabricSidebBarView = await fabricViewControl.openView();
-        fabricSidebBarViewContent =  fabricSidebBarView.getContent();
+        fabricSidebBarViewContent = fabricSidebBarView.getContent();
     });
 
     // Skip for now b/c requires auth that is not set up in the pipelines yet
@@ -33,8 +38,11 @@ describe('UITEST: Example E2E UI Tests', () => {
         const section = await fabricSidebBarViewContent.getSection('Fabric Workspace') as CustomTreeSection;
         await section.expand();
 
-        // wait for the items to load
-        await waitForCondition(async () => (await section.getVisibleItems()).length > 0);
+        // wait for at least one workspace item
+        await waitFor(async () => {
+            const items = await section.getVisibleItems();
+            return items.length > 0 ? true : undefined;
+        }, 20000, 500);
 
         const items = await section.getVisibleItems();
         const labels = await Promise.all(items.map((item) => item.getLabel()));
@@ -42,40 +50,44 @@ describe('UITEST: Example E2E UI Tests', () => {
     });
 
     it('Expected items are in Feedback view', async function () {
-        const section = await fabricSidebBarViewContent.getSection('Feedback') as CustomTreeSection;
-        await section.expand();
+        const section = await waitFor<CustomTreeSection | undefined>(async () => {
+            try {
+                const s = await fabricSidebBarViewContent.getSection('Feedback') as CustomTreeSection | undefined;
+                return s ?? undefined;
+            }
+            catch {
+                return undefined;
+            }
+        }, 10000, 250);
+        assert.ok(section, 'Feedback section not found');
 
-        // wait for the items to load
-        await waitForCondition(async () => (await section.getVisibleItems()).length > 0, 15000);
+        // Retry expand until it succeeds (handles intermittent ElementNotInteractable)
+        await waitFor(async () => {
+            try {
+                await section!.expand();
+                return true;
+            }
+            catch (e) {
+                return undefined;
+            }
+        }, 5000, 250);
 
-        const items = await section.getVisibleItems();
+        // wait for feedback items to load
+        await waitFor(async () => {
+            try {
+                const items = await section!.getVisibleItems();
+                return items.length > 0 ? true : undefined;
+            }
+            catch {
+                return undefined;
+            }
+        }, 20000, 500);
+
+        const items = await section!.getVisibleItems();
         const labels = await Promise.all(items.map((item) => item.getLabel()));
         assert.ok(labels.includes('Report issue...'));
         assert.ok(labels.includes('View known issues...'));
     });
 });
 
-// TODO: how do we share code like this across UI tests in each extension? Do we just move this to
-// the Util package???
-//
-//  Utility function that waits for a condition to be false using polling.
-async function waitForCondition(check: () => Promise<boolean>, timeout = 10000, pollingInterval = 500): Promise<void> {
-    const start = Date.now();
-    while (true) {
-        try {
-            if (await check()) {
-                return;
-            }
-        }
-        catch (error: unknown) {
-            if (error instanceof Error &&
-                error.name !== 'ElementNotInteractableError') {
-                throw error;
-            }
-        }
-        if (Date.now() - start > timeout) {
-            throw new Error('Timeout waiting for condition');
-        }
-        await new Promise(resolve => setTimeout(resolve, pollingInterval));
-    }
-}
+// Local waitForCondition removed in favor of shared helper in ../utilities/asyncWait

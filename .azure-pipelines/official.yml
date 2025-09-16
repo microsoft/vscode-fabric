@@ -23,11 +23,36 @@ extends:
       os: windows # Allowed values: windows, linux, macOS
 
     stages:
+
     # Stage 1: Build (includes OneLoc localization job and internal NPM publishing)
     - template: templates/stages/build.yml
 
-    # Stage 2: Publish NPM Packages Publicly (with manual approval)
-    - template: templates/stages/publish-npm-public.yml
+    # Stage 2: Core test suite (gating publish)
+    - template: templates/stages/test.yml
+      parameters:
+        testCategories:
+          - unit
+          - integration
+        dependsOn:
+          - Build
 
-    # Stage 3: Sign and Publish VSCode Extension (with manual approval)
+    # Stage 2b: Extended test suite (non-gating for publish)
+    - template: templates/stages/test.yml
+      parameters:
+        testCategories:
+          - e2e
+          - ui
+        dependsOn:
+          - Build
+
+    # Stage 3: Publish NPM Packages Publicly (with manual approval)
+    - template: templates/stages/publish-npm-public.yml
+      parameters:
+        dependsOn:
+          - test_unit_integration
+
+    # Stage 4: Sign and Publish VSCode Extension (with manual approval)
     - template: templates/stages/publish-extension.yml
+      parameters:
+        dependsOn:
+          - test_unit_integration

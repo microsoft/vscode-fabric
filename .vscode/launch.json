@@ -1,0 +1,44 @@
+{
+  // Consolidated from extensions/vscode-fabric/.vscode/launch.json
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Core extension (vscode-fabric)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--disable-extensions",
+        "--extensionDevelopmentPath=${workspaceFolder}/extensions/vscode-fabric"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/extensions/vscode-fabric/**/*",
+        "${workspaceFolder}/packages/api/**/*",
+        "${workspaceFolder}/packages/util/**/*"
+      ],
+      "sourceMapPathOverrides": {
+        "webpack://vscode-fabric/*": "${workspaceFolder}/extensions/vscode-fabric/*"
+      },
+      "env": {
+        // Enable these selectively for test hooks/fakes.
+        // "VSCODE_FABRIC_ENABLE_TEST_HOOKS": "true",
+        // "VSCODE_FABRIC_ENABLE_TEST_FAKES": "true"
+      }
+    },
+    {
+      "name": "Debug Core UI Tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/vscode-extension-tester/out/cli.js",
+      "args": [
+        "run-tests",
+        "${workspaceFolder}/extensions/vscode-fabric/out/test/uitest/*.test.js"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "env": {
+        "VSCODE_FABRIC_ENABLE_TEST_HOOKS": "true",
+        "VSCODE_FABRIC_ENABLE_TEST_FAKES": "true"
+      }
+    }
+  ]
+}

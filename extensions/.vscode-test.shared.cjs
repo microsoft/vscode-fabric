@@ -1,5 +1,5 @@
 function getMochaReporterOptions(title) {
-    let isCI = process.env.AGENT_OS !== undefined;
+    let isCI = process.env.AGENT_OS || process.env.GITHUB_ACTIONS || process.env.CI;
     return isCI ? {
         reporter: 'mocha-multi-reporters',
         reporterOptions: {

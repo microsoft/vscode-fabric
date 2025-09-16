@@ -5,7 +5,7 @@ export default defineConfig({
 	tests:[
 	{
 		label: 'unit',
-		files: 'out/test/unit/**/*.test.js',
+		files: '**/test/unit/**/*.test.js',
 		mocha: {
 			ui: 'bdd',
 			...getMochaReporterOptions('api-unit')

@@ -1,12 +1,38 @@
 {
+    // Consolidated settings merged from root + packages/api + packages/util + extensions/vscode-fabric
+    "eslint.options": {
+        // Previously relative ('../../.eslintrc.js') in package folders; now relative to repo root.
+        "overrideConfigFile": ".eslintrc.js"
+    },
+
+    "files.exclude": {
+        // From extension .vscode/settings.json: keep build artifacts visible (explicit false)
+        "out": false,
+        "dist": false
+    },
+
     "search.exclude": {
         "**/node_modules": true,
         "**/out": true,
         "**/dist": true,
         "**/lib": true,
+        // Added from package + extension settings
+        "**/.vscode-test": true,
+        // Localization build artifacts
         "*.nls.*.json": true,
         "l10n/*.l10n.*.json": true,
         "**/Localize/loc/**": true,
         "**/*.lcl": true
-    }
+    },
+
+    // Keep TypeScript auto detection off (from extension settings) to rely on explicit tsconfig references.
+    "typescript.tsc.autoDetect": "off",
+
+    // Consistent repo discovery behavior across nested workspaces.
+    "git.openRepositoryInParentFolders": "always",
+
+    // Use npm consistently across the monorepo.
+    "npm.packageManager": "npm",
+    "npm.scriptRunner": "npm",
+    "npm.exclude": "**/.test-extensions/**",
 }

@@ -19,13 +19,13 @@ jobs:
     displayName: set git height version (core extension)
 
   # Build dependencies needed for VSIX
-  - script: npm run package
+  - script: npm run build
     workingDirectory: packages/api
-    displayName: build api dependency
+    displayName: build api dependency (api)
 
-  - script: npm run package
+  - script: npm run build
     workingDirectory: packages/util
-    displayName: build util dependency
+    displayName: build util dependency (util)
 
   # Build VSIX packages
   - script: npm run vsix

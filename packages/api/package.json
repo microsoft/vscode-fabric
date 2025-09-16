@@ -7,39 +7,17 @@
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {
-    "compile": "tsc -p .",
+    "build": "tsc -p .",
     "watch": "tsc -p . -w",
-    "package": "npm run compile",
-    "prebuild-redist": "npm run compile && shx mkdir -p obj && cpx \"lib/**\" obj/ && cpx \"{*,.*}\" obj/",
-    "build-redist": "cd obj && npm exec nbgv-setversion && npm pack",
-    "postbuild-redist": "shx mkdir -p redist && shx mv obj/*.tgz redist/ && shx cp obj/package.json redist/ && shx rm -rf obj",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "test": "vscode-test --coverage",
-    "test:unit": "vscode-test --coverage --label unit",
-    "lint": "eslint src/**/*.ts -c ../../.eslintrc.js",
-    "clean": "npm exec rimraf out && npm exec rimraf lib"
+    "test:unit": "vscode-test --label unit",
+    "lint:check": "eslint src/**/*.ts -c ../../.eslintrc.js",
+    "lint": "eslint src/**/*.ts -c ../../.eslintrc.js --fix",
+    "clean": "npm exec rimraf lib out",
+    "clean:all": "npm run clean && npm exec rimraf node_modules"
   },
   "dependencies": {
     "@azure/core-rest-pipeline": "^1.14.0",
     "@vscode/extension-telemetry": "^0.9.0"
   },
-  "devDependencies": {
-    "@types/mocha": "^10.0.4",
-    "@types/sinon": "^17.0.3",
-    "@types/vscode": "^1.84.0",
-    "@typescript-eslint/eslint-plugin": "^6.10.0",
-    "@typescript-eslint/parser": "^6.10.0",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1",
-    "cpx": "^1.5.0",
-    "eslint": "^8.53.0",
-    "eslint-plugin-security": "^2.1.0",
-    "shx": "^0.4.0",
-    "sinon": "^17.0.1",
-    "ts-loader": "^9.5.0",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.2.2"
-  }
+  "devDependencies": {}
 }

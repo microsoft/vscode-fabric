@@ -1,3 +1,0 @@
-This document provides guidelines for working with the `vscode-fabric` extension within the Fabric extensions for vscode-fabric monorepo. The `vscode-fabric` extension is the core component of the extension suite. It exposes services through `IFabricExtensionServiceCollection` to satellite extensions.
-
-This extension has dependencies on shared libraries and utilities from the `packages` directory. The `api` package contains interfaces and types that define the core extension API exported to satellite extensions. The `util` package contains shared utilities and helpers used across the extensions.

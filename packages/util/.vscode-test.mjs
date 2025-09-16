@@ -13,7 +13,7 @@ export default defineConfig({
 	tests:[
 	{
 		label: 'unit',
-		files: 'out/test/unit/**/*.test.js',
+		files: '**/test/unit/**/*.test.js',
 		mocha: {
 			ui: 'bdd',
 			...getMochaReporterOptions('util-unit')
@@ -25,7 +25,7 @@ export default defineConfig({
 			'**\\api\\**', // works for windows
 			'**\\test\\**',
 			join(__dirname, '..', 'api', '**'), // works for linux/mac
-			join(__dirname, 'out', 'test', '**'),
+			join(__dirname, 'lib', 'test', '**'),
 			join(__dirname, 'src', 'test', '**'),
 		],
 		includeAll: true

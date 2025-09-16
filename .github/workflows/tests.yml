@@ -1,0 +1,49 @@
+name: Tests
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      test-label:
+        description: 'Test label to filter which tests to run (unit, integration, e2e, ui)'
+        required: true
+        type: string
+      node-version:
+        description: 'Node.js version'
+        required: false
+        default: '20'
+        type: string
+
+jobs:
+  tests:
+    name: ${{ inputs.test-label }} tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build all packages and extension
+        run: npm run build
+
+      - name: Run ${{ inputs.test-label }} tests (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run test:${{ inputs.test-label }}
+
+      - name: Run ${{ inputs.test-label }} tests (Windows/macOS)
+        if: runner.os != 'Linux'
+        run: npm run test:${{ inputs.test-label }}

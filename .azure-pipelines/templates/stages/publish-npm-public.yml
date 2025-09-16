@@ -1,10 +1,16 @@
+parameters:
+  - name: dependsOn
+    type: object
+    default: []
+
 # Publish NPM Packages Publicly Stage Template
 # Publishes NPM packages to public npmjs.org registry
 
 stages:
 - stage: PublishNpmPublic
   displayName: 'Publish NPM (public)'
-  dependsOn: Build
+  ${{ if ne(length(parameters.dependsOn), 0) }}:
+    dependsOn: ${{ parameters.dependsOn }}
   jobs:
   - deployment: publishPublicPackages
     displayName: 'Publish NPM (public)'

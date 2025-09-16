@@ -1,10 +1,16 @@
+parameters:
+  - name: dependsOn
+    type: object
+    default: []
+
 # Publish VSCode Extension Stage Template
 # Verifies the signed VSIX and publishes it to VS Code Marketplace
 
 stages:
 - stage: PublishExtension
   displayName: 'Publish VS Code extension'
-  dependsOn: Build
+  ${{ if ne(length(parameters.dependsOn), 0) }}:
+    dependsOn: ${{ parameters.dependsOn }}
   jobs:
   - deployment: signAndPublish
     displayName: 'Verify & Publish VSIX (public)'

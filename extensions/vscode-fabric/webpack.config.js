@@ -36,7 +36,9 @@ const extensionConfig = {
         rules: [
             {
                 test: /\.ts$/,
-                exclude: /node_modules/,
+                // Exclude node_modules and the ephemeral UI test extension output folder which can
+                // otherwise confuse production bundling when it exists (contains its own package.json etc.)
+                exclude: [/node_modules/, /out\/\.test-extensions/],
                 use: [
                     {
                         loader: 'ts-loader',
@@ -47,6 +49,10 @@ const extensionConfig = {
                 ]
             }
         ]
+    },
+    // Ensure webpack completely ignores the generated test extensions directory during resolution & watching.
+    watchOptions: {
+        ignored: ['**/out/.test-extensions/**']
     },
     devtool: 'nosources-source-map',
     infrastructureLogging: {

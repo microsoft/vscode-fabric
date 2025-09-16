@@ -2,7 +2,7 @@
 
 jobs:
 - job: build_npm
-  displayName: 'Build & Publish NPM (internal))'
+  displayName: 'Build & Publish NPM (internal)'
   templateContext:
     outputs:
     - output: pipelineArtifact
@@ -13,14 +13,22 @@ jobs:
   # Setup dependencies
   - template: ../steps/dependencies.yml
 
-  # Build NPM packages for redistribution
-  - script: npm run build-redist
+  # Build and pack NPM packages for redistribution (replaces deprecated build-redist script)
+  - pwsh: |
+      npm exec nbgv-setversion
+      npm run build
+      New-Item -ItemType Directory -Force -Path redist | Out-Null
+      npm pack --pack-destination redist
     workingDirectory: packages/api
-    displayName: build api npm package
+    displayName: build & pack api npm package
 
-  - script: npm run build-redist
+  - pwsh: |
+      npm exec nbgv-setversion
+      npm run build
+      New-Item -ItemType Directory -Force -Path redist | Out-Null
+      npm pack --pack-destination redist
     workingDirectory: packages/util
-    displayName: build util npm package
+    displayName: build & pack util npm package
 
   # Copy NPM packages to staging
   - task: CopyFiles@2
