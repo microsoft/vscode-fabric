@@ -71,20 +71,26 @@ export class TokenAcquisitionService implements ITokenAcquisitionService, IDispo
     }
 
     private async getSession(providerId: string, scopes: string[], options: TokenRequestOptions): Promise<vscode.AuthenticationSession | undefined> {
+        const start = Date.now();
+        let succeeded = false;
+        let errorMessage: string | undefined;
+        let session: vscode.AuthenticationSession | undefined;
+        const originalForceNew = options.forceNewSession;
         try {
-            if (!options || !options.callerId.trim() || !options.requestReason.trim()) {
+            if (!options || !options.callerId?.trim() || !options.requestReason?.trim()) {
                 throw new Error('Please provide callerId and requestReason in TokenRequestOptions');
             }
 
-            // In case there a session is not found, we would like to add a request reason to the modal dialog that will request it,
-            // so we replace createIfNone with forceNewSession that behaves identically in this situation, but allows us to pass the request reason.
+            // Optimize: attempt silent existing session if createIfNone specified to avoid UI before instrumentation.
             if (options.createIfNone && !options.forceNewSession) {
-                const session = await this.authentication?.getSession(providerId, scopes, { silent: true });
-                if (session) {
-                    return session;
+                const silentSession = await this.authentication?.getSession(providerId, scopes, { silent: true });
+                if (silentSession) {
+                    session = silentSession;
+                    succeeded = true;
+                    return silentSession; // still log telemetry in finally
                 }
                 else {
-                    options.createIfNone = false;
+                    options.createIfNone = false; // we will attempt interactive (force new)
                     options.forceNewSession = true;
                 }
             }
@@ -93,14 +99,42 @@ export class TokenAcquisitionService implements ITokenAcquisitionService, IDispo
                 options.forceNewSession = { detail: options.requestReason };
             }
 
-            return await this.authentication?.getSession(providerId, scopes, options);
+            session = await this.authentication?.getSession(providerId, scopes, options);
+            succeeded = !!session;
+            return session;
         }
         catch (error: unknown) {
-            const message = `Error getting session for ${options.callerId}: ${error}`;
+            errorMessage = (error instanceof Error ? error.message : String(error));
+            const message = `Error getting session for ${options?.callerId}: ${error}`;
             this.logger.log(message, LogImportance.high);
 
             const wrappedError = error instanceof Error ? error : new Error(String(error ?? message));
-            this.logger.reportExceptionTelemetryAndLog('getSession', 'auth-error', wrappedError, this.telemetryService, { callerId: options.callerId });
+            this.logger.reportExceptionTelemetryAndLog('getSession', 'auth-error', wrappedError, this.telemetryService, { callerId: options?.callerId });
+        }
+        finally {
+            const duration = Date.now() - start;
+            try {
+                // Emit unified auth/get-session event for both silent and interactive attempts.
+                this.telemetryService?.sendTelemetryEvent('auth/get-session', {
+                    succeeded: succeeded ? 'true' : 'false',
+                    // capture original intent vs final
+                    createIfNone: originalForceNew ? 'false' : (options.createIfNone ? 'true' : 'false'),
+                    forceNewSession: originalForceNew ? 'true' : (options.forceNewSession ? 'true' : 'false'),
+                    silent: (!originalForceNew && !options.forceNewSession && !options.createIfNone) ? 'true' : 'false',
+                    clearSessionPreference: (options as any).clearSessionPreference ? 'true' : 'false',
+                    providerId: providerId,
+                    scopes: scopes.join(','),
+                    callerId: options.callerId,
+                    success: succeeded ? 'true' : 'false',
+                    tenantId: scopes.find(s => s.startsWith('VSCODE_TENANT:'))?.replace('VSCODE_TENANT:', '') ?? '',
+                    error: errorMessage ?? ''
+                }, {
+                    activityDurationInMilliseconds: duration,
+                    startTimeInMilliseconds: start,
+                    endTimeInMilliseconds: Date.now()
+                });
+            }
+            catch { /* swallow telemetry exceptions */ }
         }
     }
 
