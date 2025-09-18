@@ -72,19 +72,20 @@ export class TokenAcquisitionService implements ITokenAcquisitionService, IDispo
 
     private async getSession(providerId: string, scopes: string[], options: TokenRequestOptions): Promise<vscode.AuthenticationSession | undefined> {
         try {
-            if (!options || !options.callerId?.trim() || !options.requestReason?.trim()) {
+            if (!options || !options.callerId.trim() || !options.requestReason.trim()) {
                 throw new Error('Please provide callerId and requestReason in TokenRequestOptions');
             }
 
-            // If createIfNone is requested, first attempt silent to avoid flashing UI.
+            // In case there a session is not found, we would like to add a request reason to the modal dialog that will request it,
+            // so we replace createIfNone with forceNewSession that behaves identically in this situation, but allows us to pass the request reason.
             if (options.createIfNone && !options.forceNewSession) {
-                const silentSession = await this.authentication?.getSession(providerId, scopes, { silent: true });
-                if (silentSession) {
-                    return silentSession;
+                const session = await this.authentication?.getSession(providerId, scopes, { silent: true });
+                if (session) {
+                    return session;
                 }
                 else {
                     options.createIfNone = false;
-                    options.forceNewSession = true; // escalate to interactive with reason
+                    options.forceNewSession = true;
                 }
             }
 
@@ -95,11 +96,11 @@ export class TokenAcquisitionService implements ITokenAcquisitionService, IDispo
             return await this.authentication?.getSession(providerId, scopes, options);
         }
         catch (error: unknown) {
-            const message = `Error getting session for ${options?.callerId}: ${error}`;
+            const message = `Error getting session for ${options.callerId}: ${error}`;
             this.logger.log(message, LogImportance.high);
 
             const wrappedError = error instanceof Error ? error : new Error(String(error ?? message));
-            this.logger.reportExceptionTelemetryAndLog('getSession', 'auth-error', wrappedError, this.telemetryService, { callerId: options?.callerId });
+            this.logger.reportExceptionTelemetryAndLog('getSession', 'auth-error', wrappedError, this.telemetryService, { callerId: options.callerId });
         }
     }
 
