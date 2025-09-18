@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { IDisposable } from '@microsoft/vscode-fabric-api';
 import { IAccountProvider, ITenantSettings, ITokenAcquisitionService, TokenRequestOptions } from './interfaces';
 import { AuthenticationSessionAccountInformation } from 'vscode';
-import { doTaskWithTimeout } from '@microsoft/vscode-fabric-util';
+import { doTaskWithTimeout, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { SubscriptionClient, TenantIdDescription } from '@azure/arm-resources-subscriptions';
 import type { TokenCredential } from '@azure/core-auth';
 import { getConfiguredAzureEnv } from '@microsoft/vscode-azext-azureauth';
@@ -35,7 +35,8 @@ export class AccountProvider implements IAccountProvider, IDisposable {
     };
 
     constructor(
-        private tokenService: ITokenAcquisitionService
+        private tokenService: ITokenAcquisitionService,
+        private telemetryService: TelemetryService | null
     ) {
         this.sessionChangedListener = this.tokenService.msSessionChanged(async () => {
             await this.mutex.acquire();
@@ -139,18 +140,70 @@ export class AccountProvider implements IAccountProvider, IDisposable {
     }
 
     async signIn(tenantId?: string): Promise<boolean> {
-        const account = await this.getAccountInfo(/*askToSignIn = */true, tenantId);
-        const result: boolean = !!account;
-        if (result) {
-            this.onSuccessfulSignInEmitter.fire();
-
-            // If successfully signed in to a specific tenant, remember that tenantId
-            if (tenantId && this._mostRecentlyUsedTenantId !== tenantId) {
-                this._mostRecentlyUsedTenantId = tenantId;
-                this.onTenantChangedEmitter.fire();
+        const start = Date.now();
+        let succeeded = 'false';
+        let errorMessage = '';
+        try {
+            const account = await this.getAccountInfo(/*askToSignIn = */true, tenantId);
+            const result: boolean = !!account;
+            succeeded = result ? 'true' : 'false';
+            if (result) {
+                this.onSuccessfulSignInEmitter.fire();
+                if (tenantId && this._mostRecentlyUsedTenantId !== tenantId) {
+                    this._mostRecentlyUsedTenantId = tenantId;
+                    this.onTenantChangedEmitter.fire();
+                }
             }
+            return result;
         }
-        return result;
+        catch (err: any) {
+            errorMessage = err instanceof Error ? err.message : String(err);
+            return false;
+        }
+        finally {
+            try {
+                this.telemetryService?.sendTelemetryEvent('auth/get-session', {
+                    succeeded,
+                    // interactive command sign-in always create if necessary
+                    createIfNone: 'true',
+                    forceNewSession: 'false',
+                    silent: 'false',
+                    clearSessionPreference: 'false',
+                    callerId: this.tokenOptions.callerId,
+                    tenantId: this._mostRecentlyUsedTenantId ?? '',
+                    result: succeeded === 'true' ? 'success' : 'failed',
+                    error: errorMessage,
+                }, {
+                    activityDurationInMilliseconds: Date.now() - start,
+                    startTimeInMilliseconds: start,
+                    endTimeInMilliseconds: Date.now(),
+                });
+            }
+            catch { /* swallow telemetry issues */ }
+        }
+    }
+
+    /**
+     * Emits a single restored-session telemetry event if a session already exists silently at activation.
+     */
+    public async emitRestoredSessionTelemetry(): Promise<void> {
+        try {
+            const isSignedIn = await this.isSignedIn();
+            if (!isSignedIn) {
+                return; // nothing to emit
+            }
+            this.telemetryService?.sendTelemetryEvent('auth/get-session', {
+                succeeded: 'true',
+                silent: 'true',
+                createIfNone: 'false',
+                forceNewSession: 'false',
+                clearSessionPreference: 'false',
+                callerId: this.tokenOptions.callerId,
+                tenantId: this._mostRecentlyUsedTenantId ?? '',
+                result: 'restored'
+            });
+        }
+        catch { /* ignore */ }
     }
 
     async isSignedIn(tenantId?: string): Promise<boolean> {

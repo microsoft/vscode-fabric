@@ -156,6 +156,10 @@ export class FabricVsCodeExtension {
             account.onSignInChanged(async () => await updateDefaultAccountProperties());
             // Initialize the default account properties for the first time
             await updateDefaultAccountProperties();
+            // Emit a single restored-session telemetry event if a session already exists silently on startup
+            if ('emitRestoredSessionTelemetry' in account && typeof (account as any).emitRestoredSessionTelemetry === 'function') {
+                await (account as any).emitRestoredSessionTelemetry();
+            }
 
             async function tenantChanged() {
                 const tenantInformation = await account.getCurrentTenant();
@@ -308,7 +312,10 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<IFabricEnvironmentProvider, FabricEnvironmentProvider>();
     container.registerSingleton<VsCodeAuthentication, DefaultVsCodeAuthentication>();
     container.registerSingleton<ITokenAcquisitionService, TokenAcquisitionService>();
-    container.registerSingleton<IAccountProvider, AccountProvider>();
+    container.registerSingleton<IAccountProvider>(() => new AccountProvider(
+        container.get<ITokenAcquisitionService>(),
+        container.get<TelemetryService | null>()
+    ));
 
     container.registerSingleton<IFabricApiClient>(() => new FabricApiClient(
         container.get<IAccountProvider>(),
