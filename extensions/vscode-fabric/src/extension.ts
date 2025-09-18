@@ -156,10 +156,6 @@ export class FabricVsCodeExtension {
             account.onSignInChanged(async () => await updateDefaultAccountProperties());
             // Initialize the default account properties for the first time
             await updateDefaultAccountProperties();
-            // Emit a single restored-session telemetry event if a session already exists silently on startup
-            if ('emitRestoredSessionTelemetry' in account && typeof (account as any).emitRestoredSessionTelemetry === 'function') {
-                await (account as any).emitRestoredSessionTelemetry();
-            }
 
             async function tenantChanged() {
                 const tenantInformation = await account.getCurrentTenant();

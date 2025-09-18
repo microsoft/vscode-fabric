@@ -183,28 +183,6 @@ export class AccountProvider implements IAccountProvider, IDisposable {
         }
     }
 
-    /**
-     * Emits a single restored-session telemetry event if a session already exists silently at activation.
-     */
-    public async emitRestoredSessionTelemetry(): Promise<void> {
-        try {
-            const isSignedIn = await this.isSignedIn();
-            if (!isSignedIn) {
-                return; // nothing to emit
-            }
-            this.telemetryService?.sendTelemetryEvent('auth/get-session', {
-                succeeded: 'true',
-                silent: 'true',
-                createIfNone: 'false',
-                forceNewSession: 'false',
-                clearSessionPreference: 'false',
-                callerId: this.tokenOptions.callerId,
-                tenantId: this._mostRecentlyUsedTenantId ?? '',
-                result: 'restored'
-            });
-        }
-        catch { /* ignore */ }
-    }
 
     async isSignedIn(tenantId?: string): Promise<boolean> {
         const account = await this.getAccountInfo(/*askToSignIn = */false, tenantId);
