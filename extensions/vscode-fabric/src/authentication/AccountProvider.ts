@@ -162,16 +162,13 @@ export class AccountProvider implements IAccountProvider, IDisposable {
         }
         finally {
             try {
-                this.telemetryService?.sendTelemetryEvent('auth/get-session', {
+                this.telemetryService?.sendTelemetryEvent('auth/sign-in', {
                     succeeded,
-                    // interactive command sign-in always create if necessary
                     createIfNone: 'true',
                     forceNewSession: 'false',
-                    silent: 'false',
                     clearSessionPreference: 'false',
                     callerId: this.tokenOptions.callerId,
                     tenantId: this._mostRecentlyUsedTenantId ?? '',
-                    result: succeeded === 'true' ? 'success' : 'failed',
                     error: errorMessage,
                 }, {
                     activityDurationInMilliseconds: Date.now() - start,

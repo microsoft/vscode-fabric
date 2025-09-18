@@ -308,10 +308,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<IFabricEnvironmentProvider, FabricEnvironmentProvider>();
     container.registerSingleton<VsCodeAuthentication, DefaultVsCodeAuthentication>();
     container.registerSingleton<ITokenAcquisitionService, TokenAcquisitionService>();
-    container.registerSingleton<IAccountProvider>(() => new AccountProvider(
-        container.get<ITokenAcquisitionService>(),
-        container.get<TelemetryService | null>()
-    ));
+    container.registerSingleton<IAccountProvider, AccountProvider>();
 
     container.registerSingleton<IFabricApiClient>(() => new FabricApiClient(
         container.get<IAccountProvider>(),
