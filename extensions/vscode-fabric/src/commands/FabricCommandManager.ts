@@ -1,0 +1,113 @@
+import * as vscode from 'vscode';
+import { ILogger, TelemetryService, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
+import { IWorkspaceManager } from '@microsoft/vscode-fabric-api';
+import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
+import { FabricWorkspaceDataProvider } from '../workspace/treeView';
+import { ICapacityManager } from '../CapacityManager';
+import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
+import { IFabricCommandManager, IFabricCommand } from './IFabricCommandManager';
+
+// Import command implementations as they get created
+import { RefreshArtifactViewCommand } from './RefreshArtifactViewCommand';
+// import { CreateArtifactCommand } from './CreateArtifactCommand';
+// import { ReadArtifactCommand } from './ReadArtifactCommand';
+// ... other commands
+
+/**
+ * Implementation of the Fabric command manager that handles command registration,
+ * dependency injection, and lifecycle management using constructor-based DI
+ */
+export class FabricCommandManager implements IFabricCommandManager {
+    private readonly commands = new Map<string, IFabricCommand>();
+    private readonly disposables: vscode.Disposable[] = [];
+
+    constructor(
+        // All dependencies injected through constructor - DI framework will provide these
+        public readonly logger: ILogger,
+        public readonly telemetryService: TelemetryService | null,
+        public readonly extensionContext: vscode.ExtensionContext,
+        public readonly fabricEnvironmentProvider: IFabricEnvironmentProvider,
+        public readonly workspaceManager: IWorkspaceManager,
+        public readonly artifactManager: IArtifactManagerInternal,
+        public readonly capacityManager: ICapacityManager,
+        public readonly dataProvider: FabricWorkspaceDataProvider,
+        public readonly workspaceFilterManager: IWorkspaceFilterManager,
+        public readonly extensionManager: IFabricExtensionManagerInternal
+    ) {}
+
+    // Command management methods
+    public registerCommand(command: IFabricCommand): vscode.Disposable {
+        // Unregister any existing command with the same name
+        this.unregisterCommand(command.commandName);
+
+        // Register the command with VS Code
+        const disposable = vscode.commands.registerCommand(
+            command.commandName,
+            (...args: any[]) => command.execute(...args)
+        );
+
+        // Track the command and disposable
+        this.commands.set(command.commandName, command);
+        this.disposables.push(disposable);
+        this.extensionContext.subscriptions.push(disposable);
+
+        this.logger.log(`Registered command: ${command.commandName}`);
+        return disposable;
+    }
+
+    public unregisterCommand(commandName: string): void {
+        const command = this.commands.get(commandName);
+        if (command) {
+            // Find and dispose the associated VS Code disposable
+            // Since we can't easily identify which disposable corresponds to which command,
+            // we'll handle this during bulk re-registration
+            this.commands.delete(commandName);
+            this.logger.log(`Unregistered command: ${commandName}`);
+        }
+    }
+
+    public getCommand(commandName: string): IFabricCommand | undefined {
+        return this.commands.get(commandName);
+    }
+
+    // Lifecycle methods
+    public async initialize(): Promise<void> {
+        this.logger.log('FabricCommandManager initializing...');
+
+        // Dispose any existing commands first
+        this.dispose();
+
+        // Create and register all command instances
+        await this.createAndRegisterCommands();
+
+        this.logger.log(`FabricCommandManager initialized with ${this.commands.size} commands`);
+    }
+
+    public dispose(): void {
+        // Dispose all command registrations
+        this.disposables.forEach(disposable => disposable.dispose());
+        this.disposables.length = 0;
+        this.commands.clear();
+
+        this.logger.log('FabricCommandManager disposed');
+    }
+
+    // Private methods
+    private async createAndRegisterCommands(): Promise<void> {
+        // This is where we'll instantiate all our command classes
+        // Commands will be created as we migrate them
+
+        // Register the RefreshArtifactView command as an example
+        const refreshArtifactViewCommand = new RefreshArtifactViewCommand(this);
+        this.registerCommand(refreshArtifactViewCommand);
+
+        // Example of how other commands will be registered:
+        // const createArtifactCommand = new CreateArtifactCommand(this);
+        // this.registerCommand(createArtifactCommand);
+
+        // const readArtifactCommand = new ReadArtifactCommand(this);
+        // this.registerCommand(readArtifactCommand);
+
+        // TODO: Add all command instantiations here as we migrate them
+    }
+}

@@ -41,6 +41,8 @@ import { MockWorkspaceManager } from './workspace/mockWorkspaceManager';
 import { InternalSatelliteManager } from './internalSatellites/InternalSatelliteManager';
 import { WorkspaceFilterManager, IWorkspaceFilterManager } from './workspace/WorkspaceFilterManager';
 import { FakeTokenAcquisitionService } from './authentication';
+import { FabricCommandManager } from './commands/FabricCommandManager';
+import { IFabricCommandManager } from './commands/IFabricCommandManager';
 
 let app: FabricVsCodeExtension;
 
@@ -113,6 +115,9 @@ export class FabricVsCodeExtension {
             // And it seems cyclical. The dataProvider is created with the workspaceManager, but the workspaceManager depends dataProvider ??
             workspaceManager.tvProvider = dataProvider;
             workspaceManager.treeView = treeView;
+
+            const commandManager = this.container.get<FabricCommandManager>();
+            await commandManager.initialize();
 
             registerWorkspaceCommands(context, account, workspaceManager, capacityManager, telemetryService, logger, workspaceFilterManager);
             registerTenantCommands(context, account, telemetryService, logger);
@@ -335,6 +340,8 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
 
     container.registerSingleton<FabricUriHandler>();
     container.registerSingleton<InternalSatelliteManager>();
+
+    container.registerSingleton<IFabricCommandManager, FabricCommandManager>();
 
     if (process.env.VSCODE_FABRIC_USE_MOCKS === 'true' && context.extensionMode !== vscode.ExtensionMode.Production) {
         // if mocks are requested, override with mock implementations
