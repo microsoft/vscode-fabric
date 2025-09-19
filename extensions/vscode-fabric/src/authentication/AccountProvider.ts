@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { IDisposable } from '@microsoft/vscode-fabric-api';
 import { IAccountProvider, ITenantSettings, ITokenAcquisitionService, TokenRequestOptions } from './interfaces';
 import { AuthenticationSessionAccountInformation } from 'vscode';
-import { doTaskWithTimeout, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { doTaskWithTimeout, TelemetryActivity, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { SubscriptionClient, TenantIdDescription } from '@azure/arm-resources-subscriptions';
 import type { TokenCredential } from '@azure/core-auth';
 import { getConfiguredAzureEnv } from '@microsoft/vscode-azext-azureauth';
@@ -140,44 +140,39 @@ export class AccountProvider implements IAccountProvider, IDisposable {
     }
 
     async signIn(tenantId?: string): Promise<boolean> {
-        const start = Date.now();
-        let succeeded = 'false';
-        let errorMessage = '';
-        try {
+        const activity = new TelemetryActivity('auth/get-session', this.telemetryService);
+        activity.addOrUpdateProperties({
+            silent: 'false',
+            createIfNone: 'true',
+            forceNewSession: 'false',
+            clearSessionPreference: 'false',
+            callerId: this.tokenOptions.callerId,
+            ...(tenantId ? { tenantId } : {})
+        });
+
+        return activity.doTelemetryActivity(async () => {
             const account = await this.getAccountInfo(/*askToSignIn = */true, tenantId);
             const result: boolean = !!account;
-            succeeded = result ? 'true' : 'false';
             if (result) {
                 this.onSuccessfulSignInEmitter.fire();
                 if (tenantId && this._mostRecentlyUsedTenantId !== tenantId) {
                     this._mostRecentlyUsedTenantId = tenantId;
                     this.onTenantChangedEmitter.fire();
                 }
-            }
-            return result;
-        }
-        catch (err: any) {
-            errorMessage = err instanceof Error ? err.message : String(err);
-            return false;
-        }
-        finally {
-            try {
-                this.telemetryService?.sendTelemetryEvent('auth/sign-in', {
-                    succeeded,
-                    createIfNone: 'true',
-                    forceNewSession: 'false',
-                    clearSessionPreference: 'false',
-                    callerId: this.tokenOptions.callerId,
-                    tenantId: this._mostRecentlyUsedTenantId ?? '',
-                    error: errorMessage,
-                }, {
-                    activityDurationInMilliseconds: Date.now() - start,
-                    startTimeInMilliseconds: start,
-                    endTimeInMilliseconds: Date.now(),
+                activity.addOrUpdateProperties({
+                    signedIn: 'true',
+                    result: 'success',
+                    tenantId: this._mostRecentlyUsedTenantId ?? tenantId ?? ''
                 });
             }
-            catch { /* swallow telemetry issues */ }
-        }
+            else {
+                activity.addOrUpdateProperties({
+                    signedIn: 'false',
+                    result: 'no-session'
+                });
+            }
+            return result;
+        });
     }
 
 
