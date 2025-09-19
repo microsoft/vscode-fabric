@@ -79,7 +79,7 @@ describe('AccountProvider', function () {
         });
 
         // Initialize the class under test with mocks
-    accountProvider = new AccountProvider(tokenServiceMock.object(), null);
+        accountProvider = new AccountProvider(tokenServiceMock.object());
     });
 
     afterEach(function () {
@@ -585,7 +585,7 @@ describe('AccountProvider', function () {
             });
 
             // Create a new instance with these mocks
-            const provider = new AccountProvider(tokenServiceMock.object(), null);
+            const provider = new AccountProvider(tokenServiceMock.object());
 
             // Act
             provider.dispose();
