@@ -3,6 +3,7 @@ import { apiVersion, IArtifactManager, IFabricExtension, IFabricExtensionManager
 import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { SqlDatabaseTreeNodeProvider } from './SqlDatabaseTreeNodeProvider';
 import { SqlEndpointTreeNodeProvider } from './SqlEndpointTreeNodeProvider';
+import { WarehouseTreeNodeProvider } from './WarehouseTreeNodeProvider';
 import { registerDatabaseCommands, disposeCommands } from './commands';
 
 export class SqlExtension implements IFabricExtension, vscode.Disposable {
@@ -12,10 +13,12 @@ export class SqlExtension implements IFabricExtension, vscode.Disposable {
 
     public identity: string = 'fabric.internal-satellite-sql';
     public apiVersion: string = apiVersion;
-    public artifactTypes: string[] = ['SQLDatabase, SQLEndpoint'];
+    // Fixed original array (previously a single comma-separated string) and added 'Warehouse'.
+    public artifactTypes: string[] = ['SQLDatabase', 'SQLEndpoint', 'Warehouse'];
     public treeNodeProviders: IFabricTreeNodeProvider[] = [
         new SqlDatabaseTreeNodeProvider(this.context),
         new SqlEndpointTreeNodeProvider(this.context),
+        new WarehouseTreeNodeProvider(this.context),
     ];
     public localProjectTreeNodeProviders: ILocalProjectTreeNodeProvider[] = [];
 

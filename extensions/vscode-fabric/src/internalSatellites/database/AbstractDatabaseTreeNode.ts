@@ -3,13 +3,20 @@ import * as vscode from 'vscode';
 import { ArtifactTreeNode, IApiClientResponse, IArtifact, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { FabricError } from '@microsoft/vscode-fabric-util';
 
-export type SqlArtifactType = 'SQLDatabase' | 'SQLEndpoint';
+export type SqlArtifactType = 'SQLDatabase' | 'SQLEndpoint' | 'Warehouse';
 
 export abstract class AbstractDatabaseTreeNode extends ArtifactTreeNode {
     constructor(context: vscode.ExtensionContext, public readonly artifact: IArtifact) {
         super(context, artifact);
     }
     protected abstract artifactType: SqlArtifactType;
+
+    /* eslint-disable @typescript-eslint/naming-convention */
+    protected readonly typeDisplayNameMap: { [key in SqlArtifactType]: string } = {
+        SQLDatabase: 'SQL Database',
+        SQLEndpoint: 'SQL AnalyticsEndpoint',
+        Warehouse: 'Warehouse',
+    };
 
     protected validateResponse(response: IApiClientResponse): void {
         if (response.status !== 200) {
@@ -22,7 +29,9 @@ export abstract class AbstractDatabaseTreeNode extends ArtifactTreeNode {
     }
 
     protected constructExternalUri(serverName: string, databaseName: string | undefined = undefined): string {
-        var base = `${vscode.env.uriScheme}://ms-mssql.mssql/connect?server=${serverName}&authenticationType=AzureMFA`;
+        const profileName = `${this.artifact.displayName} (${this.typeDisplayNameMap[this.artifactType]})`;
+        const profileNameEncoded = encodeURIComponent(profileName);
+        var base = `${vscode.env.uriScheme}://ms-mssql.mssql/connect?server=${serverName}&authenticationType=AzureMFA&profileName=${profileNameEncoded}`;
         if (databaseName) {
             base += `&database=${databaseName}`;
         }
