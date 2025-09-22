@@ -28,7 +28,7 @@ describe('AbstractDatabaseTreeNode (protected methods)', function () {
 
     beforeEach(function () {
         contextMock = new Mock<vscode.ExtensionContext>();
-        artifact = { id: 'db-1' } as IArtifact;
+        artifact = { id: 'db-1', workspaceId: 'ws-1', displayName: 'My Database' } as IArtifact;
         node = new TestDatabaseTreeNode(contextMock.object(), artifact);
     });
 
@@ -59,7 +59,7 @@ describe('AbstractDatabaseTreeNode (protected methods)', function () {
     it('constructExternalUri should return correct URI without databaseName', function () {
         // Arrange
         const serverName = 'myserver.database.windows.net';
-        const expected = `${vscode.env.uriScheme}://ms-mssql.mssql/connect?server=${serverName}&authenticationType=AzureMFA`;
+        const expected = `${vscode.env.uriScheme}://ms-mssql.mssql/connect?server=myserver.database.windows.net&authenticationType=AzureMFA&profileName=My Database (SQL Database)`;
         // Act
         const result = node.callConstructExternalUri(serverName);
         // Assert
@@ -70,7 +70,7 @@ describe('AbstractDatabaseTreeNode (protected methods)', function () {
         // Arrange
         const serverName = 'myserver.database.windows.net';
         const databaseName = 'mydb';
-        const expected = `${vscode.env.uriScheme}://ms-mssql.mssql/connect?server=${serverName}&authenticationType=AzureMFA&database=${databaseName}`;
+        const expected = `${vscode.env.uriScheme}://ms-mssql.mssql/connect?server=myserver.database.windows.net&authenticationType=AzureMFA&profileName=My Database (SQL Database)&database=mydb`;
         // Act
         const result = node.callConstructExternalUri(serverName, databaseName);
         // Assert

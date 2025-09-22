@@ -16,7 +16,7 @@ describe('WarehouseTreeNode', function () {
     beforeEach(function () {
         sandbox = sinon.createSandbox();
         contextMock = new Mock<vscode.ExtensionContext>();
-        artifact = { id: 'wh1', workspaceId: 'ws1' } as IArtifact;
+        artifact = { id: 'wh1', workspaceId: 'ws1', displayName: 'My Warehouse' } as IArtifact;
         apiClientMock = new Mock<IFabricApiClient>();
         node = new WarehouseTreeNode(contextMock.object(), artifact);
     });
@@ -29,8 +29,6 @@ describe('WarehouseTreeNode', function () {
         const fakeResponse: SqlDatabaseApiResponse = {
             properties: {
                 connectionString: 'Server=whServer;Database=whDb;',
-                serverFqdn: 'whServer.database.windows.net',
-                databaseName: 'whDb',
             },
         } as SqlDatabaseApiResponse;
         sandbox.stub<any, any>(node, 'callApi').resolves(fakeResponse);
@@ -39,19 +37,18 @@ describe('WarehouseTreeNode', function () {
         assert.equal(result, 'Server=whServer;Database=whDb;');
     });
 
-    it('getExternalUri should construct the external URI from API response', async function () {
+    it('getExternalUri should construct the external URI end-to-end from API response', async function () {
         const fakeResponse: SqlDatabaseApiResponse = {
+            displayName: 'MyServer',
             properties: {
-                connectionString: 'ignored',
-                serverFqdn: 'whServer.database.windows.net,1433',
-                databaseName: 'whDb',
+                connectionString: 'my-connection-string-is-used-as-servername-for-warehouse;',
             },
-        } as SqlDatabaseApiResponse;
+        } as unknown as SqlDatabaseApiResponse;
         sandbox.stub<any, any>(node, 'callApi').resolves(fakeResponse);
-        const constructExternalUriStub = sandbox.stub<any, any>(node, 'constructExternalUri').returns('vscode://ms-mssql.mssql/connect?server=whServer.database.windows.net&authenticationType=AzureMFA&database=whDb');
 
         const result = await node.getExternalUri(apiClientMock.object());
-        assert.equal(result, 'vscode://ms-mssql.mssql/connect?server=whServer.database.windows.net&authenticationType=AzureMFA&database=whDb');
-        assert(constructExternalUriStub.calledWith('whServer.database.windows.net', 'whDb'));
+
+        const expected = 'vscode://ms-mssql.mssql/connect?server=my-connection-string-is-used-as-servername-for-warehouse;&authenticationType=AzureMFA&profileName=My Warehouse (Warehouse)&database=MyServer';
+        assert.equal(result, expected);
     });
 });

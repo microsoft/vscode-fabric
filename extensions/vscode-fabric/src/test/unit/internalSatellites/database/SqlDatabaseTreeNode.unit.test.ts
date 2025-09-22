@@ -21,7 +21,7 @@ describe('SqlDatabaseTreeNode', function () {
     beforeEach(function () {
         sandbox = sinon.createSandbox();
         contextMock = new Mock<vscode.ExtensionContext>();
-        artifact = { id: 'db1', workspaceId: 'ws1' } as IArtifact;
+    artifact = { id: 'db1', workspaceId: 'ws1', displayName: 'My Database' } as IArtifact;
         apiClientMock = new Mock<IFabricApiClient>();
         node = new SqlDatabaseTreeNode(contextMock.object(), artifact);
     });
@@ -52,7 +52,7 @@ describe('SqlDatabaseTreeNode', function () {
         assert.equal(result, 'Server=myserver;Database=mydb;', 'Should return the correct connection string');
     });
 
-    it('getExternalUri should construct the external URI from API response', async function () {
+    it('getExternalUri should construct the external URI end-to-end from API response', async function () {
         // Arrange
         const fakeResponse: SqlDatabaseApiResponse = {
             properties: {
@@ -62,13 +62,12 @@ describe('SqlDatabaseTreeNode', function () {
             },
         } as SqlDatabaseApiResponse;
         sandbox.stub<any, any>(node, 'callApi').resolves(fakeResponse);
-        const constructExternalUriStub = sandbox.stub<any, any>(node, 'constructExternalUri').returns('https://external.uri');
 
         // Act
         const result = await node.getExternalUri(apiClientMock.object());
 
         // Assert
-        assert.equal(result, 'https://external.uri', 'Should return the constructed external URI');
-        assert(constructExternalUriStub.calledWith('myserver.database.windows.net', 'mydb'), 'constructExternalUri should be called with correct arguments');
+        const expected = 'vscode://ms-mssql.mssql/connect?server=myserver.database.windows.net&authenticationType=AzureMFA&profileName=My Database (SQL Database)&database=mydb';
+        assert.equal(result, expected, 'Should build external URI with stripped port, encoded profile name and database');
     });
 });
