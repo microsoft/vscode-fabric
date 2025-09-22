@@ -16,7 +16,6 @@ export class SqlExtension implements IFabricExtension, vscode.Disposable {
 
     public identity: string = 'fabric.internal-satellite-sql';
     public apiVersion: string = apiVersion;
-    // Fixed original array (previously a single comma-separated string) and added 'Warehouse'.
     public artifactTypes: string[] = ['SQLDatabase', 'SQLEndpoint', 'Warehouse'];
     public treeNodeProviders: IFabricTreeNodeProvider[] = [
         new SqlDatabaseTreeNodeProvider(this.context),
