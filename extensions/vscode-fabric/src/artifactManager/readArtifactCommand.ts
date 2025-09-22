@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 import { IArtifact, OperationRequestType, Schema } from '@microsoft/vscode-fabric-api';
 import { formatErrorResponse, succeeded } from '../utilities';

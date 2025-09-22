@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import TelemetryReporter from '@vscode/extension-telemetry';
 
 // Need to accomodate multiple TelemetryService instances, one for each extension (core/sat), and to allow a single common properties object to be shared across all instances.

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { IFabricExtensionServiceCollection } from '@microsoft/vscode-fabric-api';
 
 export interface ICoreServiceCollectionProvider {

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 import { apiVersion, IFabricExtension, IFabricExtensionManager, IArtifactHandler } from '@microsoft/vscode-fabric-api';
 import { ReportArtifactHandler } from './ReportArtifactHandler';

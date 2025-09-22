@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { SqlArtifactType } from './AbstractDatabaseTreeNode';
 
 export interface SqlDatabaseApiResponse {

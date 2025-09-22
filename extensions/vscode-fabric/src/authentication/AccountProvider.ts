@@ -1,9 +1,12 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 
 import { IDisposable } from '@microsoft/vscode-fabric-api';
 import { IAccountProvider, ITenantSettings, ITokenAcquisitionService, TokenRequestOptions } from './interfaces';
 import { AuthenticationSessionAccountInformation } from 'vscode';
-import { doTaskWithTimeout } from '@microsoft/vscode-fabric-util';
+import { doTaskWithTimeout, TelemetryActivity, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { SubscriptionClient, TenantIdDescription } from '@azure/arm-resources-subscriptions';
 import type { TokenCredential } from '@azure/core-auth';
 import { getConfiguredAzureEnv } from '@microsoft/vscode-azext-azureauth';
@@ -35,7 +38,8 @@ export class AccountProvider implements IAccountProvider, IDisposable {
     };
 
     constructor(
-        private tokenService: ITokenAcquisitionService
+        private tokenService: ITokenAcquisitionService,
+        private telemetryService: TelemetryService | null
     ) {
         this.sessionChangedListener = this.tokenService.msSessionChanged(async () => {
             await this.mutex.acquire();
@@ -139,19 +143,41 @@ export class AccountProvider implements IAccountProvider, IDisposable {
     }
 
     async signIn(tenantId?: string): Promise<boolean> {
-        const account = await this.getAccountInfo(/*askToSignIn = */true, tenantId);
-        const result: boolean = !!account;
-        if (result) {
-            this.onSuccessfulSignInEmitter.fire();
+        const activity = new TelemetryActivity('auth/get-session', this.telemetryService);
+        activity.addOrUpdateProperties({
+            silent: 'false',
+            createIfNone: 'true',
+            forceNewSession: 'false',
+            clearSessionPreference: 'false',
+            callerId: this.tokenOptions.callerId,
+            ...(tenantId ? { tenantId } : {})
+        });
 
-            // If successfully signed in to a specific tenant, remember that tenantId
-            if (tenantId && this._mostRecentlyUsedTenantId !== tenantId) {
-                this._mostRecentlyUsedTenantId = tenantId;
-                this.onTenantChangedEmitter.fire();
+        return activity.doTelemetryActivity(async () => {
+            const account = await this.getAccountInfo(/*askToSignIn = */true, tenantId);
+            const result: boolean = !!account;
+            if (result) {
+                this.onSuccessfulSignInEmitter.fire();
+                if (tenantId && this._mostRecentlyUsedTenantId !== tenantId) {
+                    this._mostRecentlyUsedTenantId = tenantId;
+                    this.onTenantChangedEmitter.fire();
+                }
+                activity.addOrUpdateProperties({
+                    signedIn: 'true',
+                    result: 'success',
+                    tenantId: this._mostRecentlyUsedTenantId ?? tenantId ?? ''
+                });
             }
-        }
-        return result;
+            else {
+                activity.addOrUpdateProperties({
+                    signedIn: 'false',
+                    result: 'no-session'
+                });
+            }
+            return result;
+        });
     }
+
 
     async isSignedIn(tenantId?: string): Promise<boolean> {
         const account = await this.getAccountInfo(/*askToSignIn = */false, tenantId);

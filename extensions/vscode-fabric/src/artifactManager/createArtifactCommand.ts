@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 import { IApiClientResponse, IArtifact, IArtifactManager, ICreateArtifactWorkflow, IWorkspace, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { TelemetryActivity, TelemetryService, ILogger } from '@microsoft/vscode-fabric-util';

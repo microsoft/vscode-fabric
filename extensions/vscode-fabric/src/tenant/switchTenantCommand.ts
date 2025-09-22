@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 import { TelemetryService, ILogger, doFabricAction, FabricActionOptions, UserCancelledError, TelemetryActivity, TelemetryEventRecord } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider, ITenantSettings } from '../authentication/interfaces';

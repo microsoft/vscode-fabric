@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 import { AbstractDatabaseTreeNode } from './AbstractDatabaseTreeNode';
 import { ArtifactPropertyNames, TelemetryService } from '@microsoft/vscode-fabric-util';

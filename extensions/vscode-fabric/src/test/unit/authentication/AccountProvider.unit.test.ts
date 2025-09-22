@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { Mock, It, Times } from 'moq.ts';
 import * as vscode from 'vscode';
 import * as assert from 'assert';
@@ -79,7 +82,7 @@ describe('AccountProvider', function () {
         });
 
         // Initialize the class under test with mocks
-        accountProvider = new AccountProvider(tokenServiceMock.object());
+    accountProvider = new AccountProvider(tokenServiceMock.object(), null);
     });
 
     afterEach(function () {
@@ -585,7 +588,7 @@ describe('AccountProvider', function () {
             });
 
             // Create a new instance with these mocks
-            const provider = new AccountProvider(tokenServiceMock.object());
+            const provider = new AccountProvider(tokenServiceMock.object(), null);
 
             // Act
             provider.dispose();

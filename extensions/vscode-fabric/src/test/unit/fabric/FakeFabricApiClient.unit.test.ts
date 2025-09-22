@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { expect } from 'chai';
 import { Mock, It } from 'moq.ts';
 import { FakeFabricApiClient } from '../../../fabric/FakeFabricApiClient';

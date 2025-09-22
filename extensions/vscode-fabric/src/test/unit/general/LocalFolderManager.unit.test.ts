@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { Uri } from 'vscode';
 import { LocalFolderManager } from '../../../LocalFolderManager';
 import { IFabricExtensionSettings, IFabricWorkspaceSettings } from '../../../../src/settings/definitions';

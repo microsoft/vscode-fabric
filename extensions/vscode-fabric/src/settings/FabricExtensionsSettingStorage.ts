@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 import { fabricWorkspaceSettingsVersion, IFabricArtifactSettings, IFabricWorkspaceSettings, IFabricExtensionsSettingStorage, ILocalFolderSettingsAdapter, IFabricExtensionSettings } from './definitions';
 import { mkdir } from 'fs';

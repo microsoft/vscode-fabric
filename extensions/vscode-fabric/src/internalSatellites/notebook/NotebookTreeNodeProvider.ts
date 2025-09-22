@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { ExtensionContext } from 'vscode';
 import { IFabricTreeNodeProvider, ArtifactTreeNode, IArtifact, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { NotebookTreeNode } from './NotebookTreeNode';

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 export class TaskHelperWithTimeout {
     ids: NodeJS.Timeout[] = [];
     #set(delay: number, reason: string) {

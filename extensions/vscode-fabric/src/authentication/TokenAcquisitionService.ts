@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { IDisposable } from '@microsoft/vscode-fabric-api';
 import { ITokenAcquisitionService, TokenRequestOptions } from './interfaces';
 import * as vscode from 'vscode';

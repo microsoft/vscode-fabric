@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as assert from 'assert';
 import { activateCore, IFabricEnvironmentProvider, sleep, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../../authentication/interfaces';

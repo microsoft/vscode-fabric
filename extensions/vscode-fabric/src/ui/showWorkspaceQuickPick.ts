@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 import { NotSignedInError } from './NotSignedInError';
 import { showCreateWorkspaceWizard } from './showCreateWorkspaceWizard';

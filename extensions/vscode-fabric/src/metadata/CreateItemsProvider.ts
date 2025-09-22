@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 import { ICreateItemsProvider, ItemCreationDetails, CreationCapability, FabricItemMetadata } from './definitions';
 import { getArtifactDefaultIconPath, getArtifactIconPath } from './fabricItemUtilities';

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 export namespace commandNames {
     export const signIn = 'vscode-fabric.signIn';
     export const switchTenant = 'vscode-fabric.switchTenant';

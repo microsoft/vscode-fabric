@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 /* eslint-disable security/detect-object-injection */
 import { FabricEnvironmentName, IFabricEnvironmentProvider, ILogger } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../authentication/interfaces';

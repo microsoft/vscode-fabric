@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 /* eslint-disable security/detect-object-injection */
 import * as vscode from 'vscode';
 import { IArtifact, IWorkspace } from '@microsoft/vscode-fabric-api';

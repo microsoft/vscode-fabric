@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { ITenantSettings } from '../authentication/interfaces';
 
 export const fabricWorkspaceSettingsVersion = 7; // bump this to ensure no prior value used. Allows breaking changes and bug fixes

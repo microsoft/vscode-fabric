@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 export * from './telemetry/index';
 export * from './fabricUtilities';
 export * from './zipUtilities';

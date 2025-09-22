@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 // Property names for telemetry. These names are used to classify GDPR, or suppress.
 // Other VSCode extensions might have the same name: if that other extension suppresses 'runtime', then ours is also suppressed.
 

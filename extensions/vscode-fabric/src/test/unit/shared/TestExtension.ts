@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { testApiVersion } from '../../../extensionManager/MockFabricExtensionManager';
 import { IArtifactHandler, IFabricExtension, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, ArtifactTreeNodeProvider, LocalProjectTreeNodeProvider } from '@microsoft/vscode-fabric-api';
 

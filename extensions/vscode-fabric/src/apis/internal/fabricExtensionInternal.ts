@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 import { IApiClientResponse, IArtifact, IArtifactHandler, IArtifactManager, IFabricExtensionManager, IFabricExtensionServiceCollection, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, OperationRequestType } from '@microsoft/vscode-fabric-api';
 import { IObservableReadOnlyMap } from '../../collections/definitions';
