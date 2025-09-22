@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { FabricEnvironmentName } from './FabricEnvironment';
 
 export const msSessionProvider: string = 'microsoft';

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { FabricTreeNode, ArtifactTreeNode, IArtifact, IFabricTreeNodeProvider, RuntimeAttribute, InputTypeAttribute, RuntimeType, InputType } from '@microsoft/vscode-fabric-api';
 import * as vscode from 'vscode';
 

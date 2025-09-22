@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 export async function findTreeViewItem(provider: any, parent: any, label: string): Promise<any> {
     if (!provider) {
         return undefined;

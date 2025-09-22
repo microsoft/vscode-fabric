@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as assert from 'assert';
 import { IFabricExtensionSettings, IFabricExtensionsSettingStorage, IFabricWorkspaceSettings } from '../../../settings/definitions';
 import { LocalFolderSettingsAdapter } from '../../../settings/LocalFolderSettingsAdapter';

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as assert from 'assert';
 import { IFabricExtension } from '@microsoft/vscode-fabric-api';
 import { initializeServiceCollection } from './serviceCollection';

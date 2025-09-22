@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { IFabricExtensionsSettingStorage, IFabricViewState } from '../settings/definitions';
 import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../authentication';

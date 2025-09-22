@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 export const apiVersion = '0.7';
 
 export * from './IDisposable';

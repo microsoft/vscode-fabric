@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { ILogger, LogImportance } from '../logger/Logger';
 import { IConfigurationProvider } from './ConfigurationProvider';
 import { FabricEnvironmentName, FabricEnvironmentSettings } from './FabricEnvironment';

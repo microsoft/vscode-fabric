@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 export async function waitFor<T>(fn: () => Promise<T | undefined> | T | undefined, timeout = 5000, interval = 100): Promise<T> {
     const end = Date.now() + timeout;
     // eslint-disable-next-line no-constant-condition

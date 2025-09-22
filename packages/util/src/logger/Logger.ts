@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { OutputChannel, window } from 'vscode';
 import { performance } from 'node:perf_hooks';
 import { TelemetryEventNames } from '../telemetry/TelemetryEventNames';

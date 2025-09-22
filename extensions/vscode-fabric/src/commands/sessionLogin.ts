@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 // import { BaseAuthenticationSessionProvider } from '../authentication/BaseAuthenticationSessionProvider';
 // import * as vscode from 'vscode';
 

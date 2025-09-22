@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 [CmdletBinding()]
 param(
     [string]$SourceRepoPath = "C:\src\vscode-fabric.bsl",

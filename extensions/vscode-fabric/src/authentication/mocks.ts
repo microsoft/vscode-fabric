@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as vscode from 'vscode';
 import { ITokenAcquisitionService, TokenRequestOptions, IAccountProvider, ITenantSettings } from './interfaces';

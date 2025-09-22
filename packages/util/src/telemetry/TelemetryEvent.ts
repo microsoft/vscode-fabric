@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 /* eslint-disable security/detect-object-injection */
 import { TelemetryEventNames } from './TelemetryEventNames';
 import { TelemetryService } from './TelemetryService';

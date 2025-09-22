@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { Mock, It, Times } from 'moq.ts';
 import * as vscode from 'vscode';
 import * as assert from 'assert';

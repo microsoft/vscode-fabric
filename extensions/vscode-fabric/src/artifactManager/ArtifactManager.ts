@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 
 import { IApiClientResponse, IArtifact, IItemDefinition, IWorkspace, IApiClientRequestOptions, IFabricApiClient, OperationRequestType, IArtifactHandler, IArtifactManager, ArtifactTreeNode, IWorkspaceManager } from '@microsoft/vscode-fabric-api';

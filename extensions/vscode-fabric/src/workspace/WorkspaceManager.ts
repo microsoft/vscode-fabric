@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 /* eslint-disable security/detect-non-literal-fs-filename */
 
 import * as vscode from 'vscode';

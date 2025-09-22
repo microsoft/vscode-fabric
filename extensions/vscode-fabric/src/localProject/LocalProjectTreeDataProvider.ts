@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 import { FabricTreeNode, ILocalProjectTreeNodeProvider, LocalProjectTreeNode, LocalProjectTreeNodeProvider } from '@microsoft/vscode-fabric-api';
 import { ILogger, TelemetryService, withErrorHandling } from '@microsoft/vscode-fabric-util';

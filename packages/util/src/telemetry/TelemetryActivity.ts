@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { TelemetryEvent, TelemetryEventRecord } from './TelemetryEvent';
 import { TelemetryEventNames } from './TelemetryEventNames';
 import { TelemetryService } from './TelemetryService';

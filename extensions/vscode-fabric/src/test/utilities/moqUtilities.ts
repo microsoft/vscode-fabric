@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 /* eslint-disable security/detect-object-injection */
 import { Mock, It, Times } from 'moq.ts';
 import { TelemetryActivity, TelemetryEventRecord } from '@microsoft/vscode-fabric-util';

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { IConfigurationProvider } from './ConfigurationProvider';
 import * as vscode from 'vscode';
 import { FabricEnvironmentName } from './FabricEnvironment';

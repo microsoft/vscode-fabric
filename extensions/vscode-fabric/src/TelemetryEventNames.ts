@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import { ApiResultPropertyNames, ArtifactManagerResultPropertyNames, ArtifactPropertyNames, ResultPropertyNames, WorkspacePropertyNames } from '@microsoft/vscode-fabric-util';
 
 /* eslint-disable @typescript-eslint/naming-convention */
