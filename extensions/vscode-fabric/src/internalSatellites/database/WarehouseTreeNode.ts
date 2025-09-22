@@ -3,20 +3,6 @@ import { IApiClientRequestOptions, IApiClientResponse, IArtifact, IFabricApiClie
 import { AbstractDatabaseTreeNode } from './AbstractDatabaseTreeNode';
 import { SqlDatabaseApiResponse } from './ApiResponseModels';
 
-/**
- * WarehouseTreeNode
- * Mirrors SqlDatabaseTreeNode behavior. Assumes warehouse GET endpoint returns the
- * same payload contract as SQL database:
- * {
- *   properties: {
- *     connectionString: string;
- *     serverFqdn: string;
- *     databaseName: string;
- *   }, ...
- * }
- *
- * If backend contract diverges later, introduce a dedicated interface instead of reusing SqlDatabaseApiResponse.
- */
 export class WarehouseTreeNode extends AbstractDatabaseTreeNode {
     constructor(context: vscode.ExtensionContext, public readonly artifact: IArtifact) {
         super(context, artifact);
