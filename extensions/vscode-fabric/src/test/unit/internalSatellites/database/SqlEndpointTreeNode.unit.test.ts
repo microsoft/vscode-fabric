@@ -23,7 +23,7 @@ describe('SqlEndpointTreeNode', function () {
     beforeEach(function () {
         sandbox = sinon.createSandbox();
         contextMock = new Mock<vscode.ExtensionContext>();
-        artifact = { id: 'endpoint1', workspaceId: 'ws1' } as IArtifact;
+    artifact = { id: 'endpoint1', workspaceId: 'ws1', displayName: 'My Endpoint' } as IArtifact;
         apiClientMock = new Mock<IFabricApiClient>();
         node = new SqlEndpointTreeNode(contextMock.object(), artifact);
     });
@@ -50,16 +50,15 @@ describe('SqlEndpointTreeNode', function () {
         assert.equal(result, 'Server=myserver;Database=mydb;', 'Should return the correct connection string');
     });
 
-    it('getExternalUri should construct the external URI from connection string', async function () {
+    it('getExternalUri should construct the external URI end-to-end from connection string', async function () {
         // Arrange
         sandbox.stub<any, any>(node, 'getConnectionString').resolves('Server=myserver;Database=mydb;');
-        const constructExternalUriStub = sandbox.stub<any, any>(node, 'constructExternalUri').returns('https://external.uri');
 
         // Act
         const result = await node.getExternalUri(apiClientMock.object());
 
         // Assert
-        assert.equal(result, 'https://external.uri', 'Should return the constructed external URI');
-        assert(constructExternalUriStub.calledWith('Server=myserver;Database=mydb;'), 'constructExternalUri should be called with correct argument');
+        const expected = 'vscode://ms-mssql.mssql/connect?server=Server=myserver;Database=mydb;&authenticationType=AzureMFA&profileName=My Endpoint (SQL Analytics Endpoint)';
+        assert.equal(result, expected, 'Should return the constructed external URI with encoded profile name');
     });
 });
