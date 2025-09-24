@@ -1,5 +1,5 @@
 import { defineConfig } from '@vscode/test-cli';
-import { getMochaReporterOptions } from '../../extensions/.vscode-test.shared.cjs';
+import { getMochaReporterOptions } from '../extension/.vscode-test.shared.cjs';
 
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";

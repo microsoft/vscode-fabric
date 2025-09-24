@@ -1,7 +1,9 @@
 // This is configuration for unit & integration tests only. UI Tests are configured via .mocharc.js
 
 import { defineConfig } from '@vscode/test-cli';
-import { getMochaReporterOptions } from '../.vscode-test.shared.cjs';
+// After repo directory flattening, the shared test config file now resides in the same folder
+// instead of the parent directory. Adjust the relative import accordingly.
+import { getMochaReporterOptions } from './.vscode-test.shared.cjs';
 
 // https://github.com/microsoft/vscode-test-cli/issues/40#issuecomment-2124849239
 import { fileURLToPath } from "url";

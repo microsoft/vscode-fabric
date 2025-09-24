@@ -28,8 +28,8 @@ const extensionConfig = {
     resolve: {
         extensions: ['.ts', '.js'],
         alias: {
-            '@microsoft/vscode-fabric-api': path.resolve(__dirname, '../../packages/api/src/'),
-            '@microsoft/vscode-fabric-util': path.resolve(__dirname, '../../packages/util/src/'),
+            '@microsoft/vscode-fabric-api': path.resolve(__dirname, '../api/src/'),
+            '@microsoft/vscode-fabric-util': path.resolve(__dirname, '../util/src/'),
         },
     },
     module: {

@@ -9,8 +9,8 @@
     "SECURITY.md",
     ".azure-pipelines",
     ".github",
-    "packages/api/LICENSE",
-    "packages/util/LICENSE",
+    "api/LICENSE",
+    "util/LICENSE",
     "tools"
   ]
 }

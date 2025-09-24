@@ -15,7 +15,7 @@ or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any addi
 
 ## Quickstart
 
-Check out the [vsc-extension-quickstart](extensions/vscode-fabric/vsc-extension-quickstart.md) guide for general VS Code extension tips.
+Check out the [vsc-extension-quickstart](extension/vsc-extension-quickstart.md) guide for general VS Code extension tips.
 
 ## Optional: Dev Container
 
@@ -39,10 +39,11 @@ Open the [.vscode/vscode-fabric.code-workspace](./.vscode/vscode-fabric.code-wor
 
 # Repository Structure
 
-The repository is structured as a monorepo, using the npm [workspaces](https://docs.npmjs.com/cli/v7/using-npm/workspaces) feature. The workspace is divided into 2 primary areas:
+The repository is structured as a monorepo, using the npm [workspaces](https://docs.npmjs.com/cli/v7/using-npm/workspaces) feature. The workspace is divided into three primary areas:
 
-- **extensions** - the core and satellite extensions owned by the Trident App Dev team
-- **packages** - libraries which can be consumed by partner-owned satellite extensions
+- **extension** - the core VS Code extension owned by the Trident App Dev team
+- **api** - the published TypeScript APIs consumed by partner-owned satellite extensions
+- **util** - shared utilities for interacting with Microsoft Fabric and VS Code
 
 See [architecture overview](./doc/ArchitectureOverview.md) for more details.
 

@@ -6,6 +6,9 @@ import * as assert from 'assert';
 import { ActivityBar, CustomTreeSection, InputBox, ViewContent, VSBrowser, WebDriver, Workbench, ViewControl } from 'vscode-extension-tester';
 import { waitFor } from '../utilities/asyncWait';
 
+// See https://github.com/redhat-developer/vscode-extension-tester/blob/main/docs/Taking%20Screenshots.md?plain=1#L11
+import { before } from 'vscode-extension-tester';
+
 const FABRIC_ACTIVITY_BAR_NAME = 'Microsoft Fabric';
 
 describe('UITEST: Example E2E UI Tests', () => {

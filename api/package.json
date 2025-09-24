@@ -10,8 +10,8 @@
     "build": "tsc -p .",
     "watch": "tsc -p . -w",
     "test:unit": "vscode-test --label unit",
-    "lint:check": "eslint src/**/*.ts -c ../../.eslintrc.js",
-    "lint": "eslint src/**/*.ts -c ../../.eslintrc.js --fix",
+    "lint:check": "eslint src/**/*.ts -c ../.eslintrc.js",
+    "lint": "eslint src/**/*.ts -c ../.eslintrc.js --fix",
     "clean": "npm exec rimraf lib out",
     "clean:all": "npm run clean && npm exec rimraf node_modules"
   },

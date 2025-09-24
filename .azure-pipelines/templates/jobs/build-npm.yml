@@ -19,7 +19,7 @@ jobs:
       npm run build
       New-Item -ItemType Directory -Force -Path redist | Out-Null
       npm pack --pack-destination redist
-    workingDirectory: packages/api
+    workingDirectory: api
     displayName: build & pack api npm package
 
   - pwsh: |
@@ -27,15 +27,15 @@ jobs:
       npm run build
       New-Item -ItemType Directory -Force -Path redist | Out-Null
       npm pack --pack-destination redist
-    workingDirectory: packages/util
+    workingDirectory: util
     displayName: build & pack util npm package
 
   # Copy NPM packages to staging
   - task: CopyFiles@2
     inputs:
       Contents: |
-        packages/api/redist/*.tgz
-        packages/util/redist/*.tgz
+        api/redist/*.tgz
+        util/redist/*.tgz
       TargetFolder: $(Build.ArtifactStagingDirectory)
       flattenFolders: true
     displayName: copy npm packages to drop directory

@@ -12,7 +12,7 @@ import { FabricError, IFabricEnvironmentProvider, ILogger, TelemetryService } fr
 import { FabricWorkspaceDataProvider } from '../../../workspace/treeView';
 import { IObservableReadOnlyMap } from '../../../collections/definitions';
 import * as utilities from '../../../utilities';
-import { IWorkspaceFilterManager } from 'extensions/vscode-fabric/src/workspace/WorkspaceFilterManager';
+import { IWorkspaceFilterManager } from '../../../workspace/WorkspaceFilterManager';
 
 describe('ArtifactManager', function () {
     let artifactMock: Mock<IArtifact>;

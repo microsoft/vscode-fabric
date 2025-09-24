@@ -56,7 +56,7 @@ Changes at a glance (illustrative):
 - `TenantTreeNode`: set `this.id =`tenant:${tenant.tenantId}`
 - `ListViewWorkspaceTreeNode`/`TreeViewWorkspaceTreeNode`: set `this.id =`ws:${env}:${tenantIdOrNone}:${workspace.objectId}`
 - `ArtifactTypeTreeNode`: accept `workspaceId` in ctor; set `this.id =`grp:${env}:${tenantIdOrNone}:${workspaceId}:${artifactType}`
-- `ArtifactTreeNode` (in `packages/api`): set `this.id =`art:${artifact.fabricEnvironment}:${artifact.workspaceId}:${artifact.type}:${artifact.id}`
+- `ArtifactTreeNode` (in `api`): set `this.id =`art:${artifact.fabricEnvironment}:${artifact.workspaceId}:${artifact.type}:${artifact.id}`
 
 Implementation notes:
 
@@ -137,12 +137,12 @@ Cons:
 Phase 1 — Stable IDs
 
 - Add `id` to nodes listed below and plumb `env`/`tenantId` where needed
-  - `extensions/vscode-fabric/src/workspace/treeNodes/RootTreeNode.ts`
-  - `extensions/vscode-fabric/src/workspace/treeNodes/TenantTreeNode.ts`
-  - `extensions/vscode-fabric/src/workspace/treeNodes/ListViewWorkspaceTreeNode.ts`
-  - `extensions/vscode-fabric/src/workspace/treeNodes/TreeViewWorkspaceTreeNode.ts`
-  - `extensions/vscode-fabric/src/workspace/treeNodes/ArtifactTypeTreeNode.ts` (new `workspaceId` param)
-  - `packages/api/src/treeView.ts` (`ArtifactTreeNode` ctor sets `id`)
+  - `extension/src/workspace/treeNodes/RootTreeNode.ts`
+  - `extension/src/workspace/treeNodes/TenantTreeNode.ts`
+  - `extension/src/workspace/treeNodes/ListViewWorkspaceTreeNode.ts`
+  - `extension/src/workspace/treeNodes/TreeViewWorkspaceTreeNode.ts`
+  - `extension/src/workspace/treeNodes/ArtifactTypeTreeNode.ts` (new `workspaceId` param)
+  - `api/src/treeView.ts` (`ArtifactTreeNode` ctor sets `id`)
 - Provide an “ID context” object `{ env, tenantId?: string }` from `FabricWorkspaceDataProvider` to node constructors
 - Validate no collisions across environment/tenant switches
 
@@ -205,16 +205,16 @@ If Option B is pursued, fix `getParent()` accordingly and/or maintain an ID→no
 - Per the Recommendation, we proceeded with Option C. The settings-backed approach is now working as expected across restarts.
 - Code locations of interest:
   - Stable ids (Option A):
-    - `extensions/vscode-fabric/src/workspace/treeNodes/RootTreeNode.ts`, `TenantTreeNode.ts`, `ListViewWorkspaceTreeNode.ts`, `TreeViewWorkspaceTreeNode.ts`, `ArtifactTypeTreeNode.ts`
-    - `packages/api/src/treeView.ts` (`ArtifactTreeNode`)
+    - `extension/src/workspace/treeNodes/RootTreeNode.ts`, `TenantTreeNode.ts`, `ListViewWorkspaceTreeNode.ts`, `TreeViewWorkspaceTreeNode.ts`, `ArtifactTypeTreeNode.ts`
+    - `api/src/treeView.ts` (`ArtifactTreeNode`)
   - Settings-backed expansion (Option C):
-    - Schema: `extensions/vscode-fabric/src/settings/definitions.ts` (added `viewState`, version bump)
-    - Storage: `extensions/vscode-fabric/src/settings/FabricExtensionsSettingStorage.ts`
-    - DRY helpers: `extensions/vscode-fabric/src/workspace/viewExpansionState.ts`
+    - Schema: `extension/src/settings/definitions.ts` (added `viewState`, version bump)
+    - Storage: `extension/src/settings/FabricExtensionsSettingStorage.ts`
+    - DRY helpers: `extension/src/workspace/viewExpansionState.ts`
       - `makeShouldExpand(...)` to set initial `collapsibleState`
       - `recordExpansionChange(...)` to persist expand/collapse
-    - Provider wiring: `extensions/vscode-fabric/src/workspace/treeView.ts` (uses `makeShouldExpand`)
-    - Activation wiring: `extensions/vscode-fabric/src/extension.ts` (persists via `recordExpansionChange` on expand/collapse)
+    - Provider wiring: `extension/src/workspace/treeView.ts` (uses `makeShouldExpand`)
+    - Activation wiring: `extension/src/extension.ts` (persists via `recordExpansionChange` on expand/collapse)
 - Scoping: View state is keyed by `${env}:${tenant}` (display style removed). Tenant/workspace expansion is shared across styles; artifact-group expansion (Tree-only) is stored but ignored in List mode.
 
 ## Future Considerations

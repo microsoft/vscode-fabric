@@ -1,7 +1,6 @@
 {
-    // Consolidated settings merged from root + packages/api + packages/util + extensions/vscode-fabric
+    // Consolidated settings merged from root + api + util + extension
     "eslint.options": {
-        // Previously relative ('../../.eslintrc.js') in package folders; now relative to repo root.
         "overrideConfigFile": ".eslintrc.js"
     },
 

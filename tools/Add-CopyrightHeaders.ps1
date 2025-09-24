@@ -7,8 +7,9 @@ Adds (or verifies) Microsoft copyright & license headers to source files.
 
 .DESCRIPTION
 Scans a repository for:
-  - extensions/**/src/**/*.ts
-  - packages/**/src/**/*.ts
+  - extension/src/**/*.ts
+  - api/src/**/*.ts
+  - util/src/**/*.ts
   - Any top-level or nested *.js build/config scripts (webpack, jest, etc.)
   - Any *.ps1 scripts
 
@@ -82,7 +83,11 @@ $HeaderPs1 = @(
 # (Removed unused $JsTsExtensions array)
 
 # Collect candidate files
-$tsFiles = Get-ChildItem -Path $Root -Recurse -File -Include *.ts | Where-Object { $_.FullName -match "extensions[\\/].+?[\\/]src[\\/].+\.ts$" -or $_.FullName -match "packages[\\/].+?[\\/]src[\\/].+\.ts$" }
+$tsFiles = Get-ChildItem -Path $Root -Recurse -File -Include *.ts | Where-Object {
+    $_.FullName -match "extension[\\/].*?src[\\/].+\.ts$" -or
+    $_.FullName -match "api[\\/].*?src[\\/].+\.ts$" -or
+    $_.FullName -match "util[\\/].*?src[\\/].+\.ts$"
+}
 $jsFiles = Get-ChildItem -Path $Root -Recurse -File -Include *.js | Where-Object {
     $_.FullName -notmatch 'node_modules' -and 
     $_.FullName -notmatch '[\\/](out|dist|lib)[\\/]' -and 

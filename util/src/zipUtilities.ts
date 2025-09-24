@@ -159,7 +159,7 @@ async function getArrayOfFilesToIncludeFromGitIgnore(srcDir: vscode.Uri, zipOpti
         if (fs.existsSync(gitIgnoreFileFullPathName)) {
             zipOptions?.reporter?.report(`Reading gitignore file ${gitIgnoreFileFullPathName}`);
             let gitIgnoreLines = fs.readFileSync(gitIgnoreFileFullPathName).toString().split('\n').filter((line) => {
-                // remove blank, comment and negation ('!**/packages/build/', '!*.[Cc]ache/')
+                // remove blank, comment and negation ('!**/build/', '!*.[Cc]ache/')
                 return line.trim().length > 0 && !line.startsWith('#') && !line.startsWith('!');
             });
             // convert the gitignore pattern to a minimatch pattern, removing cr/lf

@@ -112,7 +112,7 @@ export interface IArtifactManager {
 
     /**
      * Updates the definition for the specified artifact on the Fabric back end
-     * 
+     *
      * @param artifact - The artifact to update
      * @param definition - The item definition to use for updating the artifact
      * @param folder - The folder where the item definition was created from

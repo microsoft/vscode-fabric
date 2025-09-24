@@ -15,16 +15,16 @@ jobs:
 
   # Set vsix version
   - script: npm exec nbgv-setversion
-    workingDirectory: extensions/vscode-fabric
+    workingDirectory: extension
     displayName: set git height version (core extension)
 
   # Build dependencies needed for VSIX
   - script: npm run build
-    workingDirectory: packages/api
+    workingDirectory: api
     displayName: build api dependency (api)
 
   - script: npm run build
-    workingDirectory: packages/util
+    workingDirectory: util
     displayName: build util dependency (util)
 
   # Build VSIX packages
@@ -34,7 +34,7 @@ jobs:
   # Copy VSIX files to staging
   - task: CopyFiles@2
     inputs:
-      SourceFolder: extensions
+      SourceFolder: extension
       Contents: '**\*.vsix'
       flattenFolders: true
       TargetFolder: $(Build.ArtifactStagingDirectory)
