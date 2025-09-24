@@ -1,11 +1,28 @@
 {
   "name": "@microsoft/vscode-fabric-api",
-  "publisher": "Microsoft Corporation",
+  "author": "Microsoft Corporation",
+  "version": "0.31.0-preview",
   "displayName": "Microsoft Fabric - APIs for VS Code",
   "description": "Contains APIs for interacting with Microsoft Fabric and VS Code Fabric extensions",
-  "version": "0.31.0-preview",
+  "tags": [
+    "fabric",
+    "vscode"
+  ],
+  "keywords": [
+    "fabric",
+    "vscode"
+  ],
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/vscode-fabric"
+  },
+  "bugs": {
+    "url": "https://github.com/microsoft/vscode-fabric/issues"
+  },
+  "homepage": "https://github.com/microsoft/vscode-fabric-pr/blob/main/packages/api/README.md",
   "scripts": {
     "build": "tsc -p .",
     "watch": "tsc -p . -w",
