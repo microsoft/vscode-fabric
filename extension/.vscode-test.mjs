@@ -55,7 +55,7 @@ export default defineConfig({
 			'**\\dist\\**',
 			join(__dirname, '..', '..', 'packages', '**'), // works for linux/mac
 			join(__dirname, 'out', 'test', '**'),
-			join(__dirname, 'src', 'test', '**'),
+			join(__dirname, 'test', '**'),
 			join(__dirname, 'dist', '**'),
 		],
 		includeAll: true

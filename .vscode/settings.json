@@ -5,6 +5,7 @@
     },
 
     "files.exclude": {
+        "**/node_modules": true,
         // From extension .vscode/settings.json: keep build artifacts visible (explicit false)
         "out": false,
         "dist": false

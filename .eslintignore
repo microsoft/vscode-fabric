@@ -2,6 +2,7 @@
 **/dist
 **/out
 **/build
+**/lib
 
 # Dependencies
 **/node_modules

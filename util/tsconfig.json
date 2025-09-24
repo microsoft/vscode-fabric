@@ -8,9 +8,13 @@
     "rootDir": "src",
     "skipLibCheck": true
   },
+  "include": [
+    "src/**/*.ts"
+  ],
   "exclude": [
     "node_modules",
     "lib",
-    "out"
+    "out",
+    "test"
   ]
 }

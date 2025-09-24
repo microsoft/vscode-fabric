@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as assert from 'assert';
 import { FabricExtensionManager } from './FabricExtensionManager';
-import { initializeServiceCollection } from '../test/unit/general/serviceCollection';
+import { initializeServiceCollection } from '../../test/unit/general/serviceCollection';
 
 export const testApiVersion = '1.6'; // different from apiVersion in api/src/index.ts: run API version validation test
 

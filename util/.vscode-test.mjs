@@ -21,12 +21,12 @@ export default defineConfig({
 	}],
 	coverage: {
 		reporter: ['cobertura'],
-		exclude: [
+			exclude: [
 			'**\\api\\**', // works for windows
 			'**\\test\\**',
 			join(__dirname, '..', 'api', '**'), // works for linux/mac
-			join(__dirname, 'lib', 'test', '**'),
-			join(__dirname, 'src', 'test', '**'),
+			join(__dirname, 'out', 'test', '**'),
+			join(__dirname, 'test', '**'),
 		],
 		includeAll: true
 	}

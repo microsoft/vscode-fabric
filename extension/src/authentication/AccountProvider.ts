@@ -150,7 +150,7 @@ export class AccountProvider implements IAccountProvider, IDisposable {
             forceNewSession: 'false',
             clearSessionPreference: 'false',
             callerId: this.tokenOptions.callerId,
-            ...(tenantId ? { tenantId } : {})
+            ...(tenantId ? { tenantId } : {}),
         });
 
         return activity.doTelemetryActivity(async () => {
@@ -165,19 +165,18 @@ export class AccountProvider implements IAccountProvider, IDisposable {
                 activity.addOrUpdateProperties({
                     signedIn: 'true',
                     result: 'success',
-                    tenantId: this._mostRecentlyUsedTenantId ?? tenantId ?? ''
+                    tenantId: this._mostRecentlyUsedTenantId ?? tenantId ?? '',
                 });
             }
             else {
                 activity.addOrUpdateProperties({
                     signedIn: 'false',
-                    result: 'no-session'
+                    result: 'no-session',
                 });
             }
             return result;
         });
     }
-
 
     async isSignedIn(tenantId?: string): Promise<boolean> {
         const account = await this.getAccountInfo(/*askToSignIn = */false, tenantId);
