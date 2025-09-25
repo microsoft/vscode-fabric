@@ -32,4 +32,17 @@ stages:
               artifactName: 'npm-artifacts'
               targetPath: $(Pipeline.Workspace)/npm-artifacts
 
-          # TODO Add EsrpRelease task here (should sign and release to NPM)
+          - task: EsrpRelease@9
+            inputs:
+              ContentType: 'NPM'
+              usemanagedidentity: true
+              ConnectedServiceName: 'Fabric-ESRP-Secure-AppDev'
+              ClientId: 'f351681f-63af-4d0a-80b2-80bc2ec5cbb2'
+              KeyVaultName: 'Fabric-ES-ESRP-PME'
+              SignCertName: 'Fabric-ESRP-Signing-PME'
+              folderlocation: $(Pipeline.Workspace)/npm-artifacts
+              owners: 'mwade@microsoft.com'
+              approvers: 'kywhi@microsoft.com, mwade@microsoft.com, cpeth@microsoft.com, malerner@microsoft.com'
+              ServiceEndpointUrl: 'https://api.esrp.microsoft.com'
+              MainPublisher: 'ESRPRELPACMAN'
+              DomainTenantId: '975f013f-7f24-47e8-a7d3-abc4752bf346'
