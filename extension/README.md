@@ -66,11 +66,11 @@ Provide feature requests or report issues [here](https://github.com/microsoft/vs
 
 ## Security reporting
 
-Please see [SECURITY.md](SECURITY.md) for information on how to report security vulnerabilities.
+Please see [SECURITY.md](/SECURITY.md) for information on how to report security vulnerabilities.
 
 ## Code of Conduct
 
-Please see [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for information on our code of conduct.
+Please see [CODE_OF_CONDUCT.md](/CODE_OF_CONDUCT.md) for information on our code of conduct.
 
 ## Telemetry 
 Read our [privacy statement](https://privacy.microsoft.com/privacystatement) to learn more. If you don't wish to send usage data to Microsoft, you can set the `telemetry.enableTelemetry` setting to false. Learn more in our [FAQ](https://code.visualstudio.com/docs/supporting/faq#_how-to-disable-telemetry-reporting).
