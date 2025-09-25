@@ -22,7 +22,7 @@
   "bugs": {
     "url": "https://github.com/microsoft/vscode-fabric/issues"
   },
-  "homepage": "https://github.com/microsoft/vscode-fabric-pr/blob/main/packages/util/README.md",
+  "homepage": "https://github.com/microsoft/vscode-fabric/blob/main/README.md",
   "scripts": {
     "build": "tsc -p .",
     "watch": "tsc -p . -w",
