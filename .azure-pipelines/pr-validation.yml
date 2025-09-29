@@ -1,0 +1,60 @@
+# PR Validation Pipeline
+# Runs only on PRs targeting main branch
+# Executes e2e and UI tests only (skips unit/integration tests and publishing)
+
+trigger: none
+
+pr:
+  branches:
+    include:
+      - main
+
+resources:
+  repositories:
+    - repository: 1esPipelines
+      type: git
+      name: 1ESPipelineTemplates/1ESPipelineTemplates
+      ref: refs/tags/release
+
+extends:
+  template: v1/1ES.Unofficial.PipelineTemplate.yml@1esPipelines
+  parameters:
+    pool:
+      name: 1ES-AppDev
+      image: windows-2022
+      os: windows
+
+    stages:
+      # Stage 1: Build only (no publishing)
+      - stage: Build
+        displayName: "Build for PR Validation"
+        jobs:
+          - job: build
+            displayName: "Build All Packages"
+            pool:
+              name: 1ES-AppDev
+              image: windows-2022
+              os: windows
+            steps:
+              - template: templates/steps/dependencies.yml
+
+              # Build all packages
+              - script: npm run build
+                displayName: "Build all packages"
+
+              # Publish build artifacts for test stage
+              - task: PublishPipelineArtifact@1
+                displayName: "Publish build artifacts"
+                inputs:
+                  targetPath: "$(Build.SourcesDirectory)"
+                  artifact: "build-output"
+                  publishLocation: "pipeline"
+
+      # Stage 2: E2E and UI tests only
+      - template: templates/stages/test.yml
+        parameters:
+          testCategories:
+            - e2e
+            - ui
+          dependsOn:
+            - Build
