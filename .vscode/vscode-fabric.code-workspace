@@ -6,22 +6,23 @@
 		},
 		{
 			"name": "📦 vscode-fabric",
-			"path": "../extensions/vscode-fabric"
+			"path": "../extension"
 		},
 		{
 			"name": "🚀 @microsoft/vscode-fabric-api",
-			"path": "../packages/api"
+			"path": "../api"
 		},
 		{
 			"name": "🚀 @microsoft/vscode-fabric-util",
-			"path": "../packages/util"
+			"path": "../util"
 		}
 	],
 	"settings": {
 		"files.exclude": {
 			"node_modules/": true,
-			"packages/": true,
-			"extensions/vscode-fabric": true,
+			"extension": true,
+			"api": true,
+			"util": true,
 			"out/.test-extensions/": true,
 			"*.nls.*.json": true,
 			"l10n/*.l10n.*.json": true,

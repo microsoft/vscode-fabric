@@ -1,9 +1,0 @@
-/**
- * Describes an object that can destroy itself and its resources
- */
-export interface IDisposable {
-	/**
-	 * Destroys the object and its underlying resources
-	 */
-	dispose(): void
-}

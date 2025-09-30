@@ -7,16 +7,15 @@ This prompt helps you scaffold a new Mocha test file for the Fabric VSCode exten
 To create a new test file, provide:
 1. The component being tested (e.g., "TreeView", "WorkspaceManager")
 2. The test type ("unit" or "integration")
-3. The source file path being tested (e.g., "/extensions/vscode-fabric/src/workspace/treeView.ts")
+3. The source file path being tested (e.g., "/extension/src/workspace/treeView.ts")
 
 ## File Location and Naming
 
 Tests should follow this structure:
-- Unit tests: `/extensions/{extension-name}/src/test/unit/{module-path}/{component}.unit.test.ts`
-- Integration tests: `/extensions/{extension-name}/src/test/integration/{module-path}/{component}.integration.test.ts`
+- Unit tests: `/extension/src/test/unit/{module-path}/{component}.unit.test.ts`
+- Integration tests: `/extension/src/test/integration/{module-path}/{component}.integration.test.ts`
 
 Where:
-- `{extension-name}` is the extension being tested (e.g., "vscode-fabric")
 - `{module-path}` mirrors the source folder structure (e.g., "workspace")
 - `{component}` is the specific component being tested (e.g., "treeView")
 
@@ -105,7 +104,7 @@ describe('TestSuiteName', function() {
 
 ## Example Test Case
 
-Given a source file `/extensions/vscode-fabric/src/services/connectionManager.ts` with a `ConnectionManager` class, create a unit test at `/extensions/vscode-fabric/src/test/unit/services/connectionManager.unit.test.ts`:
+Given a source file `/extension/src/services/connectionManager.ts` with a `ConnectionManager` class, create a unit test at `/extension/src/test/unit/services/connectionManager.unit.test.ts`:
 
 ```typescript
 import { Mock, It, Times } from 'moq.ts';

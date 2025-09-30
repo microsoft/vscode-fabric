@@ -1,0 +1,565 @@
+{
+  "name": "vscode-fabric",
+  "publisher": "fabric",
+  "displayName": "Microsoft Fabric",
+  "description": "View, manage, and develop your Microsoft Fabric items directly in VS Code.",
+  "version": "0.33.0-placeholder",
+  "aiKey": "0c6ae279ed8443289764825290e4f9e2-1a736e7c-1324-4338-be46-fc2a58ae4d14-7255",
+  "icon": "resources/fabric.png",
+  "repository": "https://github.com/microsoft/microsoft-fabric-vscode-extension/",
+  "vsce": {
+    "dependencies": false
+  },
+  "engines": {
+    "vscode": "^1.77.0"
+  },
+  "enabledApiProposals": [
+    "telemetry"
+  ],
+  "categories": [
+    "Data Science"
+  ],
+  "keywords": [
+    "Data Engineering",
+    "Data Science",
+    "Fabric",
+    "Python",
+    "Functions"
+  ],
+  "activationEvents": [
+    "onUri"
+  ],
+  "main": "./dist/extension.js",
+  "l10n": "./l10n",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "bugs": {
+    "url": "https://aka.ms/fabric/vscode/issues"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "vscode-fabric.signIn",
+        "title": "%extension.signIn.title%",
+        "category": "Fabric"
+      },
+      {
+        "command": "vscode-fabric.switchTenant",
+        "title": "%extension.switchTenant.title%",
+        "category": "Fabric",
+        "icon": "$(arrow-swap)"
+      },
+      {
+        "command": "vscode-fabric.createWorkspace",
+        "title": "%extension.createWorkspace.title%",
+        "category": "Fabric",
+        "icon": "$(add)"
+      },
+      {
+        "command": "vscode-fabric.selectWorkspaceLocalFolder",
+        "title": "%extension.selectWorkspaceLocalFolder.title%",
+        "category": "Fabric",
+        "icon": "$(arrow-swap)"
+      },
+      {
+        "command": "vscode-fabric.createArtifact",
+        "title": "%extension.createArtifact.title%",
+        "category": "Fabric",
+        "icon": "$(add)"
+      },
+      {
+        "command": "vscode-fabric.readArtifact",
+        "title": "%extension.readArtifact.title%",
+        "category": "Fabric"
+      },
+      {
+        "command": "vscode-fabric.openArtifact",
+        "title": "%extension.openArtifact.title%",
+        "category": "Fabric",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "vscode-fabric.exportArtifact",
+        "title": "%extension.exportArtifact.title%",
+        "category": "Fabric",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "vscode-fabric.importArtifact",
+        "title": "%extension.importArtifact.title%",
+        "category": "Fabric",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "vscode-fabric.importArtifactPromptWorkspace",
+        "title": "%extension.importArtifactPromptWorkspace.title%",
+        "category": "Fabric",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "vscode-fabric.openInPortal",
+        "title": "%extension.openInPortal.title%",
+        "category": "Fabric"
+      },
+      {
+        "command": "vscode-fabric.refreshArtifactView",
+        "title": "%extension.refreshArtifactView.title%",
+        "category": "Fabric",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "vscode-fabric.refreshLocalFolderView",
+        "title": "%extension.refreshLocalFolderView.title%",
+        "category": "Fabric",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "vscode-fabric.deleteArtifact",
+        "title": "%extension.deleteArtifact.title%",
+        "category": "Fabric",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "vscode-fabric.renameArtifact",
+        "title": "%extension.renameArtifact.title%",
+        "category": "Fabric"
+      },
+      {
+        "command": "vscode-fabric.viewIssues",
+        "title": "%extension.viewIssues.title%",
+        "category": "Fabric"
+      },
+      {
+        "command": "vscode-fabric.reportIssue",
+        "title": "%extension.reportIssue.title%",
+        "category": "Fabric"
+      },
+      {
+        "command": "vscode-fabric.workspaceViewToList",
+        "title": "%extension.workspaceViewToList.title%",
+        "category": "Fabric",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "vscode-fabric.workspaceViewToTree",
+        "title": "%extension.workspaceViewToTree.title%",
+        "category": "Fabric",
+        "icon": "$(group-by-ref-type)"
+      },
+      {
+        "command": "vscode-fabric.openNotebook",
+        "title": "%extension.openNotebook.title%",
+        "category": "Fabric"
+      },
+      {
+        "command": "vscode-fabric.openSqlExtension",
+        "title": "%extension.openSqlExtension.title%",
+        "category": "Fabric"
+      },
+      {
+        "command": "vscode-fabric.copyConnectionString",
+        "title": "%extension.copyConnectionString.title%",
+        "category": "Fabric"
+      },
+      {
+        "command": "vscode-fabric.installExtension",
+        "title": "%extension.installFabricExtension.title%",
+        "category": "Fabric",
+        "icon": "$(extensions)"
+      },
+      {
+        "command": "vscode-fabric.filterWorkspaces",
+        "title": "%extension.filterWorkspaces.title%",
+        "category": "Fabric",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "vscode-fabric.clearWorkspaceFilter",
+        "title": "%extension.clearWorkspaceFilter.title%",
+        "category": "Fabric",
+        "icon": "$(clear-all)"
+      }
+    ],
+    "views": {
+      "vscode-fabric_view_workspace": [
+        {
+          "id": "vscode-fabric.view.workspace",
+          "name": "%extension.views.Workspace.title%",
+          "initialSize": 5
+        },
+        {
+          "id": "vscode-fabric.view.local",
+          "name": "%extension.views.Local.title%",
+          "initialSize": 3
+        },
+        {
+          "id": "vscode-fabric.view.feedback",
+          "name": "%extension.views.Feedback.title%",
+          "visibility": "visible",
+          "initialSize": 1
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "vscode-fabric_view_workspace",
+          "title": "%extension.activityBarIcon.title%",
+          "icon": "resources/fabric.svg"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "vscode-fabric.view.workspace",
+        "contents": "%extension.welcomeTitle.signIn%",
+        "when": "fabricWorkspaceContext == signin"
+      },
+      {
+        "view": "vscode-fabric.view.workspace",
+        "contents": "%extension.welcomeTitle.autoSignIn%",
+        "when": "fabricWorkspaceContext == loadingWorkspace"
+      },
+      {
+        "view": "vscode-fabric.view.workspace",
+        "contents": "%extension.welcomeTitle.emptyWorkspace%",
+        "when": "fabricWorkspaceContext == emptyWorkspace"
+      },
+      {
+        "view": "vscode-fabric.view.local",
+        "contents": "%extension.view.local.welcome%"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "vscode-fabric.submenu.importArtifact",
+        "label": "%extension.submenu.importArtifact.title%",
+        "icon": "$(cloud-upload)"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "vscode-fabric.openInPortal",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.deleteArtifact",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.readArtifact",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.openArtifact",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.exportArtifact",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.importArtifact",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.importArtifactPromptWorkspace",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.renameArtifact",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.openNotebook",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.openSqlExtension",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.copyConnectionString",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.workspaceViewToList",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.workspaceViewToTree",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.selectWorkspaceLocalFolder",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.installExtension",
+          "when": "false"
+        }
+      ],
+      "vscode-fabric.submenu.importArtifact": [
+        {
+          "command": "vscode-fabric.importArtifact",
+          "group": "1@1"
+        },
+        {
+          "command": "vscode-fabric.importArtifactPromptWorkspace",
+          "group": "1@2"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "vscode-fabric.createWorkspace",
+          "when": "view == vscode-fabric.view.workspace",
+          "group": "navigation"
+        },
+        {
+          "command": "vscode-fabric.switchTenant",
+          "when": "view == vscode-fabric.view.workspace",
+          "group": "navigation@1"
+        },
+        {
+          "command": "vscode-fabric.workspaceViewToList",
+          "when": "view == vscode-fabric.view.workspace && vscode-fabric.workspaceViewDisplayStyle && vscode-fabric.workspaceViewDisplayStyle != ListView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "vscode-fabric.workspaceViewToTree",
+          "when": "view == vscode-fabric.view.workspace && vscode-fabric.workspaceViewDisplayStyle && vscode-fabric.workspaceViewDisplayStyle != TreeView",
+          "group": "navigation@3"
+        },
+        {
+          "command": "vscode-fabric.filterWorkspaces",
+          "when": "view == vscode-fabric.view.workspace",
+          "group": "navigation@4"
+        },
+        {
+          "command": "vscode-fabric.refreshArtifactView",
+          "when": "view == vscode-fabric.view.workspace",
+          "group": "navigation@99"
+        },
+        {
+          "command": "vscode-fabric.refreshLocalFolderView",
+          "when": "view == vscode-fabric.view.local",
+          "group": "navigation@99"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "vscode-fabric.createWorkspace",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceRoot",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-fabric.createWorkspace",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceRoot",
+          "group": "2@1"
+        },
+        {
+          "command": "vscode-fabric.createArtifact",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceTreeNode",
+          "group": "1@1"
+        },
+        {
+          "command": "vscode-fabric.createArtifact",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceTreeNode",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-fabric.selectWorkspaceLocalFolder",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceTreeNode",
+          "group": "1@1"
+        },
+        {
+          "command": "vscode-fabric.refreshArtifactView",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceTreeNode",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-fabric.refreshArtifactView",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceTreeNode",
+          "group": "9@1"
+        },
+        {
+          "command": "vscode-fabric.openInPortal",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceRoot",
+          "group": "9@1"
+        },
+        {
+          "command": "vscode-fabric.openInPortal",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceTreeNode",
+          "group": "9@1"
+        },
+        {
+          "command": "vscode-fabric.refreshArtifactView",
+          "when": "view == vscode-fabric.view.workspace && (viewItem == WorkspaceRoot || viewItem =~ /Item.*/ || viewItem == ConnectionsTreeNode || viewItem == LibrariesTreeNode || viewItem == FunctionsTreeNode)",
+          "group": "9@1"
+        },
+        {
+          "command": "vscode-fabric.refreshArtifactView",
+          "when": "view == vscode-fabric.view.workspace && (viewItem == WorkspaceRoot || viewItem =~ /Item.*/ || viewItem == ConnectionsTreeNode || viewItem == LibrariesTreeNode || viewItem == FunctionsTreeNode)",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-fabric.openArtifact",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-open-in-explorer/",
+          "group": "5@1"
+        },
+        {
+          "command": "vscode-fabric.openArtifact",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-open-in-explorer/",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-fabric.exportArtifact",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-export/",
+          "group": "5@1"
+        },
+        {
+          "command": "vscode-fabric.exportArtifact",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-export/",
+          "group": "inline"
+        },
+        {
+          "submenu": "vscode-fabric.submenu.importArtifact",
+          "when": "view == vscode-fabric.view.local && viewItem =~ /item-import/",
+          "group": "6@1"
+        },
+        {
+          "command": "vscode-fabric.importArtifact",
+          "when": "view == vscode-fabric.view.local && viewItem =~ /item-import/",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-fabric.deleteArtifact",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-delete/",
+          "group": "inline@99"
+        },
+        {
+          "command": "vscode-fabric.openNotebook",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Notebook/",
+          "group": "5@1"
+        },
+        {
+          "command": "vscode-fabric.openInPortal",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-view-in-portal/",
+          "group": "5@2"
+        },
+        {
+          "command": "vscode-fabric.openSqlExtension",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-open-in-sql/",
+          "group": "5@3"
+        },
+        {
+          "command": "vscode-fabric.copyConnectionString",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-copy-connection-string/",
+          "group": "5@4"
+        },
+        {
+          "command": "vscode-fabric.renameArtifact",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-rename/",
+          "group": "9@2"
+        },
+        {
+          "command": "vscode-fabric.deleteArtifact",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-delete/",
+          "group": "9@3"
+        },
+        {
+          "command": "vscode-fabric.refreshLocalFolderView",
+          "when": "view == vscode-fabric.view.local && (viewItem =~ /Item.*/ || viewItem =~ /.*LocalProjectTreeNode/ || viewItem == ConnectionsTreeNode || viewItem == LibrariesTreeNode || viewItem == FunctionsTreeNode)",
+          "group": "9@1"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Fabric",
+      "properties": {
+        "Fabric.Environment": {
+          "type": "string",
+          "default": "PROD",
+          "description": "%extension.configuration.Environment.description%"
+        },
+        "Fabric.ApiTimeout": {
+          "type": "number",
+          "default": 60000,
+          "description": "%extension.configuration.ApiTimeout.description%"
+        },
+        "Fabric.DefaultWorkspaceFolder": {
+          "type": "string",
+          "default": "",
+          "description": "%extension.configuration.DefaultWorkspaceFolder.description%"
+        },
+        "Fabric.DebugLogging": {
+          "type": "boolean",
+          "default": "false",
+          "description": "%extension.configuration.DebugLogging.description%"
+        }
+      }
+    },
+    "walkthroughs": [
+      {
+        "id": "fabric",
+        "title": "%extension.walkthrough.fabric.title%",
+        "description": "%extension.walkthrough.fabric.description%",
+        "steps": [
+          {
+            "id": "openfabricview",
+            "title": "%extension.walkthrough.openFabricView.title%",
+            "description": "%extension.walkthrough.openFabricView.description%",
+            "media": {
+              "markdown": "resources/walkthrough/empty.md"
+            },
+            "completionEvents": [
+              "onView:vscode-fabric.view.workspace"
+            ]
+          },
+          {
+            "id": "signin",
+            "title": "%extension.walkthrough.signIn.title%",
+            "description": "%extension.walkthrough.signIn.description%",
+            "media": {
+              "markdown": "resources/walkthrough/sign-in.md"
+            },
+            "completionEvents": [
+              "onCommand:vscode-fabric.signIn"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "test:compile": "tsc -p tsconfig.test.json",
+    "pretest:unit": "npm run test:compile",
+    "pretest:integration": "npm run build && npm run test:compile",
+    "pretest:e2e": "npm run build && npm run test:compile",
+    "pretest:ui": "npm run build && npm run test:compile",
+    "test:unit": "vscode-test --label unit",
+    "test:integration": "vscode-test --label integration",
+    "test:e2e": "vscode-test --label e2e",
+    "test:ui": "cross-env VSCODE_FABRIC_ENABLE_TEST_FAKES=true extest setup-and-run './out/**/uitest/*.test.js' -e ./out/.test-extensions -o ./test/uitest/settings.json -c max",
+    "lint:check": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\" --fix",
+    "bundle": "webpack --mode production --devtool hidden-source-map",
+    "vsix": "npm run bundle && vsce package --allow-missing-repository --pre-release --no-dependencies --baseImagesUrl https://raw.githubusercontent.com/microsoft/microsoft-fabric-vscode-extension/main/",
+    "clean": "npm exec rimraf dist out .test-extensions",
+    "clean:all": "npm run clean && npm exec rimraf node_modules",
+    "localization": "npx @vscode/l10n-dev export -o ./l10n ./src"
+  },
+  "dependencies": {
+    "@azure/core-rest-pipeline": "^1.14.0",
+    "@microsoft/vscode-azext-azureauth": "~4.1.1",
+    "@microsoft/vscode-fabric-api": "^0.33.0-preview",
+    "@microsoft/vscode-fabric-util": "^0.33.0-preview",
+    "@types/fs-extra": "^11.0.1",
+    "@vscode/extension-telemetry": "^0.8.3",
+    "fs-extra": "^11.1.1",
+    "jszip": "^3.10.1"
+  },
+  "devDependencies": {}
+}

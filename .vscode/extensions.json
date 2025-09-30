@@ -4,6 +4,7 @@
 		"ms-vscode.extension-test-runner",
 		"amodio.tsl-problem-matcher",
 		"ms-vscode.test-adapter-converter",
-		"ms-vscode.extension-test-runner"
+		"ms-vscode.extension-test-runner",
+		"ymotongpoo.licenser"
 	]
 }

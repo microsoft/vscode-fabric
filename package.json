@@ -2,19 +2,20 @@
   "private": true,
   "name": "vscode-fabric",
   "workspaces": [
-    "extensions/*",
-    "packages/*"
+    "extension",
+    "api",
+    "util"
   ],
   "scripts": {
-    "build": "npm run build -w packages/api && npm run build -w packages/util && npm run build -w extensions/vscode-fabric",
+    "build": "npm run build -w api && npm run build -w util && npm run build -w extension",
     "watch": "npm run watch --ws",
     "test:unit": "npm run test:unit --ws",
-    "test:integration": "npm run test:integration -w extensions/vscode-fabric",
-    "test:e2e": "npm run test:e2e -w extensions/vscode-fabric",
-    "test:ui": "npm run test:ui -w extensions/vscode-fabric",
+    "test:integration": "npm run test:integration -w extension",
+    "test:e2e": "npm run test:e2e -w extension",
+    "test:ui": "npm run test:ui -w extension",
     "lint:check": "npm run lint:check --ws",
     "lint": "npm run lint --ws",
-    "vsix": "npm run vsix -w extensions/vscode-fabric",
+    "vsix": "npm run vsix -w extension",
     "clean": "npm run clean --ws",
     "clean:all": "npm run clean:all --ws && npm exec rimraf node_modules"
   },

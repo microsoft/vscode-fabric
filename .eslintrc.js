@@ -11,10 +11,40 @@ module.exports = {
     overrides: [
         {
             files: [
-                "*.ts"
+                "*.ts",
+                "api/**/*.ts",
+                "extension/**/*.ts",
+                "util/**/*.ts"
             ],
             parserOptions: {
-                project: ["./tsconfig.json"]
+                tsconfigRootDir: __dirname,
+                project: [
+                    "./tsconfig.json",
+                    "./api/tsconfig.json",
+                    "./extension/tsconfig.json",
+                    "./util/tsconfig.json"
+                ]
+            }
+        },
+        {
+            files: ["api/test/**/*.ts"],
+            parserOptions: {
+                tsconfigRootDir: __dirname,
+                project: ["./api/tsconfig.test.json"]
+            }
+        },
+        {
+            files: ["util/test/**/*.ts"],
+            parserOptions: {
+                tsconfigRootDir: __dirname,
+                project: ["./util/tsconfig.test.json"]
+            }
+        },
+        {
+            files: ["extension/test/**/*.ts"],
+            parserOptions: {
+                tsconfigRootDir: __dirname,
+                project: ["./extension/tsconfig.test.json"]
             }
         },
         {

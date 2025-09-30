@@ -41,4 +41,4 @@ flowchart TB
 <!-- Fallback static image (kept in repo intentionally): ![Extension architecture graphic](./media/ArchOverview_25.png) -->
 
 ## Further Reading
-For code samples, workflow hook details, and step‑by‑step registration instructions see the [Extensibility Overview](./extensibility-overview.md). The public TypeScript interfaces live in the `@microsoft/vscode-fabric-api` package – browse the source at: [../packages/api/](../packages/api/).
+For code samples, workflow hook details, and step‑by‑step registration instructions see the [Extensibility Overview](./extensibility-overview.md). The public TypeScript interfaces live in the `@microsoft/vscode-fabric-api` package – browse the source at: [../api/](../api/).
