@@ -98,8 +98,8 @@ export class FabricCommandManager implements IFabricCommandManager {
         // Commands will be created as we migrate them
 
         // Register the RefreshArtifactView command as an example
-        const refreshArtifactViewCommand = new RefreshArtifactViewCommand(this);
-        this.registerCommand(refreshArtifactViewCommand);
+        // const refreshArtifactViewCommand = new RefreshArtifactViewCommand(this);
+        // this.registerCommand(refreshArtifactViewCommand);
 
         // Example of how other commands will be registered:
         // const createArtifactCommand = new CreateArtifactCommand(this);

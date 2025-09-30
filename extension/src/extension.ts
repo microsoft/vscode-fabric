@@ -119,7 +119,7 @@ export class FabricVsCodeExtension {
             workspaceManager.tvProvider = dataProvider;
             workspaceManager.treeView = treeView;
 
-            const commandManager = this.container.get<FabricCommandManager>();
+            const commandManager = this.container.get<IFabricCommandManager>();
             await commandManager.initialize();
 
             registerWorkspaceCommands(context, account, workspaceManager, capacityManager, telemetryService, logger, workspaceFilterManager);
