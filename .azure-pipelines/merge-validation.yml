@@ -25,36 +25,8 @@ extends:
       os: windows
 
     stages:
-      # Stage 1: Build only (no publishing)
-      - stage: Build
-        displayName: "Build for PR Validation"
-        jobs:
-          - job: build
-            displayName: "Build All Packages"
-            pool:
-              name: 1ES-AppDev
-              image: windows-2022
-              os: windows
-            steps:
-              - template: templates/steps/dependencies.yml
-
-              # Build all packages
-              - script: npm run build
-                displayName: "Build all packages"
-
-              # Publish build artifacts for test stage
-              - task: PublishPipelineArtifact@1
-                displayName: "Publish build artifacts"
-                inputs:
-                  targetPath: "$(Build.SourcesDirectory)"
-                  artifact: "build-output"
-                  publishLocation: "pipeline"
-
-      # Stage 2: E2E and UI tests only
       - template: templates/stages/test.yml
         parameters:
           testCategories:
             - e2e
             - ui
-          dependsOn:
-            - Build
