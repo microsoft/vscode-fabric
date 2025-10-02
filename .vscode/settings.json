@@ -51,4 +51,9 @@
     "npm.packageManager": "npm",
     "npm.scriptRunner": "npm",
     "npm.exclude": "**/.test-extensions/**",
+
+    // Gen AI script
+    "genaiscript.languageChatModels": {
+        "gpt-5-mini": "gpt-5-mini"
+    }
 }
