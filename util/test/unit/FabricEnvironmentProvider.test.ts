@@ -6,7 +6,7 @@ import * as assert from 'assert';
 import { FABRIC_ENVIRONMENT_KEY, FabricEnvironmentProvider } from '../../src/settings/FabricEnvironmentProvider';
 import { FabricEnvironmentName } from '../../src/settings/FabricEnvironment';
 import { FakeConfigurationProvider } from '../../src/settings/mocks';
-import { MockConsoleLogger } from '../../src/logger/Logger';
+import { MockConsoleLogger } from '../../src/logger/MockConsoleLogger';
 
 describe('The FabricEnvironmentProvider should', () => {
     it('return PROD if the setting is invalid2', async () => {

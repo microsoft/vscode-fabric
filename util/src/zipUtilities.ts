@@ -12,7 +12,7 @@ import * as glob from 'glob';
 import * as crypto from 'crypto';
 
 /*
- * Options for creating and unzipping a zip file 
+ * Options for creating and unzipping a zip file
  */
 export interface IZipOptions {
     respectGitIgnoreFile?: boolean; // use the .gitignore file to filter out files and folders (if found)
@@ -23,7 +23,7 @@ export interface IZipOptions {
     reporter?: IMessageReporter; // show to the user in the output channel window any zip differences
     filterFolder?: (rootFolder: vscode.Uri, folder: vscode.Uri) => Promise<boolean>; // Folder: return true to include the folder and its contents
 
-    // local.settings.json can be anywhere in folder structure, and we don't want to zip/store it or include it in hash calculations so replace contents with '' before zip and hash calc 
+    // local.settings.json can be anywhere in folder structure, and we don't want to zip/store it or include it in hash calculations so replace contents with '' before zip and hash calc
     filterFile?: (rootFolder: vscode.Uri, filename: string) => Promise<{ include: boolean, replaceWithEmpty?: boolean }>;
 }
 
@@ -358,16 +358,15 @@ export async function createZipFile(
     return { zipFileName: destZipFile, hash: hash, nEntries: nEntriesAdded };
 }
 
-
 /**
-https://github.com/humanwhocodes/gitignore-to-minimatch/blob/main/src/gitignore-to-minimatch.js 
+https://github.com/humanwhocodes/gitignore-to-minimatch/blob/main/src/gitignore-to-minimatch.js
 * @fileoverview Utility to convert gitignore patterns to minimatch.
  * @author Nicholas C. Zakas
  */
 
 /**
  * Converts a gitignore pattern to a minimatch pattern.
- * @param {string} pattern The gitignore pattern to convert. 
+ * @param {string} pattern The gitignore pattern to convert.
  * @returns {string} A minimatch pattern equivalent to `pattern`.
  */
 export function gitignoreToMinimatch(pattern: string) {

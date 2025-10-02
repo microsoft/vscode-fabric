@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import { Mock, It } from 'moq.ts';
 
 import { FabricUriHandler } from '../../src/FabricUriHandler';
-import { MockConsoleLogger } from '../../src/logger/Logger';
+import { MockConsoleLogger } from '../../src/logger/MockConsoleLogger';
 import { IFabricExtensionServiceCollection } from '@microsoft/vscode-fabric-api';
 import { getFabricEnvironment, IFabricEnvironmentProvider } from '../../src/settings/FabricEnvironmentProvider';
 import { FabricEnvironmentName } from '../../src/settings/FabricEnvironment';

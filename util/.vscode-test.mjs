@@ -14,6 +14,9 @@ export default defineConfig({
 	{
 		label: 'unit',
 		files: '**/test/unit/**/*.test.js',
+		env: {
+			FABRIC_MOCK_CONSOLE_LOG_LEVEL: 'warn'
+		},
 		mocha: {
 			ui: 'bdd',
 			...getMochaReporterOptions('util-unit')

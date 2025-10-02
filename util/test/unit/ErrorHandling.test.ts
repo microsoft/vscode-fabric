@@ -6,7 +6,7 @@
 import * as assert from 'assert';
 
 import * as vscode from 'vscode';
-import { MockConsoleLogger } from '../../src/logger/Logger';
+import { MockConsoleLogger } from '../../src/logger/MockConsoleLogger';
 import { doFabricAction, FabricError, withErrorHandling, doCancelableActionWithErrorHandling, ICanceledError } from '../../src/FabricError';
 import { UserCancelledError } from '../../src/UserCancelledError';
 
