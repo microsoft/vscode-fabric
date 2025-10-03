@@ -105,6 +105,7 @@ export interface IArtifact {
     displayName: string,
     description: string | undefined,
     workspaceId: string,
+    folderId?: string,
     attributes?: ArtifactAttributes,
 
     /** Represent the Fabric environment this item exists in, like "DAILY" or "PROD".
