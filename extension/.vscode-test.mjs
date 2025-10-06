@@ -16,6 +16,9 @@ export default defineConfig({
 	{
 		label: 'unit',
 		files: '**/test/unit/**/*.test.js',
+		env: {
+			FABRIC_MOCK_CONSOLE_LOG_LEVEL: 'off'
+		},
 		mocha: {
 			ui: 'bdd',
 			...getMochaReporterOptions('core-unit')
@@ -31,7 +34,8 @@ export default defineConfig({
 		},
 		env: {
 			VSCODE_FABRIC_ENABLE_TEST_HOOKS: 'true',
-			VSCODE_FABRIC_ENABLE_TEST_FAKES: 'true'
+			VSCODE_FABRIC_ENABLE_TEST_FAKES: 'true',
+			FABRIC_MOCK_CONSOLE_LOG_LEVEL: 'off'
 		}
 	},
 	{
@@ -44,7 +48,8 @@ export default defineConfig({
 		},
 		env: {
 			VSCODE_FABRIC_ENABLE_TEST_HOOKS: 'true',
-			VSCODE_FABRIC_ENABLE_TEST_FAKES: 'true'
+			VSCODE_FABRIC_ENABLE_TEST_FAKES: 'true',
+			FABRIC_MOCK_CONSOLE_LOG_LEVEL: 'off'
 		}
 	}],
 	coverage: {

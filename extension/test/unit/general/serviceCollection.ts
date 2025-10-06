@@ -9,7 +9,6 @@ import {
     IArtifact,
     IArtifactManager,
     IFabricExtensionServiceCollection,
-    ILocalFileSystem,
     IOpenArtifactOptions,
     IWorkspace,
     IWorkspaceManager,
@@ -105,22 +104,31 @@ export class MockFabricEnvironmentProvider implements IFabricEnvironmentProvider
     readonly onDidEnvironmentChange = this.onDidEnvironmentChangeEmitter.event;
 }
 
-class MockFileSystemStub implements ILocalFileSystem {
-    createUri(filePath: string): Uri {
-        throw new Error('Method not implemented.');
-    }
-    writeFile(uri: Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean; }): void | Thenable<void> {
-        throw new Error('Method not implemented.');
-    }
-}
 
 export class MockLoggerStub implements ILogger {
-    log(message: string, importance?: LogImportance | undefined, show?: boolean | undefined): void {
+    trace(message: string, show?: boolean): void {
+        throw new Error('Method not implemented.');
+    }
+    debug(message: string, show?: boolean): void {
+        throw new Error('Method not implemented.');
+    }
+    info(message: string, show?: boolean): void {
+        throw new Error('Method not implemented.');
+    }
+    warn(message: string, show?: boolean): void {
+        throw new Error('Method not implemented.');
+    }
+    error(message: string, show?: boolean): void {
         throw new Error('Method not implemented.');
     }
     show(): void {
         throw new Error('Method not implemented.');
     }
+    /** @deprecated */
+    log(message: string, importance?: LogImportance, show?: boolean): void {
+        throw new Error('Method not implemented.');
+    }
+    /** @deprecated */
     reportExceptionTelemetryAndLog(methodName: string, eventName: string, exception: unknown, telemetryService: any | null, properties?: { [key: string]: string; } | undefined): void {
         throw new Error('Method not implemented.');
     }

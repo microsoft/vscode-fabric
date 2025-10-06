@@ -2,13 +2,13 @@
 
 [Microsoft Fabric](https://learn.microsoft.com/fabric/) support for Visual Studio Code is provided through a rich set of extensions that make it easy to discover and interact with the Fabric items and workspaces.
 
-Sign up for [Free Microsoft Fabric Trial capacity](https://learn.microsoft.com/fabric/get-started/fabric-trial#start-the-fabric-capacity-trial) and get Microsoft Fabric free of charge.  It icludes access to the Fabric product workloads and the resources to create and host Fabric items. 
+Sign up for [Free Microsoft Fabric Trial capacity](https://learn.microsoft.com/fabric/get-started/fabric-trial#start-the-fabric-capacity-trial) and get Microsoft Fabric free of charge.  It includes access to the Fabric product workloads and the resources to create and host Fabric items. 
 
 ## Data engineering
-Data engineering in Microsoft Fabric enables users to design, build, and maintain infrastructures and systems that enable their organizations to collect, store, process, and analyze large volumes of data. With this extension , you can now develop in VS Code for data engineering needs. 
+Data engineering in Microsoft Fabric enables users to design, build, and maintain infrastructures and systems that enable their organizations to collect, store, process, and analyze large volumes of data. With this extension, you can now develop in VS Code for data engineering needs. 
 
 # Get started with Microsoft Fabric extension for VS Code
-The Fabric Workspaces extension for VS Code allows you to view, manage a Fabric workspace within VS Code. The Fabric workspaces extension is the Core extension that enables Fabric App development extension to support additional feature to develop data function sets within your workspace.
+The Fabric Workspaces extension for VS Code allows you to view and manage Fabric workspaces within VS Code. The Fabric workspaces extension is the Core extension that enables Fabric App development extension to support additional features for developing data function sets within your workspace.
 
 ## Sign in and Sign out
 - When you open Microsoft Fabric extension in VS Code, you will see a sign in 
@@ -41,9 +41,9 @@ With the Microsoft Fabric Extension, you can now create, delete, and rename any 
 
    ![image](/docs/images/readme/open-and-publish-notebook.gif)
 
-## Command pallete  
+## Command palette  
 You can access almost all Azure services provided by these extensions through the Command palette in VS Code. Press **F1**, then type in `Fabric` to find the available commands.
-![image](/docs/images/readme/command-pallette.png)
+![image](/docs/images/readme/command-palette.png)
 
 ## Open Fabric SQL database 
 You can open your Fabric SQL database in MSSQL extension to design your schema and query your data. 
@@ -51,14 +51,14 @@ You can open your Fabric SQL database in MSSQL extension to design your schema a
 
 ## Git and version control 
 - You can clone your git enabled workspace when opened in VS Code. 
-- You can open item definition in VS Code, make your changes commit them to your repository using source control experience in VS Code. 
+- You can open item definitions in VS Code, make your changes and commit them to your repository using the source control experience in VS Code. 
 
 ![image](/docs/images/readme/git-user-datafunction.gif)
 
 
 ## Manage trusted extensions
 
-You can manage which account can use Fabric extension using **Manage trusted extension** settings in VS Code when you open your account in VS Code. You can enable and remove extension for that user account as needed. 
+You can manage which account can use Fabric extension using **Manage trusted extension** settings in VS Code when you open your account in VS Code. You can enable and remove the extension for that user account as needed. 
 
 ## Feedback 
 Provide feature requests or report issues [here](https://github.com/microsoft/vscode-fabric/issues/new).
