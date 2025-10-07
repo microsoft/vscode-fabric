@@ -1,0 +1,54 @@
+# Publish NPM Package Step Template
+
+parameters:
+- name: packageType
+  type: string
+  values:
+  - api
+  - util
+- name: artifactStagingDirectory
+  type: string
+  default: $(Build.ArtifactStagingDirectory)
+- name: registryUrl
+  type: string
+  default: https://powerbi.pkgs.visualstudio.com/AppDev/_packaging/vscode-fabric/npm/registry/
+
+steps:
+- pwsh: |
+    $packageFile = Get-ChildItem -Path "${{ parameters.artifactStagingDirectory }}" -Filter "*${{ parameters.packageType }}*.tgz" | Select-Object -First 1
+    if ($null -eq $packageFile) {
+      Write-Error "No ${{ parameters.packageType }} package found in ${{ parameters.artifactStagingDirectory }}"
+      exit 1
+    }
+    Write-Host "Publishing ${{ parameters.packageType }} package: $($packageFile.Name)"
+    Write-Host "Package size: $([math]::Round($packageFile.Length / 1KB, 2)) KB"
+    Write-Host "Package path: $($packageFile.FullName)"
+    
+    # Capture both output and exit code properly
+    $output = ""
+    try {
+      $output = & npm publish $packageFile.FullName --registry ${{ parameters.registryUrl }} --verbose --loglevel verbose 2>&1 | Out-String
+      $exitCode = $LASTEXITCODE
+    } catch {
+      $exitCode = 1
+      $output = $_.Exception.Message
+    }
+    
+    Write-Host "npm publish output:"
+    Write-Host $output
+    Write-Host "Exit code: $exitCode"
+    
+    # Check for specific error conditions
+    if ($exitCode -eq 403 -or $exitCode -eq 409 -or $output -match "403|409|already exists|version already published|cannot publish over existing version") {
+      Write-Host "##vso[task.logissue type=warning]Package version already exists in registry, skipping publish"
+      Write-Host "##vso[task.complete result=SucceededWithIssues]"
+      Write-Host "${{ parameters.packageType }} package publish skipped - version already exists"
+      exit 0
+    } elseif ($exitCode -ne 0) {
+      Write-Error "Failed to publish ${{ parameters.packageType }} package with exit code $exitCode"
+      Write-Error "Output: $output"
+      exit 1
+    } else {
+      Write-Host "Successfully published ${{ parameters.packageType }} package"
+    }
+  displayName: Publish ${{ parameters.packageType }} npm package to internal feed
