@@ -41,26 +41,10 @@ jobs:
     displayName: copy npm packages to drop directory
 
   # Publish npm packages to private feed
-  - pwsh: |
-      $apiPackage = Get-ChildItem -Path "$(Build.ArtifactStagingDirectory)" -Filter "*api*.tgz" | Select-Object -First 1
-      if ($null -eq $apiPackage) {
-        Write-Error "No API package found in $(Build.ArtifactStagingDirectory)"
-        exit 1
-      }
-      Write-Host "Publishing API package: $($apiPackage.Name)"
-      Write-Host "Package size: $([math]::Round($apiPackage.Length / 1KB, 2)) KB"
-      Write-Host "Package path: $($apiPackage.FullName)"
-      npm publish $apiPackage.FullName --registry https://powerbi.pkgs.visualstudio.com/AppDev/_packaging/vscode-fabric/npm/registry/ --verbose --loglevel verbose
-    displayName: Publish API npm package to internal feed
+  - template: ../steps/publish-npm-package.yml
+    parameters:
+      packageType: api
 
-  - pwsh: |
-      $utilPackage = Get-ChildItem -Path "$(Build.ArtifactStagingDirectory)" -Filter "*util*.tgz" | Select-Object -First 1
-      if ($null -eq $utilPackage) {
-        Write-Error "No Util package found in $(Build.ArtifactStagingDirectory)"
-        exit 1
-      }
-      Write-Host "Publishing Util package: $($utilPackage.Name)"
-      Write-Host "Package size: $([math]::Round($utilPackage.Length / 1KB, 2)) KB"
-      Write-Host "Package path: $($utilPackage.FullName)"
-      npm publish $utilPackage.FullName --registry https://powerbi.pkgs.visualstudio.com/AppDev/_packaging/vscode-fabric/npm/registry/ --verbose --loglevel verbose
-    displayName: Publish Util npm package to internal feed
+  - template: ../steps/publish-npm-package.yml
+    parameters:
+      packageType: util
