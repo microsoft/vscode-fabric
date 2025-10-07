@@ -4,7 +4,7 @@
 /* eslint-disable security/detect-non-literal-fs-filename */
 
 import * as vscode from 'vscode';
-import { IArtifact, IWorkspace, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IWorkspaceManager, FabricTreeNode, ISourceControlInformation } from '@microsoft/vscode-fabric-api';
+import { IArtifact, IWorkspace, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IWorkspaceManager, FabricTreeNode, ISourceControlInformation, IWorkspaceFolder } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from './treeView';
 import { LocalFolderManager } from '../LocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
@@ -310,6 +310,46 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
                 workspace.sourceControlInformation = sourceControlInformation;
             }
         }
+    }
+
+    public async getFoldersInWorkspace(workspaceId: string): Promise<IWorkspaceFolder[]> {
+        const folders: IWorkspaceFolder[] = [];
+        let continuationToken: string | undefined;
+
+        do {
+            const continuationSuffix = continuationToken ? `?continuationToken=${continuationToken}` : '';
+            const res = await this.apiClient.sendRequest({
+                method: 'GET',
+                pathTemplate: `/v1/workspaces/${workspaceId}/folders${continuationSuffix}`,
+            });
+
+            if (res.status !== 200) {
+                const errmsg = `Error retrieving folders: ${res.status} ${res.bodyAsText ?? ''}`;
+                this.logger.log(errmsg, undefined, true);
+                throw new Error(errmsg);
+            }
+
+            const body = res.parsedBody ?? {};
+            const rawFolders = Array.isArray(body?.value) ? body.value : Array.isArray(body) ? body : [];
+
+            for (const item of rawFolders) {
+                if (!item?.id || !item?.displayName || !item?.workspaceId) {
+                    continue;
+                }
+
+                const folder: IWorkspaceFolder = {
+                    id: item.id,
+                    displayName: item.displayName,
+                    workspaceId: item.workspaceId,
+                    parentFolderId: item.parentFolderId,
+                };
+                folders.push(folder);
+            }
+
+            continuationToken = body?.continuationToken;
+        } while (continuationToken);
+
+        return folders;
     }
 
     public async getItemsInWorkspace(workspaceId: string): Promise<IArtifact[]> {

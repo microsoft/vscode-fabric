@@ -12,6 +12,7 @@ import {
     IOpenArtifactOptions,
     IWorkspace,
     IWorkspaceManager,
+    IWorkspaceFolder,
     IFabricApiClient,
 } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionManagerInternal } from '../../../src/apis/internal/fabricExtensionInternal';
@@ -78,6 +79,9 @@ class MockWorkspaceManagerStub implements IWorkspaceManager {
     getLocalFolderForArtifact(artifact: IArtifact, options?: { createIfNotExists?: boolean | undefined; } | undefined): Promise<vscode.Uri | undefined> {
         throw new Error('Method not implemented.');
     }
+    getFoldersInWorkspace(workspaceId: string): Promise<IWorkspaceFolder[]> {
+        throw new Error('Method not implemented.');
+    }
 
     get onDidChangePropertyValue(): vscode.Event<string> {
         throw new Error('Method not implemented.');
@@ -103,7 +107,6 @@ export class MockFabricEnvironmentProvider implements IFabricEnvironmentProvider
     private readonly onDidEnvironmentChangeEmitter = new vscode.EventEmitter<void>();
     readonly onDidEnvironmentChange = this.onDidEnvironmentChangeEmitter.event;
 }
-
 
 export class MockLoggerStub implements ILogger {
     trace(message: string, show?: boolean): void {

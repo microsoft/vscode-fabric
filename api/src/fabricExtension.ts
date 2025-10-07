@@ -199,6 +199,13 @@ export interface IWorkspace {
     sourceControlInformation?: ISourceControlInformation,
 };
 
+export interface IWorkspaceFolder {
+    id: string;
+    displayName: string;
+    workspaceId: string;
+    parentFolderId?: string;
+}
+
 /**
  * Performs IDE-specific functions for Fabric workspaces
  */
@@ -209,6 +216,7 @@ export interface IWorkspaceManager {
     getLocalFolderForArtifact(artifact: IArtifact, options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined>
     get onDidChangePropertyValue(): vscode.Event<string>;
     getItemsInWorkspace(workspaceId: string): Promise<IArtifact[]>;
+    getFoldersInWorkspace(workspaceId: string): Promise<IWorkspaceFolder[]>;
     isProcessingAutoLogin: boolean;
     fabricWorkspaceContext: string;
     isConnected(): Promise<boolean>;

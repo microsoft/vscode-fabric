@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import { Mock, It, Times } from 'moq.ts';
+import { Mock, It, Times, Expression } from 'moq.ts';
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
@@ -10,7 +10,12 @@ import { IFabricExtensionsSettingStorage } from '../../../src/settings/definitio
 import { LocalFolderManager } from '../../../src/LocalFolderManager';
 import { IFabricEnvironmentProvider, ILogger, FabricError } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../../../src/authentication/interfaces';
-import { IApiClientResponse, IApiClientRequestOptions, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import {
+    IApiClientResponse,
+    IApiClientRequestOptions,
+    IFabricApiClient,
+    IWorkspaceFolder,
+} from '@microsoft/vscode-fabric-api';
 import { IGitOperator } from '../../../src/apis/internal/fabricExtensionInternal';
 
 describe('WorkspaceManager', function () {
@@ -332,4 +337,63 @@ describe('WorkspaceManager', function () {
             return req.method === 'GET' && (req.pathTemplate ? req.pathTemplate.includes(workspaceId) : false);
         })), Times.Once());
     });
+
+    it('getFoldersInWorkspace should aggregate paged results', async function () {
+        const workspaceId = 'workspace-aggregate';
+        const firstResponse: IApiClientResponse = {
+            status: 200,
+            parsedBody: {
+                value: [createFolder('folder-1', 'Alpha')],
+                continuationToken: 'token-123',
+            },
+        } as IApiClientResponse;
+        const secondResponse: IApiClientResponse = {
+            status: 200,
+            parsedBody: {
+                value: [createFolder('folder-2', 'Beta')],
+            },
+        } as IApiClientResponse;
+
+        const responses = [firstResponse, secondResponse];
+        mockApiClient.setup(x => x.sendRequest(It.IsAny()))
+            .callback(async (expression: Expression) => {
+                const options = expression.args[0] as IApiClientRequestOptions;
+                const response = responses.shift();
+                assert.ok(response, 'Should have a response for each call');
+                if (response === firstResponse) {
+                    assert.ok(options.pathTemplate?.endsWith(`/v1/workspaces/${workspaceId}/folders`), 'First call should target folders endpoint');
+                    assert.ok(!options.pathTemplate?.includes('continuationToken'), 'First call should not include continuation token');
+                }
+                else {
+                    assert.ok(options.pathTemplate?.includes('continuationToken=token-123'), 'Second call should append continuation token');
+                }
+                return response!;
+            });
+
+        const folders = await workspaceManager.getFoldersInWorkspace(workspaceId);
+
+        assert.deepStrictEqual(folders, [createFolder('folder-1', 'Alpha'), createFolder('folder-2', 'Beta')], 'All folders from both pages should be returned');
+        mockApiClient.verify(x => x.sendRequest(It.IsAny()), Times.Exactly(2));
+    });
+
+    it('getFoldersInWorkspace should throw when API request fails', async function () {
+        const workspaceId = 'workspace-error';
+        const errorResponse: IApiClientResponse = {
+            status: 500,
+            bodyAsText: 'Internal Server Error',
+        } as IApiClientResponse;
+        mockApiClient.setup(x => x.sendRequest(It.IsAny())).returns(Promise.resolve(errorResponse));
+
+        await assert.rejects(async () => workspaceManager.getFoldersInWorkspace(workspaceId), 'Should reject when API status is not 200');
+        mockApiClient.verify(x => x.sendRequest(It.IsAny()), Times.Once());
+    });
+
+    function createFolder(id: string, displayName: string, parentFolderId?: string, workspaceId: string = 'workspace-aggregate'): IWorkspaceFolder {
+        return {
+            id,
+            displayName,
+            workspaceId,
+            parentFolderId,
+        };
+    }
 });
