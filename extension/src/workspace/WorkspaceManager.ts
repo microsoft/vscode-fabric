@@ -10,7 +10,7 @@ import { LocalFolderManager } from '../LocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
 import { showLocalFolderQuickPick } from '../ui/showLocalFolderQuickPick';
 import { isDirectory } from '../utilities';
-import { IFabricEnvironmentProvider, FabricError, ILogger } from '@microsoft/vscode-fabric-util';
+import { IFabricEnvironmentProvider, FabricError, ILogger, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider, ITenantSettings } from '../authentication/interfaces';
 import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
 
@@ -18,6 +18,7 @@ import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
  * Base class for managing the logged-in user's Fabric Workspace. Mock also inherits from this class. Put code common to both here
  */
 export abstract class WorkspaceManagerBase implements IWorkspaceManager {
+    private static readonly experimentalShowFoldersSettingKey = 'Experimental.ShowFolders';
     protected disposables: vscode.Disposable[] = [];
     protected didInitializePriorState = false;
     public isProcessingAutoLogin = false;
@@ -63,7 +64,8 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         protected fabricEnvironmentProvider: IFabricEnvironmentProvider,
         protected apiClient: IFabricApiClient,
         protected gitOperator: IGitOperator,
-        protected logger: ILogger
+        protected logger: ILogger,
+        protected configurationProvider: IConfigurationProvider
     ) {
         this.disposables.push(this.account.onSignInChanged(async () => {
             await this.refreshConnectionToFabric();
@@ -312,7 +314,15 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         }
     }
 
+    public isFolderGroupingEnabled(): boolean {
+        return this.configurationProvider.get(WorkspaceManagerBase.experimentalShowFoldersSettingKey, false);
+    }
+
     public async getFoldersInWorkspace(workspaceId: string): Promise<IWorkspaceFolder[]> {
+        if (!this.isFolderGroupingEnabled()) {
+            return [];
+        }
+
         const folders: IWorkspaceFolder[] = [];
         let continuationToken: string | undefined;
 
@@ -415,10 +425,11 @@ export class WorkspaceManager extends WorkspaceManagerBase {
         localFolderManager: LocalFolderManager,
         apiClient: IFabricApiClient,
         logger: ILogger,
-        gitOperator: IGitOperator
+        gitOperator: IGitOperator,
+        configurationProvider: IConfigurationProvider
     ) {
 
-        super(extensionSettingsStorage, localFolderManager, account, fabricEnvironmentProvider, apiClient, gitOperator, logger);
+        super(extensionSettingsStorage, localFolderManager, account, fabricEnvironmentProvider, apiClient, gitOperator, logger, configurationProvider);
         /**
          * The context object can store workspaceState (for the current VSCode workspace) or globalState (stringifyable JSON)
          * When our extensions tries to open a VSCode Folder, our extension is deactivated
