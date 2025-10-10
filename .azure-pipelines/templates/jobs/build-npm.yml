@@ -2,7 +2,7 @@
 
 jobs:
 - job: build_npm
-  displayName: 'Build & Publish NPM (internal)'
+  displayName: 'Build & Publish NPM'
   templateContext:
     outputs:
     - output: pipelineArtifact
@@ -40,7 +40,7 @@ jobs:
       flattenFolders: true
     displayName: copy npm packages to drop directory
 
-  # Publish npm packages to private feed
+  # Publish npm packages to AzDO registry
   - template: ../steps/publish-npm-package.yml
     parameters:
       packageType: api

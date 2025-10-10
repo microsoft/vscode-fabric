@@ -51,4 +51,4 @@ steps:
     } else {
       Write-Host "Successfully published ${{ parameters.packageType }} package"
     }
-  displayName: Publish ${{ parameters.packageType }} npm package to internal feed
+  displayName: Publish ${{ parameters.packageType }} npm package to AzDO registry

@@ -24,7 +24,7 @@ extends:
 
     stages:
 
-    # Stage 1: Build (includes OneLoc localization job and internal NPM publishing)
+    # Stage 1: Build (includes OneLoc localization job and NPM publishing to AzDO registry)
     - template: templates/stages/build.yml
 
     # Stage 2: Core test suite (gating publish)

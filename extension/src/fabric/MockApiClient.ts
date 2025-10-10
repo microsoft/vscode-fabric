@@ -62,7 +62,7 @@ export class MockApiClient implements IFabricApiClient {
         if (options.headers) { // add any additional headers
             curHeaders = { ...curHeaders, ...options.headers };
         }
-        if (options.formData) { // For more details, see Task 1330509: Determine why deployments consistently fail on 1st try, and require retry
+        if (options.formData) {
             curHeaders['Content-Type'] = 'multipart/form-data; boundary=----AzSDKFormBoundary';
             msg = 'Received Binary';
             for (const key in options.formData) {

@@ -193,7 +193,6 @@ export class AccountProvider implements IAccountProvider, IDisposable {
             ...this.tokenOptions,
             silent: true,
         };
-        // code from here: https://devdiv.visualstudio.com/DevDiv/_git/vs-green?path=/src/telemetry/TelemetryService.ts&version=GBmain&line=300&lineEnd=301&lineStartColumn=1&lineEndColumn=1&lineStyle=plain&_a=contents
         // Get the entitlements session object. This will have the id token which will have the information we need
         const session = await this.tokenService.getSessionInfo(requestOptions, undefined, this._mostRecentlyUsedTenantId);
         if (session) {

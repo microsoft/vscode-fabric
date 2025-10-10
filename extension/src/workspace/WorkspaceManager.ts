@@ -326,7 +326,7 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         }
 
         let arrayArtifacts = res?.parsedBody;
-        if (arrayArtifacts?.value) {    // Public API changed. Daily changed to put the array under 'value', but the change isn't in DXT yet, so we need to try both
+        if (arrayArtifacts?.value) { // API response format may vary between environments, so we need to handle both direct array and nested 'value' property
             arrayArtifacts = arrayArtifacts.value;
         }
         let artifacts: IArtifact[] = arrayArtifacts;

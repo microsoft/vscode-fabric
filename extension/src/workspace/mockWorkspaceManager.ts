@@ -17,19 +17,6 @@ export const mockGuidArtifactId: string =  '4D3c2B1a-6F5e-8b7A-d0C9-D5c4B3a2f1E0
 export const simpleTreeViewBaseArtifactType = 'MockArtifact';
 export const unfeaturedTreeViewBaseArtifactType = 'UnfeaturedMockArtifact';
 
-// class MockWorkspaceLocalFolderSettingsStorage extends LocalFolderSettingsStorage {
-//     constructor(private _defaultWorkspacesPath?: string) {
-//         super();
-//     }
-
-//     get defaultWorkspacesPath(): string | undefined {
-//         return this._defaultWorkspacesPath;
-//     }
-
-//     save(): void {
-//     }
-// }
-
 /**
  * A mock workspace manager that can be used for testing
  */
