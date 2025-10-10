@@ -3,6 +3,10 @@
 
 import * as vscode from 'vscode';
 
+/**
+ * Interface for managing disposable resources in a collection.
+ * Provides a way to add disposables that will be automatically cleaned up.
+ */
 export interface IDisposableCollection {
     /**
      * Adds the disposable to the collection

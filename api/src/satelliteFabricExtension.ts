@@ -4,7 +4,7 @@
 import { Uri } from 'vscode';
 import * as vscode from 'vscode';
 import { IArtifact, IApiClientRequestOptions, IApiClientResponse, IItemDefinition } from './FabricApiClient';
-import { OperationRequestType, IOpenArtifactOptions, FunctionalityStatus } from './fabricExtension';
+import { OperationRequestType, IOpenArtifactOptions } from './fabricExtension';
 import { ArtifactTreeNode, LocalProjectTreeNode } from './treeView';
 
 /**

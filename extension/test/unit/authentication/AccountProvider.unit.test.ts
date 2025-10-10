@@ -82,7 +82,7 @@ describe('AccountProvider', function () {
         });
 
         // Initialize the class under test with mocks
-    accountProvider = new AccountProvider(tokenServiceMock.object(), null);
+        accountProvider = new AccountProvider(tokenServiceMock.object(), null);
     });
 
     afterEach(function () {

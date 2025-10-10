@@ -3,7 +3,6 @@
 
 import { LogOutputChannel } from 'vscode';
 import { Logger, LogImportance } from './Logger';
-import { IMessageReporter } from '../zipUtilities';
 import { TelemetryService } from '../telemetry/TelemetryService';
 
 export type MockConsoleLoggerLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off';
@@ -28,11 +27,10 @@ const CONSOLE_LOG_LEVEL_ENV_KEY = 'FABRIC_MOCK_CONSOLE_LOG_LEVEL';
 
 /**
  * MockConsoleLogger extends Logger and captures all log messages for test assertions.
- * It also implements IMessageReporter for use with zip utilities.
  *
  * This logger writes to both console.log and an internal array for test verification.
  */
-export class MockConsoleLogger extends Logger implements IMessageReporter {
+export class MockConsoleLogger extends Logger {
     public logMessagesArray: string[] = [];
     private readonly consoleLogLevel: MockConsoleLoggerLevel;
     private readonly consoleWriter: (message: string) => void;
@@ -117,14 +115,6 @@ export class MockConsoleLogger extends Logger implements IMessageReporter {
 
     show(): void {
         // do nothing - don't show output in tests
-    }
-
-    /**
-     * IMessageReporter implementation for zip utilities
-     * Maps to info level logging
-     */
-    report(message: string): void {
-        this.info(message);
     }
 
     resetMessageArray(): void {

@@ -123,7 +123,7 @@ describe('importArtifactCommand', () => {
         assert.deepStrictEqual(options, { modal: true });
         assert.strictEqual(yesButton, 'Yes');
 
-    artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
         dataProviderMock.verify(x => x.refresh(), Times.Never());
 
         const expectedParent = vscode.Uri.file('/path/to/local/folder');
@@ -156,7 +156,7 @@ describe('importArtifactCommand', () => {
         // Assert
         localFolderManagerMock.verify(m => m.getWorkspaceIdForLocalFolder(It.Is<vscode.Uri>((uri) => uri.fsPath === expectedParent.fsPath)), Times.Exactly(1));
         assert.ok(showWorkspaceQuickPickStub.notCalled, 'showWorkspaceQuickPick should NOT be called');
-    artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
         verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', fakeWorkspace.objectId);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'fabricWorkspaceName', fakeWorkspace.displayName);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'targetDetermination', 'inferred');
@@ -216,7 +216,6 @@ describe('importArtifactCommand', () => {
         assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called');
     });
 
-
     it('Always prompts for workspace when forcePromptForWorkspace is true', async () => {
         // Arrange
         const inferredWorkspaceId = 'id';
@@ -235,7 +234,7 @@ describe('importArtifactCommand', () => {
         // Should NOT use inferred workspace, should always prompt
         assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called when forcePromptForWorkspace is true');
         localFolderManagerMock.verify(m => m.getWorkspaceIdForLocalFolder(It.IsAny()), Times.Never());
-    artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
         verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', fakeWorkspace.objectId);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'fabricWorkspaceName', fakeWorkspace.displayName);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'targetDetermination', 'forced');
@@ -424,7 +423,7 @@ describe('importArtifactCommand', () => {
         );
 
         // Assert
-    artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
     });
 
     async function executeCommand(forcePromptForWorkspace: boolean = false): Promise<void> {

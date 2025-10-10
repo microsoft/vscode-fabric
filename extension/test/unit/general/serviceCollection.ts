@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { Uri } from 'vscode';
 import {
     FabricTreeNode,
     IApiClientResponse,
@@ -14,11 +13,8 @@ import {
     IWorkspaceManager,
     IFabricApiClient,
 } from '@microsoft/vscode-fabric-api';
-import { IFabricExtensionManagerInternal } from '../../../src/apis/internal/fabricExtensionInternal';
 import { ArtifactManager } from '../../../src/artifactManager/ArtifactManager';
 import { FabricExtensionServiceCollection } from '../../../src/FabricExtensionServiceCollection';
-import { ObservableMap } from '../../../src/collections/ObservableMap';
-import { ObservableSet } from '../../../src/collections/ObservableSet';
 import { FabricEnvironmentName, getFabricEnvironment, FabricEnvironmentSettings, IFabricEnvironmentProvider, ILogger, LogImportance } from '@microsoft/vscode-fabric-util';
 import { Mock } from 'moq.ts';
 
@@ -103,7 +99,6 @@ export class MockFabricEnvironmentProvider implements IFabricEnvironmentProvider
     private readonly onDidEnvironmentChangeEmitter = new vscode.EventEmitter<void>();
     readonly onDidEnvironmentChange = this.onDidEnvironmentChangeEmitter.event;
 }
-
 
 export class MockLoggerStub implements ILogger {
     trace(message: string, show?: boolean): void {

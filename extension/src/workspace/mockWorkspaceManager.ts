@@ -4,11 +4,11 @@
 /* eslint-disable security/detect-object-injection */
 import { FabricEnvironmentName, IFabricEnvironmentProvider, ILogger } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../authentication/interfaces';
-import { IArtifact, IWorkspace, ArtifactType, RuntimeType, InputType, IFabricApiClient } from '@microsoft/vscode-fabric-api';
-import { WorkspaceManager, WorkspaceManagerBase } from './WorkspaceManager';
+import { IArtifact, IWorkspace, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { WorkspaceManagerBase } from './WorkspaceManager';
 import { LocalFolderManager } from '../LocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
-import { workspace, Memento } from 'vscode';
+import { Memento } from 'vscode';
 import { MockHierarchicalArtifact } from './mockTreeView';
 import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
 
@@ -69,11 +69,10 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
             artifactIds.forEach((artifactId) => {
                 const artifact: IArtifact = {
                     id: artifactId,
-                    type: `Mock${ArtifactType[1]}`,
+                    type: 'MockArtifactType',
                     description: 'description',
                     displayName: `${workspaceId} MockItem${artifactId}`,
                     workspaceId: `wspaceId${artifactId}`,
-                    attributes: { runtime: RuntimeType.DotNet },
                     fabricEnvironment: fabricEnvironmentProvider.getCurrent().env,
                 };
                 arrArtifacts.push(artifact);
@@ -154,7 +153,6 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
                     description: `description for ${artifactType} ${j}`,
                     displayName: `${workspaceName} ${artifactType} ${j}`,
                     workspaceId: `wspaceId${i}`,
-                    attributes: { runtime: RuntimeType.DotNet },
                     fabricEnvironment: this.fabricEnvironmentProvider.getCurrent().env,
                 };
                 artifacts.push(artifact);

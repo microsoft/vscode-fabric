@@ -10,20 +10,26 @@ import { IArtifact, IWorkspace, IWorkspaceManager, IArtifactManager, IItemDefini
 import { IWorkspaceFilterManager } from '../../../../src/workspace/WorkspaceFilterManager';
 
 // Helper to base64 encode json
-function encodeJson(obj: any): string { return Buffer.from(JSON.stringify(obj), 'utf8').toString('base64'); }
+function encodeJson(obj: any): string {
+    return Buffer.from(JSON.stringify(obj), 'utf8').toString('base64');
+}
 
 // Extract & decode the definition.pbir JSON from a definition (if present)
 function decodeDefinition(definition: IItemDefinition): any | undefined {
     const part = definition.parts?.find(p => p.path?.toLowerCase?.().endsWith('definition.pbir'));
-    if (!part) { return undefined; }
+    if (!part) {
+        return undefined;
+    }
     try {
         const txt = Buffer.from(part.payload, 'base64').toString('utf8');
         return JSON.parse(txt);
     }
-    catch { return undefined; }
+    catch {
+        return undefined;
+    }
 }
 
-describe('ReportArtifactHandler', function() {
+describe('ReportArtifactHandler', function () {
     let handler: ReportArtifactHandler;
     let workspaceManagerMock: Mock<IWorkspaceManager>;
     let artifactManagerMock: Mock<IArtifactManager>;
@@ -36,11 +42,11 @@ describe('ReportArtifactHandler', function() {
     const artifact: IArtifact = { id: 'rep-1', type: 'Report', workspaceId: 'ws-1' } as any;
     const workspace: IWorkspace = { id: 'ws-1' } as any;
 
-    before(function() {
+    before(function () {
         // No global setup
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         sandbox = sinon.createSandbox();
         handler = new ReportArtifactHandler();
         workspaceManagerMock = new Mock<IWorkspaceManager>();
@@ -66,18 +72,18 @@ describe('ReportArtifactHandler', function() {
         );
     });
 
-    afterEach(function() {
+    afterEach(function () {
         sandbox.restore();
     });
 
-    after(function() {
+    after(function () {
         // No global teardown
     });
 
-    it('should skip prompt when datasetReference.byConnection already present', async function() {
+    it('should skip prompt when datasetReference.byConnection already present', async function () {
         // Arrange
         const existing = { datasetReference: { byConnection: { connectionString: 'semanticmodelid=abc' } } };
-        const definition: IItemDefinition = { parts: [ { path: 'definition.pbir', payload: encodeJson(existing) } ] } as any;
+        const definition: IItemDefinition = { parts: [{ path: 'definition.pbir', payload: encodeJson(existing) }] } as any;
 
         // Act
         const result = await handler.updateDefinitionWorkflow.onBeforeUpdateDefinition(artifact, definition, vscode.Uri.file('/virtual'), {} as any);
@@ -89,10 +95,10 @@ describe('ReportArtifactHandler', function() {
         assert.deepStrictEqual(after, existing, 'Definition content should remain unchanged');
     });
 
-    it('should throw FabricError workspace-not-found when workspace missing', async function() {
+    it('should throw FabricError workspace-not-found when workspace missing', async function () {
         // Arrange
         const existing = { datasetReference: { byPath: { path: '../SemanticModel/model' } } };
-        const definition: IItemDefinition = { parts: [ { path: 'definition.pbir', payload: encodeJson(existing) } ] } as any;
+        const definition: IItemDefinition = { parts: [{ path: 'definition.pbir', payload: encodeJson(existing) }] } as any;
         workspaceManagerMock.setup(x => x.getWorkspaceById('ws-1')).returns(Promise.resolve(undefined as any));
 
         // Act & Assert
@@ -104,10 +110,10 @@ describe('ReportArtifactHandler', function() {
         assert.equal(showItemQuickPickStub.called, false, 'Should not show quick pick when workspace missing');
     });
 
-    it('should throw UserCancelledError when user cancels quick pick', async function() {
+    it('should throw UserCancelledError when user cancels quick pick', async function () {
         // Arrange
         const existing = { datasetReference: { byPath: { path: '../SemanticModel/model' } } };
-        const definition: IItemDefinition = { parts: [ { path: 'definition.pbir', payload: encodeJson(existing) } ] } as any;
+        const definition: IItemDefinition = { parts: [{ path: 'definition.pbir', payload: encodeJson(existing) }] } as any;
         showItemQuickPickStub.resolves(undefined);
 
         // Act & Assert
@@ -118,10 +124,10 @@ describe('ReportArtifactHandler', function() {
         );
     });
 
-    it('should update existing definition.pbir to use byConnection', async function() {
+    it('should update existing definition.pbir to use byConnection', async function () {
         // Arrange
         const existing = { datasetReference: { byPath: { path: '../SemanticModel/model' } } };
-        const definition: IItemDefinition = { parts: [ { path: 'definition.pbir', payload: encodeJson(existing) } ] } as any;
+        const definition: IItemDefinition = { parts: [{ path: 'definition.pbir', payload: encodeJson(existing) }] } as any;
         const semanticModel: IArtifact = { id: 'sm-123', type: 'SemanticModel', workspaceId: 'ws-1' } as any;
         showItemQuickPickStub.resolves(semanticModel);
 
@@ -134,7 +140,7 @@ describe('ReportArtifactHandler', function() {
         assert.equal(updated.datasetReference.byConnection.connectionString, 'semanticmodelid=sm-123', 'connectionString should reference semantic model id');
     });
 
-    it('should create new definition.pbir when part missing', async function() {
+    it('should create new definition.pbir when part missing', async function () {
         // Arrange
         const definition: IItemDefinition = { parts: [] } as any;
         const semanticModel: IArtifact = { id: 'sm-789', type: 'SemanticModel', workspaceId: 'ws-1' } as any;
@@ -149,11 +155,11 @@ describe('ReportArtifactHandler', function() {
         assert.equal(created.datasetReference.byConnection.connectionString, 'semanticmodelid=sm-789', 'connectionString should reference semantic model id');
     });
 
-    it('should wrap parse failure in FabricError report-definition-update-failed', async function() {
+    it('should wrap parse failure in FabricError report-definition-update-failed', async function () {
         // Arrange
         // Invalid JSON (decode -> string -> JSON.parse fails)
         const invalidPayload = Buffer.from('{invalid-json', 'utf8').toString('base64');
-        const definition: IItemDefinition = { parts: [ { path: 'definition.pbir', payload: invalidPayload } ] } as any;
+        const definition: IItemDefinition = { parts: [{ path: 'definition.pbir', payload: invalidPayload }] } as any;
         const semanticModel: IArtifact = { id: 'sm-456', type: 'SemanticModel', workspaceId: 'ws-1' } as any;
         showItemQuickPickStub.resolves(semanticModel);
 
@@ -166,9 +172,9 @@ describe('ReportArtifactHandler', function() {
     });
 
     // ---------------------- createWithDefinitionWorkflow tests ----------------------
-    it('createWithDefinitionWorkflow: skips prompt when already byConnection', async function() {
+    it('createWithDefinitionWorkflow: skips prompt when already byConnection', async function () {
         const existing = { datasetReference: { byConnection: { connectionString: 'semanticmodelid=xyz' } } };
-        const definition: IItemDefinition = { parts: [ { path: 'definition.pbir', payload: encodeJson(existing) } ] } as any;
+        const definition: IItemDefinition = { parts: [{ path: 'definition.pbir', payload: encodeJson(existing) }] } as any;
 
         const result = await handler.createWithDefinitionWorkflow.onBeforeCreateWithDefinition(artifact, definition, vscode.Uri.file('/virtual'), {} as any);
         assert.ok(result, 'Options should be returned');
@@ -177,7 +183,7 @@ describe('ReportArtifactHandler', function() {
         assert.deepStrictEqual(after, existing, 'Definition remains unchanged');
     });
 
-    it('createWithDefinitionWorkflow: throws FabricError when workspace missing', async function() {
+    it('createWithDefinitionWorkflow: throws FabricError when workspace missing', async function () {
         const definition: IItemDefinition = { parts: [] } as any;
         workspaceManagerMock.setup(x => x.getWorkspaceById('ws-1')).returns(undefined as any);
         await assert.rejects(
@@ -186,7 +192,7 @@ describe('ReportArtifactHandler', function() {
         );
     });
 
-    it('createWithDefinitionWorkflow: throws UserCancelledError on cancel', async function() {
+    it('createWithDefinitionWorkflow: throws UserCancelledError on cancel', async function () {
         const definition: IItemDefinition = { parts: [] } as any;
         showItemQuickPickStub.resolves(undefined);
         await assert.rejects(
@@ -195,9 +201,9 @@ describe('ReportArtifactHandler', function() {
         );
     });
 
-    it('createWithDefinitionWorkflow: binds existing part to byConnection', async function() {
+    it('createWithDefinitionWorkflow: binds existing part to byConnection', async function () {
         const existing = { datasetReference: { byPath: { path: '../SemanticModel/model' } } };
-        const definition: IItemDefinition = { parts: [ { path: 'definition.pbir', payload: encodeJson(existing) } ] } as any;
+        const definition: IItemDefinition = { parts: [{ path: 'definition.pbir', payload: encodeJson(existing) }] } as any;
         const semanticModel: IArtifact = { id: 'sm-create-1', type: 'SemanticModel', workspaceId: 'ws-1' } as any;
         showItemQuickPickStub.resolves(semanticModel);
         await handler.createWithDefinitionWorkflow.onBeforeCreateWithDefinition(artifact, definition, vscode.Uri.file('/virtual'), {} as any);
@@ -206,7 +212,7 @@ describe('ReportArtifactHandler', function() {
         assert.equal(updated.datasetReference.byConnection.connectionString, 'semanticmodelid=sm-create-1');
     });
 
-    it('createWithDefinitionWorkflow: creates part when missing', async function() {
+    it('createWithDefinitionWorkflow: creates part when missing', async function () {
         const definition: IItemDefinition = { parts: [] } as any;
         const semanticModel: IArtifact = { id: 'sm-create-2', type: 'SemanticModel', workspaceId: 'ws-1' } as any;
         showItemQuickPickStub.resolves(semanticModel);
@@ -216,9 +222,9 @@ describe('ReportArtifactHandler', function() {
         assert.equal(created.datasetReference.byConnection.connectionString, 'semanticmodelid=sm-create-2');
     });
 
-    it('createWithDefinitionWorkflow: wraps parse failure in FabricError', async function() {
+    it('createWithDefinitionWorkflow: wraps parse failure in FabricError', async function () {
         const invalidPayload = Buffer.from('{invalid-json', 'utf8').toString('base64');
-        const definition: IItemDefinition = { parts: [ { path: 'definition.pbir', payload: invalidPayload } ] } as any;
+        const definition: IItemDefinition = { parts: [{ path: 'definition.pbir', payload: invalidPayload }] } as any;
         const semanticModel: IArtifact = { id: 'sm-create-3', type: 'SemanticModel', workspaceId: 'ws-1' } as any;
         showItemQuickPickStub.resolves(semanticModel);
         await assert.rejects(

@@ -1,13 +1,10 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import * as Mocha from 'mocha';
 import * as assert from 'assert';
 import {
     IApiClientResponse,
     IArtifact,
-    RuntimeType,
-    InputType,
 } from '@microsoft/vscode-fabric-api';
 import { FabricEnvironmentName, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { MockArtifactManagerStub, MockFabricEnvironmentProvider, MockLoggerStub, initializeServiceCollection } from './serviceCollection';
@@ -57,7 +54,6 @@ describe('ArtifactManager tests that do not require VSCode', () => {
             displayName: 'FakeDisplayName',
             description: 'FakeDescription',
             workspaceId: 'FakeWorkspaceId',
-            attributes: { runtime: RuntimeType.DotNet },
             fabricEnvironment: FabricEnvironmentName.MOCK,
         };
         initializeServiceCollection(artifactManager, undefined, logger, undefined);

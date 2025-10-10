@@ -10,7 +10,6 @@ import * as azApi from '@azure/core-rest-pipeline';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
-import { createTestZipFile, unzipZipFile } from '@microsoft/vscode-fabric-util';
 import { FABRIC_ENVIRONMENTS } from '@microsoft/vscode-fabric-util';
 import { FabricEnvironmentName } from '@microsoft/vscode-fabric-util';
 import { ILogger } from '@microsoft/vscode-fabric-util';
@@ -40,7 +39,6 @@ export class MockApiClient implements IFabricApiClient {
             this.logger.log(`MockApiClient.sendRequest CallBack params: ${params}`);
         }
         let strParams = '';
-        let numZipEntriesFirstFile = 0;
         let metadataJson = '';
         let fileparts: any[] = [];
         params.forEach((value, key) => {
@@ -77,16 +75,6 @@ export class MockApiClient implements IFabricApiClient {
                         // get the length of the file
                         const len = fs.statSync(filePath).size;
                         const baseFilename = path.basename(filePath);
-                        if (baseFilename.endsWith('zip')) {
-                            // now determine how many zip entries
-                            const tempzipFolder = path.resolve(os.tmpdir(), 'MyZipFileTemp');
-                            await fs.emptyDir(tempzipFolder);
-                            const zipData = await unzipZipFile(vscode.Uri.file(filePath), vscode.Uri.file(tempzipFolder));
-                            nZipEntries = zipData.nEntries;
-                            if (numZipEntriesFirstFile === 0) {
-                                numZipEntriesFirstFile = nZipEntries;
-                            }
-                        }
                         const strm = fs.createReadStream(filePath);
                         options.formData[key] = azApi.createFileFromStream(() => strm, baseFilename);
                         fileparts.push({ PartName: key, FileName: baseFilename, Len: len, NZipEntries: nZipEntries });
@@ -117,7 +105,6 @@ export class MockApiClient implements IFabricApiClient {
             JSonBody: JSON.stringify(options.body),
             TimeStamp: new Date().toISOString(),
             strParams: strParams,
-            NumZipEntries: numZipEntriesFirstFile,
             metadataJson: metadataJson,
             FileData: fileparts,
         };
@@ -134,14 +121,6 @@ export class MockApiClient implements IFabricApiClient {
             parsedBody: responseJson,
             status: 200,
         };
-        if (options.streamResponseStatusCodes) { // the caller is expecting a zip file stream (like download template)
-            // put a zip file into the response
-            const zipSourceRelativePath = '../../../Templates/DotNet/';
-            this.logger.log(`create Zip from  ${zipSourceRelativePath}`);
-            const testZip = await createTestZipFile(zipSourceRelativePath, 'uploadzip');
-            const strm = fs.createReadStream(testZip.destZipFile);
-            azApiresponse.response!.readableStreamBody = strm;
-        }
         return azApiresponse;
     };
 

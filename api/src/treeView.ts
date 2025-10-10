@@ -139,6 +139,9 @@ export class LocalProjectTreeNode extends FabricTreeNode {
     }
 }
 
+/**
+ * A default implementation for the ILocalProjectTreeNodeProvider
+ */
 export class LocalProjectTreeNodeProvider implements ILocalProjectTreeNodeProvider {
     /**
      * Creates a new instance of the LocalProjectTreeNodeProvider class

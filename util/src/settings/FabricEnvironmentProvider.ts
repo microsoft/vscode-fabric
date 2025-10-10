@@ -6,8 +6,22 @@ import { IConfigurationProvider } from './ConfigurationProvider';
 import { FabricEnvironmentName, FabricEnvironmentSettings } from './FabricEnvironment';
 import * as vscode from 'vscode';
 
+/**
+ * Interface for managing Fabric environment configuration and change notifications.
+ *
+ * Provides access to the current Fabric environment settings and notifies when
+ * the environment configuration changes through VS Code settings.
+ */
 export interface IFabricEnvironmentProvider {
+    /**
+     * Gets the current Fabric environment settings.
+     * @returns The environment settings for the currently configured environment
+     */
     getCurrent(): FabricEnvironmentSettings;
+
+    /**
+     * Event that fires when the Fabric environment configuration changes.
+     */
     onDidEnvironmentChange: vscode.Event<void>;
 }
 

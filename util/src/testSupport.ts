@@ -36,6 +36,7 @@ export async function activateCore(): Promise<any> {
 
 /**
  * Activates the UDF (User Defined Functions) extension and returns its exports
+ * @deprecated Move to functions extension
  * @returns Promise resolving to the UDF extension's exported API
  * @throws Error if the extension cannot be found or activated
  */
