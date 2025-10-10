@@ -447,16 +447,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
         beforeaction?: (artifact: IArtifact, options: IApiClientRequestOptions) => Promise<void> | undefined,
         afterAction?: (artifact: IArtifact, response: IApiClientResponse) => Promise<void> | undefined
     ): Promise<IApiClientResponse> {
-        const artifactHandler = this.getArtifactHandler(artifact);
-        let pathTemplate: string;
-        switch (artifactHandler?.artifactType) {
-            case 'UserDataFunction':
-                pathTemplate = `/v1/workspaces/${artifact.workspaceId}/userdatafunctions/${artifact.id}/__private/functions/metadata`;
-                break;
-            default:
-                pathTemplate = `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}`;
-                break;
-        }
+        const pathTemplate = `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}`;
         const options: IApiClientRequestOptions =
         {
             method: 'GET',
