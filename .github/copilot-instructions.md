@@ -47,7 +47,6 @@ Commands (root orchestrates sequencing):
 
 ## 7. Versioning & Change Management
 - Preview semver (`0.x`) still requires discipline: avoid breaking field/interface removals without deprecation comment + CHANGELOG note.
-- Redist for api/util: `prebuild-redist` → `build-redist` scripts. Ensure `lib` is clean before packing.
 
 ## 8. Quick Reference Commands
 `npm run compile` | `npm run test:unit -w extension` | `npm run test:integration -w extension` | `npm run uitest -w extension` | `npm run vsix -w extension`

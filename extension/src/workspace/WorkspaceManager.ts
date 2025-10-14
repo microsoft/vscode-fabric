@@ -414,7 +414,7 @@ export class WorkspaceManager extends WorkspaceManagerBase {
             throw new Error(`Error Getting Workspaces + ${res?.status}  ${res?.bodyAsText}`);
         }
         let arrayWSpaces = res?.parsedBody;
-        if (arrayWSpaces?.value) { // Public API changed. Daily changed to put the array under 'value', but the change isn't in DXT yet, so we need to try both
+        if (arrayWSpaces?.value) {
             arrayWSpaces = arrayWSpaces.value;
         }
         if (!arrayWSpaces) {

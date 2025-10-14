@@ -52,7 +52,8 @@ export class FabricExtensionManager implements IFabricExtensionManagerInternal {
         if (!this.allowedExtensions.includes(extension.identity)) {
             throw new Error(`Extension ${extension.identity} is not allowed`);
         }
-        if (!this.isAvailable(extension.identity) && !internalSatelliteIds.includes(extension.identity)) { // TODO magic id string for tests
+
+        if (!this.isAvailable(extension.identity) && !internalSatelliteIds.includes(extension.identity)) {
             throw new Error(`Extension ${extension.identity} is not installed`);
         }
 

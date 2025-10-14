@@ -8,12 +8,6 @@ import * as vscode from 'vscode';
  */
 
 /**
- * Test URL for mock API calls
- * @deprecated This constant will be removed in a future version. Use local configuration instead.
- */
-export let urlToUseForTest = 'https://vscodefabrictest2.azurewebsites.net/api/UploadBinary'; // used by test mocks
-
-/**
  * Activates the core Fabric extension and returns its exports
  * @returns Promise resolving to the core extension's exported API
  * @throws Error if the extension cannot be found or activated
