@@ -8,7 +8,7 @@ import { Mock, It, Times } from 'moq.ts';
 import { registerLocalProjectCommands } from '../../../src/localProject/commands';
 import { commandNames } from '../../../src/constants';
 import { IWorkspaceManager, IWorkspace, LocalProjectTreeNode, IFabricApiClient } from '@microsoft/vscode-fabric-api';
-import { IArtifactManagerInternal } from '../../../src/apis/internal/fabricExtensionInternal';
+import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../../../src/apis/internal/fabricExtensionInternal';
 import { TelemetryService, IFabricEnvironmentProvider, ILogger } from '@microsoft/vscode-fabric-util';
 import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { ICapacityManager } from '../../../src/CapacityManager';
@@ -21,6 +21,7 @@ describe('registerLocalProjectCommands', () => {
     let workspaceManagerMock: Mock<IWorkspaceManager>;
     let fabricEnvironmentProviderMock: Mock<IFabricEnvironmentProvider>;
     let artifactManagerMock: Mock<IArtifactManagerInternal>;
+    let extensionManagerMock: Mock<IFabricExtensionManagerInternal>;
     let localFolderManagerMock: Mock<ILocalFolderManager>;
     let telemetryServiceMock: Mock<TelemetryService>;
     let loggerMock: Mock<ILogger>;
@@ -37,6 +38,7 @@ describe('registerLocalProjectCommands', () => {
         workspaceManagerMock = new Mock<IWorkspaceManager>();
         fabricEnvironmentProviderMock = new Mock<IFabricEnvironmentProvider>();
         artifactManagerMock = new Mock<IArtifactManagerInternal>();
+        extensionManagerMock = new Mock<IFabricExtensionManagerInternal>();
         localFolderManagerMock = new Mock<ILocalFolderManager>();
         telemetryServiceMock = new Mock<TelemetryService>();
         loggerMock = new Mock<ILogger>();
@@ -51,7 +53,8 @@ describe('registerLocalProjectCommands', () => {
         // Stub vscode.commands.registerCommand to capture registrations
         //registerCommandStub = sinon.stub();
         disposeSpy = sinon.spy();
-        registerCommandStub = sinon.stub().returns({ dispose: disposeSpy });        originalRegisterCommand = vscode.commands.registerCommand;
+        registerCommandStub = sinon.stub().returns({ dispose: disposeSpy });
+        originalRegisterCommand = vscode.commands.registerCommand;
         (vscode.commands as any).registerCommand = registerCommandStub;
     });
 
@@ -227,6 +230,7 @@ describe('registerLocalProjectCommands', () => {
             workspaceManagerMock.object(),
             fabricEnvironmentProviderMock.object(),
             artifactManagerMock.object(),
+            extensionManagerMock.object(),
             localFolderManagerMock.object(),
             workspaceFilterManagerMock.object(),
             capacityManagerMock.object(),

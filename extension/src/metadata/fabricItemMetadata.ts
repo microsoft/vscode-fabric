@@ -222,6 +222,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         extensionId: 'fabric.vscode-fabric-functions',
         iconInformation: { fileName: 'function_set_32.svg', isThemed: true },
         portalFolder: 'userdatafunctions',
+        supportsArtifactWithDefinition: true,
     },
     'VariableLibrary': {
         creationCapability: CreationCapability.supported,

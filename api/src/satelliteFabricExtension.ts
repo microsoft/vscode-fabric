@@ -199,6 +199,16 @@ export interface IGetArtifactDefinitionWorkflow {
  */
 export interface IUpdateArtifactDefinitionWorkflow {
     /**
+     * Allows pre-processing before invoking the update definition operation.
+     * Provides a means to stipulate which files should be included in the update.
+     *
+     * @param artifact The artifact whose definition is being updated
+     * @param folder The local folder containing the artifact
+     * @returns An array of file paths (relative to the folder) to include in the update, or undefined if the update should be canceled
+     */
+    prepareForUpdateWithDefinition?(artifact: IArtifact, folder: vscode.Uri): Promise<string[] | undefined>;
+
+    /**
      * Allows customization of the API request before it is sent to update the definition
      * @param artifact The artifact whose definition is being updated
      * @param definition The definition to be updated
@@ -224,6 +234,16 @@ export interface IUpdateArtifactDefinitionWorkflow {
  * request in `onBeforeCreateWithDefinition`, and handle post-create logic in `onAfterCreateWithDefinition`.
  */
 export interface ICreateArtifactWithDefinitionWorkflow {
+    /**
+     * Allows pre-processing before invoking the create artifact with definition operation.
+     * Provides a means to stipulate which files should be included in the creation.
+     *
+     * @param artifact The artifact whose definition is being created
+     * @param folder The local folder containing the artifact
+     * @returns An array of file paths (relative to the folder) to include in the creation, or undefined if the creation should be canceled
+     */
+    prepareForCreateWithDefinition?(artifact: IArtifact, folder: vscode.Uri): Promise<string[] | undefined>;
+
     /**
      * Allows customization of the API request before it is sent to create the artifact with its definition
      * @param artifact The artifact being created
@@ -299,6 +319,15 @@ export enum ArtifactDesignerActions {
     default = ~(~0 << 3),
     open = 1 << 3,
     publish = 1 << 4,
+    definition = 1 << 5,
+}
+
+/**
+ * Flags describing which actions are allowed agains the local project node.
+ */
+export enum LocalProjectDesignerActions {
+    none = 0,
+    default = 0,
     definition = 1 << 5,
 }
 

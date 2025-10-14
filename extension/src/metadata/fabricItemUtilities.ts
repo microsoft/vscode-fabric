@@ -60,7 +60,7 @@ export function getArtifactTypeFolder(artifact: IArtifact | string): string {
 
 export function getSupportsArtifactWithDefinition(artifact: IArtifact | string): boolean {
     const artifactType: string = getArtifactTypeString(artifact);
-    return !!fabricItemMetadata[artifactType]?.supportsArtifactWithDefinition;
+    return fabricItemMetadata[artifactType]?.supportsArtifactWithDefinition === true;
 }
 
 /**

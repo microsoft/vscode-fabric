@@ -3,7 +3,7 @@
 
 import * as vscode from 'vscode';
 import { IArtifact } from './FabricApiClient';
-import { ArtifactDesignerActions, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider } from './satelliteFabricExtension';
+import { ArtifactDesignerActions, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, LocalProjectDesignerActions } from './satelliteFabricExtension';
 import * as path from 'path';
 
 /**
@@ -129,6 +129,13 @@ export class LocalProjectTreeNode extends FabricTreeNode {
         super(context, displayName, vscode.TreeItemCollapsibleState.None);
         this.tooltip = folder.fsPath;
     }
+
+    /**
+     * The allowed context menu items for this local project.
+     * If not specified, the tree view will contain the LocalProjectDesignerActions.default values.
+     * To specify no context menu items, use LocalProjectDesignerActions.none.
+     */
+    allowedDesignActions?: LocalProjectDesignerActions;
 
     /**
      * Satellite extensions should override this method to create child nodes for the local project

@@ -120,7 +120,7 @@ export class FabricVsCodeExtension {
             registerWorkspaceCommands(context, account, workspaceManager, capacityManager, telemetryService, logger, workspaceFilterManager);
             registerTenantCommands(context, account, telemetryService, logger);
             await registerArtifactCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, dataProvider, extensionManager, workspaceFilterManager, capacityManager, telemetryService, logger);
-            registerLocalProjectCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, localFolderManager, workspaceFilterManager, capacityManager, dataProvider, telemetryService, logger);
+            registerLocalProjectCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, extensionManager, localFolderManager, workspaceFilterManager, capacityManager, dataProvider, telemetryService, logger);
 
             const coreServiceCollection: IFabricExtensionServiceCollection = this.container.get<IFabricExtensionServiceCollection>();
             extensionManager.serviceCollection = coreServiceCollection;
