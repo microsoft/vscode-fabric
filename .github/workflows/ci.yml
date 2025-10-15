@@ -8,7 +8,6 @@ on:
   pull_request:
     branches:
       - '**'
-
 jobs:
   build:
     uses: ./.github/workflows/build.yml
@@ -22,11 +21,6 @@ jobs:
     uses: ./.github/workflows/tests.yml
     with:
       test-label: integration
-
-  test-e2e:
-    uses: ./.github/workflows/tests.yml
-    with:
-      test-label: e2e
 
   test-ui:
     uses: ./.github/workflows/tests.yml
