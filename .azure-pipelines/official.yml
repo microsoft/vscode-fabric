@@ -25,34 +25,72 @@ extends:
     stages:
 
     # Stage 1: Build (includes OneLoc localization job and NPM publishing to AzDO registry)
-    - template: templates/stages/build.yml
+    - template: /.azure-pipelines/templates/stages/build.yml@self
 
     # Stage 2: Core test suite (gating publish)
-    - template: templates/stages/test.yml
-      parameters:
-        testCategories:
-          - unit
-          - integration
-        dependsOn:
-          - Build
+    - stage: test_unit_integration
+      displayName: Tests
+      dependsOn:
+        - Build
+      jobs:
+        - template: /.azure-pipelines/templates/jobs/test.yml@self
+          parameters:
+            jobNameSuffix: 'windows'
+            testCategories:
+              - unit
+              - integration
+            pool:
+              name: 1ES-AppDev
+              image: windows-2022
+              os: windows
+        - template: /.azure-pipelines/templates/jobs/test.yml@self
+          parameters:
+            jobNameSuffix: 'macos'
+            testCategories:
+              - unit
+              - integration
+            pool:
+              name: Azure Pipelines
+              vmImage: macOS-latest
+              os: macOS
 
     # Stage 2b: Extended test suite (non-gating for publish)
-    - template: templates/stages/test.yml
-      parameters:
-        testCategories:
-          - e2e
-          - ui
-        dependsOn:
-          - Build
+    - stage: test_e2e_ui
+      displayName: Tests
+      dependsOn:
+        - Build
+      jobs:
+        - template: /.azure-pipelines/templates/jobs/test.yml@self
+          parameters:
+            jobNameSuffix: 'windows'
+            testCategories:
+              - e2e
+              - ui
+            pool:
+              name: 1ES-AppDev
+              image: windows-2022
+              os: windows
+        - template: /.azure-pipelines/templates/jobs/test.yml@self
+          parameters:
+            jobNameSuffix: 'macos'
+            testCategories:
+              - e2e
+              - ui
+            pool:
+              name: Azure Pipelines
+              vmImage: macOS-latest
+              os: macOS
+
+
 
     # Stage 3: Publish NPM Packages Publicly (with manual approval)
-    - template: templates/stages/publish-npm-public.yml
+    - template: /.azure-pipelines/templates/stages/publish-npm-public.yml@self
       parameters:
         dependsOn:
           - test_unit_integration
 
     # Stage 4: Sign and Publish VSCode Extension (with manual approval)
-    - template: templates/stages/publish-extension.yml
+    - template: /.azure-pipelines/templates/stages/publish-extension.yml@self
       parameters:
         dependsOn:
           - test_unit_integration

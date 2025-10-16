@@ -6,34 +6,18 @@ parameters:
       - integration
       - e2e
       - ui
-  - name: dependsOn
+  - name: pool
     type: object
-    default: []
+  - name: jobNameSuffix
+    type: string
+    default: ''
 
-stages:
-- stage: test_${{ join('_', parameters.testCategories) }}
-  displayName: Test Suite - ${{ upper(join(', ', parameters.testCategories)) }}
-  ${{ if ne(length(parameters.dependsOn), 0) }}:
-    dependsOn: ${{ parameters.dependsOn }}
-  jobs:
-  - ${{ each testCategory in parameters.testCategories }}:
-    - job: ${{ testCategory }}_test
-      displayName: ${{ upper(testCategory) }} Tests
-      strategy:
-        matrix:
-          # mac:
-          #   poolName: Azure Pipelines
-          #   poolImage: macOS-latest
-          #   poolOS: macOS
-          windows:
-            poolName: 1ES-AppDev
-            poolImage: windows-2022
-            poolOS: windows
-      pool:
-        name: $(poolName)
-        image: $(poolImage)
-        os: $(poolOS)
-      steps:
+jobs:
+- ${{ each testCategory in parameters.testCategories }}:
+  - job: ${{ testCategory }}_tests_${{ parameters.jobNameSuffix }}
+    displayName: ${{ upper(testCategory) }} (${{ parameters.jobNameSuffix }})
+    pool: ${{ parameters.pool }}
+    steps:
 
       - template: ../steps/dependencies.yml
 
@@ -53,9 +37,13 @@ stages:
             scriptLocation: scriptPath
             scriptPath: ./tools/Get-E2EToken.ps1
 
-        - script: echo "##vso[task.setvariable variable=E2ETokenAcquired]true
+        - task: PowerShell@2
           displayName: 'Set E2E token success flag'
           condition: eq(variables['Agent.JobStatus'], 'Succeeded')
+          inputs:
+            targetType: 'inline'
+            pwsh: true
+            script: 'Write-Host "##vso[task.setvariable variable=E2ETokenAcquired]true"'
 
         - script: npm run test:${{ testCategory }}
           displayName: Run ${{ testCategory }} tests

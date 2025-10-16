@@ -8,25 +8,26 @@ pr:
   branches:
     include:
       - main
-
-resources:
-  repositories:
-    - repository: 1esPipelines
-      type: git
-      name: 1ESPipelineTemplates/1ESPipelineTemplates
-      ref: refs/tags/release
-
-extends:
-  template: v1/1ES.Unofficial.PipelineTemplate.yml@1esPipelines
-  parameters:
-    pool:
-      name: 1ES-AppDev
-      image: windows-2022
-      os: windows
-
-    stages:
-      - template: templates/stages/test.yml
+stages:
+  - stage: test_e2e_ui
+    displayName: Tests
+    jobs:
+      - template: templates/jobs/test.yml
         parameters:
+          jobNameSuffix: 'windows'
           testCategories:
             - e2e
             - ui
+          pool:
+            name: Azure Pipelines
+            vmImage: windows-latest
+
+      - template: templates/jobs/test.yml
+        parameters:
+          jobNameSuffix: 'macos'
+          testCategories:
+            - e2e
+            - ui
+          pool:
+            name: Azure Pipelines
+            vmImage: macOS-latest

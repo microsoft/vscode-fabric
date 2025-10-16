@@ -22,7 +22,3 @@ jobs:
     with:
       test-label: integration
 
-  test-ui:
-    uses: ./.github/workflows/tests.yml
-    with:
-      test-label: ui
