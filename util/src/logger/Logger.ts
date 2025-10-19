@@ -4,18 +4,24 @@
 import { LogOutputChannel, window } from 'vscode';
 import { TelemetryService } from '../telemetry/TelemetryService';
 
-// export type WatchOptions = {
-//     importance?: LogImportance
-//     telemetry?: TelemetryEvent<keyof TelemetryEventNames>
-//     catchUnhandledErrors?: boolean
-// };
-
+/**
+ * Logging importance levels for categorizing log messages by severity and visibility.
+ *
+ * @deprecated Use the specific logging methods (trace, debug, info, warn, error) instead
+ * of the generic log() method with LogImportance parameters.
+ */
 export enum LogImportance {
+    /** Low importance messages, typically for detailed debugging information */
     low,
+    /** Normal importance messages for general informational logging */
     normal,
+    /** High importance messages for warnings and significant events */
     high,
 }
 
+/**
+ * Interface for structured logging with multiple severity levels and output channel management.
+ */
 export interface ILogger {
     /**
      * Log a trace message (most verbose level)
@@ -59,7 +65,6 @@ export interface ILogger {
 
     /**
      * @deprecated Use trace(), debug(), info(), warn(), or error() instead.
-     * This method will be removed in v2.0.0.
      *
      * Migration guide:
      * - LogImportance.low → debug()
@@ -71,7 +76,6 @@ export interface ILogger {
 
     /**
      * @deprecated Separate telemetry from logging. Use TelemetryService for telemetry and error() for logging.
-     * This method will be removed in v2.0.0.
      *
      * Migration: Handle telemetry in calling code; use error() for logging exceptions.
      */

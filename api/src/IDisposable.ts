@@ -3,6 +3,8 @@
 
 /**
  * Describes an object that can destroy itself and its resources
+ *
+ * @deprecated
  */
 export interface IDisposable {
 	/**

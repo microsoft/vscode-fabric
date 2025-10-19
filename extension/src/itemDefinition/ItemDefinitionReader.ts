@@ -19,27 +19,40 @@ export class Base64Encoder implements IBase64Encoder {
 }
 
 export interface IItemDefinitionReader {
-    read(rootFolder: vscode.Uri): Promise<IItemDefinition>;
+    read(rootFolder: vscode.Uri, files?: string[]): Promise<IItemDefinition>;
 }
 
 export class ItemDefinitionReader implements IItemDefinitionReader {
     public constructor(
         private readonly fileSystem: vscode.FileSystem,
         private readonly base64Encoder: IBase64Encoder = new Base64Encoder()
-    ) {
-    }
+    ) {}
 
-    async read(rootFolder: vscode.Uri): Promise<IItemDefinition> {
+    async read(rootFolder: vscode.Uri, files?: string[]): Promise<IItemDefinition> {
+        let filePaths: string[];
+        if (files && files.length > 0) {
+            filePaths = files;
+        }
+        else {
+            filePaths = await this.getAllFilesRecursively(rootFolder);
+        }
+
         const itemDefinition: IItemDefinition = { parts: [] };
-        const allFiles: string[] = await this.getAllFilesRecursively(rootFolder);
 
-        if (allFiles.length === 0) {
+        if (filePaths.length === 0) {
             return itemDefinition;
         }
 
-        const fileReadPromises = allFiles.map(async (relativePath) => {
-            // Construct the full file URI from the root and relative path
-            const file = vscode.Uri.joinPath(rootFolder, ...relativePath.split('/'));
+        const fileReadPromises = filePaths.map(async (relativePath) => {
+            // Normalize all paths to use '/' as separator
+            relativePath = relativePath.replace(/\\/g, '/');
+            const segments = relativePath.split('/');
+
+            // Avoid directory traversal: ensure none of the segments are '..'
+            if (segments.some(segment => segment === '..')) {
+                throw new Error(`Invalid file path: directory traversal is not allowed (${relativePath})`);
+            }
+            const file = vscode.Uri.joinPath(rootFolder, ...segments);
             const content = await this.fileSystem.readFile(file);
             const base64Content = this.base64Encoder.encode(content);
 
@@ -51,7 +64,6 @@ export class ItemDefinitionReader implements IItemDefinitionReader {
         });
 
         itemDefinition.parts = await Promise.all(fileReadPromises);
-
         return itemDefinition;
     }
 

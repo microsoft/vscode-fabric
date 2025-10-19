@@ -34,7 +34,6 @@ const mockArtifact: IArtifact = {
     type: expectedArtifactType,
     description: 'Mock Artifact Description',
     workspaceId: mockGuidWorkspaceId,
-    attributes: {},
     fabricEnvironment: FabricEnvironmentName.MOCK,
 };
 

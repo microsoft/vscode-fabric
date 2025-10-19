@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import * as azApi from '@azure/core-rest-pipeline';
 
 import { commandNames } from '../../src/constants';
-import { ArtifactTreeNode, IArtifact, RuntimeType } from '@microsoft/vscode-fabric-api';
+import { ArtifactTreeNode, IArtifact } from '@microsoft/vscode-fabric-api';
 import { FabricEnvironmentName, sleep } from '@microsoft/vscode-fabric-util';
 import { FakeFabricApiClient } from '../../src/fabric/FakeFabricApiClient';
 
@@ -137,7 +137,6 @@ describe('Workspace and Artifact Management Integration Tests', function () {
             displayName: artifactName,
             description: 'Test artifact description',
             workspaceId: selectedWorkspace.objectId,
-            attributes: { runtime: RuntimeType.DotNet },
             fabricEnvironment: FabricEnvironmentName.MOCK,
         };
 

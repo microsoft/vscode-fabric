@@ -6,8 +6,22 @@ import { IConfigurationProvider } from './ConfigurationProvider';
 import { FabricEnvironmentName, FabricEnvironmentSettings } from './FabricEnvironment';
 import * as vscode from 'vscode';
 
+/**
+ * Interface for managing Fabric environment configuration and change notifications.
+ *
+ * Provides access to the current Fabric environment settings and notifies when
+ * the environment configuration changes through VS Code settings.
+ */
 export interface IFabricEnvironmentProvider {
+    /**
+     * Gets the current Fabric environment settings.
+     * @returns The environment settings for the currently configured environment
+     */
     getCurrent(): FabricEnvironmentSettings;
+
+    /**
+     * Event that fires when the Fabric environment configuration changes.
+     */
     onDidEnvironmentChange: vscode.Event<void>;
 }
 
@@ -47,8 +61,6 @@ export class FabricEnvironmentProvider implements IFabricEnvironmentProvider {
 
 const vsCodeFabricClientIdPPE = '5bc58d85-1abe-45e0-bdaf-f487e3ce7bfb'; //  NON-PROD-vscode-fabric (PPE)
 const vsCodeFabricClientIdPROD = '02fe4832-64e1-42d2-a605-d14958774a2e'; // PROD-vscode-fabric (PROD)
-// const synapseClientIdPPE = '448e8446-7f2d-4c49-927e-e8a6cc9dcac2'; // Trident-Spark-IDE PPE
-// const synapseClientIdPROD = '36c50012-7aa1-4bff-9ff8-51c75190ae4d'; // Trident-Spark-IDE PROD
 // const defaultVsCodeClientId = 'aebc6443-996d-45c2-90f0-388ff96faa56'; // Use default VS Code client id for now (we need vscode.dev redirect to work)
 
 const theScopesPPE = ['https://analysis.windows-int.net/powerbi/api/.default'];

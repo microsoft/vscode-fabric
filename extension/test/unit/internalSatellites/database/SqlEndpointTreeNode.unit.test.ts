@@ -23,7 +23,7 @@ describe('SqlEndpointTreeNode', function () {
     beforeEach(function () {
         sandbox = sinon.createSandbox();
         contextMock = new Mock<vscode.ExtensionContext>();
-    artifact = { id: 'endpoint1', workspaceId: 'ws1', displayName: 'My Endpoint' } as IArtifact;
+        artifact = { id: 'endpoint1', workspaceId: 'ws1', displayName: 'My Endpoint' } as IArtifact;
         apiClientMock = new Mock<IFabricApiClient>();
         node = new SqlEndpointTreeNode(contextMock.object(), artifact);
     });

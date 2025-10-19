@@ -4,11 +4,11 @@
 /* eslint-disable security/detect-object-injection */
 import { FabricEnvironmentName, IFabricEnvironmentProvider, ILogger } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../authentication/interfaces';
-import { IArtifact, IWorkspace, ArtifactType, RuntimeType, InputType, IFabricApiClient } from '@microsoft/vscode-fabric-api';
-import { WorkspaceManager, WorkspaceManagerBase } from './WorkspaceManager';
+import { IArtifact, IWorkspace, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { WorkspaceManagerBase } from './WorkspaceManager';
 import { LocalFolderManager } from '../LocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
-import { workspace, Memento } from 'vscode';
+import { Memento } from 'vscode';
 import { MockHierarchicalArtifact } from './mockTreeView';
 import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
 
@@ -16,19 +16,6 @@ export const mockGuidWorkspaceId: string = 'A1b2C3d4-E5f6-a7B8-9c0D-0e1F2A3b4C5d
 export const mockGuidArtifactId: string =  '4D3c2B1a-6F5e-8b7A-d0C9-D5c4B3a2f1E0';
 export const simpleTreeViewBaseArtifactType = 'MockArtifact';
 export const unfeaturedTreeViewBaseArtifactType = 'UnfeaturedMockArtifact';
-
-// class MockWorkspaceLocalFolderSettingsStorage extends LocalFolderSettingsStorage {
-//     constructor(private _defaultWorkspacesPath?: string) {
-//         super();
-//     }
-
-//     get defaultWorkspacesPath(): string | undefined {
-//         return this._defaultWorkspacesPath;
-//     }
-
-//     save(): void {
-//     }
-// }
 
 /**
  * A mock workspace manager that can be used for testing
@@ -69,11 +56,10 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
             artifactIds.forEach((artifactId) => {
                 const artifact: IArtifact = {
                     id: artifactId,
-                    type: `Mock${ArtifactType[1]}`,
+                    type: 'MockArtifactType',
                     description: 'description',
                     displayName: `${workspaceId} MockItem${artifactId}`,
                     workspaceId: `wspaceId${artifactId}`,
-                    attributes: { runtime: RuntimeType.DotNet },
                     fabricEnvironment: fabricEnvironmentProvider.getCurrent().env,
                 };
                 arrArtifacts.push(artifact);
@@ -154,7 +140,6 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
                     description: `description for ${artifactType} ${j}`,
                     displayName: `${workspaceName} ${artifactType} ${j}`,
                     workspaceId: `wspaceId${i}`,
-                    attributes: { runtime: RuntimeType.DotNet },
                     fabricEnvironment: this.fabricEnvironmentProvider.getCurrent().env,
                 };
                 artifacts.push(artifact);

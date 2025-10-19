@@ -2,8 +2,9 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { IArtifact, IWorkspaceManager, IArtifactManager, IWorkspace, IApiClientResponse, IItemDefinition } from '@microsoft/vscode-fabric-api';
+import { IArtifact, IWorkspaceManager, IArtifactManager, IWorkspace, IApiClientResponse, IItemDefinition, IUpdateArtifactDefinitionWorkflow, ICreateArtifactWithDefinitionWorkflow } from '@microsoft/vscode-fabric-api';
 import { ILocalFolderManager } from '../LocalFolderManager';
+import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { formatErrorResponse, succeeded } from '../utilities';
 import { FabricError, TelemetryActivity, TelemetryService, IFabricEnvironmentProvider, UserCancelledError, ILogger } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
@@ -19,6 +20,7 @@ export async function importArtifactCommand(
     folder: vscode.Uri,
     workspaceManager: IWorkspaceManager,
     artifactManager: IArtifactManager,
+    extensionManager: IFabricExtensionManagerInternal,
     localFolderManager: ILocalFolderManager,
     workspaceFilterManager: IWorkspaceFilterManager,
     capacityManager: ICapacityManager,
@@ -48,6 +50,11 @@ export async function importArtifactCommand(
         fabricArtifactName: displayName,
         itemType: targetType,
     });
+
+    // Get the artifact handler and workflows for this type
+    const handler = extensionManager.getArtifactHandler(targetType);
+    const createWorkflow = handler?.createWithDefinitionWorkflow;
+    const updateWorkflow = handler?.updateDefinitionWorkflow;
 
     // Try to infer workspace from folder using localFolderManager
     let targetWorkspace: IWorkspace | undefined;
@@ -79,21 +86,11 @@ export async function importArtifactCommand(
         fabricWorkspaceName: targetWorkspace.displayName,
     });
 
-    let definition: IItemDefinition;
-    try {
-        definition = await reader.read(folder);
-    }
-    catch (error: any) {
-        throw new FabricError(
-            vscode.l10n.t('Error reading item definition from {0}: {1}', folder.fsPath, error.message ?? 'Unknown error'),
-            `Reading Item Definition failed for type ${targetType}`,
-            { showInUserNotification: 'Information' }
-        );
-    }
-
     const artifact: IArtifact | undefined = (await artifactManager.listArtifacts(targetWorkspace))
         .find(item => item.type === targetType && item.displayName === displayName);
 
+    let definition: IItemDefinition;
+    let definitionFiles: string[] | undefined = undefined;
     let response: IApiClientResponse;
     if (!artifact) {
         const newArtifact: IArtifact = {
@@ -105,8 +102,15 @@ export async function importArtifactCommand(
             fabricEnvironment: fabricEnvironmentProvider.getCurrent().env,
         };
 
-        response = await artifactManager.createArtifactWithDefinition(newArtifact, definition, folder);
+        if (createWorkflow?.prepareForCreateWithDefinition) {
+            definitionFiles = await createWorkflow.prepareForCreateWithDefinition(newArtifact, folder);
+            if (!definitionFiles) {
+                throw new UserCancelledError('prepareForCreateWithDefinition');
+            }
+        }
+        definition = await readDefinition(reader, folder, targetType, definitionFiles);
 
+        response = await artifactManager.createArtifactWithDefinition(newArtifact, definition, folder);
         await dataProvider.refresh();
     }
     else {
@@ -123,6 +127,14 @@ export async function importArtifactCommand(
         if (confirm !== vscode.l10n.t('Yes')) {
             throw new UserCancelledError('overwriteConfirmation');
         }
+
+        if (updateWorkflow?.prepareForUpdateWithDefinition) {
+            definitionFiles = await updateWorkflow.prepareForUpdateWithDefinition(artifact, folder);
+            if (!definitionFiles) {
+                throw new UserCancelledError('prepareForUpdateWithDefinition');
+            }
+        }
+        definition = await readDefinition(reader, folder, targetType, definitionFiles);
 
         response = await artifactManager.updateArtifactDefinition(artifact, definition, folder);
     }
@@ -141,6 +153,24 @@ export async function importArtifactCommand(
         throw new FabricError(
             formatErrorResponse(vscode.l10n.t('Error publishing {0}', displayName), response),
             response.parsedBody?.errorCode || `Publishing Artifact failed ${targetType} ${response.status}`,
+            { showInUserNotification: 'Information' }
+        );
+    }
+}
+
+async function readDefinition(
+    reader: IItemDefinitionReader,
+    folder: vscode.Uri,
+    targetType: string,
+    files?: string[]
+): Promise<IItemDefinition> {
+    try {
+        return await reader.read(folder, files);
+    }
+    catch (error: any) {
+        throw new FabricError(
+            vscode.l10n.t('Error reading item definition from {0}: {1}', folder.fsPath, error.message ?? 'Unknown error'),
+            `Reading Item Definition failed for type ${targetType}`,
             { showInUserNotification: 'Information' }
         );
     }

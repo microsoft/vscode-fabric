@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import { FabricTreeNode, ArtifactTreeNode, IArtifact, IFabricTreeNodeProvider, RuntimeAttribute, InputTypeAttribute, RuntimeType, InputType } from '@microsoft/vscode-fabric-api';
+import { FabricTreeNode, ArtifactTreeNode, IArtifact, IFabricTreeNodeProvider } from '@microsoft/vscode-fabric-api';
 import * as vscode from 'vscode';
 
 export const allChildNodes: Map<string, number> = new Map<string, number>();
@@ -9,14 +9,12 @@ export const allChildNodes: Map<string, number> = new Map<string, number>();
 export class MockHierarchicalArtifact implements IArtifact {
     public children: MockHierarchicalArtifactChild[] = [];
     public workspaceId: string;
-    public attributes: { runtime?: RuntimeAttribute; inputType?: InputTypeAttribute; };
 
     constructor(public id: string, public type: string, public displayName: string, public description: string | undefined, private depth: number, public fabricEnvironment: string) {
         this.workspaceId = 'unusedinmock';
         for (let i = 1; i <= depth; i++) {
             this.children.push(new MockHierarchicalArtifactChild(`${displayName}_${i}`, i - 1));
         }
-        this.attributes = { runtime: RuntimeType.DotNet, inputType: InputType.Http };
     }
 }
 

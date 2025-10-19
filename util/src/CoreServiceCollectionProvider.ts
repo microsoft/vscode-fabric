@@ -3,7 +3,15 @@
 
 import { IFabricExtensionServiceCollection } from '@microsoft/vscode-fabric-api';
 
+/**
+ * Interface for accessing the core Fabric extension service collection.
+ * Provides a way to retrieve the main service collection instance.
+ */
 export interface ICoreServiceCollectionProvider {
+    /**
+     * Gets the core Fabric extension service collection.
+     * @returns The service collection instance
+     */
     getCollection(): IFabricExtensionServiceCollection;
 }
 

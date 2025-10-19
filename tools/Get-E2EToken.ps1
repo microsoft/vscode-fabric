@@ -35,8 +35,8 @@ if ([string]::IsNullOrEmpty($clientSecret)) {
 Write-Output "Retrieved client secret of length: $($clientSecret.Length)"
 
 # Define OAuth2 parameters
-$tenantId = "99e1d29c-61e9-4380-8ea1-2d931172d4c0"
-$clientId = "f8495c24-a907-4a7f-8ad0-e2180a1c3367"
+$tenantId = "b8190856-7271-4139-8bae-a598a014373f"
+$clientId = "51440ebf-78c2-41c6-bc2d-dc78edad78cf"
 $tokenEndpoint = "https://login.windows.net/$tenantId/oauth2/v2.0/token"
 
 # Prepare the request body
@@ -51,7 +51,8 @@ $body = @{
 try {
     $tokenResponse = Invoke-RestMethod -Method Post -Uri $tokenEndpoint -ContentType "application/x-www-form-urlencoded" -Body $body
     Write-Output "Successfully obtained access token"
-} catch {
+}
+catch {
     Write-Error "Failed to get access token: $($_.Exception.Message)"
     Write-Output "Response: $($_.ErrorDetails.Message)"
     exit 1

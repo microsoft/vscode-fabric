@@ -127,15 +127,28 @@ async function doFabricActionInternal<R>(
                 });
                 fabricError.didProcessFabricError = true; // flag indicating we did process this error as a Fabric Error
                 const logImportance = fabricError.options?.showInFabricLog ?? LogImportance.normal;
-                switch (logImportance) {
-                    case LogImportance.low:
-                    case LogImportance.normal:
-                    case LogImportance.high:
-                        options.fabricLogger?.log(fabricError.message, logImportance); // this is the localized messaage
-                        break;
-                    default:
-                        // no log
-                        break;
+
+                // Handle both LogImportance enum values and boolean values
+                if (logImportance === true) {
+                    // If explicitly set to true, use normal importance
+                    options.fabricLogger?.log(fabricError.message, LogImportance.normal);
+                }
+                else if (logImportance === false) {
+                    // If explicitly set to false, don't log
+                    // no log
+                }
+                else {
+                    // Handle LogImportance enum values
+                    switch (logImportance) {
+                        case LogImportance.low:
+                        case LogImportance.normal:
+                        case LogImportance.high:
+                            options.fabricLogger?.log(fabricError.message, logImportance); // this is the localized message
+                            break;
+                        default:
+                            // no log
+                            break;
+                    }
                 }
                 switch (fabricError.options?.showInUserNotification ?? 'Error') {
                     case 'None':
@@ -155,12 +168,12 @@ async function doFabricActionInternal<R>(
     }
 }
 
-/*
-This is a helper function that returns a delegate with common error handling. The delegate should
-use the FabricError class to throw errors, which will allow control over logging and telemetry.
-The delegate is NOT invoked by this function. It is returned for later invocation.
-Also useful for wrapping a chunk of code in a common error handler.
-*/
+/**
+ * This is a helper function that returns a delegate with common error handling. The delegate should
+ * use the FabricError class to throw errors, which will allow control over logging and telemetry.
+ * The delegate is NOT invoked by this function. It is returned for later invocation.
+ * Also useful for wrapping a chunk of code in a common error handler.
+ */
 export function withErrorHandling<T extends(...args: any[]) => any>(description: string, logger: ILogger, telemetryService: TelemetryService | null, fn: T): (...args: Parameters<T>) => Promise<any> {
     const returnedFunc = async (...args: Parameters<T>) => {
         try {

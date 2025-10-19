@@ -33,7 +33,7 @@ export interface ClusterUrisByTenantLocation {
 }
 
 /**
- * ApiClient allows us to call the Trident REST API
+ * ApiClient allows us to call the Fabric REST API
  * It is a wrapper around @azure/core-rest-pipeline that adds the baseUri and apiVersion
  * https://github.com/Azure/azure-sdk-for-js/blob/main/sdk/core/core-rest-pipeline/README.md
  */
@@ -190,11 +190,7 @@ export class FabricApiClient implements IFabricApiClient {
             activity.addOrUpdateProperties({ 'statusCode': azApiresponse.status.toString(), 'apiTimeout': req.timeout.toString(), 'rootActivityId': rootActivityId, 'requestId': requestId });
 
             if (debugLogging) {
-                // get the header key 'x-ms-root-activity-id' from the response  header information
                 this.logger.log(`    API Call Status (${elapsedms}ms) = ${azApiresponse.status}  RootActivityId = ${rootActivityId} RequestId = ${requestId}`);
-                // if (azApiresponse.bodyAsText) {
-                //     extensionVariables.serviceCollection.logger.log(`       Body = ${azApiresponse.bodyAsText}`); // warning: the body can be very big, clouding the log. todo: Use verbosity
-                // }
             }
 
             const response: IApiClientResponse = {
@@ -219,6 +215,7 @@ export class FabricApiClient implements IFabricApiClient {
                     }
                 }
                 else {
+                    // TODO: Review environment-specific handling
                     // on Edog with Onebox workload, the response Content-Type is xml, not JSON, so we don't parse it.. (On OneBoxToOneBox, it is JSON so we'll try to parse it successfully as JSON above.)
                     // so for OneBox and EDOG, we'll try to parse it as JSON even if it fails, we'll just log it as text and not throw
                     const env = this.fabricEnvironmentProvider.getCurrent().env;

@@ -12,22 +12,6 @@ import { FabricEnvironmentName } from './settings/FabricEnvironment';
 import { ILogger } from './logger/Logger';
 
 export class FabricUriHandler implements vscode.UriHandler {
-    // This function will get run when something redirects to VS Code
-    // with your extension id as the authority.
-    /**
-   *
-   * vscode://fabric.vscode-fabric/?workspaceId=1e9dc47d-a7a9-4f99-a339-0c4a1e7e989c&artifactId=39fa26de-0355-48df-b79a-358849079f07
-            <ActionButton
-                text="Open in VS Code"
-                iconProps={{ iconName: "VisualStudioLogo", style: { fontSize: "2em", color: "var(--colorBrandForeground2)" } }}
-                disabled={!ifFunctionSetDeployed}
-                onClick={openInVScode}
-            />
-    const openInVScode = () => {
-        window.open(`vscode://${VSCODE_PARAMS.publisher}.${VSCODE_PARAMS.extensionName}/?workspaceId=${curFunctionMetadata?.workspaceId}&&artifactId=${curFunctionMetadata?.artifactId}`, '_blank');
-    }
-       */
-
     constructor(
         private core: IFabricExtensionServiceCollection,
         private telemetry: TelemetryService | null,
@@ -65,7 +49,6 @@ export class FabricUriHandler implements vscode.UriHandler {
             }
             // If the environmentId is different from the current environment, and it's valid, update the user's settings before further handling
             if (environmentId !== this.fabricEnvironmentProvider.getCurrent().env.toString()) {
-                // for PROD/GLOBAL, OpenInVSCode button sends PROD. Sample:  'vscode://fabric.vscode-fabric/?workspaceId=759df115-eb8a-4375-8359-6c08c512a2b5&&artifactId=eee12835-cbaf-4e22-9706-cdbe6bc695d6&&Environment=PROD'
                 await this.configProvider.update(FABRIC_ENVIRONMENT_KEY, environmentId);
             }
 

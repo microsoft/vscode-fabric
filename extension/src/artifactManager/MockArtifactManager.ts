@@ -82,7 +82,7 @@ export class MockArtifactManager extends ArtifactManager {
         return response;
     }
     async getArtifactData(artifact: IArtifact): Promise<IApiClientResponse> {
-        let pathTemplate = `/v1/workspaces/${artifact.workspaceId}/userdatafunctions/${artifact.id}/__private/functions/metadata`;
+        let pathTemplate = `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}`;
         const options: IApiClientRequestOptions =
         {
             method: 'GET',

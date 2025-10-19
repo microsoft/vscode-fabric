@@ -92,26 +92,6 @@ describe('MockConsoleLogger', () => {
         });
     });
 
-    describe('report() - IMessageReporter implementation', () => {
-        it('should capture messages via report() method', () => {
-            logger.report('Reporter message');
-
-            assert.strictEqual(logger.logMessagesArray.length, 1);
-            assert.ok(
-                logger.logMessagesArray[0].includes('Reporter message'),
-                'Expected report() to capture message'
-            );
-        });
-
-        it('should use info level for report() messages', () => {
-            // report() should delegate to info()
-            logger.report('Test message');
-
-            // Verify it was captured (info delegates to log which captures)
-            assert.strictEqual(logger.logMessagesArray.length, 1);
-        });
-    });
-
     describe('resetMessageArray()', () => {
         it('should clear all captured messages', () => {
             logger.info('Message 1');

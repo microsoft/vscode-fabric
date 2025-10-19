@@ -1051,7 +1051,7 @@ describe('ArtifactManager', function () {
             });
 
         // Act
-    const result = await artifactManager.createArtifactWithDefinition(artifactMock.object(), itemDefinition, folderUri);
+        const result = await artifactManager.createArtifactWithDefinition(artifactMock.object(), itemDefinition, folderUri);
 
         // Assert
         assert.strictEqual(result, apiResponse, 'Should return final API response');
@@ -1157,7 +1157,7 @@ describe('ArtifactManager', function () {
             });
 
         // Act
-    const result = await artifactManager.updateArtifactDefinition(artifactMock.object(), itemDefinition, folderUri);
+        const result = await artifactManager.updateArtifactDefinition(artifactMock.object(), itemDefinition, folderUri);
 
         // Assert
         assert.strictEqual(result, apiResponse, 'Should return final API response');

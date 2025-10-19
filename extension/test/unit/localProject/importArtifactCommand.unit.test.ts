@@ -7,6 +7,7 @@ import { Mock, It, Times } from 'moq.ts';
 import * as vscode from 'vscode';
 import { importArtifactCommand } from '../../../src/localProject/importArtifactCommand';
 import { IArtifact, IWorkspaceManager, IArtifactManager, IWorkspace, IFabricApiClient, IApiClientResponse } from '@microsoft/vscode-fabric-api';
+import { IFabricExtensionManagerInternal } from '../../../src/apis/internal/fabricExtensionInternal';
 import { IItemDefinitionReader } from '../../../src/itemDefinition/ItemDefinitionReader';
 import { IFabricEnvironmentProvider, FabricError, TelemetryActivity, UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../../../src/TelemetryEventNames';
@@ -27,6 +28,7 @@ describe('importArtifactCommand', () => {
     let workspaceManagerMock: Mock<IWorkspaceManager>;
     let artifactManagerMock: Mock<IArtifactManager>;
     let localFolderManagerMock: Mock<ILocalFolderManager>;
+    let extensionManagerMock: Mock<IFabricExtensionManagerInternal>;
     let capacityManagerMock: Mock<ICapacityManager>;
     let workspaceFilterManagerMock: Mock<IWorkspaceFilterManager>;
     let readerMock: Mock<IItemDefinitionReader>;
@@ -48,6 +50,7 @@ describe('importArtifactCommand', () => {
     beforeEach(() => {
         workspaceManagerMock = new Mock<IWorkspaceManager>();
         artifactManagerMock = new Mock<IArtifactManager>();
+        extensionManagerMock = new Mock<IFabricExtensionManagerInternal>(); 
         localFolderManagerMock = new Mock<ILocalFolderManager>();
         capacityManagerMock = new Mock<ICapacityManager>();
         workspaceFilterManagerMock = new Mock<IWorkspaceFilterManager>();
@@ -71,12 +74,16 @@ describe('importArtifactCommand', () => {
             .setup(m => m.isConnected())
             .returnsAsync(true);
 
+        extensionManagerMock
+            .setup(m => m.getArtifactHandler(artifactType))
+            .returns(undefined);
+
         localFolderManagerMock
             .setup(m => m.getWorkspaceIdForLocalFolder(It.IsAny()))
             .returns(undefined);
 
         readerMock
-            .setup(r => r.read(It.IsAny()))
+            .setup(r => r.read(It.IsAny(), It.IsAny()))
             .returnsAsync(fakeDefinition);
 
         dataProviderMock
@@ -123,7 +130,7 @@ describe('importArtifactCommand', () => {
         assert.deepStrictEqual(options, { modal: true });
         assert.strictEqual(yesButton, 'Yes');
 
-    artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
         dataProviderMock.verify(x => x.refresh(), Times.Never());
 
         const expectedParent = vscode.Uri.file('/path/to/local/folder');
@@ -156,7 +163,7 @@ describe('importArtifactCommand', () => {
         // Assert
         localFolderManagerMock.verify(m => m.getWorkspaceIdForLocalFolder(It.Is<vscode.Uri>((uri) => uri.fsPath === expectedParent.fsPath)), Times.Exactly(1));
         assert.ok(showWorkspaceQuickPickStub.notCalled, 'showWorkspaceQuickPick should NOT be called');
-    artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
         verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', fakeWorkspace.objectId);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'fabricWorkspaceName', fakeWorkspace.displayName);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'targetDetermination', 'inferred');
@@ -216,6 +223,177 @@ describe('importArtifactCommand', () => {
         assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called');
     });
 
+    it('uses createWithDefinitionWorkflow when present', async () => {
+        // Arrange
+        artifactManagerMock
+            .setup(m => m.listArtifacts(It.IsAny()))
+            .returnsAsync([]);
+        const createWorkflow = {
+            prepareForCreateWithDefinition: sinon.stub().resolves(['foo.txt']),
+        };
+        const handler = { createWithDefinitionWorkflow: createWorkflow };
+        extensionManagerMock
+            .setup(m => m.getArtifactHandler(artifactType))
+            .returns(handler as any);
+
+        // Act
+        await executeCommand();
+
+        // Assert
+        artifactManagerMock.verify(
+            a => a.createArtifactWithDefinition(
+                It.Is<IArtifact>(obj =>
+                    obj.workspaceId === fakeWorkspace.objectId &&
+                    obj.type === artifactType &&
+                    obj.displayName === artifactDisplayName
+                ),
+                fakeDefinition,
+                folderUri
+            ),
+            Times.Once()
+        );
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
+        assert.ok(createWorkflow.prepareForCreateWithDefinition.called, 'prepareForCreateWithDefinition should be called');
+        readerMock.verify(
+            r => r.read(
+                It.IsAny(),
+                It.Is(arr => Array.isArray(arr) && arr.length === 1 && arr[0] === 'foo.txt')
+            ),
+            Times.Once()
+        );
+    });
+
+    it('uses updateDefinitionWorkflow when present', async () => {
+        // Arrange
+        const updateWorkflow = {
+            prepareForUpdateWithDefinition: sinon.stub().resolves(['foo.txt']),
+        };
+        const handler = { updateDefinitionWorkflow: updateWorkflow };
+        extensionManagerMock
+            .setup(m => m.getArtifactHandler(artifactType))
+            .returns(handler as any);
+        artifactManagerMock
+            .setup(m => m.listArtifacts(It.IsAny()))
+            .returnsAsync([fakeArtifact]);
+
+        // Act
+        await executeCommand();
+
+        // Assert
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
+        assert.ok(updateWorkflow.prepareForUpdateWithDefinition.called, 'prepareForUpdateWithDefinition should be called');
+        readerMock.verify(
+            r => r.read(
+                It.IsAny(),
+                It.Is(arr => Array.isArray(arr) && arr.length === 1 && arr[0] === 'foo.txt')
+            ),
+            Times.Once()
+        );
+    });
+
+    it('createWithDefinitionWorkflow present but missing prepare', async () => {
+        // Arrange
+        artifactManagerMock
+            .setup(m => m.listArtifacts(It.IsAny()))
+            .returnsAsync([]);
+
+        // Handler with createWithDefinitionWorkflow but no prepareForCreateWithDefinition
+        const handler = { createWithDefinitionWorkflow: {} };
+        extensionManagerMock
+            .setup(m => m.getArtifactHandler(artifactType))
+            .returns(handler as any);
+
+        // Act
+        await executeCommand();
+
+        // Assert
+        artifactManagerMock.verify(
+            a => a.createArtifactWithDefinition(
+                It.Is<IArtifact>(obj =>
+                    obj.workspaceId === fakeWorkspace.objectId &&
+                    obj.type === artifactType &&
+                    obj.displayName === artifactDisplayName
+                ),
+                fakeDefinition,
+                folderUri
+            ),
+            Times.Once()
+        );
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
+        readerMock.verify(
+            r => r.read(It.IsAny(), undefined),
+            Times.Once()
+        );
+    });
+
+    it('updateDefinitionWorkflow present but missing prepare', async () => {
+        // Arrange
+        const handler = { updateDefinitionWorkflow: {} };
+        extensionManagerMock
+            .setup(m => m.getArtifactHandler(artifactType))
+            .returns(handler as any);
+
+        // Act
+        await executeCommand();
+
+        // Assert
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
+        readerMock.verify(
+            r => r.read(It.IsAny(), undefined),
+            Times.Once()
+        );
+    });
+
+    it('createWithDefinitionWorkflow prepareForCreateWithDefinition returns undefined', async () => {
+        // Arrange
+        const createWorkflow = {
+            prepareForCreateWithDefinition: sinon.stub().resolves(undefined),
+        };
+        const handler = { createWithDefinitionWorkflow: createWorkflow };
+        extensionManagerMock
+            .setup(m => m.getArtifactHandler(artifactType))
+            .returns(handler as any);
+        artifactManagerMock
+            .setup(m => m.listArtifacts(It.IsAny()))
+            .returnsAsync([]);
+
+        // Act & Assert
+        await assert.rejects(
+            async () => {
+                await executeCommand();
+            },
+            (err: Error) => {
+                assert.ok(err instanceof UserCancelledError, 'Should throw a UserCancelledError');
+                assert.strictEqual((err as UserCancelledError).stepName, 'prepareForCreateWithDefinition', 'Step name');
+                return true;
+            }
+        );
+        assert.ok(createWorkflow.prepareForCreateWithDefinition.called, 'prepareForCreateWithDefinition should be called');
+    });
+
+    it('updateDefinitionWorkflow prepareForUpdateWithDefinition returns undefined', async () => {
+        // Arrange
+        const updateWorkflow = {
+            prepareForUpdateWithDefinition: sinon.stub().resolves(undefined),
+        };
+        const handler = { updateDefinitionWorkflow: updateWorkflow };
+        extensionManagerMock
+            .setup(m => m.getArtifactHandler(artifactType))
+            .returns(handler as any);
+
+        // Act & Assert
+        await assert.rejects(
+            async () => {
+                await executeCommand();
+            },
+            (err: Error) => {
+                assert.ok(err instanceof UserCancelledError, 'Should throw a UserCancelledError');
+                assert.strictEqual((err as UserCancelledError).stepName, 'prepareForUpdateWithDefinition', 'Step name');
+                return true;
+            }
+        );
+        assert.ok(updateWorkflow.prepareForUpdateWithDefinition.called, 'prepareForUpdateWithDefinition should be called');
+    });
 
     it('Always prompts for workspace when forcePromptForWorkspace is true', async () => {
         // Arrange
@@ -235,7 +413,7 @@ describe('importArtifactCommand', () => {
         // Should NOT use inferred workspace, should always prompt
         assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called when forcePromptForWorkspace is true');
         localFolderManagerMock.verify(m => m.getWorkspaceIdForLocalFolder(It.IsAny()), Times.Never());
-    artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
         verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', fakeWorkspace.objectId);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'fabricWorkspaceName', fakeWorkspace.displayName);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'targetDetermination', 'forced');
@@ -404,7 +582,7 @@ describe('importArtifactCommand', () => {
         // Arrange
         const errorText = 'Test - reader.read failed';
         readerMock
-            .setup(r => r.read(It.IsAny()))
+            .setup(r => r.read(It.IsAny(), It.IsAny()))
             .throws(new Error(errorText));
 
         // Act
@@ -424,7 +602,7 @@ describe('importArtifactCommand', () => {
         );
 
         // Assert
-    artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
     });
 
     async function executeCommand(forcePromptForWorkspace: boolean = false): Promise<void> {
@@ -432,6 +610,7 @@ describe('importArtifactCommand', () => {
             folderUri,
             workspaceManagerMock.object(),
             artifactManagerMock.object(),
+            extensionManagerMock.object(),
             localFolderManagerMock.object(),
             workspaceFilterManagerMock.object(),
             capacityManagerMock.object(),

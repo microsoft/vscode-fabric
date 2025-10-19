@@ -41,8 +41,8 @@ stages:
               KeyVaultName: 'Fabric-ES-ESRP-PME'
               SignCertName: 'Fabric-ESRP-Signing-PME'
               folderlocation: $(Pipeline.Workspace)/npm-artifacts
-              owners: 'mwade@microsoft.com'
-              approvers: 'kywhi@microsoft.com, mwade@microsoft.com, cpeth@microsoft.com, malerner@microsoft.com'
+              owners: 'appdevtooling@microsoft.com'
+              approvers: 'appdevtooling@microsoft.com'
               ServiceEndpointUrl: 'https://api.esrp.microsoft.com'
               MainPublisher: 'ESRPRELPACMAN'
               DomainTenantId: '975f013f-7f24-47e8-a7d3-abc4752bf346'

@@ -51,8 +51,8 @@
     "extension.walkthrough.fabric.description": "Your first steps to work with Fabric!",
     
     "extension.walkthrough.openPortal.title": "Create a workspace",
-    "extension.walkthrough.openPortal.description": "Go to the Fabric Portal to create a new workspace. If you already have a workspace then you can skip this step!\n[Go to Fabric Portal](https://daily.fabric.microsoft.com/)",
-    "_extension.walkthrough.openPortal.description.comment": "{Locked=\"(https://daily.fabric.microsoft.com/)\"}",
+    "extension.walkthrough.openPortal.description": "Go to the Fabric Portal to create a new workspace. If you already have a workspace then you can skip this step!\n[Go to Fabric Portal](https://app.fabric.microsoft.com/)",
+    "_extension.walkthrough.openPortal.description.comment": "{Locked=\"(https://app.fabric.microsoft.com/)\"}",
     
     "extension.walkthrough.openFabricView.title": "Open the Fabric Explorer",
     "extension.walkthrough.openFabricView.description": "You can open the Fabric Explorer in the Side Bar by clicking the Fabric Activity Bar icon.\n[Go to Fabric Explorer](command:workbench.view.extension.vscode-fabric_view_workspace)",
