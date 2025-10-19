@@ -7,6 +7,7 @@ import { IWorkspace, IWorkspaceManager, ArtifactTreeNode, IArtifact, IFabricTree
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
 import { TelemetryService, TelemetryActivity } from '@microsoft/vscode-fabric-util';
 import { WorkspaceTreeNode } from './WorkspaceTreeNode';
+import { WorkspaceManagerBase } from '../WorkspaceManager';
 import { DisplayStyle } from '../definitions';
 import { createArtifactTreeNode } from './artifactTreeNodeFactory';
 import { getDisplayName } from '../../metadata/fabricItemUtilities';
@@ -85,6 +86,11 @@ export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
 
     protected async loadFolders(_activity: TelemetryActivity<CoreTelemetryEventNames>): Promise<void> {
         if (this._foldersLoaded) {
+            return;
+        }
+
+        if (this.workspaceManager instanceof WorkspaceManagerBase && !this.workspaceManager.isFolderGroupingEnabled()) {
+            this._foldersLoaded = true;
             return;
         }
 

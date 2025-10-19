@@ -8,7 +8,7 @@ import * as sinon from 'sinon';
 import { WorkspaceManager } from '../../../src/workspace/WorkspaceManager';
 import { IFabricExtensionsSettingStorage } from '../../../src/settings/definitions';
 import { LocalFolderManager } from '../../../src/LocalFolderManager';
-import { IFabricEnvironmentProvider, ILogger, FabricError } from '@microsoft/vscode-fabric-util';
+import { IFabricEnvironmentProvider, ILogger, FabricError, FakeConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../../../src/authentication/interfaces';
 import {
     IApiClientResponse,
@@ -26,6 +26,7 @@ describe('WorkspaceManager', function () {
     let mockApiClient: Mock<IFabricApiClient>;
     let mockGitOperator: Mock<IGitOperator>;
     let mockLogger: Mock<ILogger>;
+    let configurationProvider: FakeConfigurationProvider;
     let workspaceManager: WorkspaceManager;
 
     // Event emitter mocks
@@ -46,6 +47,8 @@ describe('WorkspaceManager', function () {
         mockApiClient = new Mock<IFabricApiClient>();
         mockGitOperator = new Mock<IGitOperator>();
         mockLogger = new Mock<ILogger>();
+        configurationProvider = new FakeConfigurationProvider();
+        void configurationProvider.update('Experimental.ShowFolders', true);
 
         // Create event emitters
         onSignInChangedEmitter = new vscode.EventEmitter<void>();
@@ -72,7 +75,8 @@ describe('WorkspaceManager', function () {
             mockLocalFolderManager.object(),
             mockApiClient.object(),
             mockLogger.object(),
-            mockGitOperator.object()
+            mockGitOperator.object(),
+            configurationProvider
         );
     });
 
@@ -374,6 +378,16 @@ describe('WorkspaceManager', function () {
 
         assert.deepStrictEqual(folders, [createFolder('folder-1', 'Alpha'), createFolder('folder-2', 'Beta')], 'All folders from both pages should be returned');
         mockApiClient.verify(x => x.sendRequest(It.IsAny()), Times.Exactly(2));
+    });
+
+    it('getFoldersInWorkspace should short-circuit when experimental setting disabled', async function () {
+        configurationProvider.clear();
+        void configurationProvider.update('Experimental.ShowFolders', false);
+
+        const result = await workspaceManager.getFoldersInWorkspace('workspace-disabled');
+
+        assert.deepStrictEqual(result, [], 'Expected no folders when feature disabled');
+        mockApiClient.verify(x => x.sendRequest(It.IsAny()), Times.Never());
     });
 
     it('getFoldersInWorkspace should throw when API request fails', async function () {

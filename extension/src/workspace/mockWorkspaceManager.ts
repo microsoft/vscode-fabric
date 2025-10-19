@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 /* eslint-disable security/detect-object-injection */
-import { FabricEnvironmentName, IFabricEnvironmentProvider, ILogger } from '@microsoft/vscode-fabric-util';
+import { FabricEnvironmentName, IFabricEnvironmentProvider, ILogger, IConfigurationProvider, FakeConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../authentication/interfaces';
 import { IArtifact, IWorkspace, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { WorkspaceManagerBase } from './WorkspaceManager';
@@ -30,9 +30,10 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
         fabricEnvironmentProvider: IFabricEnvironmentProvider,
         apiClient: IFabricApiClient,
         gitOperator: IGitOperator,
-        logger: ILogger
+        logger: ILogger,
+        configurationProvider: IConfigurationProvider = new FakeConfigurationProvider()
     ) {
-        super(storage, new LocalFolderManager(storage, fabricEnvironmentProvider), account, fabricEnvironmentProvider, apiClient, gitOperator, logger);
+        super(storage, new LocalFolderManager(storage, fabricEnvironmentProvider), account, fabricEnvironmentProvider, apiClient, gitOperator, logger, configurationProvider);
 
         const workspaceIds: string[] = Array.from({ length: 4 }, (e, i) => `wspaceId${i}`);
         workspaceIds.push(mockGuidWorkspaceId);

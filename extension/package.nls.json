@@ -27,7 +27,7 @@
     "extension.clearWorkspaceFilter.title":"Clear Workspace Filter",
 
     "extension.submenu.importArtifact.title": "Publish",
-    
+
     "extension.views.Workspace.title":"Fabric Workspaces (remote)",
     "extension.views.Local.title":"Local Folder",
     "extension.views.Feedback.title":"Feedback",
@@ -46,18 +46,19 @@
     "extension.configuration.ApiTimeout.description": "Number of milliseconds to allow for an API call before throwing a Timeout Error",
     "extension.configuration.DefaultWorkspaceFolder.description": "The default folder for Fabric workspaces, defaults to c:\\users\\<username>>\\Workspaces",
     "extension.configuration.DebugLogging.description": "Turn on debug logging in the Fabric Output Panel",
+    "extension.configuration.Experimental.ShowFolders.description": "[Experimental] Group workspace items by folders in the list view",
 
     "extension.walkthrough.fabric.title": "Get Started with Microsoft Fabric",
     "extension.walkthrough.fabric.description": "Your first steps to work with Fabric!",
-    
+
     "extension.walkthrough.openPortal.title": "Create a workspace",
-    "extension.walkthrough.openPortal.description": "Go to the Fabric Portal to create a new workspace. If you already have a workspace then you can skip this step!\n[Go to Fabric Portal](https://app.fabric.microsoft.com/)",
-    "_extension.walkthrough.openPortal.description.comment": "{Locked=\"(https://app.fabric.microsoft.com/)\"}",
-    
+    "extension.walkthrough.openPortal.description": "Go to the Fabric Portal to create a new workspace. If you already have a workspace then you can skip this step!\n[Go to Fabric Portal](https://daily.fabric.microsoft.com/)",
+    "_extension.walkthrough.openPortal.description.comment": "{Locked=\"(https://daily.fabric.microsoft.com/)\"}",
+
     "extension.walkthrough.openFabricView.title": "Open the Fabric Explorer",
     "extension.walkthrough.openFabricView.description": "You can open the Fabric Explorer in the Side Bar by clicking the Fabric Activity Bar icon.\n[Go to Fabric Explorer](command:workbench.view.extension.vscode-fabric_view_workspace)",
     "_extension.walkthrough.openFabricView.description.comment": "{Locked=\"(command:workbench.view.extension.vscode-fabric_view_workspace)\"}",
-    
+
     "extension.walkthrough.signIn.title": "Sign in to Fabric",
     "extension.walkthrough.signIn.description": "Use the 'Fabric: Sign In' command or sign in through the Fabric Explorer.\n[Sign in to Fabric](command:vscode-fabric.signIn)",
     "_extension.walkthrough.signIn.description.comment": "{Locked=\"(command:vscode-fabric.signIn)\"}"
