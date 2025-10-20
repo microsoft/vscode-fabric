@@ -3,29 +3,29 @@
 
 import * as vscode from 'vscode';
 
-import { IWorkspace, IWorkspaceManager, ArtifactTreeNode, IArtifact, IFabricTreeNodeProvider, FabricTreeNode, IWorkspaceFolder } from '@microsoft/vscode-fabric-api';
+import { IWorkspace, IWorkspaceManager, ArtifactTreeNode, IArtifact, FabricTreeNode, IWorkspaceFolder } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
-import { TelemetryService, TelemetryActivity } from '@microsoft/vscode-fabric-util';
+import { TelemetryService } from '@microsoft/vscode-fabric-util';
 import { WorkspaceTreeNode } from './WorkspaceTreeNode';
 import { DisplayStyle } from '../definitions';
 import { createArtifactTreeNode } from './artifactTreeNodeFactory';
 import { getDisplayName } from '../../metadata/fabricItemUtilities';
 import { FolderTreeNode } from './FolderTreeNode';
-import { CoreTelemetryEventNames } from '../../TelemetryEventNames';
 
 export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
-    private _rootFolderNodes: FolderTreeNode[] | undefined;
-    private _rootArtifactNodes: ArtifactTreeNode[] | undefined;
-    private _folderNodesById: Map<string, FolderTreeNode> | undefined;
+    private _rootFolderNodes: FolderTreeNode[] = [];
+    private _rootArtifactNodes: ArtifactTreeNode[] = [];
+    private _folderNodesById: Map<string, FolderTreeNode> = new Map<string, FolderTreeNode>();
     private _foldersLoaded = false;
+    private _initialized = false;
 
     constructor(context: vscode.ExtensionContext,
         extensionManager: IFabricExtensionManagerInternal,
         workspace: IWorkspace,
         telemetryService: TelemetryService | null,
         workspaceManager: IWorkspaceManager,
-        private tenantId: string | undefined,
-        private shouldExpand?: (id: string | undefined) => boolean
+        tenantId: string | null,
+        private shouldExpand?: (id?: string) => boolean
     ) {
         super(context, extensionManager, workspace, DisplayStyle.list, telemetryService, workspaceManager);
         // Stable id for VS Code view state restoration
@@ -37,7 +37,7 @@ export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
     }
 
     protected async addArtifact(artifact: IArtifact): Promise<void> {
-        const treeNodeProvider: IFabricTreeNodeProvider | undefined = this.extensionManager.treeNodeProviders.get(artifact.type);
+        const treeNodeProvider = this.extensionManager.treeNodeProviders.get(artifact.type);
         const artifactNode: ArtifactTreeNode = await createArtifactTreeNode(this.context, artifact, this.extensionManager, treeNodeProvider);
 
         let description = getDisplayName(artifact);
@@ -46,41 +46,40 @@ export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
         }
         artifactNode.description = description;
 
-        if (artifact.folderId && this._folderNodesById?.has(artifact.folderId)) {
-            this._folderNodesById.get(artifact.folderId)?.addArtifact(artifactNode);
+        if (artifact.folderId) {
+            const folderNode = this._folderNodesById.get(artifact.folderId);
+            if (folderNode) {
+                folderNode.addArtifact(artifactNode);
+                return;
+            }
         }
-        else {
-            this._rootArtifactNodes?.push(artifactNode);
-        }
+
+        this._rootArtifactNodes.push(artifactNode);
     }
 
     protected ensureReady(): void {
-        if (!this._rootFolderNodes || !this._rootArtifactNodes || !this._folderNodesById) {
-            this._rootFolderNodes = [];
-            this._rootArtifactNodes = [];
-            this._folderNodesById = new Map<string, FolderTreeNode>();
+        if (this._initialized) {
+            return;
         }
+
+        this.resetCollections();
+        this._initialized = true;
     }
 
     protected isReady(): boolean {
-        return !!this._rootFolderNodes && !!this._rootArtifactNodes && !!this._folderNodesById;
+        return this._initialized;
     }
 
     protected reset() {
-        this._rootFolderNodes = undefined;
-        this._rootArtifactNodes = undefined;
-        this._folderNodesById = undefined;
+        this.resetCollections();
         this._foldersLoaded = false;
+        this._initialized = false;
     }
 
     protected sortChildren(): FabricTreeNode[] {
-        if (this._rootFolderNodes && this._rootArtifactNodes) {
-            const sortedFolders = [...this._rootFolderNodes].sort((a, b) => nodeLabel(a).localeCompare(nodeLabel(b)));
-            const sortedArtifacts = [...this._rootArtifactNodes].sort((a, b) => a.artifact.displayName.localeCompare(b.artifact.displayName));
-            return [...sortedFolders, ...sortedArtifacts];
-        }
-
-        return [];
+        const sortedFolders = [...this._rootFolderNodes].sort((a, b) => nodeLabel(a).localeCompare(nodeLabel(b)));
+        const sortedArtifacts = [...this._rootArtifactNodes].sort((a, b) => a.artifact.displayName.localeCompare(b.artifact.displayName));
+        return [...sortedFolders, ...sortedArtifacts];
     }
 
     protected async loadFolders(): Promise<void> {
@@ -88,9 +87,7 @@ export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
             return;
         }
 
-        if (!this._folderNodesById || !this._rootFolderNodes) {
-            this.ensureReady();
-        }
+        this.ensureReady();
 
         const folders = await this.workspaceManager.getFoldersInWorkspace(this.workspace.objectId);
         if (folders.length > 0) {
@@ -101,36 +98,43 @@ export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
     }
 
     private initializeFolderStructure(folders: IWorkspaceFolder[]): void {
-        if (!this._folderNodesById || !this._rootFolderNodes) {
-            return;
-        }
+        this.ensureReady();
 
         this._folderNodesById.clear();
         this._rootFolderNodes.length = 0;
 
         folders.forEach(folder => {
             const folderNode = new FolderTreeNode(this.context, folder);
-            this._folderNodesById!.set(folder.id, folderNode);
+            this._folderNodesById.set(folder.id, folderNode);
         });
 
         folders.forEach(folder => {
-            const folderNode = this._folderNodesById!.get(folder.id);
+            const folderNode = this._folderNodesById.get(folder.id);
             if (!folderNode) {
                 return;
             }
 
             const parentId = folder.parentFolderId;
-            if (parentId && this._folderNodesById!.has(parentId)) {
-                this._folderNodesById!.get(parentId)!.addFolder(folderNode);
+            if (parentId) {
+                const parentFolderNode = this._folderNodesById.get(parentId);
+                if (parentFolderNode) {
+                    parentFolderNode.addFolder(folderNode);
+                    return;
+                }
             }
-            else {
-                this._rootFolderNodes!.push(folderNode);
-            }
+
+            this._rootFolderNodes.push(folderNode);
         });
+    }
+
+    private resetCollections(): void {
+        this._rootFolderNodes.length = 0;
+        this._rootArtifactNodes.length = 0;
+        this._folderNodesById.clear();
     }
 }
 
-function tenantIdOrNone(tenantId: string | undefined): string {
+function tenantIdOrNone(tenantId: string | null): string {
     return tenantId && tenantId.length > 0 ? tenantId : 'none';
 }
 

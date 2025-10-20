@@ -55,7 +55,7 @@ export class RootTreeNode extends FabricTreeNode {
 
             return workspaces.map(workspace =>
                 this.displayStyle === DisplayStyle.list
-                    ? new ListViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager, /*tenantId*/ undefined, this.shouldExpand)
+                    ? new ListViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager, /*tenantId*/ null, this.shouldExpand)
                     : new TreeViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager, /*tenantId*/ undefined, this.shouldExpand)
             );
         }
