@@ -46,7 +46,7 @@
     "extension.configuration.ApiTimeout.description": "Number of milliseconds to allow for an API call before throwing a Timeout Error",
     "extension.configuration.DefaultWorkspaceFolder.description": "The default folder for Fabric workspaces, defaults to c:\\users\\<username>>\\Workspaces",
     "extension.configuration.DebugLogging.description": "Turn on debug logging in the Fabric Output Panel",
-    "extension.configuration.Experimental.ShowFolders.description": "[Experimental] Group workspace items by folders in the list view",
+    "extension.configuration.ShowFolders.description": "[Preview] Group workspace items by folders in the list view",
 
     "extension.walkthrough.fabric.title": "Get Started with Microsoft Fabric",
     "extension.walkthrough.fabric.description": "Your first steps to work with Fabric!",

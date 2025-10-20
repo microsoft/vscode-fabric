@@ -497,10 +497,11 @@
           "default": "false",
           "description": "%extension.configuration.DebugLogging.description%"
         },
-        "Fabric.Experimental.ShowFolders": {
+        "Fabric.ShowFolders": {
           "type": "boolean",
           "default": false,
-          "description": "%extension.configuration.Experimental.ShowFolders.description%"
+          "description": "%extension.configuration.ShowFolders.description%",
+          "tags": ["preview"]
         }
       }
     },

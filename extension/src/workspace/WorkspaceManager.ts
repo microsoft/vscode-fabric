@@ -18,7 +18,7 @@ import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
  * Base class for managing the logged-in user's Fabric Workspace. Mock also inherits from this class. Put code common to both here
  */
 export abstract class WorkspaceManagerBase implements IWorkspaceManager {
-    private static readonly experimentalShowFoldersSettingKey = 'Experimental.ShowFolders';
+    private static readonly showFoldersSettingKey = 'ShowFolders';
     protected disposables: vscode.Disposable[] = [];
     protected didInitializePriorState = false;
     public isProcessingAutoLogin = false;
@@ -315,7 +315,7 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
     }
 
     public isFolderGroupingEnabled(): boolean {
-        return this.configurationProvider.get(WorkspaceManagerBase.experimentalShowFoldersSettingKey, false);
+        return this.configurationProvider.get(WorkspaceManagerBase.showFoldersSettingKey, false);
     }
 
     public async getFoldersInWorkspace(workspaceId: string): Promise<IWorkspaceFolder[]> {

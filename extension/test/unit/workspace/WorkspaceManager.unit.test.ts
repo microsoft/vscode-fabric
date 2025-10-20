@@ -48,7 +48,7 @@ describe('WorkspaceManager', function () {
         mockGitOperator = new Mock<IGitOperator>();
         mockLogger = new Mock<ILogger>();
         configurationProvider = new FakeConfigurationProvider();
-        void configurationProvider.update('Experimental.ShowFolders', true);
+        void configurationProvider.update('ShowFolders', true);
 
         // Create event emitters
         onSignInChangedEmitter = new vscode.EventEmitter<void>();
@@ -382,7 +382,7 @@ describe('WorkspaceManager', function () {
 
     it('getFoldersInWorkspace should short-circuit when experimental setting disabled', async function () {
         configurationProvider.clear();
-        void configurationProvider.update('Experimental.ShowFolders', false);
+        void configurationProvider.update('ShowFolders', false);
 
         const result = await workspaceManager.getFoldersInWorkspace('workspace-disabled');
 
