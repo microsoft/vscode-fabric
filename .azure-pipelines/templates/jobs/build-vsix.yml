@@ -62,20 +62,20 @@ jobs:
   # Sign the manifest
   - task: EsrpCodeSigning@5
     inputs:
-      ConnectedServiceName: Fabric-ESRP-Secure-AppDev
+      ConnectedServiceName: $(EsrpConnectedServiceName)
       UseMSIAuthentication: true
-      EsrpClientId: f351681f-63af-4d0a-80b2-80bc2ec5cbb2
-      AppRegistrationClientId: 8644665c-9c03-4b6b-a224-e5634f3b674d
-      AppRegistrationTenantId: 975f013f-7f24-47e8-a7d3-abc4752bf346
-      AuthAKVName: Fabric-ES-ESRP-PME
-      AuthSignCertName: Fabric-ESRP-Signing-PME
+      EsrpClientId: $(EsrpClientId)
+      AppRegistrationClientId: $(EsrpAppRegistrationClientId)
+      AppRegistrationTenantId: $(EsrpAppRegistrationTenantId)
+      AuthAKVName: $(EsrpKeyVaultName)
+      AuthSignCertName: $(EsrpSignCertName)
       FolderPath: $(Build.ArtifactStagingDirectory)
       Pattern: extension.signature.p7s
       signConfigType: inlineSignParams
       inlineOperation: |
         [
           {
-            "keyCode": "CP-401405",
+            "keyCode": "$(EsrpKeyCode)",
             "operationSetCode": "VSCodePublisherSign",
             "parameters" : [],
             "toolName": "sign",

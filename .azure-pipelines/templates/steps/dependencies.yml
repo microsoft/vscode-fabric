@@ -9,12 +9,12 @@ steps:
 # Install dependencies
 - task: NodeTool@0
   inputs: 
-    versionSpec: 20.x
+    versionSpec: $(NodeVersion)
   displayName: install nodejs
 
 # Set up CFS
 - pwsh: |
-    Add-Content -Path "$(Build.SourcesDirectory)/.npmrc" -Value "registry=https://powerbi.pkgs.visualstudio.com/AppDev/_packaging/vscode-fabric/npm/registry/`nalways-auth=true"
+    Add-Content -Path "$(Build.SourcesDirectory)/.npmrc" -Value "registry=$(ArtifactsFeed)npm/registry/`nalways-auth=true"
   displayName: Inject registry settings into .npmrc
 
 - task: npmAuthenticate@0
