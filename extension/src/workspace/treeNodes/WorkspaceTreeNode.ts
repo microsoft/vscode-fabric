@@ -48,7 +48,7 @@ export abstract class WorkspaceTreeNode extends FabricTreeNode {
             await activity.doTelemetryActivity(async () => {
                 const workspaceManager:IWorkspaceManager = this.workspaceManager;
                 const workspaceId = this.workspace.objectId;
-                await this.loadFolders(activity);
+                await this.loadFolders();
                 const artifacts: IArtifact[] = await workspaceManager.getItemsInWorkspace(workspaceId);
                 if (artifacts) {
                     activity.addOrUpdateProperties({
@@ -83,8 +83,8 @@ export abstract class WorkspaceTreeNode extends FabricTreeNode {
      * Loads any folder structure needed before artifacts are processed
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected async loadFolders(activity: TelemetryActivity<CoreTelemetryEventNames>): Promise<void> {
-        // By default, workspaces do not surface folder structure.
+    protected async loadFolders(): Promise<void> {
+        // By default, workspaces do not surface folder structure. Overridden in ListViewWorkspaceTreeNode to add folder support.
     }
 
     /**
