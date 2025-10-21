@@ -32,10 +32,11 @@ jobs:
           displayName: 'Get E2E Tests Service Principal Token'
           continueOnError: true
           inputs:
-            azureSubscription: E2E Tests Service Principal
+            azureSubscription: $(E2EAzureConnection)
             scriptType: pscore
             scriptLocation: scriptPath
             scriptPath: ./tools/Get-E2EToken.ps1
+            arguments: '-AzureSubscriptionId "$(E2EAzureSubscriptionId)" -TenantId "$(E2ETenantId)" -ClientId "$(E2EClientId)"'
 
         - task: PowerShell@2
           displayName: 'Set E2E token success flag'

@@ -11,7 +11,7 @@ parameters:
   default: $(Build.ArtifactStagingDirectory)
 - name: registryUrl
   type: string
-  default: https://powerbi.pkgs.visualstudio.com/AppDev/_packaging/vscode-fabric/npm/registry/
+  default: $(ArtifactsFeed)npm/registry/
 
 steps:
 - pwsh: |

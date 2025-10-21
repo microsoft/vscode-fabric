@@ -8,6 +8,11 @@ pr:
   branches:
     include:
       - main
+
+variables:
+  - name: NodeVersion
+    value: 20.x
+
 stages:
   - stage: test_e2e_ui
     displayName: Tests

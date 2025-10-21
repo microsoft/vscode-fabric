@@ -2,7 +2,10 @@
 # Licensed under the MIT License.
 
 param(
-    [switch]$SignOut
+    [switch]$SignOut,
+    [string]$AzureSubscriptionId,
+    [string]$TenantId,
+    [string]$ClientId
 )
 
 # Define the token file path
@@ -21,7 +24,7 @@ if ($SignOut) {
 }
 
 # Set the correct Azure subscription
-az account set --subscription "47d8d56c-3a05-4e1a-805b-87cc4b1ba5a3"
+az account set --subscription "$AzureSubscriptionId"
 
 # Get secret from Azure Key Vault (use latest version)
 $secretResponse = az keyvault secret show --vault-name appdev-team-kv --name appdev-vscode-e2e | ConvertFrom-Json
@@ -35,13 +38,11 @@ if ([string]::IsNullOrEmpty($clientSecret)) {
 Write-Output "Retrieved client secret of length: $($clientSecret.Length)"
 
 # Define OAuth2 parameters
-$tenantId = "b8190856-7271-4139-8bae-a598a014373f"
-$clientId = "51440ebf-78c2-41c6-bc2d-dc78edad78cf"
-$tokenEndpoint = "https://login.windows.net/$tenantId/oauth2/v2.0/token"
+$tokenEndpoint = "https://login.windows.net/$TenantId/oauth2/v2.0/token"
 
 # Prepare the request body
 $body = @{
-    client_id     = $clientId
+    client_id     = $ClientId
     grant_type    = "client_credentials"
     scope         = "https://analysis.windows.net/powerbi/api/.default"
     client_secret = $clientSecret
