@@ -46,7 +46,7 @@ export abstract class WorkspaceTreeNode extends FabricTreeNode {
             this.ensureReady();
             const activity = new TelemetryActivity<CoreTelemetryEventNames>('workspace/load-items', this.telemetryService);
             await activity.doTelemetryActivity(async () => {
-q                const workspaceId = this.workspace.objectId;
+                const workspaceId = this.workspace.objectId;
                 await this.loadFolders();
                 const artifacts: IArtifact[] = await this.workspaceManager.getItemsInWorkspace(workspaceId);
                 if (artifacts) {
