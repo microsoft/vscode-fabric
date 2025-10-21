@@ -46,10 +46,9 @@ export abstract class WorkspaceTreeNode extends FabricTreeNode {
             this.ensureReady();
             const activity = new TelemetryActivity<CoreTelemetryEventNames>('workspace/load-items', this.telemetryService);
             await activity.doTelemetryActivity(async () => {
-                const workspaceManager:IWorkspaceManager = this.workspaceManager;
-                const workspaceId = this.workspace.objectId;
+q                const workspaceId = this.workspace.objectId;
                 await this.loadFolders();
-                const artifacts: IArtifact[] = await workspaceManager.getItemsInWorkspace(workspaceId);
+                const artifacts: IArtifact[] = await this.workspaceManager.getItemsInWorkspace(workspaceId);
                 if (artifacts) {
                     activity.addOrUpdateProperties({
                         'itemCount': artifacts.length.toString(),
@@ -57,7 +56,7 @@ export abstract class WorkspaceTreeNode extends FabricTreeNode {
                     });
                     if (artifacts.length === 0) {
                         // when no items found in workspace, show a button to create a new item
-                        await vscode.commands.executeCommand('setContext', workspaceManager.fabricWorkspaceContext, 'emptyWorkspace');
+                        await vscode.commands.executeCommand('setContext', this.workspaceManager.fabricWorkspaceContext, 'emptyWorkspace');
                     }
                     else {
                         for (const artifact of artifacts) {
