@@ -496,6 +496,12 @@
           "type": "boolean",
           "default": "false",
           "description": "%extension.configuration.DebugLogging.description%"
+        },
+        "Fabric.ShowFolders": {
+          "type": "boolean",
+          "default": false,
+          "description": "%extension.configuration.ShowFolders.description%",
+          "tags": ["preview"]
         }
       }
     },

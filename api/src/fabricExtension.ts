@@ -332,6 +332,13 @@ export interface IWorkspace {
     sourceControlInformation?: ISourceControlInformation;
 }
 
+export interface IWorkspaceFolder {
+    id: string;
+    displayName: string;
+    workspaceId: string;
+    parentFolderId?: string;
+}
+
 /**
  * Service for managing Fabric workspaces and their integration with the local development environment.
  *
@@ -397,6 +404,13 @@ export interface IWorkspaceManager {
      * @returns Promise resolving to an array of artifacts in the workspace
      */
     getItemsInWorkspace(workspaceId: string): Promise<IArtifact[]>;
+
+    /**
+     * Retrieves all folders within a specific workspace.
+     * @param workspaceId - The unique identifier of the workspace
+     * @returns Promise resolving to an array of folders in the workspace
+     */
+    getFoldersInWorkspace(workspaceId: string): Promise<IWorkspaceFolder[]>;
 
     /**
      * Indicates whether an automatic login process is currently in progress.

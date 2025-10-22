@@ -11,6 +11,7 @@ import {
     IOpenArtifactOptions,
     IWorkspace,
     IWorkspaceManager,
+    IWorkspaceFolder,
     IFabricApiClient,
 } from '@microsoft/vscode-fabric-api';
 import { ArtifactManager } from '../../../src/artifactManager/ArtifactManager';
@@ -72,6 +73,9 @@ class MockWorkspaceManagerStub implements IWorkspaceManager {
         throw new Error('Method not implemented.');
     }
     getLocalFolderForArtifact(artifact: IArtifact, options?: { createIfNotExists?: boolean | undefined; } | undefined): Promise<vscode.Uri | undefined> {
+        throw new Error('Method not implemented.');
+    }
+    getFoldersInWorkspace(workspaceId: string): Promise<IWorkspaceFolder[]> {
         throw new Error('Method not implemented.');
     }
 

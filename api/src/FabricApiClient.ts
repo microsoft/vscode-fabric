@@ -223,6 +223,7 @@ export interface IArtifact {
      * This GUID is used for all API operations targeting this specific artifact.
      */
     id: string;
+    folderId?: string,
 
     /**
      * The type of Fabric artifact (e.g., "Notebook", "Dataset", "Report", "Pipeline").
