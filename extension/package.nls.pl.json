@@ -41,7 +41,7 @@
   "extension.walkthrough.fabric.title": "Rozpocznij pracę z usługą Microsoft Fabric",
   "extension.walkthrough.fabric.description": "Pierwsze kroki do pracy z usługą Fabric!",
   "extension.walkthrough.openPortal.title": "Tworzenie przestrzeni roboczej",
-  "extension.walkthrough.openPortal.description": "Przejdź do portalu usługi Fabric, aby utworzyć nowy obszar roboczy. Jeśli masz już obszar roboczy, możesz pominąć ten krok!\n[Przejdź do portalu usługi Fabric](https://daily.fabric.microsoft.com/)",
+  "extension.walkthrough.openPortal.description": "Przejdź do portalu usługi Fabric, aby utworzyć nowy obszar roboczy. Jeśli masz już obszar roboczy, możesz pominąć ten krok!\n[Przejdź do portalu usługi Fabric](https://app.fabric.microsoft.com/)",
   "extension.walkthrough.openFabricView.title": "Otwórz eksplorator usługi Fabric",
   "extension.walkthrough.openFabricView.description": "Możesz otworzyć eksplorator usługi Fabric na pasku bocznym, klikając ikonę paska aktywności usługi Fabric.\n[Przejdź do eksploratora usługi Fabric](command:workbench.view.extension.vscode-fabric_view_workspace)",
   "extension.walkthrough.signIn.title": "Zaloguj się w usłudze Fabric",

@@ -41,7 +41,7 @@
   "extension.walkthrough.fabric.title": "Ismerkedés a Microsoft Fabric szolgáltatással",
   "extension.walkthrough.fabric.description": "Az első lépései a Fabric használatához!",
   "extension.walkthrough.openPortal.title": "Munkaterület létrehozása",
-  "extension.walkthrough.openPortal.description": "Új munkaterület létrehozásához lépjen a Fabric Portálra. Ha már rendelkezik munkaterülettel, kihagyhatja ezt a lépést!\n[Ugrás a Fabric Portálra](https://daily.fabric.microsoft.com/)",
+  "extension.walkthrough.openPortal.description": "Új munkaterület létrehozásához lépjen a Fabric Portálra. Ha már rendelkezik munkaterülettel, kihagyhatja ezt a lépést!\n[Ugrás a Fabric Portálra](https://app.fabric.microsoft.com/)",
   "extension.walkthrough.openFabricView.title": "A Fabric Explorer megnyitása",
   "extension.walkthrough.openFabricView.description": "A Fabric Explorert az oldalsávon a Fabric tevékenységsáv ikonra kattintva nyithatja meg.\n[Ugrás a Fabric Explorerre](command:workbench.view.extension.vscode-fabric_view_workspace)",
   "extension.walkthrough.signIn.title": "Jelentkezzen be a Fabricba",

@@ -5,10 +5,9 @@ import * as vscode from 'vscode';
 import { IFabricExtensionServiceCollection } from '@microsoft/vscode-fabric-api';
 import { TelemetryService } from './telemetry/TelemetryService';
 import { TelemetryActivity } from './telemetry/TelemetryActivity';
-import { FABRIC_ENVIRONMENT_KEY, IFabricEnvironmentProvider } from './settings/FabricEnvironmentProvider';
+import { IFabricEnvironmentProvider } from './settings/FabricEnvironmentProvider';
 import { IConfigurationProvider } from './settings/ConfigurationProvider';
 import { FabricError, doFabricAction } from './FabricError';
-import { FabricEnvironmentName } from './settings/FabricEnvironment';
 import { ILogger } from './logger/Logger';
 
 export class FabricUriHandler implements vscode.UriHandler {
@@ -31,7 +30,7 @@ export class FabricUriHandler implements vscode.UriHandler {
             const workspaceId = searchParams.get('workspaceId') || '';
             const artifactId = searchParams.get('artifactId') || '';
             const environmentId = (searchParams.get('Environment') || '').toUpperCase();
-            this.logger.log(`UriHandler opening ws=${workspaceId}  art = ${artifactId} env = ${environmentId}`);
+            this.logger.debug(`UriHandler opening ws=${workspaceId}  art = ${artifactId} env = ${environmentId}`);
 
             activity.addOrUpdateProperties({
                 'targetEnvironment': environmentId,
@@ -44,12 +43,11 @@ export class FabricUriHandler implements vscode.UriHandler {
                 throw new FabricError(vscode.l10n.t('Invalid workspace or artifact id {0}  {1}', workspaceId, artifactId), 'Invalid workspace or artifact id');
             }
             // handle environment param
-            if (environmentId.length > 0 && !Object.values(FabricEnvironmentName).includes(environmentId as FabricEnvironmentName)) {
-                throw new FabricError(vscode.l10n.t('Environment parameter not valid: {0}', environmentId), 'invalid environment');
-            }
-            // If the environmentId is different from the current environment, and it's valid, update the user's settings before further handling
-            if (environmentId !== this.fabricEnvironmentProvider.getCurrent().env.toString()) {
-                await this.configProvider.update(FABRIC_ENVIRONMENT_KEY, environmentId);
+            if (environmentId.length > 0) {
+                const switchSuccess = await this.fabricEnvironmentProvider.switchToEnvironment(environmentId);
+                if (!switchSuccess) {
+                    throw new FabricError(vscode.l10n.t('Environment parameter not valid: {0}', environmentId), 'Environment parameter not valid');
+                }
             }
 
             let openArtifact = false;

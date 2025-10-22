@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { activateCore, VSCodeUIBypass, sleep, IConfigurationProvider, FABRIC_ENVIRONMENT_KEY } from '@microsoft/vscode-fabric-util';
+import { activateCore, VSCodeUIBypass, sleep, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { IWorkspace, IApiClientRequestOptions, IFakeFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { TestEnvironmentConfig } from '../utilities/TestEnvironmentConfig';
 
 /**
  * Integration Test for Create Workspace Command
@@ -36,10 +37,12 @@ describe('Create Workspace E2E Test', function () {
         assert(core, 'Failed to activate core extension');
         assert(core.testHooks, 'Failed to get test hooks from core');
 
-        // Get configuration provider from test hooks, set to DAILY (for now)
+        // Configure test environment using centralized configuration utility
         const configurationProvider = core.testHooks['configurationProvider'] as IConfigurationProvider;
         assert(configurationProvider, 'Failed to get ConfigurationProvider from test hooks');
-        await configurationProvider.update(FABRIC_ENVIRONMENT_KEY, 'DAILY');
+
+        const customEnv = await TestEnvironmentConfig.configureTestEnvironment(configurationProvider);
+        assert(customEnv, `Test environment must be enabled. Enable the target environment via environment variables or custom config file ${TestEnvironmentConfig.getCustomEnvironmentProfilePath()}`);
 
         // Get UI bypass from test hooks (this runs in the extension context), install bypass
         uiBypass = core.testHooks['vscodeUIBypass'] as VSCodeUIBypass;

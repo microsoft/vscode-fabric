@@ -4,14 +4,10 @@
 /* eslint-disable security/detect-non-literal-fs-filename */
 /* eslint-disable security/detect-object-injection */
 /* eslint-disable @typescript-eslint/naming-convention */
-import * as vscode from 'vscode';
 import { IApiClientRequestOptions, IApiClientResponse, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import * as azApi from '@azure/core-rest-pipeline';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import * as os from 'os';
-import { FABRIC_ENVIRONMENTS } from '@microsoft/vscode-fabric-util';
-import { FabricEnvironmentName } from '@microsoft/vscode-fabric-util';
 import { ILogger } from '@microsoft/vscode-fabric-util';
 
 export class MockApiClient implements IFabricApiClient {
@@ -26,7 +22,7 @@ export class MockApiClient implements IFabricApiClient {
     }
     public normalCallback = async (options: IApiClientRequestOptions) => {
         this.logger.log(`MockApiClient.sendRequest CallBack: ${options.method} ${options.url ?? options.pathTemplate}`);
-        let baseUrl = options.url ?? FABRIC_ENVIRONMENTS[FabricEnvironmentName.MOCK].sharedUri;
+        let baseUrl = options.url ?? '';
         let theUrl = baseUrl;
         let ndxQMark = theUrl!.indexOf('?');
         if (ndxQMark > 0) {

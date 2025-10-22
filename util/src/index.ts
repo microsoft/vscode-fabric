@@ -9,7 +9,6 @@ export * from './logger/MockConsoleLogger';
 export * from './settings/ConfigurationProvider';
 export * from './settings/FabricEnvironment';
 export * from './settings/FabricEnvironmentProvider';
-export * from './settings/getSessionProviderForFabricEnvironment';
 export * from './settings/mocks';
 export * from './CoreServiceCollectionProvider';
 export * from './DisposableCollection';

@@ -4,7 +4,7 @@
 import * as vscode from 'vscode';
 import { fabricWorkspaceSettingsVersion, IFabricArtifactSettings, IFabricWorkspaceSettings, IFabricExtensionsSettingStorage, ILocalFolderSettingsAdapter, IFabricExtensionSettings } from './definitions';
 import { mkdir } from 'fs';
-import { FabricEnvironmentName, IConfigurationProvider, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
+import { IConfigurationProvider, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 
 export const settingsFabricWorkspace = 'settingsFabricWorkspace';
 

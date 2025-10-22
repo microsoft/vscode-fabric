@@ -25,7 +25,7 @@ jobs:
       - script: npm run build
         displayName: build all
 
-      # ui & e2e tests need to acquire a token before running
+      # ui & e2e tests need to acquire a token and generate settings before running
       - ${{ if or(eq(testCategory, 'e2e'), eq(testCategory, 'ui')) }}:
         - task: AzureCLI@2
           name: 'GetE2EToken'
@@ -45,6 +45,36 @@ jobs:
             targetType: 'inline'
             pwsh: true
             script: 'Write-Host "##vso[task.setvariable variable=E2ETokenAcquired]true"'
+
+        - task: PowerShell@2
+          displayName: 'Overwrite Test Settings with Custom Environment'
+          continueOnError: true
+          condition: eq(variables['Agent.JobStatus'], 'Succeeded')
+          inputs:
+            targetType: 'filePath'
+            filePath: './tools/Set-LocalTestSettings.ps1'
+            arguments: >
+              -EnvironmentName "$(TestEnvironmentName)"
+              -ClientId "$(TestEnvironmentClientId)"
+              -Scopes "$(TestEnvironmentScopes)"
+              -SharedUri "$(TestEnvironmentSharedUri)"
+              -PortalUri "$(TestEnvironmentPortalUri)"
+              -SessionProvider "$(TestEnvironmentSessionProvider)"
+              -Force
+
+        - task: PowerShell@2
+          displayName: 'Copy .fabric-environment if exists'
+          continueOnError: true
+          inputs:
+            targetType: 'inline'
+            pwsh: true
+            script: |
+              $envFile = Join-Path $HOME '.fabric-environment'
+              if (Test-Path $envFile) {
+                $targetPath = "$(Build.SourcesDirectory)/extension/test/uitest/settings.json"
+                Copy-Item $envFile $targetPath -Force
+                Write-Host "Copied .fabric-environment to $targetPath"
+              }
 
         - script: npm run test:${{ testCategory }}
           displayName: Run ${{ testCategory }} tests

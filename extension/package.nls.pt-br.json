@@ -41,7 +41,7 @@
   "extension.walkthrough.fabric.title": "Introdução ao Microsoft Fabric",
   "extension.walkthrough.fabric.description": "Suas primeiras etapas para trabalhar com o Fabric!",
   "extension.walkthrough.openPortal.title": "Criar um workspace",
-  "extension.walkthrough.openPortal.description": "Vá para o Portal do Fabric para criar um novo workspace. Se você já tiver um workspace, ignore esta etapa!\n[Ir para o Portal do Fabric](https://daily.fabric.microsoft.com/)",
+  "extension.walkthrough.openPortal.description": "Vá para o Portal do Fabric para criar um novo workspace. Se você já tiver um workspace, ignore esta etapa!\n[Ir para o Portal do Fabric](https://app.fabric.microsoft.com/)",
   "extension.walkthrough.openFabricView.title": "Abrir o Gerenciador de Malha",
   "extension.walkthrough.openFabricView.description": "Você pode abrir o Fabric Explorer na Barra Lateral clicando no ícone da Barra de Atividades do Fabric.\n[Ir para o Fabric Explorer](command:workbench.view.extension.vscode-fabric_view_workspace)",
   "extension.walkthrough.signIn.title": "Entrar no Fabric",

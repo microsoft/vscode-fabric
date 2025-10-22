@@ -6,7 +6,7 @@ import {
     IApiClientResponse,
     IArtifact,
 } from '@microsoft/vscode-fabric-api';
-import { FabricEnvironmentName, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { TelemetryService } from '@microsoft/vscode-fabric-util';
 import { MockArtifactManagerStub, MockFabricEnvironmentProvider, MockLoggerStub, initializeServiceCollection } from './serviceCollection';
 
 class MockArtifactManager extends MockArtifactManagerStub {
@@ -54,7 +54,7 @@ describe('ArtifactManager tests that do not require VSCode', () => {
             displayName: 'FakeDisplayName',
             description: 'FakeDescription',
             workspaceId: 'FakeWorkspaceId',
-            fabricEnvironment: FabricEnvironmentName.MOCK,
+            fabricEnvironment: 'MOCK',
         };
         initializeServiceCollection(artifactManager, undefined, logger, undefined);
         try {

@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 /* eslint-disable security/detect-object-injection */
-import { FabricEnvironmentName, IFabricEnvironmentProvider, ILogger, IConfigurationProvider, FakeConfigurationProvider } from '@microsoft/vscode-fabric-util';
+import { IFabricEnvironmentProvider, ILogger, IConfigurationProvider, FakeConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../authentication/interfaces';
 import { IArtifact, IWorkspace, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { WorkspaceManagerBase } from './WorkspaceManager';
@@ -166,7 +166,7 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
 
         // Add artifacts to the workspace
         const artifacts: IArtifact[] = [];
-        artifacts.push(new MockHierarchicalArtifact('Artifact_4', 'MockHierarchicalItem', 'Artifact (4)', 'description for Artifact (4)', 4, FabricEnvironmentName.MOCK));
+        artifacts.push(new MockHierarchicalArtifact('Artifact_4', 'MockHierarchicalItem', 'Artifact (4)', 'description for Artifact (4)', 4, 'MOCK'));
 
         // Make sure member variables have the items
         this.currentWorkspaces.push(workspace);

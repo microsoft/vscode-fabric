@@ -15,17 +15,18 @@
  * @example
  * ```typescript
  * const prodSettings: FabricEnvironmentSettings = {
- *   env: FabricEnvironmentName.PROD,
+ *   env: 'PROD',
  *   clientId: '02fe4832-64e1-42d2-a605-d14958774a2e',
  *   scopes: ['https://analysis.windows.net/powerbi/api/.default'],
  *   sharedUri: 'https://api.fabric.microsoft.com',
- *   portalUri: 'app.fabric.microsoft.com'
+ *   portalUri: 'app.fabric.microsoft.com',
+ *   sessionProvider: 'microsoft'
  * };
  * ```
  */
 export type FabricEnvironmentSettings = {
     /** The environment identifier, used for logging and environment-specific logic */
-    env: FabricEnvironmentName;
+    env: string;
 
     /**
      * Azure AD client ID for authentication to this Fabric environment.
@@ -50,24 +51,20 @@ export type FabricEnvironmentSettings = {
      * Used for constructing links to the Fabric portal for user navigation.
      */
     portalUri: string;
+
+    /**
+     * VS Code authentication session provider to use for this environment.
+     * - 'microsoft': Standard Microsoft authentication for external/production environments
+     * - 'microsoft-sovereign-cloud': Internal Microsoft authentication for PPE/internal environments
+     * @defaultValue 'microsoft'
+     */
+    sessionProvider?: string;
 };
 
 /**
- * Enumeration of available Microsoft Fabric deployment environments.
- *
- * This enum defines all supported Fabric environments that the extension can connect to,
- * ranging from local development environments to production. Each environment corresponds
- * to a different deployment stage with its own authentication, API endpoints, and portal URLs.
+ * Built-in Fabric environment identifier.
  */
-/* eslint-disable @typescript-eslint/naming-convention */
-export enum FabricEnvironmentName {
-    MOCK = 'MOCK',
-    ONEBOX = 'ONEBOX',
-    EDOG = 'EDOG',
-    EDOGONEBOX = 'EDOGONEBOX',
-    DAILY = 'DAILY',
-    DXT = 'DXT',
-    MSIT = 'MSIT',
-    PROD = 'PROD'
-};
-/* eslint-enable @typescript-eslint/naming-convention */
+export const FABRIC_ENVIRONMENT_PROD = 'PROD';
+
+export const msSessionProvider: string = 'microsoft';
+export const msSessionProviderPPE: string = 'microsoft-sovereign-cloud';

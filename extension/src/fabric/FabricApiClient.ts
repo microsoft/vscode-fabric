@@ -15,7 +15,6 @@ import * as path from 'path';
 import { TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
-import { FabricEnvironmentName } from '@microsoft/vscode-fabric-util';
 import { doFabricAction } from '@microsoft/vscode-fabric-util';
 import { ILogger } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../authentication/interfaces';
@@ -212,23 +211,6 @@ export class FabricApiClient implements IFabricApiClient {
                     catch (error) {
                         this.logger.reportExceptionTelemetryAndLog('sendRequest', 'json-parse', error, this.telemetryService);
                         throw error;
-                    }
-                }
-                else {
-                    // TODO: Review environment-specific handling
-                    // on Edog with Onebox workload, the response Content-Type is xml, not JSON, so we don't parse it.. (On OneBoxToOneBox, it is JSON so we'll try to parse it successfully as JSON above.)
-                    // so for OneBox and EDOG, we'll try to parse it as JSON even if it fails, we'll just log it as text and not throw
-                    const env = this.fabricEnvironmentProvider.getCurrent().env;
-                    if (env === FabricEnvironmentName.ONEBOX || env === FabricEnvironmentName.EDOG || env === FabricEnvironmentName.EDOGONEBOX) { // ONEBOX, EDOG, or EDOGONEBOX
-                        try {
-                            response.parsedBody = JSON.parse(azApiresponse.bodyAsText);
-                            this.logger.log(`ONEBOX: Parsed body as JSON ContentType = ${azApiresponse.headers.get('Content-Type')}: ${azApiresponse.bodyAsText}`);
-                        }
-                        catch (error) {
-                            this.logger.log(`ONEBOX: exception parsing bodyAsText as JSON. ContentType = ${azApiresponse.headers.get('Content-Type')}: ${azApiresponse.bodyAsText}`);
-                            // don't throw!!
-                        }
-
                     }
                 }
             }

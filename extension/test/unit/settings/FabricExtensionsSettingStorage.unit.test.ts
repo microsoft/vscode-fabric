@@ -6,11 +6,11 @@ import * as assert from 'assert';
 
 import { IFabricExtensionSettings, IFabricWorkspaceSettings, fabricWorkspaceSettingsVersion } from '../../../src/settings/definitions';
 import { FabricExtensionsSettingStorage } from '../../../src/settings/FabricExtensionsSettingStorage';
-import { FabricEnvironmentName, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
+import { IConfigurationProvider, FABRIC_ENVIRONMENT_PROD } from '@microsoft/vscode-fabric-util';
 import { MockFabricEnvironmentProvider } from '../general/serviceCollection';
 
 const settingsFabricWorkspace = 'settingsFabricWorkspace';
-const defaultFabricEnvironment = FabricEnvironmentName.MOCK;
+const defaultFabricEnvironment = 'MOCK';
 
 class MockMemento implements vscode.Memento {
     private data: Map<string, any> = new Map();
@@ -353,9 +353,9 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             loginState: false,
             workspaces: [
                 createWorkspaceFolder('customEnvironmentMockWorkspace1'),
-                createWorkspaceFolder('defaultEnvironmentMockWorkspace1', FabricEnvironmentName.PROD),
+                createWorkspaceFolder('defaultEnvironmentMockWorkspace1', FABRIC_ENVIRONMENT_PROD),
                 createWorkspaceFolder('customEnvironmentMockWorkspace2'),
-                createWorkspaceFolder('defaultEnvironmentMockWorkspace2', FabricEnvironmentName.PROD),
+                createWorkspaceFolder('defaultEnvironmentMockWorkspace2', FABRIC_ENVIRONMENT_PROD),
             ],
             artifacts: [],
         };
@@ -403,7 +403,7 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
         const testWorkspaceFilters: { [key: string]: string[] } = {};
         testWorkspaceFilters['PROD:tenant-123'] = ['workspace-1', 'workspace-2'];
         testWorkspaceFilters['MOCK:tenant-456'] = ['workspace-3'];
-        testWorkspaceFilters['DAILY:tenant-789'] = ['workspace-4', 'workspace-5', 'workspace-6'];
+        testWorkspaceFilters['CUSTOM:tenant-789'] = ['workspace-4', 'workspace-5', 'workspace-6'];
 
         const settings: IFabricExtensionSettings = {
             version: fabricWorkspaceSettingsVersion,
@@ -435,7 +435,7 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
         assert.deepEqual(storage.settings.workspaceFilters, testWorkspaceFilters, 'Workspace filters should be loaded correctly');
         assert.deepEqual(storage.settings.workspaceFilters!['PROD:tenant-123'], ['workspace-1', 'workspace-2'], 'PROD environment filters should be correct');
         assert.deepEqual(storage.settings.workspaceFilters!['MOCK:tenant-456'], ['workspace-3'], 'MOCK environment filters should be correct');
-        assert.deepEqual(storage.settings.workspaceFilters!['DAILY:tenant-789'], ['workspace-4', 'workspace-5', 'workspace-6'], 'DAILY environment filters should be correct');
+        assert.deepEqual(storage.settings.workspaceFilters!['CUSTOM:tenant-789'], ['workspace-4', 'workspace-5', 'workspace-6'], 'CUSTOM environment filters should be correct');
 
         // Test modifying and saving workspace filters
         storage.settings.workspaceFilters!['PROD:tenant-123'] = ['workspace-1', 'workspace-7'];
@@ -451,7 +451,7 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
 
         const expectedFilters: { [key: string]: string[] } = {};
         expectedFilters['PROD:tenant-123'] = ['workspace-1', 'workspace-7'];
-        expectedFilters['DAILY:tenant-789'] = ['workspace-4', 'workspace-5', 'workspace-6'];
+        expectedFilters['CUSTOM:tenant-789'] = ['workspace-4', 'workspace-5', 'workspace-6'];
         expectedFilters['TEST:tenant-999'] = ['workspace-8'];
 
         assert.deepEqual(savedSettings.workspaceFilters, expectedFilters, 'Modified workspace filters should be saved correctly');

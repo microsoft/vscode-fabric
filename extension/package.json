@@ -477,11 +477,6 @@
     "configuration": {
       "title": "Fabric",
       "properties": {
-        "Fabric.Environment": {
-          "type": "string",
-          "default": "PROD",
-          "description": "%extension.configuration.Environment.description%"
-        },
         "Fabric.ApiTimeout": {
           "type": "number",
           "default": 60000,
@@ -496,6 +491,14 @@
           "type": "boolean",
           "default": "false",
           "description": "%extension.configuration.DebugLogging.description%"
+        },
+        "Fabric.EnvironmentSettings": {
+          "type": "object",
+          "default": {
+            "current": "PROD",
+            "environments": []
+          },
+          "description": "%extension.configuration.Environment.description%"
         },
         "Fabric.ShowFolders": {
           "type": "boolean",

@@ -4,14 +4,13 @@
 import * as assert from 'assert';
 import { IFabricExtensionSettings, IFabricExtensionsSettingStorage, IFabricWorkspaceSettings } from '../../../src/settings/definitions';
 import { LocalFolderSettingsAdapter } from '../../../src/settings/LocalFolderSettingsAdapter';
-import { FabricEnvironmentName } from '@microsoft/vscode-fabric-util';
 import { MockFabricEnvironmentProvider } from '../general/serviceCollection';
 import { Mock, Times } from 'moq.ts';
 
 function createWorkspaceFolder(workspaceId: string, localFolder: string, fabricEnvironment?: string): IFabricWorkspaceSettings {
     return {
         workspaceId: workspaceId,
-        fabricEnv: fabricEnvironment ?? FabricEnvironmentName.MOCK,
+        fabricEnv: fabricEnvironment ?? 'MOCK',
         localFolder: localFolder,
     };
 }

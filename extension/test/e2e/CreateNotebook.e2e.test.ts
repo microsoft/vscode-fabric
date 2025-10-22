@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { activateCore, VSCodeUIBypass, sleep, ILogger } from '@microsoft/vscode-fabric-util';
+import { activateCore, VSCodeUIBypass, sleep, ILogger, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { ArtifactTreeNode, IArtifact, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { commandNames } from '../../src/constants';
 import { DeleteArtifactRemoteOnlyAction } from '../../src/artifactManager/deleteArtifactCommand';
@@ -9,6 +9,7 @@ import { FabricWorkspaceDataProvider } from '../../src/workspace/treeView';
 import { CreateItemTypeQuickPickItem } from '../../src/artifactManager/createArtifactCommand';
 import { fabricItemMetadata } from '../../src/metadata/fabricItemMetadata';
 import { CreateItemsProvider } from '../../src/metadata/CreateItemsProvider';
+import { TestEnvironmentConfig } from '../utilities/TestEnvironmentConfig';
 
 describe('Create Notebook E2E Test', function () {
     const testTimeOut = 60 * 1000;
@@ -32,6 +33,13 @@ describe('Create Notebook E2E Test', function () {
 
         assert(core, 'Failed to activate core extension');
         assert(core.testHooks, 'Failed to get test hooks from core');
+
+        // Configure test environment using centralized configuration utility
+        const configurationProvider = core.testHooks['configurationProvider'] as IConfigurationProvider;
+        assert(configurationProvider, 'Failed to get ConfigurationProvider from test hooks');
+
+        const customEnv = await TestEnvironmentConfig.configureTestEnvironment(configurationProvider);
+        assert(customEnv, 'Test environment must be enabled. Set the following environment variables: FABRIC_TEST_CLIENT_ID, FABRIC_TEST_SHARED_URI, FABRIC_TEST_PORTAL_URI, FABRIC_TEST_ENVIRONMENT_NAME');
 
         // Get UI bypass from test hooks (this runs in the extension context)
         uiBypass = core.testHooks['vscodeUIBypass'] as VSCodeUIBypass;

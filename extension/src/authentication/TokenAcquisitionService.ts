@@ -5,7 +5,7 @@ import { IDisposable } from '@microsoft/vscode-fabric-api';
 import { ITokenAcquisitionService, TokenRequestOptions } from './interfaces';
 import * as vscode from 'vscode';
 import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
-import { getSessionProviderForFabricEnvironment, msSessionProvider, msSessionProviderPPE  } from '@microsoft/vscode-fabric-util';
+import { msSessionProvider, msSessionProviderPPE  } from '@microsoft/vscode-fabric-util';
 import { TelemetryService } from '@microsoft/vscode-fabric-util';
 import { ILogger, LogImportance } from '@microsoft/vscode-fabric-util';
 import { getConfiguredAzureEnv } from '@microsoft/vscode-azext-azureauth';
@@ -28,7 +28,7 @@ export class TokenAcquisitionService implements ITokenAcquisitionService, IDispo
 
     public async getSessionInfo(options: TokenRequestOptions, extraScopes?: string[], tenantId?: string): Promise<vscode.AuthenticationSession | null> {
         const currentEnv = this.fabricEnvironmentProvider.getCurrent();
-        const currentProvider = getSessionProviderForFabricEnvironment(currentEnv.env);
+        const currentProvider = currentEnv.sessionProvider ?? msSessionProvider;
         const fullScope = [...this.vscodeSessionScopes(currentEnv.clientId, tenantId), ...currentEnv.scopes, ...extraScopes ?? []];
         const session = await this.getSession(currentProvider, fullScope, options);
         return session ?? null;
@@ -36,14 +36,14 @@ export class TokenAcquisitionService implements ITokenAcquisitionService, IDispo
 
     public getMsAccessToken(options: TokenRequestOptions, extraScopes?: string[], tenantId?: string): Promise<string | null> {
         const currentEnv = this.fabricEnvironmentProvider.getCurrent();
-        const currentProvider = getSessionProviderForFabricEnvironment(currentEnv.env);
+        const currentProvider = currentEnv.sessionProvider ?? msSessionProvider;
         const fullScope = [...this.vscodeSessionScopes(currentEnv.clientId, tenantId), ...currentEnv.scopes, ...extraScopes ?? []];
         return this.getAccessToken(currentProvider, fullScope, options);
     }
 
     public getArmAccessToken(options: TokenRequestOptions, extraScopes?: string[], tenantId?: string): Promise<string | null> {
         const currentEnv = this.fabricEnvironmentProvider.getCurrent();
-        const currentProvider = getSessionProviderForFabricEnvironment(currentEnv.env);
+        const currentProvider = currentEnv.sessionProvider ?? msSessionProvider;
         const configuredAzureEnv = getConfiguredAzureEnv();
         const endpoint = configuredAzureEnv.resourceManagerEndpointUrl;
 

@@ -10,7 +10,6 @@ import * as path from 'path';
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 
-import { FabricEnvironmentName } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionsSettingStorage } from '../../../src/settings/definitions';
 import { MockFabricEnvironmentProvider } from './serviceCollection';
 import { Mock, Times } from 'moq.ts';
@@ -34,13 +33,13 @@ const mockArtifact: IArtifact = {
     type: expectedArtifactType,
     description: 'Mock Artifact Description',
     workspaceId: mockGuidWorkspaceId,
-    fabricEnvironment: FabricEnvironmentName.MOCK,
+    fabricEnvironment: 'MOCK',
 };
 
 function createWorkspaceFolder(workspaceId: string, localFolder?: string, fabricEnvironment?: string): IFabricWorkspaceSettings {
     return {
         workspaceId: workspaceId,
-        fabricEnv: fabricEnvironment ?? FabricEnvironmentName.MOCK,
+        fabricEnv: fabricEnvironment ?? 'MOCK',
         localFolder: localFolder,
     };
 }

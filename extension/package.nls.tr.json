@@ -41,7 +41,7 @@
   "extension.walkthrough.fabric.title": "Microsoft Fabric Kullanmaya Başlayın",
   "extension.walkthrough.fabric.description": "Fabric ile çalışmak için izleyeceğiniz ilk adımlar!",
   "extension.walkthrough.openPortal.title": "Çalışma alanı oluştur",
-  "extension.walkthrough.openPortal.description": "Yeni bir çalışma alanı oluşturmak için Fabric Portalı’na gidin. Zaten bir çalışma alanınız varsa bu adımı atlayın!\n[Fabric Portalı’na Gidin](https://daily.fabric.microsoft.com/)",
+  "extension.walkthrough.openPortal.description": "Yeni bir çalışma alanı oluşturmak için Fabric Portalı’na gidin. Zaten bir çalışma alanınız varsa bu adımı atlayın!\n[Fabric Portalı’na Gidin](https://app.fabric.microsoft.com/)",
   "extension.walkthrough.openFabricView.title": "Fabric Explorer’ı Aç",
   "extension.walkthrough.openFabricView.description": "Fabric Etkinlikleri Çubuğu simgesine tıklayarak Kenar Çubuğunda Fabric Explorer açabilirsiniz.\n[Fabric Explorer'a Gidin](command:workbench.view.extension.vscode-fabric_view_workspace)",
   "extension.walkthrough.signIn.title": "Fabric’de oturum açın",

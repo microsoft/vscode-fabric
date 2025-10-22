@@ -41,7 +41,7 @@
   "extension.walkthrough.fabric.title": "Začínáme s Microsoft Fabricem",
   "extension.walkthrough.fabric.description": "První kroky při práci s Fabricem!",
   "extension.walkthrough.openPortal.title": "Vytvoření pracovního prostoru",
-  "extension.walkthrough.openPortal.description": "Přejděte na portál Fabricu a vytvořte nový pracovní prostor. Pokud už pracovní prostor máte, můžete tento krok přeskočit.\n[Přejít na portál Fabricu](https://daily.fabric.microsoft.com/)",
+  "extension.walkthrough.openPortal.description": "Přejděte na portál Fabricu a vytvořte nový pracovní prostor. Pokud už pracovní prostor máte, můžete tento krok přeskočit.\n[Přejít na portál Fabricu](https://app.fabric.microsoft.com/)",
   "extension.walkthrough.openFabricView.title": "Otevřít Fabric Explorer",
   "extension.walkthrough.openFabricView.description": "Fabric Explorer můžete otevřít kliknutím na ikonu panelu aktivity Fabricu na bočním panelu.\n[Přejít do Fabric Exploreru](command:workbench.view.extension.vscode-fabric_view_workspace)",
   "extension.walkthrough.signIn.title": "Přihlaste se k Fabricu",

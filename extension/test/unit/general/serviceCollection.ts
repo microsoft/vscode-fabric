@@ -16,7 +16,7 @@ import {
 } from '@microsoft/vscode-fabric-api';
 import { ArtifactManager } from '../../../src/artifactManager/ArtifactManager';
 import { FabricExtensionServiceCollection } from '../../../src/FabricExtensionServiceCollection';
-import { FabricEnvironmentName, getFabricEnvironment, FabricEnvironmentSettings, IFabricEnvironmentProvider, ILogger, LogImportance } from '@microsoft/vscode-fabric-util';
+import { FabricEnvironmentSettings, IFabricEnvironmentProvider, ILogger, LogImportance } from '@microsoft/vscode-fabric-util';
 import { Mock } from 'moq.ts';
 
 // #region stub IFabricServiceCollection implementations
@@ -98,7 +98,16 @@ class MockWorkspaceManagerStub implements IWorkspaceManager {
 
 export class MockFabricEnvironmentProvider implements IFabricEnvironmentProvider {
     getCurrent(): FabricEnvironmentSettings {
-        return getFabricEnvironment(FabricEnvironmentName.MOCK);
+        return {
+            env: 'MOCK',
+            clientId: '00000000-0000-0000-0000-000000000000',
+            scopes: [],
+            sharedUri: '',
+            portalUri: '',
+        };
+    }
+    switchToEnvironment(environmentName: string): Promise<boolean> {
+        throw new Error('Method not implemented.');
     }
     private readonly onDidEnvironmentChangeEmitter = new vscode.EventEmitter<void>();
     readonly onDidEnvironmentChange = this.onDidEnvironmentChangeEmitter.event;

@@ -361,6 +361,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
             container.get<ILogger>()
         )); // registering the same item, the last one registered always wins.
         container.registerSingleton<ITokenAcquisitionService>(() => new FakeTokenAcquisitionService());
+        container.registerSingleton<IConfigurationProvider, FakeConfigurationProvider>();
     }
 
     return container;

@@ -232,7 +232,7 @@ The core team provides a @fabric/vscode-fabric-util NPM package with implementat
 
 - Configuration & Environment
   - `ConfigurationProvider` – typed access to `Fabric.*` user/workspace settings with change events per key
-  - `FabricEnvironmentProvider` / `FabricEnvironment` – resolves current environment metadata (clientId, scopes, portal/api URIs) and emits change events
+  - `FabricEnvironmentProvider` / `FabricEnvironment` – resolves current environment metadata (clientId, scopes, portal/api URIs) from VS Code settings and emits change events
 - Telemetry & Logging
   - `TelemetryService` – supports multiple extension instances; satellites get dynamic core default properties via a supplied function
   - `TelemetryActivity` helpers – duration + success/failure aggregation
