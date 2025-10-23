@@ -1,0 +1,48 @@
+parameters:
+  - name: dependsOn
+    type: object
+    default: []
+
+# Publish NPM Packages Publicly Stage Template
+# Publishes NPM packages to public npmjs.org registry
+
+stages:
+- stage: PublishNpmPublic
+  displayName: 'Publish NPM (public)'
+  ${{ if ne(length(parameters.dependsOn), 0) }}:
+    dependsOn: ${{ parameters.dependsOn }}
+  jobs:
+  - deployment: publishPublicPackages
+    displayName: 'Publish NPM (public)'
+    environment: 'vscode-fabric-npm-release'  # Configure approvals on this environment in Azure DevOps
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # Install dependencies
+          - task: NodeTool@0
+            inputs: 
+              versionSpec: $(NodeVersion)
+            displayName: install nodejs
+
+          # Download artifacts from build stage
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'current'
+              artifactName: 'npm-artifacts'
+              targetPath: $(Pipeline.Workspace)/npm-artifacts
+
+          - task: EsrpRelease@9
+            inputs:
+              ContentType: 'NPM'
+              usemanagedidentity: true
+              ConnectedServiceName: $(EsrpConnectedServiceName)
+              ClientId: $(EsrpClientId)
+              KeyVaultName: $(EsrpKeyVaultName)
+              SignCertName: $(EsrpSignCertName)
+              folderlocation: $(Pipeline.Workspace)/npm-artifacts
+              owners: $(EsrpOwners)
+              approvers: $(EsrpApprovers)
+              ServiceEndpointUrl: $(EsrpServiceEndpointUrl)
+              MainPublisher: $(EsrpMainPublisher)
+              DomainTenantId: $(EsrpAppRegistrationTenantId)

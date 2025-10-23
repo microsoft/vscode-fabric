@@ -1,0 +1,24 @@
+parameters:
+  - name: dependsOn
+    type: object
+    default: []
+
+# Build Stage Template
+# Builds all components (API, Util packages, and VSIX extension) in parallel jobs
+
+stages:
+- stage: Build
+  displayName: 'Build Stage'
+  ${{ if ne(length(parameters.dependsOn), 0) }}:
+    dependsOn: ${{ parameters.dependsOn }}
+
+  jobs:
+
+  # Build & Sign VSIX files
+  - template: ../jobs/build-vsix.yml
+
+  # Build & Publish NPM packages
+  - template: ../jobs/build-npm.yml
+
+  # OneLoc Build
+  - template: ../jobs/build-oneloc.yml

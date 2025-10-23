@@ -1,0 +1,38 @@
+# PR Validation Pipeline
+# Runs only on PRs targeting main branch
+# Executes e2e and UI tests only (skips unit/integration tests and publishing)
+
+trigger: none
+
+pr:
+  branches:
+    include:
+      - main
+
+variables:
+  - name: NodeVersion
+    value: 20.x
+
+stages:
+  - stage: test_e2e_ui
+    displayName: Tests
+    jobs:
+      - template: templates/jobs/test.yml
+        parameters:
+          jobNameSuffix: 'windows'
+          testCategories:
+            - e2e
+            - ui
+          pool:
+            name: Azure Pipelines
+            vmImage: windows-latest
+
+      - template: templates/jobs/test.yml
+        parameters:
+          jobNameSuffix: 'macos'
+          testCategories:
+            - e2e
+            - ui
+          pool:
+            name: Azure Pipelines
+            vmImage: macOS-latest

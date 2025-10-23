@@ -1,0 +1,69 @@
+{
+	"folders": [
+		{
+			"name": "🌳 ROOT",
+			"path": ".."
+		},
+		{
+			"name": "📦 vscode-fabric",
+			"path": "../extension"
+		},
+		{
+			"name": "🚀 @microsoft/vscode-fabric-api",
+			"path": "../api"
+		},
+		{
+			"name": "🚀 @microsoft/vscode-fabric-util",
+			"path": "../util"
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"node_modules/": true,
+			"extension": true,
+			"api": true,
+			"util": true,
+			"out/.test-extensions/": true,
+			"*.nls.*.json": true,
+			"l10n/*.l10n.*.json": true,
+		},
+		"search.exclude": {
+			"**/node_modules": true,
+			"**/out": true,
+			"**/dist": true,
+			"**/lib": true,
+			"*.nls.*.json": true,
+			"l10n/*.l10n.*.json": true,
+			"**/Localize/loc/**": true,
+			"**/*.lcl": true,
+		},
+		"powershell.cwd": "🌳 Root",
+		"npm.packageManager": "npm",
+		"npm.scriptRunner": "npm",
+		"npm.exclude": "**/.test-extensions/**",
+		// the solution files are for the template, let's not open them
+		"dotnet.defaultSolution": "disable",
+		// "microsoft-sovereign-cloud.environment": "custom",
+		// "microsoft-sovereign-cloud.customEnvironment": {
+		// 	"name": "custom",
+		// 	"portalUrl": "https://mycustomenv.portal.azure.com",
+		// 	"managementEndpointUrl": "https://management.mycustomenv.com",
+		// 	"resourceManagerEndpointUrl": "https://resources.mycustomenv.com",
+		// 	"activeDirectoryEndpointUrl": "https://login.mycustomenv.com",
+		// 	"activeDirectoryResourceId": "https://management.mycustomenv.com"
+		// }
+		"extension-test-runner.debugOptions": {
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder:📦 vscode-fabric}",
+			],
+			"outFiles": [
+				"${workspaceFolder:📦 vscode-fabric}/**/*",
+				"${workspaceFolder:🚀 @microsoft/vscode-fabric-api}/**/*",
+				"${workspaceFolder:🚀 @microsoft/vscode-fabric-util}/**/*",
+			],
+			"sourceMapPathOverrides": {
+				"webpack://vscode-fabric/*": "${workspaceFolder:📦 vscode-fabric}/*",
+			}
+		},
+	}
+}
