@@ -1,0 +1,71 @@
+parameters:
+  - name: dependsOn
+    type: object
+    default: []
+
+# Publish VSCode Extension Stage Template
+# Verifies the signed VSIX and publishes it to VS Code Marketplace
+
+stages:
+- stage: PublishExtension
+  displayName: 'Publish VS Code extension'
+  ${{ if ne(length(parameters.dependsOn), 0) }}:
+    dependsOn: ${{ parameters.dependsOn }}
+  jobs:
+  - deployment: signAndPublish
+    displayName: 'Verify & Publish VSIX (public)'
+    environment: 'vscode-fabric-extension-release'  # Configure approvals on this environment in Azure DevOps
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # Install dependencies
+          - task: NodeTool@0
+            inputs: 
+              versionSpec: $(NodeVersion)
+            displayName: install nodejs
+
+          # Download artifacts from build stage
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'current'
+              artifactName: 'vsix-artifacts'
+              targetPath: $(Pipeline.Workspace)/vsix-artifacts
+
+          # Locate the VSIX file for verification and publishing
+          - pwsh: |
+              $vsix = Get-ChildItem -Path "$(Pipeline.Workspace)/vsix-artifacts" -Filter "vscode-fabric*.vsix" | Select-Object -First 1
+              if ($null -eq $vsix) {
+                Write-Error "No vscode-fabric VSIX file found in $(Pipeline.Workspace)/vsix-artifacts"
+                exit 1
+              }
+              Write-Host "##vso[task.setvariable variable=VSIX_FILE_NAME]$($vsix.Name)"
+              Write-Host "VSIX file found: $($vsix.Name)"
+            displayName: Locate VSIX file and set variable
+
+          # Set up CFS needed for npx
+          - pwsh: |
+              Add-Content -Path "$(Build.SourcesDirectory)/.npmrc" -Value "registry=$(ArtifactsFeed)npm/registry/`nalways-auth=true"
+            displayName: Inject registry settings into .npmrc
+
+          - task: npmAuthenticate@0
+            inputs:
+              workingFile: .npmrc
+
+          # Verify VSIX signature
+          - pwsh: npx @vscode/vsce@latest verify-signature --packagePath $(Pipeline.Workspace)/vsix-artifacts/$(VSIX_FILE_NAME) --manifestPath $(Pipeline.Workspace)/vsix-artifacts/extension.manifest --signaturePath $(Pipeline.Workspace)/vsix-artifacts/extension.signature.p7s
+            displayName: Verify VSIX signature
+
+          # Publish the extension to VS Code Marketplace
+          - task: AzureCLI@2
+            displayName: 'Publish extension to VS Code Marketplace'
+            inputs:
+              azureSubscription: $(MarketplaceAzureConnection)
+              scriptType: pscore
+              scriptLocation: inlineScript
+              inlineScript: |
+                npx @vscode/vsce@latest publish \
+                  -i $(Pipeline.Workspace)/vsix-artifacts/$(VSIX_FILE_NAME) \
+                  --manifestPath $(Pipeline.Workspace)/vsix-artifacts/extension.manifest \
+                  --signaturePath $(Pipeline.Workspace)/vsix-artifacts/extension.signature.p7s \
+                  --azure-credential

@@ -1,0 +1,21 @@
+# Build output
+**/dist
+**/out
+**/build
+**/lib
+
+# Dependencies
+**/node_modules
+
+# Generated files
+**/*.js.map
+**/*.d.ts
+
+# Test data
+**/test/data
+
+# Coverage reports
+**/coverage
+
+# Cache
+.cache

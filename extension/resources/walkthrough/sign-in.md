@@ -1,0 +1,1 @@
+Learn about Fabric from the [Getting Started Documentation](https://learn.microsoft.com/en-us/fabric/get-started/)

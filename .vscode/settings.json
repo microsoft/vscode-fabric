@@ -1,0 +1,59 @@
+{
+    // Consolidated settings merged from root + api + util + extension
+    "eslint.options": {
+        "overrideConfigFile": ".eslintrc.js"
+    },
+
+    "files.exclude": {
+        "**/node_modules": true,
+        // From extension .vscode/settings.json: keep build artifacts visible (explicit false)
+        "out": false,
+        "dist": false
+    },
+
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/out": true,
+        "**/dist": true,
+        "**/lib": true,
+        // Added from package + extension settings
+        "**/.vscode-test": true,
+        // Localization build artifacts
+        "*.nls.*.json": true,
+        "l10n/*.l10n.*.json": true,
+        "**/Localize/loc/**": true,
+        "**/*.lcl": true
+    },
+  
+    // Requires marketplace extension: ymotongpoo.licenser
+    // Inserts standard Microsoft MIT header for new source files.
+    "licenser.license": "Custom",
+    "licenser.author": "Microsoft Corporation",
+    "licenser.useSingleLineStyle": true,
+    // Two-line header exactly; placeholders handled by the extension.
+    "licenser.customHeader": "Copyright (c) Microsoft Corporation.\nLicensed under the MIT License.",
+    // Exclude data / doc / config files; extend as necessary (e.g., add 'ps1' if handled separately by script)
+    "licenser.excludeFileExtensions": [
+        "json",
+        "md",
+        "yml",
+        "yaml"
+    ],
+    "licenser.disableAutoHeaderInsertion": false,
+  
+    // Keep TypeScript auto detection off (from extension settings) to rely on explicit tsconfig references.
+    "typescript.tsc.autoDetect": "off",
+
+    // Consistent repo discovery behavior across nested workspaces.
+    "git.openRepositoryInParentFolders": "always",
+
+    // Use npm consistently across the monorepo.
+    "npm.packageManager": "npm",
+    "npm.scriptRunner": "npm",
+    "npm.exclude": "**/.test-extensions/**",
+
+    // Gen AI script
+    "genaiscript.languageChatModels": {
+        "gpt-5-mini": "gpt-5-mini"
+    }
+}

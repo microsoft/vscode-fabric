@@ -1,0 +1,30 @@
+# Dependencies Steps Template
+# Common setup steps for Node.js, CFS registry, and npm package installation
+
+steps:
+# Checkout the source code
+- checkout: self
+  persistCredentials: true
+
+# Install dependencies
+- task: NodeTool@0
+  inputs: 
+    versionSpec: $(NodeVersion)
+  displayName: install nodejs
+
+# Set up CFS
+- pwsh: |
+    Add-Content -Path "$(Build.SourcesDirectory)/.npmrc" -Value "registry=$(ArtifactsFeed)npm/registry/`nalways-auth=true"
+  displayName: Inject registry settings into .npmrc
+
+- task: npmAuthenticate@0
+  inputs:
+    workingFile: .npmrc
+
+# Install npm packages
+- task: Npm@1
+  displayName: npm ci
+  inputs:
+    command: ci
+    workingDirectory: $(Build.SourcesDirectory)
+    verbose: true
