@@ -9,6 +9,8 @@ export namespace commandNames {
     export const createArtifact = 'vscode-fabric.createArtifact';
     export const readArtifact = 'vscode-fabric.readArtifact';
     export const openArtifact = 'vscode-fabric.openArtifact';
+    export const openLocalFolder = 'vscode-fabric.openLocalFolder';
+    export const changeLocalFolder = 'vscode-fabric.changeLocalFolder';
     export const exportArtifact = 'vscode-fabric.exportArtifact';
     export const importArtifact = 'vscode-fabric.importArtifact';
     export const importArtifactPromptWorkspace = 'vscode-fabric.importArtifactPromptWorkspace';

@@ -13,8 +13,8 @@ import { TelemetryService, IFabricEnvironmentProvider, ILogger } from '@microsof
 import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { ICapacityManager } from '../../../src/CapacityManager';
 import { FabricWorkspaceDataProvider } from '../../../src/workspace/treeView';
-import { ILocalFolderManager } from '../../../src/LocalFolderManager';
 import { IWorkspaceFilterManager } from '../../../src/workspace/WorkspaceFilterManager';
+import { ILocalFolderService } from '../../../src/LocalFolderService';
 
 describe('registerLocalProjectCommands', () => {
     let contextMock: Mock<vscode.ExtensionContext>;
@@ -22,7 +22,7 @@ describe('registerLocalProjectCommands', () => {
     let fabricEnvironmentProviderMock: Mock<IFabricEnvironmentProvider>;
     let artifactManagerMock: Mock<IArtifactManagerInternal>;
     let extensionManagerMock: Mock<IFabricExtensionManagerInternal>;
-    let localFolderManagerMock: Mock<ILocalFolderManager>;
+    let localFolderServiceMock: Mock<ILocalFolderService>;
     let telemetryServiceMock: Mock<TelemetryService>;
     let loggerMock: Mock<ILogger>;
     let capacityManagerMock: Mock<ICapacityManager>;
@@ -39,7 +39,7 @@ describe('registerLocalProjectCommands', () => {
         fabricEnvironmentProviderMock = new Mock<IFabricEnvironmentProvider>();
         artifactManagerMock = new Mock<IArtifactManagerInternal>();
         extensionManagerMock = new Mock<IFabricExtensionManagerInternal>();
-        localFolderManagerMock = new Mock<ILocalFolderManager>();
+        localFolderServiceMock = new Mock<ILocalFolderService>();
         telemetryServiceMock = new Mock<TelemetryService>();
         loggerMock = new Mock<ILogger>();
         capacityManagerMock = new Mock<ICapacityManager>();
@@ -48,7 +48,7 @@ describe('registerLocalProjectCommands', () => {
 
         contextMock.setup(x => x.subscriptions).returns([]);
 
-        localFolderManagerMock.setup(x => x.getWorkspaceIdForLocalFolder(It.IsAny<vscode.Uri>())).returns(undefined);
+        //localFolderServiceMock.setup(x => x.getWorkspaceIdForLocalFolder(It.IsAny<vscode.Uri>())).returns(undefined);
 
         // Stub vscode.commands.registerCommand to capture registrations
         //registerCommandStub = sinon.stub();
@@ -231,7 +231,7 @@ describe('registerLocalProjectCommands', () => {
             fabricEnvironmentProviderMock.object(),
             artifactManagerMock.object(),
             extensionManagerMock.object(),
-            localFolderManagerMock.object(),
+            localFolderServiceMock.object(),
             workspaceFilterManagerMock.object(),
             capacityManagerMock.object(),
             dataProviderMock.object(),
