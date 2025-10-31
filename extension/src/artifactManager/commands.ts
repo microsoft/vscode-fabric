@@ -11,7 +11,7 @@ import { IArtifact,  IWorkspace, IWorkspaceManager, ArtifactTreeNode } from '@mi
 import { OperationRequestType } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
 import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
-import { TelemetryActivity, TelemetryService, IFabricEnvironmentProvider, withErrorHandling, doFabricAction, ILogger } from '@microsoft/vscode-fabric-util';
+import { TelemetryActivity, TelemetryService, IFabricEnvironmentProvider, withErrorHandling, doFabricAction, ILogger, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { fabricViewWorkspace } from '../constants';
 import { createArtifactCommand, createArtifactCommandDeprecated, promptForArtifactTypeAndName } from './createArtifactCommand';
@@ -19,6 +19,8 @@ import { readArtifactCommand } from './readArtifactCommand';
 import { renameArtifactCommand } from './renameArtifactCommand';
 import { deleteArtifactCommand } from './deleteArtifactCommand';
 import { exportArtifactCommand } from './exportArtifactCommand';
+import { openLocalFolderCommand } from './openLocalFolderCommand';
+import { changeLocalFolderCommand } from './changeLocalFolderCommand';
 import { ItemDefinitionWriter } from '../itemDefinition/ItemDefinitionWriter';
 import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { showSignInPrompt } from '../ui/prompts';
@@ -27,6 +29,7 @@ import { showWorkspaceQuickPick } from '../ui/showWorkspaceQuickPick';
 import { WorkspaceTreeNode } from '../workspace/treeNodes/WorkspaceTreeNode';
 import { ItemDefinitionConflictDetector } from '../itemDefinition/ItemDefinitionConflictDetector';
 import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
+import { ILocalFolderService } from '../LocalFolderService';
 
 let artifactCommandDisposables: vscode.Disposable[] = [];
 
@@ -44,6 +47,8 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
     workspaceManager: IWorkspaceManager,
     fabricEnvironmentProvider: IFabricEnvironmentProvider,
     artifactManager: IArtifactManagerInternal,
+    localFolderService: ILocalFolderService,
+    configurationProvider: IConfigurationProvider,
     dataProvider: FabricWorkspaceDataProvider,
     extensionManager: IFabricExtensionManagerInternal,
     workspaceFilterManager: IWorkspaceFilterManager,
@@ -191,6 +196,8 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                             artifact,
                             workspaceManager,
                             artifactManager,
+                            localFolderService,
+                            configurationProvider,
                             new ItemDefinitionConflictDetector(vscode.workspace.fs),
                             new ItemDefinitionWriter(vscode.workspace.fs),
                             activity
@@ -235,6 +242,61 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                     else {
                         await artifactManager.openArtifact(item);
                     }
+                }
+            );
+        },
+        context
+    );
+
+    registerCommand(
+        commandNames.openLocalFolder,
+        async (...cmdArgs) => {
+            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode;
+            await doArtifactAction(
+                artifactTreeNode?.artifact,
+                'openLocalFolder',
+                'item/open/localFolder',
+                logger,
+                telemetryService,
+                async (activity, item) => {
+                    await openLocalFolderCommand(
+                        item,
+                        workspaceManager,
+                        artifactManager,
+                        localFolderService,
+                        configurationProvider,
+                        new ItemDefinitionConflictDetector(vscode.workspace.fs),
+                        new ItemDefinitionWriter(vscode.workspace.fs),
+                        activity
+                    );
+                }
+            );
+        },
+        context
+    );
+
+    registerCommand(
+        commandNames.changeLocalFolder,
+        async (...cmdArgs) => {
+            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode;
+            await doArtifactAction(
+                artifactTreeNode?.artifact,
+                'changeLocalFolder',
+                'item/open/localFolder',
+                logger,
+                telemetryService,
+                async (activity, item) => {
+                    await changeLocalFolderCommand(
+                        item,
+                        workspaceManager,
+                        artifactManager,
+                        localFolderService,
+                        configurationProvider,
+                        new ItemDefinitionConflictDetector(vscode.workspace.fs),
+                        new ItemDefinitionWriter(vscode.workspace.fs),
+                        activity,
+                        { skipWarning: false, promptForSave: false }
+                    );
                 }
             );
         },

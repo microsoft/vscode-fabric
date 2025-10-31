@@ -75,10 +75,22 @@
         "icon": "$(open-preview)"
       },
       {
+        "command": "vscode-fabric.openLocalFolder",
+        "title": "%extension.openLocalFolder.title%",
+        "category": "Fabric",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "vscode-fabric.changeLocalFolder",
+        "title": "%extension.changeLocalFolder.title%",
+        "category": "Fabric",
+        "icon": "$(folder-opened)"
+      },
+      {
         "command": "vscode-fabric.exportArtifact",
         "title": "%extension.exportArtifact.title%",
         "category": "Fabric",
-        "icon": "$(open-preview)"
+        "icon": "$(cloud-download)"
       },
       {
         "command": "vscode-fabric.importArtifact",
@@ -252,6 +264,14 @@
           "when": "false"
         },
         {
+          "command": "vscode-fabric.openLocalFolder",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.changeLocalFolder",
+          "when": "false"
+        },
+        {
           "command": "vscode-fabric.exportArtifact",
           "when": "false"
         },
@@ -420,6 +440,16 @@
           "group": "inline"
         },
         {
+          "command": "vscode-fabric.openLocalFolder",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-open-local-folder/",
+          "group": "5@2"
+        },
+        {
+          "command": "vscode-fabric.changeLocalFolder",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-open-local-folder/",
+          "group": "5@3"
+        },
+        {
           "submenu": "vscode-fabric.submenu.importArtifact",
           "when": "view == vscode-fabric.view.local && viewItem =~ /item-import/",
           "group": "6@1"
@@ -437,22 +467,27 @@
         {
           "command": "vscode-fabric.openNotebook",
           "when": "view == vscode-fabric.view.workspace && viewItem =~ /Notebook/",
-          "group": "5@1"
-        },
-        {
-          "command": "vscode-fabric.openInPortal",
-          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-view-in-portal/",
-          "group": "5@2"
+          "group": "5@10"
         },
         {
           "command": "vscode-fabric.openSqlExtension",
           "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-open-in-sql/",
-          "group": "5@3"
+          "group": "5@11"
         },
         {
           "command": "vscode-fabric.copyConnectionString",
           "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-copy-connection-string/",
-          "group": "5@4"
+          "group": "5@12"
+        },
+        {
+          "command": "vscode-fabric.openInPortal",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-view-in-portal/",
+          "group": "5@99"
+        },
+        {
+          "command": "vscode-fabric.refreshLocalFolderView",
+          "when": "view == vscode-fabric.view.local && (viewItem =~ /Item.*/ || viewItem =~ /.*LocalProjectTreeNode/ || viewItem == ConnectionsTreeNode || viewItem == LibrariesTreeNode || viewItem == FunctionsTreeNode)",
+          "group": "9@1"
         },
         {
           "command": "vscode-fabric.renameArtifact",
@@ -463,11 +498,6 @@
           "command": "vscode-fabric.deleteArtifact",
           "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-delete/",
           "group": "9@3"
-        },
-        {
-          "command": "vscode-fabric.refreshLocalFolderView",
-          "when": "view == vscode-fabric.view.local && (viewItem =~ /Item.*/ || viewItem =~ /.*LocalProjectTreeNode/ || viewItem == ConnectionsTreeNode || viewItem == LibrariesTreeNode || viewItem == FunctionsTreeNode)",
-          "group": "9@1"
         }
       ]
     },
@@ -483,6 +513,17 @@
           "type": "string",
           "default": "",
           "description": "%extension.configuration.DefaultWorkspaceFolder.description%"
+        },
+        "Fabric.LocalFolderSaveBehavior": {
+          "type": "string",
+          "enum": ["prompt", "always", "never"],
+          "enumDescriptions": [
+            "%extension.configuration.LocalFolderSaveBehavior.prompt%",
+            "%extension.configuration.LocalFolderSaveBehavior.always%",
+            "%extension.configuration.LocalFolderSaveBehavior.never%"
+          ],
+          "default": "prompt",
+          "description": "%extension.configuration.LocalFolderSaveBehavior.description%"
         },
         "Fabric.DebugLogging": {
           "type": "boolean",

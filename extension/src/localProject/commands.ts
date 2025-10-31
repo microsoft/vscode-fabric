@@ -14,8 +14,8 @@ import { importArtifactCommand } from './importArtifactCommand';
 import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { ItemDefinitionReader } from '../itemDefinition/ItemDefinitionReader';
 import { ICapacityManager } from '../CapacityManager';
-import { ILocalFolderManager } from '../LocalFolderManager';
 import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
+import { ILocalFolderService } from '../LocalFolderService';
 
 let commandDisposables: vscode.Disposable[] = [];
 
@@ -35,7 +35,7 @@ export function registerLocalProjectCommands(
     fabricEnvironmentProvider: IFabricEnvironmentProvider,
     artifactManager: IArtifactManagerInternal,
     extensionManager: IFabricExtensionManagerInternal,
-    localFolderManager: ILocalFolderManager,
+    localFolderService: ILocalFolderService,
     workspaceFilterManager: IWorkspaceFilterManager,
     capacityManager: ICapacityManager,
     dataProvider: FabricWorkspaceDataProvider,
@@ -72,7 +72,7 @@ export function registerLocalProjectCommands(
                                 workspaceManager,
                                 artifactManager,
                                 extensionManager,
-                                localFolderManager,
+                                localFolderService,
                                 workspaceFilterManager,
                                 capacityManager,
                                 new ItemDefinitionReader(vscode.workspace.fs),

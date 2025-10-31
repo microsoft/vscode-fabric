@@ -173,10 +173,12 @@ export interface IArtifactManager {
      * Gets the definition for the specified artifact from the Fabric back end
      *
      * @param artifact - The artifact to get the definition for
+     * @param folder - The location the item definition will be saved to
      * @param options - Optional parameters for the get operation
      */
     getArtifactDefinition(
         artifact: IArtifact,
+        folder?: vscode.Uri,
         options?: {
             /**
              * Optional progress reporter to track the progress of the get operation
@@ -410,6 +412,7 @@ export interface IWorkspaceManager {
 
     /**
      * Gets or creates the local folder mapped to a Fabric workspace.
+     * @deprecated - Use getLocalFolderForArtifact
      * @param workspace - The Fabric workspace to get the local folder for
      * @param options - Options controlling folder creation behavior
      * @returns Promise resolving to the local folder URI, or undefined if not found/created

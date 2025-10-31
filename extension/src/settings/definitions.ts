@@ -26,6 +26,8 @@ export interface IFabricWorkspaceSettings {
 
     /**
      * The local folder location for all artifact projects within the workspace
+     *
+     * @deprecated - Use ILocalFolderSettings instead
      */
     localFolder?: string
 }
@@ -41,8 +43,32 @@ export interface IFabricArtifactSettings {
 
     /**
      * The relative local folder for this item within the workspace's local folder
+     *
+     * @deprecated - Use ILocalFolderSettings instead
      */
     localFolder?: string
+}
+
+export interface ILocalFolderSettings {
+    /**
+     * The item identifier
+     */
+    artifactId: string,
+
+    /**
+     * The local folder location for the artifact
+     */
+    localFolder: string,
+
+    /**
+     * The workspace ID that contains this artifact
+     */
+    workspaceId: string,
+
+    /**
+     * The Fabric environment the artifact belongs to
+     */
+    fabricEnvironment?: string
 }
 
 /**
@@ -91,6 +117,8 @@ export interface IFabricExtensionSettings {
      * key format suggestion: `${env}:${tenantIdOrNone}:${displayStyle}`
      */
     viewState?: { [contextKey: string]: IFabricViewState }
+
+    localFolders?: ILocalFolderSettings[],
 }
 
 /**
@@ -182,4 +210,21 @@ export interface ILocalFolderSettingsAdapter {
      * @param path The local folder path to look up
      */
     getWorkspaceFromFolder(path: string): string | undefined;
+}
+
+export interface ILocalFolderSettingsStore {
+    /**
+     * Returns the local folder information for the requested item, or undefined if no local folder information is known
+     * @param id The identifier of the item requested
+     */
+    getLocalFolder(artifactId: string): string | undefined;
+
+    /**
+     * Sets the local folder information for the specified item, overwriting any previous value
+     * @param artifactId The identifier of the relevant item
+     * @param path Local folder information for the item
+     * @param workspaceId Workspace ID to store for workspace inference
+     * @param fabricEnvironment Optional Fabric environment to store
+     */
+    setLocalFolder(artifactId: string, path: string, workspaceId: string, fabricEnvironment?: string): Promise<void>;
 }

@@ -21,6 +21,7 @@ export type CoreTelemetryEventNames = {
 	'item/import': { properties: ArtifactManagerResultPropertyNames | 'targetDetermination'; measurements: never },
 	'item/open': { properties: ResultPropertyNames | ArtifactPropertyNames; measurements: never },
 	'item/open/portal': { properties: ArtifactPropertyNames; measurements: never },
+	'item/open/localFolder': { properties: ArtifactPropertyNames; measurements: never },
 
 	// tenant management
 	'tenant/switch': { properties: ResultPropertyNames; measurements: never }
