@@ -8,7 +8,21 @@ import * as querystring from 'querystring';
 import { FeedbackTreeDataProvider } from './feedback/FeedbackTreeDataProvider';
 import { WorkspaceManager, WorkspaceManagerBase } from './workspace/WorkspaceManager';
 import { IFabricExtensionManager, Schema, IArtifactManager, IFabricApiClient, IFabricExtensionServiceCollection, IWorkspaceManager, FabricTreeNode } from '@microsoft/vscode-fabric-api';
-import { TelemetryService, TelemetryActivity, FabricUriHandler, FabricEnvironmentProvider, ConfigurationProvider, IConfigurationProvider, IFabricEnvironmentProvider, ILogger, IDisposableCollection, DisposableCollection, FakeConfigurationProvider, MockConsoleLogger, VSCodeUIBypass } from '@microsoft/vscode-fabric-util';
+import {
+    TelemetryService,
+    TelemetryActivity,
+    FabricUriHandler,
+    FabricEnvironmentProvider,
+    ConfigurationProvider,
+    IConfigurationProvider,
+    IFabricEnvironmentProvider,
+    ILogger,
+    IDisposableCollection,
+    DisposableCollection,
+    FakeConfigurationProvider,
+    MockConsoleLogger,
+    VSCodeUIBypass,
+} from '@microsoft/vscode-fabric-util';
 import { ITokenAcquisitionService, IAccountProvider } from './authentication/interfaces';
 import { AccountProvider } from './authentication/AccountProvider';
 import { TokenAcquisitionService, VsCodeAuthentication, DefaultVsCodeAuthentication } from './authentication/TokenAcquisitionService';
@@ -44,6 +58,7 @@ import { MockWorkspaceManager } from './workspace/mockWorkspaceManager';
 import { InternalSatelliteManager } from './internalSatellites/InternalSatelliteManager';
 import { WorkspaceFilterManager, IWorkspaceFilterManager } from './workspace/WorkspaceFilterManager';
 import { FakeTokenAcquisitionService } from './authentication';
+import { FabricEnvironmentStatusBar } from './environment/FabricEnvironmentStatusBar';
 
 let app: FabricVsCodeExtension;
 
@@ -86,7 +101,12 @@ export class FabricVsCodeExtension {
             const localFolderManager = this.container.get<LocalFolderManager>();
             const apiClient = this.container.get<IFabricApiClient>();
             const fabricEnvironmentProvider = this.container.get<IFabricEnvironmentProvider>();
+            const configurationProvider = this.container.get<IConfigurationProvider>();
             const capacityManager = this.container.get<ICapacityManager>();
+
+            const environmentStatusBar = new FabricEnvironmentStatusBar(configurationProvider, fabricEnvironmentProvider);
+            await environmentStatusBar.initialize(context);
+            context.subscriptions.push(environmentStatusBar);
 
             const treeView: vscode.TreeView<FabricTreeNode> = vscode.window.createTreeView('vscode-fabric.view.workspace',
                 { treeDataProvider: dataProvider, showCollapseAll: true });
@@ -189,7 +209,7 @@ export class FabricVsCodeExtension {
                     'logger': logger,
                     'fabricEnvironmentProvider': fabricEnvironmentProvider,
                     'telemetryService': telemetryService,
-                    'configurationProvider': this.container.get<IConfigurationProvider>(),
+                    'configurationProvider': configurationProvider,
                     'workspaceDataProvider': this.container.get<FabricWorkspaceDataProvider>(),
                     'vscodeUIBypass': new VSCodeUIBypass(),
                     'artifactManager': artifactManager,

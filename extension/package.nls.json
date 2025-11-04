@@ -2,6 +2,7 @@
     "extension.signIn.title": "Sign In",
     "extension.signOut.title": "Sign Out",
     "extension.switchTenant.title": "Switch tenant...",
+    "extension.selectEnvironment.title": "Switch Fabric environment...",
     "extension.createWorkspace.title": "Create Fabric workspace...",
     "extension.selectWorkspaceLocalFolder.title": "Select working directory...",
     "extension.createArtifact.title":"Create Item...",

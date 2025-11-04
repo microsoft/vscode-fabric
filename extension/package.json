@@ -40,13 +40,20 @@
       {
         "command": "vscode-fabric.signIn",
         "title": "%extension.signIn.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "icon": "$(account)"
       },
       {
         "command": "vscode-fabric.switchTenant",
         "title": "%extension.switchTenant.title%",
         "category": "Fabric",
         "icon": "$(arrow-swap)"
+      },
+      {
+        "command": "vscode-fabric.selectEnvironment",
+        "title": "%extension.selectEnvironment.title%",
+        "category": "Fabric",
+        "icon": "$(globe)"
       },
       {
         "command": "vscode-fabric.createWorkspace",
@@ -69,7 +76,8 @@
       {
         "command": "vscode-fabric.readArtifact",
         "title": "%extension.readArtifact.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "icon": "$(file)"
       },
       {
         "command": "vscode-fabric.openArtifact",
@@ -98,7 +106,8 @@
       {
         "command": "vscode-fabric.openInPortal",
         "title": "%extension.openInPortal.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "icon": "$(link-external)"
       },
       {
         "command": "vscode-fabric.refreshArtifactView",
@@ -121,17 +130,20 @@
       {
         "command": "vscode-fabric.renameArtifact",
         "title": "%extension.renameArtifact.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "icon": "$(edit)"
       },
       {
         "command": "vscode-fabric.viewIssues",
         "title": "%extension.viewIssues.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "icon": "$(bug)"
       },
       {
         "command": "vscode-fabric.reportIssue",
         "title": "%extension.reportIssue.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "icon": "$(comment)"
       },
       {
         "command": "vscode-fabric.workspaceViewToList",
@@ -148,17 +160,20 @@
       {
         "command": "vscode-fabric.openNotebook",
         "title": "%extension.openNotebook.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "icon": "$(notebook)"
       },
       {
         "command": "vscode-fabric.openSqlExtension",
         "title": "%extension.openSqlExtension.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "icon": "$(database)"
       },
       {
         "command": "vscode-fabric.copyConnectionString",
         "title": "%extension.copyConnectionString.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "icon": "$(copy)"
       },
       {
         "command": "vscode-fabric.installExtension",
@@ -184,18 +199,21 @@
         {
           "id": "vscode-fabric.view.workspace",
           "name": "%extension.views.Workspace.title%",
-          "initialSize": 5
+          "initialSize": 5,
+          "icon": "$(cloud)"
         },
         {
           "id": "vscode-fabric.view.local",
           "name": "%extension.views.Local.title%",
-          "initialSize": 3
+          "initialSize": 3,
+          "icon": "$(folder)"
         },
         {
           "id": "vscode-fabric.view.feedback",
           "name": "%extension.views.Feedback.title%",
           "visibility": "visible",
-          "initialSize": 1
+          "initialSize": 1,
+          "icon": "$(comment-discussion)"
         }
       ]
     },
