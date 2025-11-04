@@ -1062,6 +1062,35 @@ describe('ArtifactManager', function () {
         assert.strictEqual(sendRequestArgs?.headers?.['X-Test-Create-With-Definition'], 'true', 'Custom header should be present');
         assert.ok(handleLongRunningOperationStub.calledOnce, 'handleLongRunningOperation should be called');
     });
+
+    it('createArtifactWithDefinition: passes progress reporter to handleLongRunningOperation', async function () {
+        // Arrange
+        const apiResponse: IApiClientResponse = { status: 201 } as any;
+        const itemDefinition: IItemDefinition = { parts: [] };
+        const folderUri = vscode.Uri.file('/tmp/folder-create-with-progress');
+        const progressReporter = {
+            report: sinon.stub(),
+        };
+
+        apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+            .returns(Promise.resolve(apiResponse));
+
+        const handleLongRunningOperationStub = sinon.stub(utilities, 'handleLongRunningOperation').resolves(apiResponse);
+
+        // Act
+        const result = await artifactManager.createArtifactWithDefinition(
+            artifactMock.object(),
+            itemDefinition,
+            folderUri,
+            { progress: progressReporter as any }
+        );
+
+        // Assert
+        assert.strictEqual(result, apiResponse, 'Should return final API response');
+        assert.ok(handleLongRunningOperationStub.calledOnce, 'handleLongRunningOperation should be called once');
+        const handleLroArgs = handleLongRunningOperationStub.firstCall.args;
+        assert.strictEqual(handleLroArgs[3], progressReporter, 'Progress reporter should be passed to handleLongRunningOperation');
+    });
     [
         { status: 200 },
         { status: 202 },
@@ -1166,5 +1195,34 @@ describe('ArtifactManager', function () {
         assert.ok(sendRequestArgs, 'sendRequestArgs should be defined');
         assert.ok(sendRequestArgs!.pathTemplate!.endsWith('?sync=true'), 'Path template should be modified by onBeforeUpdateDefinition');
         assert.ok(handleLongRunningOperationStub.calledOnce, 'handleLongRunningOperation should be called');
+    });
+
+    it('updateArtifactDefinition: passes progress reporter to handleLongRunningOperation', async function () {
+        // Arrange
+        const apiResponse: IApiClientResponse = { status: 200 } as any;
+        const itemDefinition: IItemDefinition = { parts: [] };
+        const folderUri = vscode.Uri.file('/tmp/folder-update-with-progress');
+        const progressReporter = {
+            report: sinon.stub(),
+        };
+
+        apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+            .returns(Promise.resolve(apiResponse));
+
+        const handleLongRunningOperationStub = sinon.stub(utilities, 'handleLongRunningOperation').resolves(apiResponse);
+
+        // Act
+        const result = await artifactManager.updateArtifactDefinition(
+            artifactMock.object(),
+            itemDefinition,
+            folderUri,
+            { progress: progressReporter as any }
+        );
+
+        // Assert
+        assert.strictEqual(result, apiResponse, 'Should return final API response');
+        assert.ok(handleLongRunningOperationStub.calledOnce, 'handleLongRunningOperation should be called once');
+        const handleLroArgs = handleLongRunningOperationStub.firstCall.args;
+        assert.strictEqual(handleLroArgs[3], progressReporter, 'Progress reporter should be passed to handleLongRunningOperation');
     });
 });
