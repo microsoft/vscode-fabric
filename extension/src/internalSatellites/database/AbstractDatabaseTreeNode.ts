@@ -34,7 +34,7 @@ export abstract class AbstractDatabaseTreeNode extends ArtifactTreeNode {
     protected constructExternalUri(serverName: string, databaseName: string | undefined = undefined): string {
         const profileName = `${this.artifact.displayName} (${this.typeDisplayNameMap[this.artifactType]})`;
 
-        //note the parmeters do not need to be encoded as they are handled by the mssql extension
+        // note the parameters do not need to be encoded as they are handled by the mssql extension
         var base = `${vscode.env.uriScheme}://ms-mssql.mssql/connect?server=${serverName}&authenticationType=AzureMFA&profileName=${profileName}`;
         if (databaseName) {
             base += `&database=${databaseName}`;

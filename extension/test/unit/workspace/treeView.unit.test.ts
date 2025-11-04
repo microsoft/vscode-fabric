@@ -11,12 +11,27 @@ import { ListViewWorkspaceTreeNode } from '../../../src/workspace/treeNodes/List
 import { TreeViewWorkspaceTreeNode } from '../../../src/workspace/treeNodes/TreeViewWorkspaceTreeNode';
 import { IFabricExtensionSettings, IFabricExtensionsSettingStorage } from '../../../src/settings/definitions';
 import { IFabricExtensionManagerInternal } from '../../../src/apis/internal/fabricExtensionInternal';
-import { ArtifactTreeNode, FabricTreeNode, IArtifact, IFabricTreeNodeProvider, IWorkspaceManager, IWorkspace } from '@microsoft/vscode-fabric-api';
+import {
+    ArtifactTreeNode,
+    FabricTreeNode,
+    IArtifact,
+    IFabricTreeNodeProvider,
+    IWorkspaceManager,
+    IWorkspace,
+    IWorkspaceFolder,
+} from '@microsoft/vscode-fabric-api';
 import { TelemetryService } from '@microsoft/vscode-fabric-util';
 import { ITenantSettings, IAccountProvider } from '../../../src/authentication';
 import { ObservableMap } from '../../../src/collections/ObservableMap';
 
-async function createInstance(storage: IFabricExtensionsSettingStorage, context: vscode.ExtensionContext, extensionManager: IFabricExtensionManagerInternal, workspaceManager: IWorkspaceManager, accountProvider: IAccountProvider, telemetryService: TelemetryService | null): Promise<IRootTreeNodeProvider> {
+async function createInstance(
+    storage: IFabricExtensionsSettingStorage,
+    context: vscode.ExtensionContext,
+    extensionManager: IFabricExtensionManagerInternal,
+    workspaceManager: IWorkspaceManager,
+    accountProvider: IAccountProvider,
+    telemetryService: TelemetryService | null
+): Promise<IRootTreeNodeProvider> {
     const instance = new RootTreeNodeProvider(storage, context, extensionManager, workspaceManager, accountProvider, telemetryService);
     await instance.enableCommands();
     return instance;
@@ -54,6 +69,7 @@ describe('RootTreeNodeProvider', () => {
         // Set up mocks to perform common operations
         telemetryServiceMock.setup(instance => instance.sendTelemetryEvent(It.IsAny(), It.IsAny())).returns(undefined);
         workspaceManagerMock.setup(instance => instance.fabricWorkspaceContext).returns('fabricWorkspaceContext');
+        workspaceManagerMock.setup(instance => instance.getFoldersInWorkspace(It.IsAny())).returns(Promise.resolve([]));
     });
 
     it('ListView Tree: Empty', async () => {
@@ -107,6 +123,11 @@ describe('RootTreeNodeProvider', () => {
         assert.notEqual(childNodes, undefined, 'Child nodes should not be undefined');
         assert.equal(childNodes.length, 1, 'Should have one workspace child node');
         assert(childNodes[0] instanceof ListViewWorkspaceTreeNode, 'Child should be ListViewWorkspaceTreeNode');
+
+        const workspaceNode = childNodes[0] as ListViewWorkspaceTreeNode;
+        await workspaceNode.getChildNodes();
+
+        workspaceManagerMock.verify(instance => instance.getFoldersInWorkspace(It.IsAny()), Times.Once());
     });
 
     it('TreeView Tree: Child items, no providers', async () => {
@@ -183,6 +204,50 @@ describe('RootTreeNodeProvider', () => {
         treeNodeProviderMock.verify(instance => instance.createArtifactTreeNode(item2B), Times.Once());
         treeNodeProviderMock.verify(instance => instance.createArtifactTreeNode(item2A), Times.Once());
         treeNodeProviderMock.verify(instance => instance.createArtifactTreeNode(item1C), Times.Never());
+        workspaceManagerMock.verify(instance => instance.getFoldersInWorkspace(It.IsAny()), Times.Once());
+    });
+
+    it('ListView Tree: Groups artifacts by folders', async () => {
+        const salesFolder = createFolder('folder-sales', 'Sales');
+        const q1Folder = createFolder('folder-q1', 'Q1', salesFolder.id);
+        workspaceManagerMock.setup(instance => instance.getFoldersInWorkspace(It.IsAny())).returns(Promise.resolve([salesFolder, q1Folder]));
+
+        const rootArtifact: IArtifact = createArtifact('TypeRoot', 'Root Item');
+        const salesArtifact: IArtifact = createArtifact('TypeSales', 'Sales Item', salesFolder.id);
+        const q1Artifact: IArtifact = createArtifact('TypeQ1', 'Q1 Item', q1Folder.id);
+
+        settingsMock.setup(instance => instance.displayStyle).returns('ListView');
+        storageMock.setup(instance => instance.settings).returns(settingsMock.object());
+        workspaceManagerMock.setup(instance => instance.listWorkspaces()).returns(Promise.resolve([workspaceMock.object()]));
+        workspaceManagerMock.setup(instance => instance.getItemsInWorkspace(It.IsAny())).returns(Promise.resolve([rootArtifact, salesArtifact, q1Artifact]));
+        extensionManagerMock.setup(instance => instance.treeNodeProviders).returns(new ObservableMap<string, IFabricTreeNodeProvider>());
+
+        const provider = await createInstance(storageMock.object(), contextMock.object(), extensionManagerMock.object(), workspaceManagerMock.object(), accountProviderMock.object(), telemetryServiceMock.object());
+
+        const rootNode = provider.create(tenantMock.object());
+        const childNodes = await rootNode.getChildNodes();
+        const workspaceNode = childNodes[0] as ListViewWorkspaceTreeNode;
+        const topLevelNodes = await workspaceNode.getChildNodes();
+
+        assert.equal(topLevelNodes.length, 2, 'Workspace should have one folder and one root-level artifact');
+        const folderNode = topLevelNodes[0];
+        assert.equal(folderNode.label, salesFolder.displayName, 'First node should be the Sales folder');
+        assert.equal(folderNode.contextValue, 'WorkspaceFolderTreeNode', 'Folder node should expose folder context');
+        assert.equal(folderNode.collapsibleState, vscode.TreeItemCollapsibleState.Collapsed, 'Folder node should be collapsible');
+
+        const rootNodes = topLevelNodes[1];
+        assert.equal(rootNodes.label, rootArtifact.displayName, 'Second node should be the root-level artifact');
+
+        const salesChildren = await folderNode.getChildNodes();
+        assert.equal(salesChildren.length, 2, 'Sales should contain a child folder and an artifact');
+        assert.equal(salesChildren[0].label, q1Folder.displayName, 'First child of Sales should be the Q1 folder');
+        assert.equal(salesChildren[0].contextValue, 'WorkspaceFolderTreeNode', 'Nested folder should expose folder context');
+        const q1Children = await salesChildren[0].getChildNodes();
+        assert.equal(q1Children.length, 1, 'Q1 should contain one artifact');
+        assert.equal(q1Children[0].label, q1Artifact.displayName, 'Q1 artifact should be under Q1 folder');
+
+        assert.equal(salesChildren[1].label, salesArtifact.displayName, 'Sales artifact should be alongside nested folder');
+        workspaceManagerMock.verify(instance => instance.getFoldersInWorkspace(It.IsAny()), Times.Once());
     });
 
     it('TreeView Tree: Child items, with providers', async () => {
@@ -228,7 +293,7 @@ describe('RootTreeNodeProvider', () => {
         treeNodeProviderMock.verify(instance => instance.createArtifactTreeNode(item1C), Times.Never());
     });
 
-    function createArtifact(type: string, displayName: string): IArtifact {
+    function createArtifact(type: string, displayName: string, folderId?: string): IArtifact {
         return {
             type: type,
             displayName: displayName,
@@ -236,6 +301,16 @@ describe('RootTreeNodeProvider', () => {
             workspaceId: `workspace-${type}-${displayName}`,
             description: `description-${type}-${displayName}`,
             fabricEnvironment: 'mock',
+            folderId: folderId,
+        };
+    }
+
+    function createFolder(id: string, displayName: string, parentFolderId?: string): IWorkspaceFolder {
+        return {
+            id,
+            displayName,
+            workspaceId: 'test-workspace-id',
+            parentFolderId,
         };
     }
 });

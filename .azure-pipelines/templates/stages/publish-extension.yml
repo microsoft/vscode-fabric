@@ -22,7 +22,7 @@ stages:
           # Install dependencies
           - task: NodeTool@0
             inputs: 
-              versionSpec: 20.x
+              versionSpec: $(NodeVersion)
             displayName: install nodejs
 
           # Download artifacts from build stage
@@ -45,7 +45,7 @@ stages:
 
           # Set up CFS needed for npx
           - pwsh: |
-              Add-Content -Path "$(Build.SourcesDirectory)/.npmrc" -Value "registry=https://powerbi.pkgs.visualstudio.com/AppDev/_packaging/vscode-fabric/npm/registry/`nalways-auth=true"
+              Add-Content -Path "$(Build.SourcesDirectory)/.npmrc" -Value "registry=$(ArtifactsFeed)npm/registry/`nalways-auth=true"
             displayName: Inject registry settings into .npmrc
 
           - task: npmAuthenticate@0
@@ -56,21 +56,11 @@ stages:
           - pwsh: npx @vscode/vsce@latest verify-signature --packagePath $(Pipeline.Workspace)/vsix-artifacts/$(VSIX_FILE_NAME) --manifestPath $(Pipeline.Workspace)/vsix-artifacts/extension.manifest --signaturePath $(Pipeline.Workspace)/vsix-artifacts/extension.signature.p7s
             displayName: Verify VSIX signature
 
-          # temp to get AzDO user ID
-          - task: AzureCLI@2
-            displayName: 'Print AzDO User ID'
-            inputs:
-              azureSubscription: 'VS Marketplace'
-              scriptType: pscore
-              scriptLocation: inlineScript
-              inlineScript: |
-                az rest -u https://app.vssps.visualstudio.com/_apis/profile/profiles/me --resource 499b84ac-1321-427f-aa17-267ca6975798
-
           # Publish the extension to VS Code Marketplace
           - task: AzureCLI@2
             displayName: 'Publish extension to VS Code Marketplace'
             inputs:
-              azureSubscription: 'VS Marketplace'
+              azureSubscription: $(MarketplaceAzureConnection)
               scriptType: pscore
               scriptLocation: inlineScript
               inlineScript: |

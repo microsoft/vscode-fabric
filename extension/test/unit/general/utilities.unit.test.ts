@@ -264,7 +264,11 @@ describe('handleLongRunningOperation', () => {
         const initialResponse: IApiClientResponse = {
             status: 202,
             parsedBody: {},
-            headers: { get: (h: string) => { switch (h.toLowerCase()) { case 'location': return locationUrl; default: return undefined; } } } as any,
+            headers: { get: (h: string) => {
+                switch (h.toLowerCase()) {
+                    case 'location': return locationUrl; default: return undefined;
+                }
+            } } as any,
         };
         const final = await handleLongRunningOperation({} as any, initialResponse);
         assert.strictEqual(final, initialResponse, 'Should not poll without both location and x-ms-operation-id headers');
@@ -409,7 +413,11 @@ describe('handleLongRunningOperation', () => {
         const initialResponse: IApiClientResponse = {
             status: 202,
             parsedBody: {},
-            headers: { get: (h: string) => { switch (h.toLowerCase()) { case 'location': return resultLocation; default: return undefined; } } } as any,
+            headers: { get: (h: string) => {
+                switch (h.toLowerCase()) {
+                    case 'location': return resultLocation; default: return undefined;
+                }
+            } } as any,
         };
         const final = await handleLongRunningOperation({} as any, initialResponse);
         assert.strictEqual(final, initialResponse, 'Without operationId the implementation should not poll');
@@ -419,8 +427,16 @@ describe('handleLongRunningOperation', () => {
         const operationId = 'opfail';
         const locationUrl = `https://fabric/v1/operations/${operationId}`;
         const resultUrl = `${locationUrl}/result`;
-        const pollSuccess: IApiClientResponse = { status: 200, parsedBody: { status: 'Succeeded' }, headers: { get: (h: string) => { if (h.toLowerCase() === 'location') { return resultUrl; } return undefined; } } as any };
-        const initialResponse: IApiClientResponse = { status: 202, parsedBody: {}, headers: { get: (h: string) => { switch (h.toLowerCase()) { case 'location': return locationUrl; case 'x-ms-operation-id': return operationId; default: return undefined; } } } as any };
+        const pollSuccess: IApiClientResponse = { status: 200, parsedBody: { status: 'Succeeded' }, headers: { get: (h: string) => {
+            if (h.toLowerCase() === 'location') {
+                return resultUrl;
+            } return undefined;
+        } } as any };
+        const initialResponse: IApiClientResponse = { status: 202, parsedBody: {}, headers: { get: (h: string) => {
+            switch (h.toLowerCase()) {
+                case 'location': return locationUrl; case 'x-ms-operation-id': return operationId; default: return undefined;
+            }
+        } } as any };
         const apiClientMock = new Mock<IFabricApiClient>();
         apiClientMock.setup(a => a.sendRequest(It.Is<IApiClientRequestOptions>(o => o.url === locationUrl)))
             .returnsAsync(pollSuccess);

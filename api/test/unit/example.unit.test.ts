@@ -3,13 +3,11 @@
 
 import * as assert from 'assert';
 
-import { FunctionalityStatus } from '../../src/fabricExtension';
+import { PayloadType } from '../../src/FabricApiClient';
 
 describe('Test Suite', () => {
 
     it('Sample test', () => {
-        assert.equal(FunctionalityStatus.none, 0);
-        assert.equal(FunctionalityStatus.preview, 1);
-        assert.equal(FunctionalityStatus.comingSoon, 2);
+        assert.equal(PayloadType.InlineBase64, 'InlineBase64');
     });
 });

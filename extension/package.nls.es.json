@@ -41,7 +41,7 @@
   "extension.walkthrough.fabric.title": "Introducción a Microsoft Fabric",
   "extension.walkthrough.fabric.description": "Sus primeros pasos para trabajar con Fabric.",
   "extension.walkthrough.openPortal.title": "Crear un área de trabajo",
-  "extension.walkthrough.openPortal.description": "Vaya a Fabric Portal para crear un área de trabajo. Si ya tiene un área de trabajo, puede omitir este paso.\n[Ir a Fabric Portal](https://daily.fabric.microsoft.com/)",
+  "extension.walkthrough.openPortal.description": "Vaya a Fabric Portal para crear un área de trabajo. Si ya tiene un área de trabajo, puede omitir este paso.\n[Ir a Fabric Portal](https://app.fabric.microsoft.com/)",
   "extension.walkthrough.openFabricView.title": "Abrir Fabric Explorer",
   "extension.walkthrough.openFabricView.description": "Para abrir el Fabric Explorer en la barra lateral, haga clic en el icono de la barra de actividad de Fabric.\n[Ir a Fabric Explorer](command:workbench.view.extension.vscode-fabric_view_workspace)",
   "extension.walkthrough.signIn.title": "Inicie sesión en Fabric",

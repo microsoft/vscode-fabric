@@ -30,7 +30,7 @@ jobs:
       prSourceBranchPrefix: 'locfiles'
       packageSourceAuth: patAuth
       # Provide the dependency packages required by OneLocBuild. Replace with your feed which has 'azure-feed://ceapex/LocTools@Local' as an upstream source.
-      dependencyPackageSource: 'https://powerbi.pkgs.visualstudio.com/AppDev/_packaging/vscode-fabric/nuget/v3/index.json'
+      dependencyPackageSource: '$(ArtifactsFeed)nuget/v3/index.json'
       # Use the predefined variable to install the dependency packages from your feed. It maps to 'Project Collection Build Service ({organization name})' or '{project name} Build Service ({organization name})', which should be assigned to the 'Feed and Upstream Reader (Collaborator)' role in the feed.
       patVariable: '$(System.AccessToken)'
     displayName: 'OneLoc Build'

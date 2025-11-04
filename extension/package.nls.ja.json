@@ -41,7 +41,7 @@
   "extension.walkthrough.fabric.title": "Microsoft Fabric の使用を開始する",
   "extension.walkthrough.fabric.description": "Fabric を使用するための最初の手順です。",
   "extension.walkthrough.openPortal.title": "ワークスペースの作成",
-  "extension.walkthrough.openPortal.description": "Fabric ポータルに移動して、新しいワークスペースを作成します。既にワークスペースがある場合は、この手順をスキップできます。\n[Fabric ポータルに移動](https://daily.fabric.microsoft.com/)",
+  "extension.walkthrough.openPortal.description": "Fabric ポータルに移動して、新しいワークスペースを作成します。既にワークスペースがある場合は、この手順をスキップできます。\n[Fabric ポータルに移動](https://app.fabric.microsoft.com/)",
   "extension.walkthrough.openFabricView.title": "Fabric エクスプローラーを開く",
   "extension.walkthrough.openFabricView.description": "Fabric アクティビティ バー アイコンをクリックして、サイド バーで Fabric エクスプローラーを開くことができます。\n[Fabric エクスプローラーに移動](command:workbench.view.extension.vscode-fabric_view_workspace)",
   "extension.walkthrough.signIn.title": "Fabric にサインイン",

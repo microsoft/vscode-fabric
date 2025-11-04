@@ -22,7 +22,7 @@ stages:
           # Install dependencies
           - task: NodeTool@0
             inputs: 
-              versionSpec: 20.x
+              versionSpec: $(NodeVersion)
             displayName: install nodejs
 
           # Download artifacts from build stage
@@ -36,13 +36,13 @@ stages:
             inputs:
               ContentType: 'NPM'
               usemanagedidentity: true
-              ConnectedServiceName: 'Fabric-ESRP-Secure-AppDev'
-              ClientId: 'f351681f-63af-4d0a-80b2-80bc2ec5cbb2'
-              KeyVaultName: 'Fabric-ES-ESRP-PME'
-              SignCertName: 'Fabric-ESRP-Signing-PME'
+              ConnectedServiceName: $(EsrpConnectedServiceName)
+              ClientId: $(EsrpClientId)
+              KeyVaultName: $(EsrpKeyVaultName)
+              SignCertName: $(EsrpSignCertName)
               folderlocation: $(Pipeline.Workspace)/npm-artifacts
-              owners: 'mwade@microsoft.com'
-              approvers: 'kywhi@microsoft.com, mwade@microsoft.com, cpeth@microsoft.com, malerner@microsoft.com'
-              ServiceEndpointUrl: 'https://api.esrp.microsoft.com'
-              MainPublisher: 'ESRPRELPACMAN'
-              DomainTenantId: '975f013f-7f24-47e8-a7d3-abc4752bf346'
+              owners: $(EsrpOwners)
+              approvers: $(EsrpApprovers)
+              ServiceEndpointUrl: $(EsrpServiceEndpointUrl)
+              MainPublisher: $(EsrpMainPublisher)
+              DomainTenantId: $(EsrpAppRegistrationTenantId)

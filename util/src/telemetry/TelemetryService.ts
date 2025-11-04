@@ -3,16 +3,9 @@
 
 import TelemetryReporter from '@vscode/extension-telemetry';
 
-// Need to accomodate multiple TelemetryService instances, one for each extension (core/sat), and to allow a single common properties object to be shared across all instances.
-// So we need a way to allow the satellite extensions to get the (possibly updated) default properties in the core extension for every telemetry event
-// The core extension will hold the default properties and will have updateDefaultPropertiesFunction == null.
-// Sat instances will have a copy of the core extension's, updated to be the same as the core's.
-// Satellite extensions will have updateDefaultPropertiesFunction set to a function that returns the same properties from the core, so that those
-// common properties are included in all telemetry events. updateDefaultPropertiesFunction will be called before every sat telemetry event is sent.
-// updateDefaultPropertiesFunction function is provided by the FabricExtensionManager, via IFabricExtensionManager
-// re: performance, it just assigns the object reference, so both the core and satellite extensions will be using the same object in memory.
-// Testing: telem from both core and sat extensions, ismicrosoftinternal, tenantid, environment are sent, and updated when signing in with different accounts.
-
+/**
+ * The main service class that handles sending telemetry events to Application Insights
+ */
 export class TelemetryService {
     // these are defaultProps that are common to all telemetry events, like environment, ismicrosoftinternal, tenantid, etc.
     // VSCode adds other event properties like vscodesessionid, extname, extversion, vscodemachineid, sqmid, devdeviceid, etc.

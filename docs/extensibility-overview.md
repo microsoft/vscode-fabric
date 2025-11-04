@@ -232,11 +232,11 @@ The core team provides a @fabric/vscode-fabric-util NPM package with implementat
 
 - Configuration & Environment
   - `ConfigurationProvider` – typed access to `Fabric.*` user/workspace settings with change events per key
-  - `FabricEnvironmentProvider` / `FabricEnvironment` – resolves current environment metadata (clientId, scopes, portal/api URIs) and emits change events
+  - `FabricEnvironmentProvider` / `FabricEnvironment` – resolves current environment metadata (clientId, scopes, portal/api URIs) from VS Code settings and emits change events
 - Telemetry & Logging
   - `TelemetryService` – supports multiple extension instances; satellites get dynamic core default properties via a supplied function
   - `TelemetryActivity` helpers – duration + success/failure aggregation
-  - `Logger` & related helpers (`StepProgressLogger`, `MockConsoleLogger`) – unified Fabric output channel + structured exception logging (`reportExceptionTelemetryAndLog`)
+  - `Logger` & `MockConsoleLogger` – VS Code native log level integration with trace/debug/info/warn/error methods. See [Logger Utility Guide](./util/logger.md) for usage patterns and migration from deprecated methods
 - Error & UX helpers
   - `FabricError`, `doFabricAction`, `withErrorHandling` – consistent error surfacing, localization vs. aggregable messages, telemetry enrichment
   - `UserCancelledError` – signal user intent without fault telemetry

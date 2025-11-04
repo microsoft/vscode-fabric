@@ -4,7 +4,7 @@
 import * as vscode from 'vscode';
 
 import { commandNames } from '../constants';
-import { IWorkspaceManager, LocalProjectTreeNode, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { IWorkspaceManager, LocalProjectTreeNode } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
 import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { TelemetryActivity, TelemetryService, IFabricEnvironmentProvider, withErrorHandling, doFabricAction, ILogger } from '@microsoft/vscode-fabric-util';
@@ -29,10 +29,12 @@ function registerCommand(
     commandDisposables.push(disposable);
 }
 
-export function registerLocalProjectCommands(context: vscode.ExtensionContext,
+export function registerLocalProjectCommands(
+    context: vscode.ExtensionContext,
     workspaceManager: IWorkspaceManager,
     fabricEnvironmentProvider: IFabricEnvironmentProvider,
     artifactManager: IArtifactManagerInternal,
+    extensionManager: IFabricExtensionManagerInternal,
     localFolderManager: ILocalFolderManager,
     workspaceFilterManager: IWorkspaceFilterManager,
     capacityManager: ICapacityManager,
@@ -69,6 +71,7 @@ export function registerLocalProjectCommands(context: vscode.ExtensionContext,
                                 folder,
                                 workspaceManager,
                                 artifactManager,
+                                extensionManager,
                                 localFolderManager,
                                 workspaceFilterManager,
                                 capacityManager,

@@ -41,7 +41,7 @@
   "extension.walkthrough.fabric.title": "Начните работу с Microsoft Fabric",
   "extension.walkthrough.fabric.description": "Ваши первые шаги в работе с Fabric!",
   "extension.walkthrough.openPortal.title": "Создать рабочую область",
-  "extension.walkthrough.openPortal.description": "Перейдите на портал Fabric, чтобы создать новое рабочее пространство. Если у вас уже есть рабочее пространство, то вы можете пропустить этот шаг!\n[Перейти на портал Fabric](https://daily.fabric.microsoft.com/)",
+  "extension.walkthrough.openPortal.description": "Перейдите на портал Fabric, чтобы создать новое рабочее пространство. Если у вас уже есть рабочее пространство, то вы можете пропустить этот шаг!\n[Перейти на портал Fabric](https://app.fabric.microsoft.com/)",
   "extension.walkthrough.openFabricView.title": "Открыть Fabric Explorer",
   "extension.walkthrough.openFabricView.description": "Вы можете открыть Fabric Explorer на боковой панели, щелкнув значок Fabric Activity Bar.\n[Перейти в Fabric Explorer](command:workbench.view.extension.vscode-fabric_view_workspace)",
   "extension.walkthrough.signIn.title": "Войти в Fabric",

@@ -1,4 +1,4 @@
-﻿{
+{
 	"folders": [
 		{
 			"name": "🌳 ROOT",
@@ -45,7 +45,7 @@
 		"dotnet.defaultSolution": "disable",
 		// "microsoft-sovereign-cloud.environment": "custom",
 		// "microsoft-sovereign-cloud.customEnvironment": {
-		// 	"name": "EDOG/PPE",
+		// 	"name": "custom",
 		// 	"portalUrl": "https://mycustomenv.portal.azure.com",
 		// 	"managementEndpointUrl": "https://management.mycustomenv.com",
 		// 	"resourceManagerEndpointUrl": "https://resources.mycustomenv.com",

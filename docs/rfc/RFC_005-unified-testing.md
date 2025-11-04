@@ -105,7 +105,7 @@ FakeFabricApiClient.respondWithJson(200, mockData)
 **Phase 4:** Comprehensive test coverage
 - Implement error scenarios using single testing backend per test type
 - Establish UI test patterns with WebDriver + optional fakes
-- Create nightly E2E test suite against DAILY environment
+- Create nightly E2E test suite against configured test environment
 
 ## Testing Scenarios
 
@@ -142,7 +142,7 @@ const workspaces = await workspaceManager.listWorkspaces()
 ```typescript
 // No fake responses set - falls back to real HTTP calls
 // FakeTokenService provides pre-configured tokens from Get-E2EToken.ps1
-const workspaces = await workspaceManager.listWorkspaces() // Real DAILY endpoint
+const workspaces = await workspaceManager.listWorkspaces() // Real service endpoint
 ```
 
 ### UI Testing (WebDriver + Optional FakeTokenService)
@@ -160,7 +160,7 @@ await driver.wait(until.elementTextContains(statusElement, 'Deployed'))
 **Characteristics by Test Type:**
 - **Unit**: Fastest execution, pure logic validation, no I/O
 - **Integration**: Fast execution with controlled dependencies, real business logic
-- **E2E**: Real service integration against DAILY, expected flakiness, slower execution
+- **E2E**: Real service integration against configured test environment, expected flakiness, slower execution
 - **UI**: Highest fidelity for user journeys, least stable, use sparingly for critical flows
 
 This provides comprehensive test coverage: fast unit tests for logic validation, fast integration tests for development velocity, E2E validation for production confidence, and UI tests for critical user experience validation.
@@ -174,7 +174,7 @@ import { MockApiClient, IApiClientRequestOptions, ... } from '...'
 
 let fabricApiClientCallback = async (req) => {
   // URL construction, header manipulation, method switching
-  let baseUrl = req.url ?? getFabricEnvironment(MOCK).sharedUri + req.pathTemplate
+  let baseUrl = req.url ?? 'https://api.fabric.test' + req.pathTemplate
   let curHeaders = { 'Authorization': 'mock token' }
   
   switch (req.method) {

@@ -359,9 +359,9 @@
       </Item>
       <Item ItemId=";extension.walkthrough.openPortal.description" ItemType="0" PsrId="306" InstFlg="true" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Go to the Fabric Portal to create a new workspace. If you already have a workspace then you can skip this step!]A;[Go to Fabric Portal]5D;(https://daily.fabric.microsoft.com/)]]></Val>
+          <Val><![CDATA[Go to the Fabric Portal to create a new workspace. If you already have a workspace then you can skip this step!]A;[Go to Fabric Portal]5D;(https://app.fabric.microsoft.com/)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[移至 Fabric 入口網站以建立新的工作區。如果您已經有工作區，則可以略過此步驟!]A;[前往 Fabric 入口網站]5D;(https://daily.fabric.microsoft.com/)]]></Val>
+            <Val><![CDATA[移至 Fabric 入口網站以建立新的工作區。如果您已經有工作區，則可以略過此步驟!]A;[前往 Fabric 入口網站]5D;(https://app.fabric.microsoft.com/)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

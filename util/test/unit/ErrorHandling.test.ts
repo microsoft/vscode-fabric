@@ -6,7 +6,7 @@
 import * as assert from 'assert';
 
 import * as vscode from 'vscode';
-import { MockConsoleLogger } from '../../src/logger/Logger';
+import { MockConsoleLogger } from '../../src/logger/MockConsoleLogger';
 import { doFabricAction, FabricError, withErrorHandling, doCancelableActionWithErrorHandling, ICanceledError } from '../../src/FabricError';
 import { UserCancelledError } from '../../src/UserCancelledError';
 
@@ -113,7 +113,7 @@ describe('ErrorHandling tests', () => {
     it('FabricErrorTest with Promise.Reject()', async () => {
         logger.log('Testing Error()');
         const errorObj = new Error('simple Error() object');
-        //("This code repros Bug 1651036: Telemetry from BugBash: TypeError: Cannot create property 'didProcessFabricError' on string 'Timeout Executing task 'extensions install");
+        // This code tests handling of promise rejections that could cause property assignment errors on non-object types
         // without fix, causes "TypeError: Cannot create property 'didProcessFabricError' on string 'timeoutRunningTask'"
         const func = withErrorHandling('errortests', logger, null, async () => {
             await doFabricAction({ fabricLogger: logger }, async () => {

@@ -5,6 +5,7 @@ import * as assert from 'assert';
 
 import { ActivityBar, CustomTreeSection, InputBox, ViewContent, VSBrowser, WebDriver, Workbench, ViewControl } from 'vscode-extension-tester';
 import { waitFor } from '../utilities/asyncWait';
+import { TestEnvironmentConfig } from '../utilities/TestEnvironmentConfig';
 
 // See https://github.com/redhat-developer/vscode-extension-tester/blob/main/docs/Taking%20Screenshots.md?plain=1#L11
 import { before } from 'vscode-extension-tester';
@@ -31,28 +32,6 @@ describe('UITEST: Example E2E UI Tests', () => {
 
         const fabricSidebBarView = await fabricViewControl.openView();
         fabricSidebBarViewContent = fabricSidebBarView.getContent();
-    });
-
-    // Skip for now b/c requires auth that is not set up in the pipelines yet
-    it.skip('Select Fabric Workspace', async function () {
-        await new Workbench().executeCommand('Fabric: Select Fabric workspace');
-
-        const input = await InputBox.create();
-        await input.setText('VSCode-AppDev-E2ETest (DoNotDelete-UsedByAutomation)');
-        await input.confirm();
-
-        const section = await fabricSidebBarViewContent.getSection('Fabric Workspace') as CustomTreeSection;
-        await section.expand();
-
-        // wait for at least one workspace item
-        await waitFor(async () => {
-            const items = await section.getVisibleItems();
-            return items.length > 0 ? true : undefined;
-        }, 20000, 500);
-
-        const items = await section.getVisibleItems();
-        const labels = await Promise.all(items.map((item) => item.getLabel()));
-        assert.ok(labels.includes('Notebook (DoNotDelete)'));
     });
 
     it('Expected items are in Feedback view', async function () {

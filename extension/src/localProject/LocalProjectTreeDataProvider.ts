@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { FabricTreeNode, ILocalProjectTreeNodeProvider, LocalProjectTreeNode, LocalProjectTreeNodeProvider } from '@microsoft/vscode-fabric-api';
+import { FabricTreeNode, ILocalProjectTreeNodeProvider, LocalProjectTreeNode, LocalProjectTreeNodeProvider, LocalProjectDesignerActions } from '@microsoft/vscode-fabric-api';
 import { ILogger, TelemetryService, withErrorHandling } from '@microsoft/vscode-fabric-util';
 import { ILocalProjectDiscovery, ILocalProjectInformation } from './definitions';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
@@ -13,7 +13,13 @@ export class LocalProjectTreeDataProvider implements vscode.TreeDataProvider<Fab
     private localProjects: LocalProjectTreeNodeCollection;
     private static refreshCommandDisposable: vscode.Disposable | null;
 
-    public constructor(private context: vscode.ExtensionContext, private readonly discovery: ILocalProjectDiscovery, private readonly extensionManager: IFabricExtensionManagerInternal, private readonly logger: ILogger, private readonly telemetryService: TelemetryService | null) {
+    public constructor(
+        private context: vscode.ExtensionContext,
+        private readonly discovery: ILocalProjectDiscovery,
+        private readonly extensionManager: IFabricExtensionManagerInternal,
+        private readonly logger: ILogger,
+        private readonly telemetryService: TelemetryService | null
+    ) {
         this.localProjects = new LocalProjectTreeNodeCollection(context, this.extensionManager);
         this.extensionManager.onExtensionsUpdated(() => this.refresh());
         this.discovery.projects.onItemAdded(() => this.refresh());
@@ -132,6 +138,7 @@ class ArtifactTypeTreeNode extends FabricTreeNode {
                 if (!node.tooltip) {
                     node.tooltip = project.path.fsPath;
                 }
+                setLocalProjectContextValue(node, node.allowedDesignActions);
 
                 this._children.set(project.path.path.toLowerCase(), node);
             }
@@ -151,14 +158,21 @@ class DefinitionLocalProjectTreeNodeProvider extends LocalProjectTreeNodeProvide
 
     public async createLocalProjectTreeNode(projectPath: vscode.Uri): Promise<LocalProjectTreeNode | undefined> {
         const node = await super.createLocalProjectTreeNode(projectPath);
-        if (node) {
-            if (!node.contextValue) {
-                node.contextValue = 'item-import';
-            }
-            else if (!node.contextValue.split('|').includes('item-import')) {
-                node.contextValue += '|item-import';
-            }
+        if (node && !node.allowedDesignActions) {
+            node.allowedDesignActions =
+                LocalProjectDesignerActions.default |
+                (getSupportsArtifactWithDefinition(this.artifactType) ? LocalProjectDesignerActions.definition : 0);
         }
         return node;
+    }
+}
+
+function setLocalProjectContextValue(node: LocalProjectTreeNode, allowedDesignActions: LocalProjectDesignerActions | undefined): void {
+    if (!allowedDesignActions) {
+        allowedDesignActions = LocalProjectDesignerActions.default;
+    }
+
+    if (allowedDesignActions & LocalProjectDesignerActions.definition) {
+        node.contextValue = (node.contextValue ?? '') + '|item-import';
     }
 }

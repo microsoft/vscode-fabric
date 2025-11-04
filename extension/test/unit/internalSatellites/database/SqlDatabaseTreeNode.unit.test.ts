@@ -24,7 +24,7 @@ describe('SqlDatabaseTreeNode', function () {
     beforeEach(function () {
         sandbox = sinon.createSandbox();
         contextMock = new Mock<vscode.ExtensionContext>();
-    artifact = { id: 'db1', workspaceId: 'ws1', displayName: 'My Database' } as IArtifact;
+        artifact = { id: 'db1', workspaceId: 'ws1', displayName: 'My Database' } as IArtifact;
         apiClientMock = new Mock<IFabricApiClient>();
         node = new SqlDatabaseTreeNode(contextMock.object(), artifact);
     });

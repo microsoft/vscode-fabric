@@ -4,13 +4,13 @@
 /* eslint-disable security/detect-non-literal-fs-filename */
 
 import * as vscode from 'vscode';
-import { IArtifact, IWorkspace, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IWorkspaceManager, FabricTreeNode, ISourceControlInformation } from '@microsoft/vscode-fabric-api';
+import { IArtifact, IWorkspace, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IWorkspaceManager, FabricTreeNode, ISourceControlInformation, IWorkspaceFolder } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from './treeView';
 import { LocalFolderManager } from '../LocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
 import { showLocalFolderQuickPick } from '../ui/showLocalFolderQuickPick';
 import { isDirectory } from '../utilities';
-import { IFabricEnvironmentProvider, FabricError, ILogger } from '@microsoft/vscode-fabric-util';
+import { IFabricEnvironmentProvider, FabricError, ILogger, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider, ITenantSettings } from '../authentication/interfaces';
 import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
 
@@ -18,6 +18,7 @@ import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
  * Base class for managing the logged-in user's Fabric Workspace. Mock also inherits from this class. Put code common to both here
  */
 export abstract class WorkspaceManagerBase implements IWorkspaceManager {
+    private static readonly showFoldersSettingKey = 'ShowFolders';
     protected disposables: vscode.Disposable[] = [];
     protected didInitializePriorState = false;
     public isProcessingAutoLogin = false;
@@ -63,7 +64,8 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         protected fabricEnvironmentProvider: IFabricEnvironmentProvider,
         protected apiClient: IFabricApiClient,
         protected gitOperator: IGitOperator,
-        protected logger: ILogger
+        protected logger: ILogger,
+        protected configurationProvider: IConfigurationProvider
     ) {
         this.disposables.push(this.account.onSignInChanged(async () => {
             await this.refreshConnectionToFabric();
@@ -312,6 +314,54 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         }
     }
 
+    public isFolderGroupingEnabled(): boolean {
+        return this.configurationProvider.get(WorkspaceManagerBase.showFoldersSettingKey, false);
+    }
+
+    public async getFoldersInWorkspace(workspaceId: string): Promise<IWorkspaceFolder[]> {
+        if (!this.isFolderGroupingEnabled()) {
+            return [];
+        }
+
+        const folders: IWorkspaceFolder[] = [];
+        let continuationToken: string | undefined;
+
+        do {
+            const continuationSuffix = continuationToken ? `?continuationToken=${continuationToken}` : '';
+            const res = await this.apiClient.sendRequest({
+                method: 'GET',
+                pathTemplate: `/v1/workspaces/${workspaceId}/folders${continuationSuffix}`,
+            });
+
+            if (res.status !== 200) {
+                const errmsg = `Error retrieving folders: ${res.status} ${res.bodyAsText ?? ''}`;
+                this.logger.log(errmsg, undefined, true);
+                throw new Error(errmsg);
+            }
+
+            const body = res.parsedBody ?? {};
+            const rawFolders = Array.isArray(body?.value) ? body.value : Array.isArray(body) ? body : [];
+
+            for (const item of rawFolders) {
+                if (!item?.id || !item?.displayName || !item?.workspaceId) {
+                    continue;
+                }
+
+                const folder: IWorkspaceFolder = {
+                    id: item.id,
+                    displayName: item.displayName,
+                    workspaceId: item.workspaceId,
+                    parentFolderId: item.parentFolderId,
+                };
+                folders.push(folder);
+            }
+
+            continuationToken = body?.continuationToken;
+        } while (continuationToken);
+
+        return folders;
+    }
+
     public async getItemsInWorkspace(workspaceId: string): Promise<IArtifact[]> {
         const res = await this.apiClient.sendRequest({
             method: 'GET',
@@ -326,7 +376,7 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         }
 
         let arrayArtifacts = res?.parsedBody;
-        if (arrayArtifacts?.value) {    // Public API changed. Daily changed to put the array under 'value', but the change isn't in DXT yet, so we need to try both
+        if (arrayArtifacts?.value) { // API response format may vary between environments, so we need to handle both direct array and nested 'value' property
             arrayArtifacts = arrayArtifacts.value;
         }
         let artifacts: IArtifact[] = arrayArtifacts;
@@ -375,10 +425,11 @@ export class WorkspaceManager extends WorkspaceManagerBase {
         localFolderManager: LocalFolderManager,
         apiClient: IFabricApiClient,
         logger: ILogger,
-        gitOperator: IGitOperator
+        gitOperator: IGitOperator,
+        configurationProvider: IConfigurationProvider
     ) {
 
-        super(extensionSettingsStorage, localFolderManager, account, fabricEnvironmentProvider, apiClient, gitOperator, logger);
+        super(extensionSettingsStorage, localFolderManager, account, fabricEnvironmentProvider, apiClient, gitOperator, logger, configurationProvider);
         /**
          * The context object can store workspaceState (for the current VSCode workspace) or globalState (stringifyable JSON)
          * When our extensions tries to open a VSCode Folder, our extension is deactivated
@@ -414,7 +465,7 @@ export class WorkspaceManager extends WorkspaceManagerBase {
             throw new Error(`Error Getting Workspaces + ${res?.status}  ${res?.bodyAsText}`);
         }
         let arrayWSpaces = res?.parsedBody;
-        if (arrayWSpaces?.value) { // Public API changed. Daily changed to put the array under 'value', but the change isn't in DXT yet, so we need to try both
+        if (arrayWSpaces?.value) {
             arrayWSpaces = arrayWSpaces.value;
         }
         if (!arrayWSpaces) {

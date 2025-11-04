@@ -3,7 +3,7 @@
 
 import * as vscode from 'vscode';
 
-import { IApiClientResponse, IArtifact, IItemDefinition, IWorkspace, IApiClientRequestOptions, IFabricApiClient, OperationRequestType, IArtifactHandler, IArtifactManager, ArtifactTreeNode, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
+import { IApiClientResponse, IArtifact, IItemDefinition, IWorkspace, IApiClientRequestOptions, IFabricApiClient, OperationRequestType, IArtifactHandler, ArtifactTreeNode, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { doFabricAction, FabricError, IFabricEnvironmentProvider, ILogger, sleep, TelemetryActivity, TelemetryService, withErrorHandling, UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { DefaultArtifactHandler } from '../DefaultArtifactHandler';
 import { fabricViewWorkspace } from '../constants';
@@ -146,7 +146,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
                     progress.report({ increment: 100, message: vscode.l10n.t('CreateArtifact {0} succeeded', artifact.displayName) });
                 }
 
-                // if it's a UserDataFunction, VSCode opens a new folder, and thus all extensions are destroyed/recreated, so this code only runs for non-funcsets
+                // if VSCode opens a new folder, all extensions are destroyed/recreated, so this code may run for some artifact types
                 if (response.status === 202) {
                     await sleep(5000); // sleep before we refresh the treeview
                 }
@@ -447,16 +447,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
         beforeaction?: (artifact: IArtifact, options: IApiClientRequestOptions) => Promise<void> | undefined,
         afterAction?: (artifact: IArtifact, response: IApiClientResponse) => Promise<void> | undefined
     ): Promise<IApiClientResponse> {
-        const artifactHandler = this.getArtifactHandler(artifact);
-        let pathTemplate: string;
-        switch (artifactHandler?.artifactType) {
-            case 'UserDataFunction':
-                pathTemplate = `/v1/workspaces/${artifact.workspaceId}/userdatafunctions/${artifact.id}/__private/functions/metadata`;
-                break;
-            default:
-                pathTemplate = `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}`;
-                break;
-        }
+        const pathTemplate = `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}`;
         const options: IApiClientRequestOptions =
         {
             method: 'GET',

@@ -4,11 +4,6 @@
 import * as vscode from 'vscode';
 import { CreationCapability, FabricItemMetadata } from './definitions';
 
-// Many of these icons were copied from the PowerBIClients repo: https://dev.azure.com/powerbi/PowerBIClients/_git/PowerBIClients?path=/trident/libs/ux-angular/src/icons/svgs/artifact-monochrome&version=GBmaster&_a=contents
-// The exceptions:
-//   - AppDev icons (graph_ql_32 and function_set_32)
-//      - Came from a hand-off from Seung Yang
-//      - Converted to light/dark by changing 'fill="black"' to 'fill="white"' in the .svg files
 // The other icons are themed by adding 'fill="white"' into the .svg files
 export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
     /* eslint-disable @typescript-eslint/naming-convention*/
@@ -227,6 +222,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         extensionId: 'fabric.vscode-fabric-functions',
         iconInformation: { fileName: 'function_set_32.svg', isThemed: true },
         portalFolder: 'userdatafunctions',
+        supportsArtifactWithDefinition: true,
     },
     'VariableLibrary': {
         creationCapability: CreationCapability.supported,

@@ -41,7 +41,7 @@
   "extension.walkthrough.fabric.title": "开始使用 Microsoft Fabric",
   "extension.walkthrough.fabric.description": "使用 Fabric 的第一步!",
   "extension.walkthrough.openPortal.title": "创建工作区",
-  "extension.walkthrough.openPortal.description": "转到 Fabric 门户以创建新工作区。如果已有工作区，则可以跳过此步骤!\n[转到 Fabric 门户](https://daily.fabric.microsoft.com/)",
+  "extension.walkthrough.openPortal.description": "转到 Fabric 门户以创建新工作区。如果已有工作区，则可以跳过此步骤!\n[转到 Fabric 门户](https://app.fabric.microsoft.com/)",
   "extension.walkthrough.openFabricView.title": "打开 Fabric 资源管理器",
   "extension.walkthrough.openFabricView.description": "可以通过单击“Fabric 活动栏”图标在侧栏中打开 Fabric 资源管理器。\n[转到 Fabric 资源管理器](command:workbench.view.extension.vscode-fabric_view_workspace)",
   "extension.walkthrough.signIn.title": "登录 Fabric",

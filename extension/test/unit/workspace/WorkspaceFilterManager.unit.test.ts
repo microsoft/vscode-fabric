@@ -96,10 +96,10 @@ describe('WorkspaceFilterManager', function () {
         it('should return empty array when no filters are set', function () {
             // Arrange
             mockSettings.workspaceFilters = {};
-            
+
             // Act
             const result = workspaceFilterManager.getVisibleWorkspaceIds();
-            
+
             // Assert
             assert.deepEqual(result, [], 'Should return empty array when no filters exist');
         });
@@ -110,10 +110,10 @@ describe('WorkspaceFilterManager', function () {
             const environmentKey = 'test-environment:test-tenant-id';
             mockSettings.workspaceFilters = {};
             mockSettings.workspaceFilters[environmentKey] = expectedWorkspaceIds;
-            
+
             // Act
             const result = workspaceFilterManager.getVisibleWorkspaceIds();
-            
+
             // Assert
             assert.deepEqual(result, expectedWorkspaceIds, 'Should return filtered workspace IDs for current environment');
         });
@@ -123,10 +123,10 @@ describe('WorkspaceFilterManager', function () {
             const otherEnvironmentKey = 'other-environment:other-tenant';
             mockSettings.workspaceFilters = {};
             mockSettings.workspaceFilters[otherEnvironmentKey] = ['workspace-1'];
-            
+
             // Act
             const result = workspaceFilterManager.getVisibleWorkspaceIds();
-            
+
             // Assert
             assert.deepEqual(result, [], 'Should return empty array when no filters for current environment');
         });
@@ -137,10 +137,10 @@ describe('WorkspaceFilterManager', function () {
             const defaultEnvironmentKey = 'test-environment:default';
             mockSettings.workspaceFilters = {};
             mockSettings.workspaceFilters[defaultEnvironmentKey] = ['workspace-1'];
-            
+
             // Act
             const result = workspaceFilterManager.getVisibleWorkspaceIds();
-            
+
             // Assert
             assert.deepEqual(result, ['workspace-1'], 'Should handle null tenant ID with default');
         });
@@ -151,10 +151,10 @@ describe('WorkspaceFilterManager', function () {
             // Arrange
             const workspaceIds = ['workspace-1', 'workspace-2'];
             mockSettings.workspaceFilters = {};
-            
+
             // Act
             await workspaceFilterManager.setVisibleWorkspaceIds(workspaceIds);
-            
+
             // Assert
             const environmentKey = 'test-environment:test-tenant-id';
             assert.deepEqual(
@@ -169,10 +169,10 @@ describe('WorkspaceFilterManager', function () {
             // Arrange
             mockSettings.workspaceFilters = null;
             const workspaceIds = ['workspace-1'];
-            
+
             // Act
             await workspaceFilterManager.setVisibleWorkspaceIds(workspaceIds);
-            
+
             // Assert
             assert.ok(mockSettings.workspaceFilters, 'Should initialize workspaceFilters object');
             const environmentKey = 'test-environment:test-tenant-id';
@@ -188,10 +188,10 @@ describe('WorkspaceFilterManager', function () {
         it('should return true when no filters are active', function () {
             // Arrange
             mockSettings.workspaceFilters = {};
-            
+
             // Act
             const result = workspaceFilterManager.isWorkspaceVisible('workspace-1');
-            
+
             // Assert
             assert.equal(result, true, 'Should return true when no filters are active');
         });
@@ -201,10 +201,10 @@ describe('WorkspaceFilterManager', function () {
             const environmentKey = 'test-environment:test-tenant-id';
             mockSettings.workspaceFilters = {};
             mockSettings.workspaceFilters[environmentKey] = ['workspace-1', 'workspace-2'];
-            
+
             // Act
             const result = workspaceFilterManager.isWorkspaceVisible('workspace-1');
-            
+
             // Assert
             assert.equal(result, true, 'Should return true when workspace is in filter list');
         });
@@ -214,10 +214,10 @@ describe('WorkspaceFilterManager', function () {
             const environmentKey = 'test-environment:test-tenant-id';
             mockSettings.workspaceFilters = {};
             mockSettings.workspaceFilters[environmentKey] = ['workspace-1'];
-            
+
             // Act
             const result = workspaceFilterManager.isWorkspaceVisible('workspace-2');
-            
+
             // Assert
             assert.equal(result, false, 'Should return false when workspace is not in filter list');
         });
@@ -227,10 +227,10 @@ describe('WorkspaceFilterManager', function () {
             const environmentKey = 'test-environment:test-tenant-id';
             mockSettings.workspaceFilters = {};
             mockSettings.workspaceFilters[environmentKey] = ['__HIDE_ALL__'];
-            
+
             // Act
             const result = workspaceFilterManager.isWorkspaceVisible('workspace-1');
-            
+
             // Assert
             assert.equal(result, false, 'Should return false when hide all marker is present');
         });
@@ -240,10 +240,10 @@ describe('WorkspaceFilterManager', function () {
         it('should return false when no filters are set', function () {
             // Arrange
             mockSettings.workspaceFilters = {};
-            
+
             // Act
             const result = workspaceFilterManager.hasActiveFilters();
-            
+
             // Assert
             assert.equal(result, false, 'Should return false when no filters are set');
         });
@@ -253,10 +253,10 @@ describe('WorkspaceFilterManager', function () {
             const environmentKey = 'test-environment:test-tenant-id';
             mockSettings.workspaceFilters = {};
             mockSettings.workspaceFilters[environmentKey] = ['workspace-1'];
-            
+
             // Act
             const result = workspaceFilterManager.hasActiveFilters();
-            
+
             // Assert
             assert.equal(result, true, 'Should return true when filters are active');
         });
@@ -266,10 +266,10 @@ describe('WorkspaceFilterManager', function () {
             const environmentKey = 'test-environment:test-tenant-id';
             mockSettings.workspaceFilters = {};
             mockSettings.workspaceFilters[environmentKey] = ['__HIDE_ALL__'];
-            
+
             // Act
             const result = workspaceFilterManager.hasActiveFilters();
-            
+
             // Assert
             assert.equal(result, true, 'Should return true when hide all marker is present');
         });
@@ -283,13 +283,13 @@ describe('WorkspaceFilterManager', function () {
             mockSettings.workspaceFilters = {};
             mockSettings.workspaceFilters[currentEnvKey] = ['workspace-1'];
             mockSettings.workspaceFilters[otherEnvKey] = ['workspace-2'];
-            
+
             // Mock vscode.window.showInformationMessage
             const showInformationMessageStub = sinon.stub(vscode.window, 'showInformationMessage').resolves();
-            
+
             // Act
             await workspaceFilterManager.clearFilters();
-            
+
             // Assert
             assert.equal(
                 mockSettings.workspaceFilters[currentEnvKey],
@@ -308,13 +308,13 @@ describe('WorkspaceFilterManager', function () {
         it('should handle case when workspaceFilters is null', async function () {
             // Arrange
             mockSettings.workspaceFilters = null;
-            
+
             // Mock vscode.window.showInformationMessage
             const showInformationMessageStub = sinon.stub(vscode.window, 'showInformationMessage').resolves();
-            
+
             // Act
             await workspaceFilterManager.clearFilters();
-            
+
             // Assert
             assert.ok(showInformationMessageStub.calledOnce, 'Should show information message even when filters are null');
         });
@@ -326,10 +326,10 @@ describe('WorkspaceFilterManager', function () {
             const environmentKey = 'test-environment:test-tenant-id';
             mockSettings.workspaceFilters = {};
             mockSettings.workspaceFilters[environmentKey] = ['workspace-1'];
-            
+
             // Act
             await workspaceFilterManager.addWorkspaceToFilters('workspace-2');
-            
+
             // Assert
             assert.deepEqual(
                 mockSettings.workspaceFilters[environmentKey],
@@ -344,10 +344,10 @@ describe('WorkspaceFilterManager', function () {
             const environmentKey = 'test-environment:test-tenant-id';
             mockSettings.workspaceFilters = {};
             mockSettings.workspaceFilters[environmentKey] = ['workspace-1', 'workspace-2'];
-            
+
             // Act
             await workspaceFilterManager.addWorkspaceToFilters('workspace-1');
-            
+
             // Assert
             assert.deepEqual(
                 mockSettings.workspaceFilters[environmentKey],
@@ -362,10 +362,10 @@ describe('WorkspaceFilterManager', function () {
             const environmentKey = 'test-environment:test-tenant-id';
             mockSettings.workspaceFilters = {};
             mockSettings.workspaceFilters[environmentKey] = ['__HIDE_ALL__'];
-            
+
             // Act
             await workspaceFilterManager.addWorkspaceToFilters('workspace-1');
-            
+
             // Assert
             assert.deepEqual(
                 mockSettings.workspaceFilters[environmentKey],
@@ -383,7 +383,7 @@ describe('WorkspaceFilterManager', function () {
 
             // Act
             await workspaceFilterManager.addWorkspaceToFilters('workspace-1');
-            
+
             // Assert
             assert.deepEqual(
                 mockSettings.workspaceFilters[environmentKey],
@@ -403,7 +403,7 @@ describe('WorkspaceFilterManager', function () {
 
             // Act
             await workspaceFilterManager.addWorkspaceToFilters('workspace-1');
-            
+
             // Assert
             assert.deepEqual(
                 mockSettings.workspaceFilters[environmentKey],
@@ -465,7 +465,7 @@ describe('WorkspaceFilterManager', function () {
 
             // Act & Assert - should complete without throwing
             await workspaceFilterManager.showWorkspaceFilterDialog();
-            
+
             // Verify that isConnected was called
             mockWorkspaceManager.verify(instance => instance.isConnected(), Times.Once());
         });
@@ -477,7 +477,7 @@ describe('WorkspaceFilterManager', function () {
 
             // Act & Assert - should complete without throwing
             await workspaceFilterManager.showWorkspaceFilterDialog();
-            
+
             // Verify that methods were called
             mockWorkspaceManager.verify(instance => instance.isConnected(), Times.Once());
             mockWorkspaceManager.verify(instance => instance.listWorkspaces(), Times.Once());
@@ -487,7 +487,7 @@ describe('WorkspaceFilterManager', function () {
             // Arrange
             mockWorkspaceManager.setup(instance => instance.isConnected()).returns(Promise.resolve(true));
             mockWorkspaceManager.setup(instance => instance.listWorkspaces()).returns(Promise.resolve(mockWorkspaces));
-            
+
             // Mock the QuickPick behavior by stubbing vscode.window.createQuickPick
             const mockQuickPick = {
                 title: '',
@@ -503,15 +503,15 @@ describe('WorkspaceFilterManager', function () {
                 onDidHide: sinon.stub(),
                 onDidTriggerButton: sinon.stub(),
             };
-            
+
             const createQuickPickStub = sinon.stub(vscode.window, 'createQuickPick').returns(mockQuickPick as any);
-            
+
             // Simulate user cancelling the dialog
             mockQuickPick.onDidHide.callsArg(0);
-            
+
             // Act
             await workspaceFilterManager.showWorkspaceFilterDialog();
-            
+
             // Assert
             assert.ok(createQuickPickStub.calledOnce, 'Should create quick pick dialog');
             assert.ok(mockQuickPick.show.calledOnce, 'Should show quick pick dialog');

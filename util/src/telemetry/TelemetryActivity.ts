@@ -59,6 +59,11 @@ export class TelemetryActivity<TEventNames extends TelemetryEventRecord = Teleme
         super.sendTelemetry();
     }
 
+    /**
+     * Executes an async operation while tracking telemetry including duration and success/failure.
+     * @param thing - The async operation to execute
+     * @returns Promise resolving to the operation's result
+     */
     public async doTelemetryActivity<R>(thing: () => Promise<R>): Promise<R> {
         this.start();
         let result: R;

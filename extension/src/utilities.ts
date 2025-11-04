@@ -100,7 +100,7 @@ export async function handleArtifactCreationErrorAndThrow(
                 urlLearnMore = vscode.Uri.parse('https://aka.ms/SupportedCapacitySkus');
                 break;
             case 'FeatureNotAvailable':
-            case 'UnknownError': // internally FabricArtifactCreationRestrictedException surfaces as UnknownError: see bug Bug 1685840: Telemetry UDF Creation Unknown Error in PROD  An unexpected error occurred while processing the request
+            case 'UnknownError': // Some artifact creation restrictions may surface as UnknownError due to internal error mapping
                 urlLearnMore = vscode.Uri.parse('https://aka.ms/fabric/vscode-docs'); // currently points to create UDF, not any Fabric type
                 break;
             case 'ItemDisplayNameAlreadyInUse':

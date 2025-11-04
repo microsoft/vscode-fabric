@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import { makeShouldExpand, recordExpansionChange } from '../../../src/workspace/viewExpansionState';
 import { IFabricExtensionsSettingStorage, IFabricExtensionSettings, IFabricViewState, fabricWorkspaceSettingsVersion } from '../../../src/settings/definitions';
 import { IAccountProvider, ITenantSettings } from '../../../src/authentication/interfaces';
-import { IFabricEnvironmentProvider, FabricEnvironmentName, FabricEnvironmentSettings } from '@microsoft/vscode-fabric-util';
+import { IFabricEnvironmentProvider, FabricEnvironmentSettings, FABRIC_ENVIRONMENT_DEFAULT_VALUE } from '@microsoft/vscode-fabric-util';
 
 describe('viewExpansionState', function () {
     let storageMock: Mock<IFabricExtensionsSettingStorage>;
@@ -16,7 +16,7 @@ describe('viewExpansionState', function () {
     let envProvider: IFabricEnvironmentProvider;
 
     const TENANT_ID: string = 't1';
-    const ENV: FabricEnvironmentName = FabricEnvironmentName.PROD;
+    const ENV: string = FABRIC_ENVIRONMENT_DEFAULT_VALUE;
     const CONTEXT_KEY: string = `${ENV}:${TENANT_ID}`;
 
     before(function () {
@@ -49,6 +49,10 @@ describe('viewExpansionState', function () {
                     sharedUri: '',
                     portalUri: '',
                 };
+            },
+            switchToEnvironment(environmentName: string): Promise<boolean> {
+                // No-op implementation for test compilation
+                return Promise.resolve(true);
             },
             onDidEnvironmentChange: emitter.event,
         };
