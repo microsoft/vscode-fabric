@@ -61,7 +61,7 @@ describe('exportArtifactCommand', () => {
         artifactMock.setup(a => a.id).returns(artifactId);
         artifactMock.setup(a => a.displayName).returns(artifactDisplayName);
 
-        artifactManagerMock.setup(am => am.getArtifactDefinition(It.IsAny()))
+        artifactManagerMock.setup(am => am.getArtifactDefinition(It.IsAny(), It.IsAny()))
             .returns(Promise.resolve(successResponse));
 
         workspaceManagerMock.setup(wm => wm.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
@@ -104,7 +104,8 @@ describe('exportArtifactCommand', () => {
             Times.Once());
         artifactManagerMock.verify(
             am => am.getArtifactDefinition(
-                It.Is(artifact => artifact === artifactMock.object())),
+                It.Is(artifact => artifact === artifactMock.object()),      
+                It.IsAny()),
             Times.Once());
         itemDefinitionWriterMock.verify(
             writer => writer.save(
@@ -147,7 +148,8 @@ describe('exportArtifactCommand', () => {
             Times.Once());
         artifactManagerMock.verify(
             am => am.getArtifactDefinition(
-                It.Is(artifact => artifact === artifactMock.object())),
+                It.Is(artifact => artifact === artifactMock.object()),
+                It.IsAny()),
             Times.Once());
         itemDefinitionWriterMock.verify(
             writer => writer.save(
@@ -189,7 +191,7 @@ describe('exportArtifactCommand', () => {
 
         // Assert
         workspaceManagerMock.verify(wm => wm.getLocalFolderForArtifact(It.Is(artifact => artifact === artifactMock.object()), It.IsAny()), Times.Once());
-        artifactManagerMock.verify(am => am.getArtifactDefinition(It.Is(artifact => artifact === artifactMock.object())), Times.Never());
+        artifactManagerMock.verify(am => am.getArtifactDefinition(It.Is(artifact => artifact === artifactMock.object()), It.IsAny()), Times.Never());
         telemetryActivityMock.verify(instance => instance.addOrUpdateProperties(It.IsAny()), Times.Never());
     });
 
@@ -211,7 +213,7 @@ describe('exportArtifactCommand', () => {
             }
         );
         assert.ok(showWarningMessageStub.calledOnce, 'Prompt should be shown');
-        artifactManagerMock.verify(am => am.getArtifactDefinition(It.Is(artifact => artifact === artifactMock.object())), Times.Once());
+        artifactManagerMock.verify(am => am.getArtifactDefinition(It.Is(artifact => artifact === artifactMock.object()), It.IsAny()), Times.Once());
         itemDefinitionWriterMock.verify(writer => writer.save(It.IsAny(), It.IsAny()), Times.Never());
     });
 
@@ -225,7 +227,7 @@ describe('exportArtifactCommand', () => {
         };
         apiClientResponseMock.setup(instance => instance.status).returns(400);
         apiClientResponseMock.setup(instance => instance.parsedBody).returns(errorResponseBody);
-        artifactManagerMock.setup(instance => instance.getArtifactDefinition(It.IsAny()))
+        artifactManagerMock.setup(instance => instance.getArtifactDefinition(It.IsAny(), It.IsAny()))
             .returns(Promise.resolve(apiClientResponseMock.object()));
 
         // Act & Assert
@@ -276,7 +278,8 @@ describe('exportArtifactCommand', () => {
             Times.Once());
         artifactManagerMock.verify(
             am => am.getArtifactDefinition(
-                It.Is(artifact => artifact === artifactMock.object())),
+                It.Is(artifact => artifact === artifactMock.object()),
+                It.IsAny()),
             Times.Once());
         itemDefinitionWriterMock.verify(
             writer => writer.save(
@@ -293,6 +296,26 @@ describe('exportArtifactCommand', () => {
         verifyAddOrUpdateProperties(telemetryActivityMock, 'statusCode', '200');
         verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'requestId');
         verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'errorCode');
+    });
+
+    it('Passes progress reporter to getArtifactDefinition', async () => {
+        // Arrange
+        let capturedOptions: any;
+        artifactManagerMock
+            .setup(am => am.getArtifactDefinition(It.IsAny(), It.IsAny()))
+            .callback(({ args }) => {
+                const [_artifact, options] = args;
+                capturedOptions = options;
+                return Promise.resolve(successResponse);
+            });
+
+        // Act
+        await executeCommand();
+
+        // Assert
+        assert.ok(capturedOptions, 'Options should be passed to getArtifactDefinition');
+        assert.ok(capturedOptions.progress, 'Progress should be provided in options');
+        assert.strictEqual(typeof capturedOptions.progress.report, 'function', 'Progress should have a report method');
     });
 
     async function executeCommand(): Promise<void> {

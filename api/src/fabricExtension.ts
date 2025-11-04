@@ -171,8 +171,19 @@ export interface IArtifactManager {
 
     /**
      * Gets the definition for the specified artifact from the Fabric back end
+     *
+     * @param artifact - The artifact to get the definition for
+     * @param options - Optional parameters for the get operation
      */
-    getArtifactDefinition(artifact: IArtifact): Promise<IApiClientResponse>;
+    getArtifactDefinition(
+        artifact: IArtifact,
+        options?: {
+            /**
+             * Optional progress reporter to track the progress of the get operation
+             */
+            progress?: vscode.Progress<{ message?: string; increment?: number }>;
+        }
+    ): Promise<IApiClientResponse>;
 
     /**
      * Updates the definition for the specified artifact on the Fabric back end
