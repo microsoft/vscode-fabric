@@ -27,7 +27,7 @@ Always check `util/src` before introducing new helpers:
 - Logging: Provided logger utilities (avoid ad‑hoc `console.log`).
 - URI & content: `FabricUriHandler`, zip utilities, `MemoryFileSystem`.
 - Config & environment: `ConfigurationProvider`, `FabricEnvironmentProvider`.
-  If a new helper would aid both core & satellites, add it to util (not core) and keep API free of implementation types.
+- If a new helper would aid both core & satellites, add it to util (not core) and keep API free of implementation types.
 
 ## 4. Build / Test Workflow
 
