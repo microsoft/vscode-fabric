@@ -117,7 +117,7 @@ export class FabricVsCodeExtension {
             workspaceManager.tvProvider = dataProvider;
             workspaceManager.treeView = treeView;
 
-            registerWorkspaceCommands(context, account, workspaceManager, capacityManager, telemetryService, logger, workspaceFilterManager);
+            registerWorkspaceCommands(context, account, workspaceManager, capacityManager, telemetryService, logger, workspaceFilterManager, fabricEnvironmentProvider);
             registerTenantCommands(context, account, telemetryService, logger);
             await registerArtifactCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, dataProvider, extensionManager, workspaceFilterManager, capacityManager, telemetryService, logger);
             registerLocalProjectCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, extensionManager, localFolderManager, workspaceFilterManager, capacityManager, dataProvider, telemetryService, logger);

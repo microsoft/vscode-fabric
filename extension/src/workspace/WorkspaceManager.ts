@@ -79,14 +79,36 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
     }
 
     public async refreshConnectionToFabric(): Promise<boolean> {
-        // not connected -> connected = new FabricClient, remove workspace
-        // connected -> not connected = remove FabricClient, remove workspace
-        // connected -> connected = new fabric client, remove workspace
+        // not connected -> connected = new FabricClient
+        // connected -> not connected = remove FabricClient
+        // connected -> connected = new fabric client
         await this.closeWorkspaces();
         if (await this.account.isSignedIn()) {
             this.didInitializePriorState = false;
-            await this.initializePriorStateIfAny();
-            return true;
+
+            // Check if user has Fabric account by attempting to list workspaces
+            try {
+                await this.listWorkspaces();
+                // Successfully listed workspaces, proceed with normal initialization
+                await this.initializePriorStateIfAny();
+                return true;
+            }
+            catch (error: any) {
+                // Check if this is a 401 Unauthorized error (no Fabric account)
+                const errorMessage = error?.message?.toLowerCase() || '';
+                const errorStatus = error?.status || error?.statusCode;
+
+                if (errorStatus === 401 || errorMessage.includes('401') || errorMessage.includes('unauthorized')) {
+                    this.logger.log('User does not have a Fabric account (401 response)');
+                    await vscode.commands.executeCommand('setContext', this.fabricWorkspaceContext, 'signup');
+                    return false;
+                }
+
+                // For other errors, try to initialize anyway
+                this.logger.log(`Error listing workspaces: ${errorMessage}`);
+                await this.initializePriorStateIfAny();
+                return true;
+            }
         }
         else {
             // we're signing out. set context to show signin button

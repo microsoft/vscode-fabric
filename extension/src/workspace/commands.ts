@@ -8,7 +8,7 @@ import { WorkspaceManagerBase } from './WorkspaceManager';
 import { WorkspaceTreeNode } from './treeNodes/WorkspaceTreeNode';
 import { showCreateWorkspaceWizard } from '../ui/showCreateWorkspaceWizard';
 import { IFabricApiClient, IWorkspace, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
-import { TelemetryService, ILogger } from '@microsoft/vscode-fabric-util';
+import { TelemetryService, ILogger, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../authentication/interfaces';
 import { ICapacityManager } from '../CapacityManager';
 import { IWorkspaceFilterManager } from './WorkspaceFilterManager';
@@ -32,7 +32,8 @@ export function registerWorkspaceCommands(
     capacityManager: ICapacityManager,
     telemetryService: TelemetryService  | null,
     logger: ILogger,
-    workspaceFilterManager: IWorkspaceFilterManager
+    workspaceFilterManager: IWorkspaceFilterManager,
+    fabricEnvironmentProvider: IFabricEnvironmentProvider
 ): void {
 
     // Dispose of any existing commands
@@ -41,6 +42,10 @@ export function registerWorkspaceCommands(
 
     registerCommand(commandNames.signIn, async () => {
         await auth.signIn();
+    }, context);
+
+    registerCommand(commandNames.signUpForFabric, async () => {
+        await signUpForFabric(auth, fabricEnvironmentProvider, telemetryService, logger);
     }, context);
 
     registerCommand(commandNames.createWorkspace, async () => {
@@ -103,4 +108,40 @@ async function selectLocalFolder(manager: WorkspaceManagerBase, treeNode?: Works
     // If called from command palette without workspace context, show an error message
     void vscode.window.showErrorMessage(vscode.l10n.t('Please right-click on a workspace in the Fabric explorer to associate it with a local folder.'));
     return undefined;
+}
+
+/**
+ * Opens the Fabric trial signup page in the user's browser with pre-filled information
+ * @param auth The account provider to get session information
+ * @param fabricEnvironmentProvider The environment provider to get portal URI
+ * @param telemetryService The telemetry service for tracking signup initiation
+ * @param logger The logger for error reporting
+ */
+async function signUpForFabric(
+    auth: IAccountProvider,
+    fabricEnvironmentProvider: IFabricEnvironmentProvider,
+    telemetryService: TelemetryService | null,
+    logger: ILogger
+): Promise<void> {
+    try {
+        const sessionInfo = await auth.getSessionInfo();
+        const environment = fabricEnvironmentProvider.getCurrent();
+        const portalUri = environment.portalUri;
+        const loginHint = sessionInfo?.account?.label || '';
+        const vscodeApp = vscode.env.appName;
+
+        const signupUrl = `https://${portalUri}/autoSignUp?clientApp=vscode&loginHint=${encodeURIComponent(loginHint)}&vscodeApp=${encodeURIComponent(vscodeApp)}`;
+
+        await vscode.env.openExternal(vscode.Uri.parse(signupUrl));
+
+        telemetryService?.sendTelemetryEvent('fabric/signUpInitiated', {
+            portalUri,
+            vscodeApp,
+            hasLoginHint: loginHint ? 'true' : 'false',
+        });
+    }
+    catch (error: any) {
+        logger.reportExceptionTelemetryAndLog('signUpForFabric', 'fabric/signUpError', error, telemetryService);
+        void vscode.window.showErrorMessage(vscode.l10n.t('Failed to open Fabric signup page: {0}', error.message));
+    }
 }

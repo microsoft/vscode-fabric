@@ -21,6 +21,7 @@ export namespace commandNames {
     export const reportIssue = 'vscode-fabric.reportIssue';
     export const filterWorkspaces = 'vscode-fabric.filterWorkspaces';
     export const clearWorkspaceFilter = 'vscode-fabric.clearWorkspaceFilter';
+    export const signUpForFabric = 'vscode-fabric.signUpForFabric';
 }
 export const fabricViewWorkspace = 'vscode-fabric.view.workspace'; // the view id of the workspace view
 export const FABRIC_API_VERSION = '1';

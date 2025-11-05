@@ -1,6 +1,7 @@
 {
     "extension.signIn.title": "Sign In",
     "extension.signOut.title": "Sign Out",
+    "extension.signUpForFabric.title": "Sign Up for Fabric",
     "extension.switchTenant.title": "Switch tenant...",
     "extension.createWorkspace.title": "Create Fabric workspace...",
     "extension.selectWorkspaceLocalFolder.title": "Select working directory...",
@@ -36,6 +37,9 @@
 
     "extension.welcomeTitle.signIn": "Sign in to Fabric to get started with your Workspace.\n[Sign in to Fabric](command:vscode-fabric.signIn)",
     "_extension.welcomeTitle.signIn.comment": "{Locked=\"(command:vscode-fabric.signIn)\"}",
+
+    "extension.welcomeTitle.signUp": "You need a Microsoft Fabric account to continue.\n[Sign Up for Fabric](command:vscode-fabric.signUpForFabric)",
+    "_extension.welcomeTitle.signUp.comment": "{Locked=\"(command:vscode-fabric.signUpForFabric)\"}",
 
     "extension.welcomeTitle.autoSignIn":"signing in and getting workspace",
     "extension.welcomeTitle.emptyWorkspace":"This workspace is empty. Create an item to get started with Microsoft Fabric.\n[Create Fabric item](command:vscode-fabric.createArtifact)",
