@@ -187,8 +187,13 @@ export class ArtifactManager implements IArtifactManagerInternal {
         return response;
     }
 
-    public async createArtifactWithDefinition(artifact: IArtifact, definition: IItemDefinition, folder: vscode.Uri): Promise<IApiClientResponse> {
-        let options: IApiClientRequestOptions = {
+    public async createArtifactWithDefinition(
+        artifact: IArtifact,
+        definition: IItemDefinition,
+        folder: vscode.Uri,
+        options?: { progress?: vscode.Progress<{ message?: string; increment?: number }> }
+    ): Promise<IApiClientResponse> {
+        let apiRequestOptions: IApiClientRequestOptions = {
             method: 'POST',
             pathTemplate: `/v1/workspaces/${artifact.workspaceId}/items`,
             headers: {
@@ -207,16 +212,16 @@ export class ArtifactManager implements IArtifactManagerInternal {
 
         // Allow handler to customize request before sending create-with-definition
         if (artifactHandler?.createWithDefinitionWorkflow?.onBeforeCreateWithDefinition) {
-            options = await artifactHandler.createWithDefinitionWorkflow.onBeforeCreateWithDefinition(
+            apiRequestOptions = await artifactHandler.createWithDefinitionWorkflow.onBeforeCreateWithDefinition(
                 artifact,
                 definition,
                 folder,
-                options
+                apiRequestOptions
             );
         }
 
-        const response = await this.apiClient.sendRequest(options);
-        const finalResponse = await handleLongRunningOperation(this.apiClient, response, this.logger);
+        const response = await this.apiClient.sendRequest(apiRequestOptions);
+        const finalResponse = await handleLongRunningOperation(this.apiClient, response, this.logger, options?.progress);
 
         if (artifactHandler?.createWithDefinitionWorkflow?.onAfterCreateWithDefinition) {
             await artifactHandler.createWithDefinitionWorkflow.onAfterCreateWithDefinition(
@@ -319,8 +324,11 @@ export class ArtifactManager implements IArtifactManagerInternal {
         return response;
     }
 
-    public async getArtifactDefinition(artifact: IArtifact): Promise<IApiClientResponse> {
-        let options: IApiClientRequestOptions =
+    public async getArtifactDefinition(
+        artifact: IArtifact,
+        options?: { progress?: vscode.Progress<{ message?: string; increment?: number }> }
+    ): Promise<IApiClientResponse> {
+        let apiRequestOptions: IApiClientRequestOptions =
         {
             method: 'POST',
             pathTemplate: `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}/getDefinition`,
@@ -329,11 +337,11 @@ export class ArtifactManager implements IArtifactManagerInternal {
         const artifactHandler = this.getArtifactHandler(artifact);
         const targetFolder = await this.workspaceManager.getLocalFolderForArtifact(artifact, { createIfNotExists: false });
         if (artifactHandler?.getDefinitionWorkflow?.onBeforeGetDefinition && targetFolder) {
-            options = await artifactHandler.getDefinitionWorkflow.onBeforeGetDefinition(artifact, targetFolder, options);
+            apiRequestOptions = await artifactHandler.getDefinitionWorkflow.onBeforeGetDefinition(artifact, targetFolder, apiRequestOptions);
         }
 
-        const response = await this.apiClient.sendRequest(options);
-        const finalResponse = await handleLongRunningOperation(this.apiClient, response, this.logger);
+        const response = await this.apiClient.sendRequest(apiRequestOptions);
+        const finalResponse = await handleLongRunningOperation(this.apiClient, response, this.logger, options?.progress);
 
         if (artifactHandler?.getDefinitionWorkflow?.onAfterGetDefinition && targetFolder) {
             await artifactHandler.getDefinitionWorkflow.onAfterGetDefinition(artifact, targetFolder, finalResponse);
@@ -341,8 +349,13 @@ export class ArtifactManager implements IArtifactManagerInternal {
         return finalResponse;
     }
 
-    public async updateArtifactDefinition(artifact: IArtifact, definition: IItemDefinition, folder: vscode.Uri): Promise<IApiClientResponse> {
-        let options: IApiClientRequestOptions =
+    public async updateArtifactDefinition(
+        artifact: IArtifact,
+        definition: IItemDefinition,
+        folder: vscode.Uri,
+        options?: { progress?: vscode.Progress<{ message?: string; increment?: number }> }
+    ): Promise<IApiClientResponse> {
+        let apiRequestOptions: IApiClientRequestOptions =
         {
             method: 'POST',
             pathTemplate: `/v1/workspaces/${artifact.workspaceId}/items/${artifact.id}/updateDefinition`,
@@ -356,16 +369,16 @@ export class ArtifactManager implements IArtifactManagerInternal {
         const artifactHandler = this.getArtifactHandler(artifact);
         // Allow handler to customize request before sending update definition
         if (artifactHandler?.updateDefinitionWorkflow?.onBeforeUpdateDefinition && folder) {
-            options = await artifactHandler.updateDefinitionWorkflow.onBeforeUpdateDefinition(
+            apiRequestOptions = await artifactHandler.updateDefinitionWorkflow.onBeforeUpdateDefinition(
                 artifact,
                 definition,
                 folder,
-                options
+                apiRequestOptions
             );
         }
 
-        const response = await this.apiClient.sendRequest(options);
-        const finalResponse = await handleLongRunningOperation(this.apiClient, response, this.logger);
+        const response = await this.apiClient.sendRequest(apiRequestOptions);
+        const finalResponse = await handleLongRunningOperation(this.apiClient, response, this.logger, options?.progress);
 
         if (artifactHandler?.updateDefinitionWorkflow?.onAfterUpdateDefinition && folder) {
             await artifactHandler.updateDefinitionWorkflow.onAfterUpdateDefinition(

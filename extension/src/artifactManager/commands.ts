@@ -176,24 +176,40 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
         commandNames.exportArtifact,
         async (...cmdArgs) => {
             const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode | undefined;
-            await doArtifactAction(
-                artifactTreeNode?.artifact,
-                'exportArtifact',
-                'item/export',
-                logger,
-                telemetryService,
-                async (activity, item) => {
-                    addCommonArtifactTelemetryProps(activity, fabricEnvironmentProvider, item);
-                    await exportArtifactCommand(
-                        item,
-                        workspaceManager,
-                        artifactManager,
-                        new ItemDefinitionConflictDetector(vscode.workspace.fs),
-                        new ItemDefinitionWriter(vscode.workspace.fs),
-                        activity
-                    );
-                }
-            );
+            const artifact = artifactTreeNode?.artifact;
+            if (!artifact) {
+                return;
+            }
+
+            await withErrorHandling('exportArtifact', logger, telemetryService, async () => {
+                const activity = new TelemetryActivity<CoreTelemetryEventNames>('item/export', telemetryService);
+                // Don't use doArtifactAction because exportArtifactCommand should be handling the progress
+                await doFabricAction({ fabricLogger: logger, telemetryActivity: activity }, async () => {
+                    try {
+                        addCommonArtifactTelemetryProps(activity, fabricEnvironmentProvider, artifact);
+                        await exportArtifactCommand(
+                            artifact,
+                            workspaceManager,
+                            artifactManager,
+                            new ItemDefinitionConflictDetector(vscode.workspace.fs),
+                            new ItemDefinitionWriter(vscode.workspace.fs),
+                            activity
+                        );
+                        activity.addOrUpdateProperties({ result: 'Succeeded' });
+                    }
+                    catch (err) {
+                        if (err instanceof UserCancelledError) {
+                            activity.addOrUpdateProperties({ result: 'Canceled' });
+                            if (err.stepName) {
+                                activity.addOrUpdateProperties({ lastStep: err.stepName });
+                            }
+                            return;
+                        }
+                        activity.addOrUpdateProperties({ result: 'Failed' });
+                        throw err;
+                    }
+                });
+            })();
         },
         context);
 

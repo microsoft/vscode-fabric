@@ -86,76 +86,99 @@ export async function importArtifactCommand(
         fabricWorkspaceName: targetWorkspace.displayName,
     });
 
-    const artifact: IArtifact | undefined = (await artifactManager.listArtifacts(targetWorkspace))
-        .find(item => item.type === targetType && item.displayName === displayName);
+    await vscode.window.withProgress(
+        {
+            location: vscode.ProgressLocation.Notification,
+            title: vscode.l10n.t('Publishing {0}...', displayName),
+            cancellable: false,
+        },
+        async (progress) => {
+            const artifact: IArtifact | undefined = (await artifactManager.listArtifacts(targetWorkspace))
+                .find(item => item.type === targetType && item.displayName === displayName);
 
-    let definition: IItemDefinition;
-    let definitionFiles: string[] | undefined = undefined;
-    let response: IApiClientResponse;
-    if (!artifact) {
-        const newArtifact: IArtifact = {
-            id: '',
-            type: targetType,
-            displayName: displayName,
-            description: '',
-            workspaceId: targetWorkspace.objectId,
-            fabricEnvironment: fabricEnvironmentProvider.getCurrent().env,
-        };
+            let definition: IItemDefinition;
+            let definitionFiles: string[] | undefined = undefined;
+            let response: IApiClientResponse;
+            if (!artifact) {
+                const newArtifact: IArtifact = {
+                    id: '',
+                    type: targetType,
+                    displayName: displayName,
+                    description: '',
+                    workspaceId: targetWorkspace.objectId,
+                    fabricEnvironment: fabricEnvironmentProvider.getCurrent().env,
+                };
 
-        if (createWorkflow?.prepareForCreateWithDefinition) {
-            definitionFiles = await createWorkflow.prepareForCreateWithDefinition(newArtifact, folder);
-            if (!definitionFiles) {
-                throw new UserCancelledError('prepareForCreateWithDefinition');
+                if (createWorkflow?.prepareForCreateWithDefinition) {
+                    definitionFiles = await createWorkflow.prepareForCreateWithDefinition(newArtifact, folder);
+                    if (!definitionFiles) {
+                        throw new UserCancelledError('prepareForCreateWithDefinition');
+                    }
+                }
+                definition = await readDefinition(reader, folder, targetType, definitionFiles);
+
+                response = await artifactManager.createArtifactWithDefinition(
+                    newArtifact,
+                    definition,
+                    folder,
+                    {
+                        progress: progress,
+                    }
+                );
+                await dataProvider.refresh();
+            }
+            else {
+                telemetryActivity.addOrUpdateProperties({
+                    artifactId: artifact.id,
+                });
+
+                // Make sure the user wants to overwrite the existing item
+                const confirm = await vscode.window.showInformationMessage(
+                    vscode.l10n.t('An item named "{0}" already exists in workspace "{1}". Do you want to overwrite it?', displayName, targetWorkspace.displayName),
+                    { modal: true },
+                    vscode.l10n.t('Yes')
+                );
+                if (confirm !== vscode.l10n.t('Yes')) {
+                    throw new UserCancelledError('overwriteConfirmation');
+                }
+
+                if (updateWorkflow?.prepareForUpdateWithDefinition) {
+                    definitionFiles = await updateWorkflow.prepareForUpdateWithDefinition(artifact, folder);
+                    if (!definitionFiles) {
+                        throw new UserCancelledError('prepareForUpdateWithDefinition');
+                    }
+                }
+                definition = await readDefinition(reader, folder, targetType, definitionFiles);
+
+                response = await artifactManager.updateArtifactDefinition(
+                    artifact,
+                    definition,
+                    folder,
+                    {
+                        progress: progress,
+                    }
+                );
+            }
+            telemetryActivity.addOrUpdateProperties({
+                'statusCode': response?.status.toString(),
+            });
+
+            if (succeeded(response)) {
+                void vscode.window.showInformationMessage(vscode.l10n.t('Published {0}', displayName));
+            }
+            else {
+                telemetryActivity.addOrUpdateProperties({
+                    'requestId': response.parsedBody?.requestId,
+                    'errorCode': response.parsedBody?.errorCode,
+                });
+                throw new FabricError(
+                    formatErrorResponse(vscode.l10n.t('Error publishing {0}', displayName), response),
+                    response.parsedBody?.errorCode || `Publishing Artifact failed ${targetType} ${response.status}`,
+                    { showInUserNotification: 'Information' }
+                );
             }
         }
-        definition = await readDefinition(reader, folder, targetType, definitionFiles);
-
-        response = await artifactManager.createArtifactWithDefinition(newArtifact, definition, folder);
-        await dataProvider.refresh();
-    }
-    else {
-        telemetryActivity.addOrUpdateProperties({
-            artifactId: artifact.id,
-        });
-
-        // Make sure the user wants to overwrite the existing item
-        const confirm = await vscode.window.showInformationMessage(
-            vscode.l10n.t('An item named "{0}" already exists in workspace "{1}". Do you want to overwrite it?', displayName, targetWorkspace.displayName),
-            { modal: true },
-            vscode.l10n.t('Yes')
-        );
-        if (confirm !== vscode.l10n.t('Yes')) {
-            throw new UserCancelledError('overwriteConfirmation');
-        }
-
-        if (updateWorkflow?.prepareForUpdateWithDefinition) {
-            definitionFiles = await updateWorkflow.prepareForUpdateWithDefinition(artifact, folder);
-            if (!definitionFiles) {
-                throw new UserCancelledError('prepareForUpdateWithDefinition');
-            }
-        }
-        definition = await readDefinition(reader, folder, targetType, definitionFiles);
-
-        response = await artifactManager.updateArtifactDefinition(artifact, definition, folder);
-    }
-    telemetryActivity.addOrUpdateProperties({
-        'statusCode': response?.status.toString(),
-    });
-
-    if (succeeded(response)) {
-        void vscode.window.showInformationMessage(vscode.l10n.t('Published {0}', displayName));
-    }
-    else {
-        telemetryActivity.addOrUpdateProperties({
-            'requestId': response.parsedBody?.requestId,
-            'errorCode': response.parsedBody?.errorCode,
-        });
-        throw new FabricError(
-            formatErrorResponse(vscode.l10n.t('Error publishing {0}', displayName), response),
-            response.parsedBody?.errorCode || `Publishing Artifact failed ${targetType} ${response.status}`,
-            { showInUserNotification: 'Information' }
-        );
-    }
+    );
 }
 
 async function readDefinition(

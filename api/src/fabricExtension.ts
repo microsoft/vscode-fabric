@@ -125,8 +125,19 @@ export interface IArtifactManager {
      * @param artifact - The artifact to create
      * @param definition - The item definition to use for creating the artifact
      * @param folder - The folder where the item definition was created from
+     * @param options - Optional parameters for the creation operation
      */
-    createArtifactWithDefinition(artifact: IArtifact, definition: IItemDefinition, folder: vscode.Uri): Promise<IApiClientResponse>;
+    createArtifactWithDefinition(
+        artifact: IArtifact,
+        definition: IItemDefinition,
+        folder: vscode.Uri,
+        options?: {
+            /**
+             * Optional progress reporter to track the progress of the creation operation
+             */
+            progress?: vscode.Progress<{ message?: string; increment?: number }>;
+        }
+    ): Promise<IApiClientResponse>;
 
     /**
      * Gets the specified artifact on the Fabric back end
@@ -160,8 +171,19 @@ export interface IArtifactManager {
 
     /**
      * Gets the definition for the specified artifact from the Fabric back end
+     *
+     * @param artifact - The artifact to get the definition for
+     * @param options - Optional parameters for the get operation
      */
-    getArtifactDefinition(artifact: IArtifact): Promise<IApiClientResponse>;
+    getArtifactDefinition(
+        artifact: IArtifact,
+        options?: {
+            /**
+             * Optional progress reporter to track the progress of the get operation
+             */
+            progress?: vscode.Progress<{ message?: string; increment?: number }>;
+        }
+    ): Promise<IApiClientResponse>;
 
     /**
      * Updates the definition for the specified artifact on the Fabric back end
@@ -169,8 +191,18 @@ export interface IArtifactManager {
      * @param artifact - The artifact to update
      * @param definition - The item definition to use for updating the artifact
      * @param folder - The folder where the item definition was created from
+     * @param options - Optional parameters for the update operation
      */
-    updateArtifactDefinition(artifact: IArtifact, definition: IItemDefinition, folder: vscode.Uri): Promise<IApiClientResponse>;
+    updateArtifactDefinition(
+        artifact: IArtifact,
+        definition: IItemDefinition,
+        folder: vscode.Uri, options?: {
+            /**
+             * Optional progress reporter to track the progress of the update operation
+             */
+            progress?: vscode.Progress<{ message?: string; increment?: number }>;
+        }
+    ): Promise<IApiClientResponse>;
 
     /**
      * Gets the specified artifact from the Fabric back end

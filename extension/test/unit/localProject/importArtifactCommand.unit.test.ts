@@ -64,10 +64,10 @@ describe('importArtifactCommand', () => {
             .setup(m => m.listArtifacts(It.IsAny()))
             .returnsAsync([fakeArtifact]);
         artifactManagerMock
-            .setup(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()))
+            .setup(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()))
             .returns(Promise.resolve({ status: 200 } as IApiClientResponse));
         artifactManagerMock
-            .setup(a => a.createArtifactWithDefinition(It.IsAny(), It.IsAny(), It.IsAny()))
+            .setup(a => a.createArtifactWithDefinition(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()))
             .returns(Promise.resolve({ status: 201 } as IApiClientResponse));
 
         workspaceManagerMock
@@ -130,7 +130,7 @@ describe('importArtifactCommand', () => {
         assert.deepStrictEqual(options, { modal: true });
         assert.strictEqual(yesButton, 'Yes');
 
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri, It.IsAny()));
         dataProviderMock.verify(x => x.refresh(), Times.Never());
 
         const expectedParent = vscode.Uri.file('/path/to/local/folder');
@@ -163,7 +163,7 @@ describe('importArtifactCommand', () => {
         // Assert
         localFolderManagerMock.verify(m => m.getWorkspaceIdForLocalFolder(It.Is<vscode.Uri>((uri) => uri.fsPath === expectedParent.fsPath)), Times.Exactly(1));
         assert.ok(showWorkspaceQuickPickStub.notCalled, 'showWorkspaceQuickPick should NOT be called');
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri, It.IsAny()));
         verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', fakeWorkspace.objectId);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'fabricWorkspaceName', fakeWorkspace.displayName);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'targetDetermination', 'inferred');
@@ -187,7 +187,8 @@ describe('importArtifactCommand', () => {
                     obj.displayName === artifactDisplayName
                 ),
                 fakeDefinition,
-                folderUri
+                folderUri,
+                It.IsAny()
             ),
             Times.Once()
         );
@@ -214,11 +215,12 @@ describe('importArtifactCommand', () => {
                     obj.displayName === artifactDisplayName
                 ),
                 fakeDefinition,
-                folderUri
+                folderUri,
+                It.IsAny()
             ),
             Times.Once()
         );
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
         dataProviderMock.verify(x => x.refresh(), Times.Once());
         assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called');
     });
@@ -248,11 +250,12 @@ describe('importArtifactCommand', () => {
                     obj.displayName === artifactDisplayName
                 ),
                 fakeDefinition,
-                folderUri
+                folderUri,
+                It.IsAny()
             ),
             Times.Once()
         );
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
         assert.ok(createWorkflow.prepareForCreateWithDefinition.called, 'prepareForCreateWithDefinition should be called');
         readerMock.verify(
             r => r.read(
@@ -280,7 +283,7 @@ describe('importArtifactCommand', () => {
         await executeCommand();
 
         // Assert
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri, It.IsAny()));
         assert.ok(updateWorkflow.prepareForUpdateWithDefinition.called, 'prepareForUpdateWithDefinition should be called');
         readerMock.verify(
             r => r.read(
@@ -315,11 +318,12 @@ describe('importArtifactCommand', () => {
                     obj.displayName === artifactDisplayName
                 ),
                 fakeDefinition,
-                folderUri
+                folderUri,
+                It.IsAny()
             ),
             Times.Once()
         );
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
         readerMock.verify(
             r => r.read(It.IsAny(), undefined),
             Times.Once()
@@ -337,7 +341,7 @@ describe('importArtifactCommand', () => {
         await executeCommand();
 
         // Assert
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri, It.IsAny()));
         readerMock.verify(
             r => r.read(It.IsAny(), undefined),
             Times.Once()
@@ -413,7 +417,7 @@ describe('importArtifactCommand', () => {
         // Should NOT use inferred workspace, should always prompt
         assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called when forcePromptForWorkspace is true');
         localFolderManagerMock.verify(m => m.getWorkspaceIdForLocalFolder(It.IsAny()), Times.Never());
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri));
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri, It.IsAny()));
         verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', fakeWorkspace.objectId);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'fabricWorkspaceName', fakeWorkspace.displayName);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'targetDetermination', 'forced');
@@ -554,7 +558,7 @@ describe('importArtifactCommand', () => {
         };
         apiClientResponseMock.setup(instance => instance.status).returns(400);
         apiClientResponseMock.setup(instance => instance.parsedBody).returns(errorResponseBody);
-        artifactManagerMock.setup(instance => instance.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()))
+        artifactManagerMock.setup(instance => instance.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()))
             .returns(Promise.resolve(apiClientResponseMock.object()));
 
         // Act
@@ -602,7 +606,51 @@ describe('importArtifactCommand', () => {
         );
 
         // Assert
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
+    });
+
+    it('Passes progress reporter to createArtifactWithDefinition', async () => {
+        // Arrange
+        artifactManagerMock
+            .setup(m => m.listArtifacts(It.IsAny()))
+            .returnsAsync([]);
+
+        let capturedOptions: any;
+        artifactManagerMock
+            .setup(a => a.createArtifactWithDefinition(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()))
+            .callback(({ args }) => {
+                const [_artifact, _definition, _folder, options] = args;
+                capturedOptions = options;
+                return Promise.resolve({ status: 201 } as IApiClientResponse);
+            });
+
+        // Act
+        await executeCommand();
+
+        // Assert
+        assert.ok(capturedOptions, 'Options should be passed to createArtifactWithDefinition');
+        assert.ok(capturedOptions.progress, 'Progress should be provided in options');
+        assert.strictEqual(typeof capturedOptions.progress.report, 'function', 'Progress should have a report method');
+    });
+
+    it('Passes progress reporter to updateArtifactDefinition', async () => {
+        // Arrange
+        let capturedOptions: any;
+        artifactManagerMock
+            .setup(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()))
+            .callback(({ args }) => {
+                const [_artifact, _definition, _folder, options] = args;
+                capturedOptions = options;
+                return Promise.resolve({ status: 200 } as IApiClientResponse);
+            });
+
+        // Act
+        await executeCommand();
+
+        // Assert
+        assert.ok(capturedOptions, 'Options should be passed to updateArtifactDefinition');
+        assert.ok(capturedOptions.progress, 'Progress should be provided in options');
+        assert.strictEqual(typeof capturedOptions.progress.report, 'function', 'Progress should have a report method');
     });
 
     async function executeCommand(forcePromptForWorkspace: boolean = false): Promise<void> {
