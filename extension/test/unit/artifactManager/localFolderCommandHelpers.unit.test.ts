@@ -36,6 +36,11 @@ describe('localFolderCommandHelpers', () => {
             },
         };
 
+        const successResponse = {
+            status: 200,
+            parsedBody: successDefinition,
+        };
+
         let artifactMock: Mock<IArtifact>;
         let artifactManagerMock: Mock<IArtifactManager>;
         let conflictDetectorMock: Mock<IItemDefinitionConflictDetector>;
@@ -70,7 +75,7 @@ describe('localFolderCommandHelpers', () => {
                 status: 200,
                 parsedBody: successDefinition,
             };
-            artifactManagerMock.setup(am => am.getArtifactDefinition(It.IsAny(), It.IsAny()))
+            artifactManagerMock.setup(am => am.getArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()))
                 .returnsAsync(successResponse);
 
             await downloadAndSaveArtifact(
@@ -82,7 +87,7 @@ describe('localFolderCommandHelpers', () => {
                 telemetryActivityMock.object()
             );
 
-            artifactManagerMock.verify(am => am.getArtifactDefinition(artifactMock.object(), targetFolder), Times.Once());
+            artifactManagerMock.verify(am => am.getArtifactDefinition(artifactMock.object(), targetFolder, It.IsAny()), Times.Once());
             verifyAddOrUpdateProperties(telemetryActivityMock, 'statusCode', '200');
         });
 
@@ -91,7 +96,7 @@ describe('localFolderCommandHelpers', () => {
                 status: 200,
                 parsedBody: successDefinition,
             };
-            artifactManagerMock.setup(am => am.getArtifactDefinition(It.IsAny(), It.IsAny()))
+            artifactManagerMock.setup(am => am.getArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()))
                 .returnsAsync(successResponse);
             conflictDetectorMock.setup(c => c.getConflictingFiles(It.IsAny(), It.IsAny()))
                 .returnsAsync(['file1.txt', 'file2.txt']);
@@ -117,7 +122,7 @@ describe('localFolderCommandHelpers', () => {
                 status: 200,
                 parsedBody: successDefinition,
             };
-            artifactManagerMock.setup(am => am.getArtifactDefinition(It.IsAny(), It.IsAny()))
+            artifactManagerMock.setup(am => am.getArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()))
                 .returnsAsync(successResponse);
             conflictDetectorMock.setup(c => c.getConflictingFiles(It.IsAny(), It.IsAny()))
                 .returnsAsync(['file1.txt']);
@@ -151,7 +156,7 @@ describe('localFolderCommandHelpers', () => {
                     requestId: 'req-12345',
                 },
             };
-            artifactManagerMock.setup(am => am.getArtifactDefinition(It.IsAny(), It.IsAny()))
+            artifactManagerMock.setup(am => am.getArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()))
                 .returnsAsync(errorResponse);
 
             await assert.rejects(
@@ -173,6 +178,33 @@ describe('localFolderCommandHelpers', () => {
             verifyAddOrUpdateProperties(telemetryActivityMock, 'requestId', 'req-12345');
             verifyAddOrUpdateProperties(telemetryActivityMock, 'errorCode', 'InvalidInput');
             itemDefinitionWriterMock.verify(w => w.save(It.IsAny(), It.IsAny()), Times.Never());
+        });
+
+        it('should pass progress reporter to getArtifactDefinition', async () => {
+            // Arrange
+            let capturedOptions: any;
+            artifactManagerMock
+                .setup(am => am.getArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()))
+                .callback(({ args }) => {
+                    const [_artifact, _folder, options] = args;
+                    capturedOptions = options;
+                    return Promise.resolve(successResponse);
+                });
+
+            // Act
+            await downloadAndSaveArtifact(
+                artifactMock.object(),
+                targetFolder,
+                artifactManagerMock.object(),
+                conflictDetectorMock.object(),
+                itemDefinitionWriterMock.object(),
+                telemetryActivityMock.object()
+            );
+
+            // Assert
+            assert.ok(capturedOptions, 'Options should be passed to getArtifactDefinition');
+            assert.ok(capturedOptions.progress, 'Progress should be provided in options');
+            assert.strictEqual(typeof capturedOptions.progress.report, 'function', 'Progress should have a report method');
         });
     });
 

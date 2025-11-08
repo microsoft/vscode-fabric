@@ -49,25 +49,17 @@ export async function exportArtifactCommand(
     itemDefinitionWriter: IItemDefinitionWriter,
     telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>
 ): Promise<void> {
-    await vscode.window.withProgress(
+    // Get the folder to export to
+    const localFolderResults = await localFolderService.getLocalFolder(
+        artifact,
         {
-            location: vscode.ProgressLocation.Notification,
-            title: vscode.l10n.t('Opening {0}...', artifact.displayName),
-            cancellable: false,
-        },
-        async (progress) => {
-            // Get the folder to export to
-            // Get the folder to export to
-            const localFolderResults = await localFolderService.getLocalFolder(
-                artifact,
-                {
-                    prompt: LocalFolderPromptMode.discretionary,
-                    create: true,
-                }
-            );
-            if (!localFolderResults) {
-                throw new UserCancelledError('localFolderSelection');
-            }
+            prompt: LocalFolderPromptMode.discretionary,
+            create: true,
+        }
+    );
+    if (!localFolderResults) {
+        throw new UserCancelledError('localFolderSelection');
+    }
 
     // Download and save the artifact
     try {

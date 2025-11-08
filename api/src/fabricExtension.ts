@@ -198,7 +198,8 @@ export interface IArtifactManager {
     updateArtifactDefinition(
         artifact: IArtifact,
         definition: IItemDefinition,
-        folder: vscode.Uri, options?: {
+        folder: vscode.Uri,
+        options?: {
             /**
              * Optional progress reporter to track the progress of the update operation
              */

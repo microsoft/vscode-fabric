@@ -165,26 +165,6 @@ describe('exportArtifactCommand', () => {
         assert.ok(error!.message.includes(errorText), 'message should include errorText');
     });
 
-    it('Passes progress reporter to getArtifactDefinition', async () => {
-        // Arrange
-        let capturedOptions: any;
-        artifactManagerMock
-            .setup(am => am.getArtifactDefinition(It.IsAny(), It.IsAny()))
-            .callback(({ args }) => {
-                const [_artifact, options] = args;
-                capturedOptions = options;
-                return Promise.resolve(successResponse);
-            });
-
-        // Act
-        await executeCommand();
-
-        // Assert
-        assert.ok(capturedOptions, 'Options should be passed to getArtifactDefinition');
-        assert.ok(capturedOptions.progress, 'Progress should be provided in options');
-        assert.strictEqual(typeof capturedOptions.progress.report, 'function', 'Progress should have a report method');
-    });
-
     async function executeCommand(): Promise<void> {
         await exportArtifactCommand(
             artifactMock.object(),
