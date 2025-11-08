@@ -52,12 +52,6 @@
         "icon": "$(add)"
       },
       {
-        "command": "vscode-fabric.selectWorkspaceLocalFolder",
-        "title": "%extension.selectWorkspaceLocalFolder.title%",
-        "category": "Fabric",
-        "icon": "$(arrow-swap)"
-      },
-      {
         "command": "vscode-fabric.createArtifact",
         "title": "%extension.createArtifact.title%",
         "category": "Fabric",
@@ -308,10 +302,6 @@
           "when": "false"
         },
         {
-          "command": "vscode-fabric.selectWorkspaceLocalFolder",
-          "when": "false"
-        },
-        {
           "command": "vscode-fabric.installExtension",
           "when": "false"
         }
@@ -383,11 +373,6 @@
           "command": "vscode-fabric.createArtifact",
           "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceTreeNode",
           "group": "inline"
-        },
-        {
-          "command": "vscode-fabric.selectWorkspaceLocalFolder",
-          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceTreeNode",
-          "group": "1@1"
         },
         {
           "command": "vscode-fabric.refreshArtifactView",
@@ -508,11 +493,6 @@
           "type": "number",
           "default": 60000,
           "description": "%extension.configuration.ApiTimeout.description%"
-        },
-        "Fabric.DefaultWorkspaceFolder": {
-          "type": "string",
-          "default": "",
-          "description": "%extension.configuration.DefaultWorkspaceFolder.description%"
         },
         "Fabric.LocalFolderSaveBehavior": {
           "type": "string",

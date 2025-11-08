@@ -513,6 +513,9 @@ export class ArtifactManager implements IArtifactManagerInternal {
         });
     }
 
+    /**
+     * @deprecated
+     */
     public async openArtifact(artifact: IArtifact): Promise<void> {
         const artifactHandler = this.getArtifactHandler(artifact);
         if (!artifactHandler?.onOpen) {

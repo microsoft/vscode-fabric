@@ -390,8 +390,8 @@ export interface IWorkspaceFolder {
  * // List available workspaces
  * const workspaces = await workspaceManager.listWorkspaces();
  *
- * // Get local folder for a workspace
- * const localFolder = await workspaceManager.getLocalFolderForFabricWorkspace(workspace, {
+ * // Get local folder for an item
+ * const localFolder = await workspaceManager.getLocalFolderForArtifact(artifact, {
  *   createIfNotExists: true
  * });
  * ```

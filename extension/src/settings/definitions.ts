@@ -148,6 +148,7 @@ export interface IFabricExtensionsSettingStorage {
     mostRecentWorkspace: string | undefined, // Workspace id of the most recently opened workspace
 
     /**
+     * @deprecated
      * The user's default local location for Fabric workspaces
      */
     get defaultWorkspacesPath(): string | undefined;

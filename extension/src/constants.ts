@@ -5,7 +5,6 @@ export namespace commandNames {
     export const signIn = 'vscode-fabric.signIn';
     export const switchTenant = 'vscode-fabric.switchTenant';
     export const createWorkspace = 'vscode-fabric.createWorkspace';
-    export const selectWorkspaceLocalFolder = 'vscode-fabric.selectWorkspaceLocalFolder';
     export const createArtifact = 'vscode-fabric.createArtifact';
     export const readArtifact = 'vscode-fabric.readArtifact';
     export const openArtifact = 'vscode-fabric.openArtifact';

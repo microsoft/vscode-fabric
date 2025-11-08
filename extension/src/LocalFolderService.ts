@@ -9,7 +9,7 @@ import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { isDirectory } from './utilities';
 
 /**
- * Determines when to show the folder picker prompt for getLocalFolderForArtifact.
+ * Determines when to show the folder picker prompt for getLocalFolder.
  */
 export enum LocalFolderPromptMode {
     never = 'never',
