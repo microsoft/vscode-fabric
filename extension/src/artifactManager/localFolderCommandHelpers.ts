@@ -22,42 +22,51 @@ export async function downloadAndSaveArtifact(
     itemDefinitionWriter: IItemDefinitionWriter,
     telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>
 ): Promise<void> {
-    // Invoke API to download the artifact
-    const response = await artifactManager.getArtifactDefinition(artifact, targetFolder);
-    telemetryActivity.addOrUpdateProperties({
-        'statusCode': response?.status.toString(),
-    });
+    await vscode.window.withProgress(
+        {
+            location: vscode.ProgressLocation.Notification,
+            title: vscode.l10n.t('Opening {0}...', artifact.displayName),
+            cancellable: false,
+        },
+        async (progress) => {
+            // Invoke API to download the artifact
+            const response = await artifactManager.getArtifactDefinition(artifact, targetFolder, { progress });
+            telemetryActivity.addOrUpdateProperties({
+                'statusCode': response?.status.toString(),
+            });
 
-    if (succeeded(response)) {
-        // Check for conflicts and get user confirmation if needed
-        const conflicts = await conflictDetector.getConflictingFiles(response.parsedBody?.definition, targetFolder);
-        if (conflicts.length > 0) {
-            const confirm = await vscode.window.showWarningMessage(
-                vscode.l10n.t('The following files already exist and will be overwritten:\n{0}\nDo you want to continue?', conflicts.join('\n')),
-                { modal: true },
-                vscode.l10n.t('Yes')
-            );
-            if (confirm !== vscode.l10n.t('Yes')) {
-                throw new UserCancelledError('overwriteExportFiles');
+            if (succeeded(response)) {
+                // Check for conflicts and get user confirmation if needed
+                const conflicts = await conflictDetector.getConflictingFiles(response.parsedBody?.definition, targetFolder);
+                if (conflicts.length > 0) {
+                    const confirm = await vscode.window.showWarningMessage(
+                        vscode.l10n.t('The following files already exist and will be overwritten:\n{0}\nDo you want to continue?', conflicts.join('\n')),
+                        { modal: true },
+                        vscode.l10n.t('Yes')
+                    );
+                    if (confirm !== vscode.l10n.t('Yes')) {
+                        throw new UserCancelledError('overwriteExportFiles');
+                    }
+                }
+
+                // Save the artifact definition to disk
+                await itemDefinitionWriter.save(response.parsedBody?.definition, targetFolder);
+            }
+            else {
+                // Handle API errors
+                telemetryActivity.addOrUpdateProperties({
+                    'requestId': response.parsedBody?.requestId,
+                    'errorCode': response.parsedBody?.errorCode,
+                });
+
+                throw new FabricError(
+                    formatErrorResponse(vscode.l10n.t('Error downloading {0}', artifact.displayName), response),
+                    response.parsedBody?.errorCode || `Download failed ${artifact.type} ${response.status}`,
+                    { showInUserNotification: 'Information' }
+                );
             }
         }
-
-        // Save the artifact definition to disk
-        await itemDefinitionWriter.save(response.parsedBody?.definition, targetFolder);
-    }
-    else {
-        // Handle API errors
-        telemetryActivity.addOrUpdateProperties({
-            'requestId': response.parsedBody?.requestId,
-            'errorCode': response.parsedBody?.errorCode,
-        });
-
-        throw new FabricError(
-            formatErrorResponse(vscode.l10n.t('Error downloading {0}', artifact.displayName), response),
-            response.parsedBody?.errorCode || `Download failed ${artifact.type} ${response.status}`,
-            { showInUserNotification: 'Information' }
-        );
-    }
+    );
 }
 
 /**

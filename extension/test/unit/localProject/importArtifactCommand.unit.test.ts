@@ -193,7 +193,7 @@ describe('importArtifactCommand', () => {
         localFolderServiceMock.verify(m => m.getArtifactInformation(folderUri), Times.Exactly(1));
         assert.ok(showWorkspaceQuickPickStub.notCalled, 'showWorkspaceQuickPick should NOT be called');
         // Should update the inferred artifact (by ID), not the one matching by name
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(inferredArtifact, fakeDefinition, folderUri), Times.Once());
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(inferredArtifact, fakeDefinition, folderUri, It.IsAny()), Times.Once());
         verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', fakeWorkspace.objectId);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'targetDetermination', 'inferred');
         verifyAddOrUpdateProperties(telemetryActivityMock, 'artifactId', inferredArtifactId);
@@ -221,7 +221,7 @@ describe('importArtifactCommand', () => {
         // Assert
         localFolderServiceMock.verify(m => m.getArtifactInformation(folderUri), Times.Exactly(1));
         // Should fall back to name/type search and find fakeArtifact
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri), Times.Once());
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri, It.IsAny()), Times.Once());
         verifyAddOrUpdateProperties(telemetryActivityMock, 'artifactId', fakeArtifact.id);
     });
 
@@ -245,7 +245,7 @@ describe('importArtifactCommand', () => {
         // Assert
         localFolderServiceMock.verify(m => m.getArtifactInformation(folderUri), Times.Exactly(1));
         // Should use name/type search
-        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri), Times.Once());
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri, It.IsAny()), Times.Once());
         verifyAddOrUpdateProperties(telemetryActivityMock, 'targetDetermination', 'inferred');
     });
 
@@ -279,7 +279,8 @@ describe('importArtifactCommand', () => {
                     obj.displayName === artifactDisplayName
                 ),
                 fakeDefinition,
-                folderUri
+                folderUri,
+                It.IsAny()
             ),
             Times.Once()
         );

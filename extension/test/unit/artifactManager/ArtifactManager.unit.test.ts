@@ -984,6 +984,7 @@ describe('ArtifactManager', function () {
         // Act
         const result = await artifactManager.getArtifactDefinition(
             artifactMock.object(),
+            folderUri,
             { progress: progressReporter as any }
         );
 
