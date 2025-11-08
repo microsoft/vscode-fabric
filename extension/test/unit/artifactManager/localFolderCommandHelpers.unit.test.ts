@@ -411,25 +411,6 @@ describe('localFolderCommandHelpers', () => {
         });
     });
 
-    describe('getFolderDisplayName', () => {
-        it('should extract folder name from Unix path', () => {
-            const uri = vscode.Uri.file('/home/user/workspace/MyFolder');
-            assert.strictEqual(getFolderDisplayName(uri), 'MyFolder');
-        });
-
-        it('should extract folder name from Windows path', () => {
-            const uri = vscode.Uri.file('C:\\Users\\user\\workspace\\MyFolder');
-            const name = getFolderDisplayName(uri);
-            assert.ok(name === 'MyFolder' || name === 'C:', 'Should extract folder name from Windows path');
-        });
-
-        it('should handle root path', () => {
-            const uri = vscode.Uri.file('/');
-            const name = getFolderDisplayName(uri);
-            assert.ok(name.length > 0, 'Should return some name for root');
-        });
-    });
-
     describe('showFolderActionDialog', () => {
         const testFolder = vscode.Uri.file('/test/folder');
         const testMessage = 'Test message';

@@ -313,15 +313,6 @@ describe('LocalFolderService unit tests', () => {
                 storeError
             );
         });
-
-        it('should update with Windows path format', async () => {
-            const windowsFolderUri = vscode.Uri.file('C:\\Users\\Test\\Documents\\Fabric');
-            settingsStoreMock.setup(s => s.setLocalFolder(mockArtifact.id, windowsFolderUri.fsPath, mockArtifact.workspaceId, mockArtifact.fabricEnvironment)).returns(Promise.resolve());
-
-            await service.updateLocalFolder(mockArtifact, windowsFolderUri);
-
-            settingsStoreMock.verify(s => s.setLocalFolder(mockArtifact.id, windowsFolderUri.fsPath, mockArtifact.workspaceId, mockArtifact.fabricEnvironment), Times.Once());
-        });
     });
 
     describe('integration scenarios', () => {

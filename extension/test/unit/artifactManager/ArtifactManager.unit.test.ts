@@ -878,9 +878,6 @@ describe('ArtifactManager', function () {
             const apiResponse: IApiClientResponse = {
                 status: status,
             };
-            // Provide folder so workflow path (even if none) still calls workspaceManager without throwing
-            workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
-                .returns(Promise.resolve(vscode.Uri.file('/tmp/def')));
 
             let sendRequestArgs: IApiClientRequestOptions | undefined;
             apiClientMock.setup(x => x.sendRequest(It.IsAny()))
@@ -973,9 +970,6 @@ describe('ArtifactManager', function () {
             report: sinon.stub(),
         };
 
-        workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
-            .returns(Promise.resolve(folderUri));
-
         apiClientMock.setup(x => x.sendRequest(It.IsAny()))
             .returns(Promise.resolve(apiResponse));
 
@@ -1060,8 +1054,6 @@ describe('ArtifactManager', function () {
         const apiResponse: IApiClientResponse = { status: 201 } as any;
         const itemDefinition: IItemDefinition = { parts: [] };
         const folderUri = vscode.Uri.file('/tmp/folder-create-def');
-        workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
-            .returns(Promise.resolve(folderUri));
 
         const onBeforeCreateWithDefinitionStub = sinon.stub().callsFake(async (_artifact: IArtifact, def: IItemDefinition, folder: vscode.Uri, options: IApiClientRequestOptions) => {
             assert.strictEqual(def, itemDefinition, 'Definition should match');
@@ -1142,8 +1134,6 @@ describe('ArtifactManager', function () {
             const apiResponse: IApiClientResponse = {
                 status: status,
             };
-            workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
-                .returns(Promise.resolve(vscode.Uri.file('/tmp/udef')));
             const itemDefinition: IItemDefinition = {
                 parts: [
                     {
@@ -1196,8 +1186,6 @@ describe('ArtifactManager', function () {
         const apiResponse: IApiClientResponse = { status: 200 } as any;
         const itemDefinition: IItemDefinition = { parts: [] };
         const folderUri = vscode.Uri.file('/tmp/folder2');
-        workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
-            .returns(Promise.resolve(folderUri));
 
         const onBeforeUpdateDefinitionStub = sinon.stub().callsFake(async (_artifact: IArtifact, def: IItemDefinition, folder: vscode.Uri, options: IApiClientRequestOptions) => {
             assert.strictEqual(def, itemDefinition, 'Definition should match');
