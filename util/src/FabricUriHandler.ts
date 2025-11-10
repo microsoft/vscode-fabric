@@ -27,6 +27,32 @@ export class FabricUriHandler implements vscode.UriHandler {
         const activity = new TelemetryActivity('handle-uri', this.telemetry);
         return doFabricAction({ fabricLogger: this.logger, telemetryActivity: activity }, async () => {
             const searchParams = new URLSearchParams(uri.query);
+
+            // Check if this is a signup completion callback
+            const signupComplete = searchParams.get('signedUp');
+            if (signupComplete === '1') {
+                this.logger.info('Signup completion callback received');
+                activity.addOrUpdateProperties({
+                    'targetEnvironment': 'signupCallback',
+                    'uriQuery': uri.query,
+                });
+
+                // Refresh the workspace manager to reload workspaces
+                // Cast to any to access the concrete implementation method
+                // TODO: Expose a proper method in the interface
+                const workspaceManager = this.core.workspaceManager as any;
+                if (typeof workspaceManager.refreshConnectionToFabric === 'function') {
+                    await workspaceManager.refreshConnectionToFabric();
+                }
+
+                // Show the Fabric remote view
+                await vscode.commands.executeCommand('workbench.view.extension.vscode-fabric_view_workspace');
+
+                void vscode.window.showInformationMessage(vscode.l10n.t('Welcome to Microsoft Fabric! Your account setup is complete.'));
+                return;
+            }
+
+            // Handle standard artifact opening URI
             const workspaceId = searchParams.get('workspaceId') || '';
             const artifactId = searchParams.get('artifactId') || '';
             const environmentId = (searchParams.get('Environment') || '').toUpperCase();

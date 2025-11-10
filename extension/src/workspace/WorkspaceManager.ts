@@ -14,6 +14,13 @@ import { IFabricEnvironmentProvider, FabricError, ILogger, IConfigurationProvide
 import { IAccountProvider, ITenantSettings } from '../authentication/interfaces';
 import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
 
+class UnlicensedUserError extends Error {
+    constructor() {
+        super('User does not have a Fabric account');
+        this.name = 'UnlicensedUserError';
+    }
+}
+
 /**
  * Base class for managing the logged-in user's Fabric Workspace. Mock also inherits from this class. Put code common to both here
  */
@@ -98,7 +105,7 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
                 const errorMessage = error?.message?.toLowerCase() || '';
                 const errorStatus = error?.status || error?.statusCode;
 
-                if (errorStatus === 401 || errorMessage.includes('401') || errorMessage.includes('unauthorized')) {
+                if (error instanceof UnlicensedUserError) {
                     this.logger.log('User does not have a Fabric account (401 response)');
                     await vscode.commands.executeCommand('setContext', this.fabricWorkspaceContext, 'signup');
                     return false;
@@ -478,12 +485,16 @@ export class WorkspaceManager extends WorkspaceManagerBase {
         if (!(await this.isConnected())) {
             throw new FabricError(vscode.l10n.t('Currently not connected to Fabric'), 'Currently not connected to Fabric');
         }
-
+        // throw new Error('unlicensed');
         const res = await this.apiClient?.sendRequest({
             method: 'GET',
             pathTemplate: '/v1/workspaces',
         });
         if (res?.status !== 200) {
+            if (res?.status === 401 && res?.bodyAsText?.toLowerCase().includes('unlicensed')) {
+                throw new UnlicensedUserError();
+            }
+
             throw new Error(`Error Getting Workspaces + ${res?.status}  ${res?.bodyAsText}`);
         }
         let arrayWSpaces = res?.parsedBody;
