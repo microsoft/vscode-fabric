@@ -194,7 +194,6 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                         addCommonArtifactTelemetryProps(activity, fabricEnvironmentProvider, artifact);
                         await exportArtifactCommand(
                             artifact,
-                            workspaceManager,
                             artifactManager,
                             localFolderService,
                             configurationProvider,
@@ -221,6 +220,61 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
         context);
 
     registerCommand(
+        commandNames.openLocalFolder,
+        async (...cmdArgs) => {
+            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode;
+            await doArtifactAction(
+                artifactTreeNode?.artifact,
+                'openLocalFolder',
+                'item/localFolder/open',
+                logger,
+                telemetryService,
+                async (activity, item) => {
+                    addCommonArtifactTelemetryProps(activity, fabricEnvironmentProvider, item);
+                    await openLocalFolderCommand(
+                        item,
+                        artifactManager,
+                        localFolderService,
+                        configurationProvider,
+                        new ItemDefinitionConflictDetector(vscode.workspace.fs),
+                        new ItemDefinitionWriter(vscode.workspace.fs),
+                        activity
+                    );
+                }
+            );
+        },
+        context
+    );
+
+    registerCommand(
+        commandNames.changeLocalFolder,
+        async (...cmdArgs) => {
+            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode;
+            await doArtifactAction(
+                artifactTreeNode?.artifact,
+                'changeLocalFolder',
+                'item/localFolder/change',
+                logger,
+                telemetryService,
+                async (activity, item) => {
+                    addCommonArtifactTelemetryProps(activity, fabricEnvironmentProvider, item);
+                    await changeLocalFolderCommand(
+                        item,
+                        artifactManager,
+                        localFolderService,
+                        configurationProvider,
+                        new ItemDefinitionConflictDetector(vscode.workspace.fs),
+                        new ItemDefinitionWriter(vscode.workspace.fs),
+                        activity,
+                        { skipWarning: false, promptForSave: false }
+                    );
+                }
+            );
+        },
+        context
+    );
+
+    registerCommand(
         commandNames.openArtifact,
         async (...cmdArgs) => {
             const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode;
@@ -242,61 +296,6 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                     else {
                         await artifactManager.openArtifact(item);
                     }
-                }
-            );
-        },
-        context
-    );
-
-    registerCommand(
-        commandNames.openLocalFolder,
-        async (...cmdArgs) => {
-            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode;
-            await doArtifactAction(
-                artifactTreeNode?.artifact,
-                'openLocalFolder',
-                'item/open/localFolder',
-                logger,
-                telemetryService,
-                async (activity, item) => {
-                    await openLocalFolderCommand(
-                        item,
-                        workspaceManager,
-                        artifactManager,
-                        localFolderService,
-                        configurationProvider,
-                        new ItemDefinitionConflictDetector(vscode.workspace.fs),
-                        new ItemDefinitionWriter(vscode.workspace.fs),
-                        activity
-                    );
-                }
-            );
-        },
-        context
-    );
-
-    registerCommand(
-        commandNames.changeLocalFolder,
-        async (...cmdArgs) => {
-            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode;
-            await doArtifactAction(
-                artifactTreeNode?.artifact,
-                'changeLocalFolder',
-                'item/open/localFolder',
-                logger,
-                telemetryService,
-                async (activity, item) => {
-                    await changeLocalFolderCommand(
-                        item,
-                        workspaceManager,
-                        artifactManager,
-                        localFolderService,
-                        configurationProvider,
-                        new ItemDefinitionConflictDetector(vscode.workspace.fs),
-                        new ItemDefinitionWriter(vscode.workspace.fs),
-                        activity,
-                        { skipWarning: false, promptForSave: false }
-                    );
                 }
             );
         },

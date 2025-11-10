@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
-import { IArtifactManager, IWorkspaceManager, IArtifact } from '@microsoft/vscode-fabric-api';
+import { IArtifactManager, IArtifact } from '@microsoft/vscode-fabric-api';
 import { FabricError, TelemetryActivity, UserCancelledError, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { exportArtifactCommand, showCompletionMessage } from '../../../src/artifactManager/exportArtifactCommand';
 import * as artifactOperations from '../../../src/artifactManager/localFolderCommandHelpers';
@@ -21,7 +21,6 @@ describe('exportArtifactCommand', () => {
     const localFolder = vscode.Uri.file('/path/to/local/folder');
 
     let artifactManagerMock: Mock<IArtifactManager>;
-    let workspaceManagerMock: Mock<IWorkspaceManager>;
     let artifactMock: Mock<IArtifact>;
     let localFolderServiceMock: Mock<ILocalFolderService>;
     let configurationProviderMock: Mock<IConfigurationProvider>;
@@ -35,7 +34,6 @@ describe('exportArtifactCommand', () => {
 
     beforeEach(() => {
         artifactManagerMock = new Mock<IArtifactManager>();
-        workspaceManagerMock = new Mock<IWorkspaceManager>();
         artifactMock = new Mock<IArtifact>();
         localFolderServiceMock = new Mock<ILocalFolderService>();
         configurationProviderMock = new Mock<IConfigurationProvider>();
@@ -168,7 +166,6 @@ describe('exportArtifactCommand', () => {
     async function executeCommand(): Promise<void> {
         await exportArtifactCommand(
             artifactMock.object(),
-            workspaceManagerMock.object(),
             artifactManagerMock.object(),
             localFolderServiceMock.object(),
             configurationProviderMock.object(),

@@ -5,10 +5,9 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
-import { IArtifactManager, IWorkspaceManager, IArtifact } from '@microsoft/vscode-fabric-api';
+import { IArtifactManager, IArtifact } from '@microsoft/vscode-fabric-api';
 import { FabricError, TelemetryActivity, UserCancelledError, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { changeLocalFolderCommand } from '../../../src/artifactManager/changeLocalFolderCommand';
-import { exportArtifactCommand } from '../../../src/artifactManager/exportArtifactCommand';
 import * as artifactOperations from '../../../src/artifactManager/localFolderCommandHelpers';
 import * as utilities from '../../../src/utilities';
 import { CoreTelemetryEventNames } from '../../../src/TelemetryEventNames';
@@ -24,7 +23,6 @@ describe('changeLocalFolderCommand', () => {
     const newFolder = vscode.Uri.file('/path/to/new/folder');
 
     let artifactManagerMock: Mock<IArtifactManager>;
-    let workspaceManagerMock: Mock<IWorkspaceManager>;
     let artifactMock: Mock<IArtifact>;
     let localFolderServiceMock: Mock<ILocalFolderService>;
     let configurationProviderMock: Mock<IConfigurationProvider>;
@@ -43,7 +41,6 @@ describe('changeLocalFolderCommand', () => {
 
     beforeEach(() => {
         artifactManagerMock = new Mock<IArtifactManager>();
-        workspaceManagerMock = new Mock<IWorkspaceManager>();
         artifactMock = new Mock<IArtifact>();
         localFolderServiceMock = new Mock<ILocalFolderService>();
         configurationProviderMock = new Mock<IConfigurationProvider>();
@@ -202,7 +199,7 @@ describe('changeLocalFolderCommand', () => {
                 async () => await executeCommand(),
                 (err: Error) => {
                     assert.ok(err instanceof UserCancelledError);
-                    assert.strictEqual((err as UserCancelledError).stepName, 'changeLocalFolder');
+                    assert.strictEqual((err as UserCancelledError).stepName, 'verifyFolderChange');
                     return true;
                 }
             );
@@ -218,7 +215,7 @@ describe('changeLocalFolderCommand', () => {
                 async () => await executeCommand(),
                 (err: Error) => {
                     assert.ok(err instanceof UserCancelledError);
-                    assert.strictEqual((err as UserCancelledError).stepName, 'changeLocalFolder');
+                    assert.strictEqual((err as UserCancelledError).stepName, 'populateFolder');
                     return true;
                 }
             );
@@ -236,7 +233,7 @@ describe('changeLocalFolderCommand', () => {
                 async () => await executeCommand(),
                 (err: Error) => {
                     assert.ok(err instanceof UserCancelledError);
-                    assert.strictEqual((err as UserCancelledError).stepName, 'changeLocalFolder');
+                    assert.strictEqual((err as UserCancelledError).stepName, 'selectFolder');
                     return true;
                 }
             );
@@ -294,7 +291,6 @@ describe('changeLocalFolderCommand', () => {
     async function executeCommand(options?: { skipWarning?: boolean; promptForSave?: boolean }): Promise<void> {
         await changeLocalFolderCommand(
             artifactMock.object(),
-            workspaceManagerMock.object(),
             artifactManagerMock.object(),
             localFolderServiceMock.object(),
             configurationProviderMock.object(),

@@ -131,7 +131,7 @@ export class LocalFolderService implements ILocalFolderService {
                 canSelectFolders: true,
                 canSelectMany: false,
                 openLabel: vscode.l10n.t('Select Folder'),
-                title: vscode.l10n.t('Select local folder for {0}', artifact.displayName),
+                title: vscode.l10n.t('Item definition will be saved to {0}.{1}', artifact.displayName, artifact.type),
             };
 
             // If there's an existing path, set the parent folder as the default location

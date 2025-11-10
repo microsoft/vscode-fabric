@@ -5,10 +5,9 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
-import { IArtifactManager, IWorkspaceManager, IArtifact } from '@microsoft/vscode-fabric-api';
+import { IArtifactManager, IArtifact } from '@microsoft/vscode-fabric-api';
 import { TelemetryActivity, UserCancelledError, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { openLocalFolderCommand } from '../../../src/artifactManager/openLocalFolderCommand';
-import { changeLocalFolderCommand } from '../../../src/artifactManager/changeLocalFolderCommand';
 import * as artifactOperations from '../../../src/artifactManager/localFolderCommandHelpers';
 import { CoreTelemetryEventNames } from '../../../src/TelemetryEventNames';
 import { IItemDefinitionConflictDetector } from '../../../src/itemDefinition/ItemDefinitionConflictDetector';
@@ -23,7 +22,6 @@ describe('openLocalFolderCommand', () => {
     const newFolder = vscode.Uri.file('/path/to/new/folder');
 
     let artifactManagerMock: Mock<IArtifactManager>;
-    let workspaceManagerMock: Mock<IWorkspaceManager>;
     let artifactMock: Mock<IArtifact>;
     let localFolderServiceMock: Mock<ILocalFolderService>;
     let configurationProviderMock: Mock<IConfigurationProvider>;
@@ -39,7 +37,6 @@ describe('openLocalFolderCommand', () => {
 
     beforeEach(() => {
         artifactManagerMock = new Mock<IArtifactManager>();
-        workspaceManagerMock = new Mock<IWorkspaceManager>();
         artifactMock = new Mock<IArtifact>();
         localFolderServiceMock = new Mock<ILocalFolderService>();
         configurationProviderMock = new Mock<IConfigurationProvider>();
@@ -103,7 +100,7 @@ describe('openLocalFolderCommand', () => {
             await executeCommand();
 
             assert.ok(changeLocalFolderCommandStub.calledOnce, 'Should call changeLocalFolderCommand');
-            const [artifact, wm, am, lfs, cp, cd, writer, ta, options] = changeLocalFolderCommandStub.firstCall.args;
+            const [artifact, am, lfs, cp, cd, writer, ta, options] = changeLocalFolderCommandStub.firstCall.args;
             assert.strictEqual(artifact, artifactMock.object(), 'Should pass artifact');
             assert.strictEqual(options?.skipWarning, true, 'Should skip warning');
             assert.strictEqual(options?.promptForSave, true, 'Should prompt for save');
@@ -137,7 +134,7 @@ describe('openLocalFolderCommand', () => {
 
             assert.ok(showInformationMessageStub.calledOnce, 'Should show info message');
             const [message, options] = showInformationMessageStub.firstCall.args;
-            assert.ok(message.includes('No local folder is mapped'), 'Message should indicate no folder mapped');
+            assert.ok(message.includes('No local folder has been selected'), 'Message should indicate no folder selected');
             assert.ok(message.includes(artifactDisplayName), 'Message should include artifact name');
             assert.strictEqual(options?.modal, true, 'Dialog should be modal');
 
@@ -213,7 +210,6 @@ describe('openLocalFolderCommand', () => {
             assert.ok(showFolderActionDialogStub.calledOnce, 'Should show folder action dialog');
             const [folderUri, message, options] = showFolderActionDialogStub.firstCall.args;
             assert.strictEqual(folderUri, newFolder, 'Should pass new folder URI');
-            assert.ok(message.includes('Local folder selected'), 'Message should indicate folder selected');
             assert.strictEqual(options?.modal, true, 'Dialog should be modal');
             assert.strictEqual(options?.includeDoNothing, false, 'Should not include do nothing option');
         });
@@ -222,7 +218,6 @@ describe('openLocalFolderCommand', () => {
     async function executeCommand(): Promise<void> {
         await openLocalFolderCommand(
             artifactMock.object(),
-            workspaceManagerMock.object(),
             artifactManagerMock.object(),
             localFolderServiceMock.object(),
             configurationProviderMock.object(),

@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { IArtifact, IWorkspaceManager, IArtifactManager } from '@microsoft/vscode-fabric-api';
+import { IArtifact, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { FabricError, TelemetryActivity, UserCancelledError, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { IItemDefinitionConflictDetector } from '../itemDefinition/ItemDefinitionConflictDetector';
@@ -41,7 +41,6 @@ export async function showCompletionMessage(
 
 export async function exportArtifactCommand(
     artifact: IArtifact,
-    workspaceManager: IWorkspaceManager,
     artifactManager: IArtifactManager,
     localFolderService: ILocalFolderService,
     configurationProvider: IConfigurationProvider,
