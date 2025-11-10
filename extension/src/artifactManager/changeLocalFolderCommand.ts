@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { IArtifact, IWorkspaceManager, IArtifactManager } from '@microsoft/vscode-fabric-api';
+import { IArtifact, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { isDirectory } from '../utilities';
 import { FabricError, TelemetryActivity, UserCancelledError, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
@@ -14,7 +14,6 @@ import { downloadAndSaveArtifact, copyFolderContents, getFolderDisplayName, show
 
 export async function changeLocalFolderCommand(
     artifact: IArtifact,
-    workspaceManager: IWorkspaceManager,
     artifactManager: IArtifactManager,
     localFolderService: ILocalFolderService,
     configurationProvider: IConfigurationProvider,
@@ -28,9 +27,12 @@ export async function changeLocalFolderCommand(
 
     if (!existingFolder || !(await isDirectory(vscode.workspace.fs, existingFolder.uri, false))) {
         // No existing folder, just call exportArtifactCommand
+        telemetryActivity.addOrUpdateProperties({
+            actionTaken: 'export',
+        });
+
         await exportArtifactCommand(
             artifact,
-            workspaceManager,
             artifactManager,
             localFolderService,
             configurationProvider,
@@ -46,13 +48,13 @@ export async function changeLocalFolderCommand(
         const continueOption = vscode.l10n.t('Continue');
 
         const warningChoice = await vscode.window.showWarningMessage(
-            vscode.l10n.t('The item is mapped to {0}. Are you sure you want to change the folder?', existingFolder.uri.fsPath),
+            vscode.l10n.t('This item is using {0}. Are you sure you want to change the folder?', existingFolder.uri.fsPath),
             { modal: true },
             continueOption
         );
 
         if (warningChoice !== continueOption) {
-            throw new UserCancelledError('changeLocalFolder');
+            throw new UserCancelledError('verifyFolderChange');
         }
     }
 
@@ -61,14 +63,14 @@ export async function changeLocalFolderCommand(
     const copyOption = vscode.l10n.t('Copy');
 
     const sourceChoice = await vscode.window.showInformationMessage(
-        vscode.l10n.t('How would you like to populate the new folder?'),
+        vscode.l10n.t('Do you want to download the item definition from Fabric or copy files from {0}?', existingFolder.uri.fsPath),
         { modal: true },
         downloadOption,
         copyOption
     );
 
     if (!sourceChoice) {
-        throw new UserCancelledError('changeLocalFolder');
+        throw new UserCancelledError('populateFolder');
     }
 
     // Use localFolderService to select new folder
@@ -81,14 +83,16 @@ export async function changeLocalFolderCommand(
     );
 
     if (!localFolderResults) {
-        throw new UserCancelledError('changeLocalFolder');
+        throw new UserCancelledError('selectFolder');
     }
 
     const targetFolder = localFolderResults.uri;
 
     try {
-
         if (sourceChoice === downloadOption) {
+            telemetryActivity.addOrUpdateProperties({
+                actionTaken: 'download',
+            });
             // Download fresh from API
             await downloadAndSaveArtifact(
                 artifact,
@@ -100,6 +104,9 @@ export async function changeLocalFolderCommand(
             );
         }
         else {
+            telemetryActivity.addOrUpdateProperties({
+                actionTaken: 'copy',
+            });
             // Copy from existing folder
             await copyFolderContents(existingFolder.uri, targetFolder);
         }
