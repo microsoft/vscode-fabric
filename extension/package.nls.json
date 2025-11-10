@@ -38,7 +38,7 @@
     "extension.welcomeTitle.signIn": "Sign in to Fabric to get started with your Workspace.\n[Sign in to Fabric](command:vscode-fabric.signIn)",
     "_extension.welcomeTitle.signIn.comment": "{Locked=\"(command:vscode-fabric.signIn)\"}",
 
-    "extension.welcomeTitle.signUp": "You need a Microsoft Fabric account to continue.\n[Sign Up for Fabric](command:vscode-fabric.signUpForFabric)",
+    "extension.welcomeTitle.signUp": "Start a free trial for Microsoft Fabric\n[Sign Up for Fabric](command:vscode-fabric.signUpForFabric)",
     "_extension.welcomeTitle.signUp.comment": "{Locked=\"(command:vscode-fabric.signUpForFabric)\"}",
 
     "extension.welcomeTitle.autoSignIn":"signing in and getting workspace",

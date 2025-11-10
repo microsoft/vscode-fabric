@@ -40,8 +40,7 @@
             {
         "command": "vscode-fabric.signIn",
         "title": "%extension.signIn.title%",
-        "category": "Fabric",
-        "icon": "$(account)"
+        "category": "Fabric"
       },
       {
         "command": "vscode-fabric.signUpForFabric",
