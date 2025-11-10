@@ -37,7 +37,7 @@
   },
   "contributes": {
     "commands": [
-            {
+      {
         "command": "vscode-fabric.signIn",
         "title": "%extension.signIn.title%",
         "category": "Fabric"
