@@ -145,7 +145,7 @@ export async function handleSavePreferenceDialog(
 
     // Show the save preference dialog without awaiting (non-modal)
     void vscode.window.showInformationMessage(
-        vscode.l10n.t('Do you want to remember this folder location for future use?'),
+        vscode.l10n.t('Do you want to remember folder {0} to use for {1} in the future?', folderUri.fsPath, artifact.displayName),
         yesOption,
         noOption,
         alwaysOption,

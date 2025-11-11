@@ -27,7 +27,7 @@ export async function openLocalFolderCommand(
         // We have an existing folder, show action dialog with option to choose different folder
         const choice = await showFolderActionDialog(
             existingFolder.uri,
-            vscode.l10n.t('How would you like to open ${0}?', existingFolder.uri.fsPath),
+            vscode.l10n.t('How would you like to open {0}?', existingFolder.uri.fsPath),
             { modal: true, includeDoNothing: false, includeChooseDifferent: true }
         );
 
@@ -104,7 +104,7 @@ export async function openLocalFolderCommand(
     // Show action dialog
     await showFolderActionDialog(
         localFolderResults.uri,
-        vscode.l10n.t('How would you like to open ${0}?', localFolderResults.uri.fsPath),
+        vscode.l10n.t('How would you like to open {0}?', localFolderResults.uri.fsPath),
         { modal: true, includeDoNothing: false }
     );
 }

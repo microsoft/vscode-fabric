@@ -8,6 +8,12 @@ import { LocalFolderSettingsStore } from './settings/LocalFolderSettingsStore';
 import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { isDirectory } from './utilities';
 
+export enum LocalFolderSaveBehavior {
+    prompt = 'prompt',
+    always = 'always',
+    never = 'never'
+}
+
 /**
  * Determines when to show the folder picker prompt for getLocalFolder.
  */
@@ -15,12 +21,6 @@ export enum LocalFolderPromptMode {
     never = 'never',
     discretionary = 'discretionary',
     always = 'always',
-}
-
-export enum LocalFolderSaveBehavior {
-    prompt = 'prompt',
-    always = 'always',
-    never = 'never'
 }
 
 export interface LocalFolderGetOptions {

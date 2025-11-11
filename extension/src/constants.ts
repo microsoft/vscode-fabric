@@ -12,7 +12,8 @@ export namespace commandNames {
     export const changeLocalFolder = 'vscode-fabric.changeLocalFolder';
     export const exportArtifact = 'vscode-fabric.exportArtifact';
     export const importArtifact = 'vscode-fabric.importArtifact';
-    export const importArtifactPromptWorkspace = 'vscode-fabric.importArtifactPromptWorkspace';
+    export const importArtifactInline = 'vscode-fabric.importArtifact.inline';
+    export const importArtifactPromptWorkspace = 'vscode-fabric.importArtifact.promptWorkspace';
     export const refreshArtifactView = 'vscode-fabric.refreshArtifactView';
     export const refreshLocalProjectView = 'vscode-fabric.refreshLocalFolderView';
     export const openInPortal = 'vscode-fabric.openInPortal';

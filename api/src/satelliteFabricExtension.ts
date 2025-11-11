@@ -355,7 +355,7 @@ export interface IFabricTreeNodeProvider {
 /**
  * Allows the satellite extension to define item-specific nodes to show in the local project tree view.
  */
-export interface ILocalProjectTreeNodeProvider{
+export interface ILocalProjectTreeNodeProvider {
     /**
      * The type of artifact this provider can create nodes for
      */

@@ -96,8 +96,14 @@
         "icon": "$(cloud-upload)"
       },
       {
-        "command": "vscode-fabric.importArtifactPromptWorkspace",
-        "title": "%extension.importArtifactPromptWorkspace.title%",
+        "command": "vscode-fabric.importArtifact.inline",
+        "title": "%extension.importArtifact.inline.title%",
+        "category": "Fabric",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "vscode-fabric.importArtifact.promptWorkspace",
+        "title": "%extension.importArtifact.promptWorkspace.title%",
         "category": "Fabric",
         "icon": "$(cloud-upload)"
       },
@@ -277,7 +283,11 @@
           "when": "false"
         },
         {
-          "command": "vscode-fabric.importArtifactPromptWorkspace",
+          "command": "vscode-fabric.importArtifact.inline",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.importArtifact.promptWorkspace",
           "when": "false"
         },
         {
@@ -315,7 +325,7 @@
           "group": "1@1"
         },
         {
-          "command": "vscode-fabric.importArtifactPromptWorkspace",
+          "command": "vscode-fabric.importArtifact.promptWorkspace",
           "group": "1@2"
         }
       ],
@@ -443,7 +453,7 @@
           "group": "6@1"
         },
         {
-          "command": "vscode-fabric.importArtifact",
+          "command": "vscode-fabric.importArtifact.inline",
           "when": "view == vscode-fabric.view.local && viewItem =~ /item-import/",
           "group": "inline"
         },

@@ -421,12 +421,21 @@ export interface IWorkspaceManager {
     getLocalFolderForFabricWorkspace(workspace: IWorkspace, options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined>;
 
     /**
-     * Gets or creates the local folder for a specific artifact within its workspace.
+     * Gets the local folder associated with a specific artifact.
+     *
+     * This method retrieves the locally mapped folder for an artifact. When `createIfNotExists` is true,
+     * the method will prompt the user to select a folder if no mapping exists, and will create the folder
+     * on the file system if it doesn't exist.
+     *
      * @param artifact - The Fabric artifact to get the local folder for
-     * @param options - Options controlling folder creation behavior
-     * @returns Promise resolving to the artifact's local folder URI, or undefined if not found/created
+     * @param options - Optional configuration for folder retrieval and creation
+     * @param options.createIfNotExists - When true, prompts the user to select a folder if no mapping exists
+     *                                     and creates the folder on disk. When false or undefined, returns
+     *                                     undefined if no existing mapping is found.
+     * @returns Promise resolving to the artifact's local folder URI, or undefined if no mapping exists
+     *          and `createIfNotExists` is false/undefined, or if the user cancels the folder selection prompt
      */
-    getLocalFolderForArtifact(artifact: IArtifact, options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined>;
+    getLocalFolderForArtifact(artifact: IArtifact, options?: { createIfNotExists?: boolean }): Promise<vscode.Uri | undefined>;
 
     /**
      * Event that fires when workspace-related property values change.
