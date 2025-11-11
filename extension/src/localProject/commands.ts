@@ -92,6 +92,7 @@ export function registerLocalProjectCommands(
     };
 
     registerImportArtifactCommand(commandNames.importArtifact, 'importArtifact', false);
+    registerImportArtifactCommand(commandNames.importArtifactInline, 'importArtifact', false);
     registerImportArtifactCommand(commandNames.importArtifactPromptWorkspace, 'importArtifactPromptWorkspace', true);
 }
 

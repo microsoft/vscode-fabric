@@ -242,7 +242,7 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         await this.localFolderManager.setLocalFolderForFabricWorkspace(this.ensureWorkspace(workspace), newLocalFolder);
     }
 
-    public async getLocalFolderForArtifact(artifact: IArtifact, options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined> {
+    public async getLocalFolderForArtifact(artifact: IArtifact, options?: { createIfNotExists?: boolean }): Promise<vscode.Uri | undefined> {
         // The expectation for this API is that if the folder is getting created, the artifact folder must be set
         const result = await this.localFolderService.getLocalFolder(
             artifact,
