@@ -15,8 +15,10 @@ import {
     IApiClientRequestOptions,
     IFabricApiClient,
     IWorkspaceFolder,
+    IArtifact,
 } from '@microsoft/vscode-fabric-api';
 import { IGitOperator } from '../../../src/apis/internal/fabricExtensionInternal';
+import { ILocalFolderService, LocalFolderGetOptions } from '../../../src/LocalFolderService';
 
 describe('WorkspaceManager', function () {
     let mockExtensionSettingsStorage: Mock<IFabricExtensionsSettingStorage>;
@@ -26,6 +28,7 @@ describe('WorkspaceManager', function () {
     let mockApiClient: Mock<IFabricApiClient>;
     let mockGitOperator: Mock<IGitOperator>;
     let mockLogger: Mock<ILogger>;
+    let mockLocalFolderService: Mock<ILocalFolderService>;
     let configurationProvider: FakeConfigurationProvider;
     let workspaceManager: WorkspaceManager;
 
@@ -37,7 +40,6 @@ describe('WorkspaceManager', function () {
     before(function () {
         // Setup operations that need to happen once before all tests
     });
-
     beforeEach(function () {
         // Initialize mocks for each test
         mockExtensionSettingsStorage = new Mock<IFabricExtensionsSettingStorage>();
@@ -47,6 +49,7 @@ describe('WorkspaceManager', function () {
         mockApiClient = new Mock<IFabricApiClient>();
         mockGitOperator = new Mock<IGitOperator>();
         mockLogger = new Mock<ILogger>();
+        mockLocalFolderService = new Mock<ILocalFolderService>();
         configurationProvider = new FakeConfigurationProvider();
         void configurationProvider.update('ShowFolders', true);
 
@@ -76,7 +79,8 @@ describe('WorkspaceManager', function () {
             mockApiClient.object(),
             mockLogger.object(),
             mockGitOperator.object(),
-            configurationProvider
+            configurationProvider,
+            mockLocalFolderService.object()
         );
     });
 
@@ -400,6 +404,86 @@ describe('WorkspaceManager', function () {
 
         await assert.rejects(async () => workspaceManager.getFoldersInWorkspace(workspaceId), 'Should reject when API status is not 200');
         mockApiClient.verify(x => x.sendRequest(It.IsAny()), Times.Once());
+    });
+
+    it('getLocalFolderForArtifact should delegate to ILocalFolderService with correct options', async function () {
+        const artifact = {
+            id: 'artifact-123',
+            displayName: 'Test Artifact',
+            type: 'Notebook',
+            workspaceId: 'workspace-123',
+            fabricEnvironment: 'MOCK',
+        };
+        const expectedUri = vscode.Uri.file('/path/to/artifact');
+        const expectedResult = {
+            uri: expectedUri,
+            prompted: false,
+            created: false,
+        };
+
+        mockLocalFolderService
+            .setup(lfs => lfs.getLocalFolder(It.IsAny(), It.IsAny()))
+            .returns(Promise.resolve(expectedResult));
+
+        const result = await workspaceManager.getLocalFolderForArtifact(artifact);
+
+        assert.strictEqual(result, expectedUri, 'Should return the URI from LocalFolderService');
+        mockLocalFolderService.verify(
+            lfs => lfs.getLocalFolder(
+                It.Is<IArtifact>(a => a.id === artifact.id),
+                It.Is<LocalFolderGetOptions>(o => o?.create === false && o?.prompt === 'never')
+            ),
+            Times.Once()
+        );
+    });
+
+    it('getLocalFolderForArtifact should pass create option to ILocalFolderService with discretionary prompt', async function () {
+        const artifact = {
+            id: 'artifact-456',
+            displayName: 'Test Artifact 2',
+            type: 'Lakehouse',
+            workspaceId: 'workspace-456',
+            fabricEnvironment: 'MOCK',
+        };
+        const expectedUri = vscode.Uri.file('/path/to/artifact2');
+        const expectedResult = {
+            uri: expectedUri,
+            prompted: false,
+            created: true,
+        };
+
+        mockLocalFolderService
+            .setup(lfs => lfs.getLocalFolder(It.IsAny(), It.IsAny()))
+            .returns(Promise.resolve(expectedResult));
+
+        const result = await workspaceManager.getLocalFolderForArtifact(artifact, { createIfNotExists: true });
+
+        assert.strictEqual(result, expectedUri, 'Should return the URI from LocalFolderService');
+        mockLocalFolderService.verify(
+            lfs => lfs.getLocalFolder(
+                It.Is<IArtifact>(a => a.id === artifact.id),
+                It.Is<LocalFolderGetOptions>(o => o?.create === true && o?.prompt === 'discretionary')
+            ),
+            Times.Once()
+        );
+    });
+
+    it('getLocalFolderForArtifact should return undefined when LocalFolderService returns undefined', async function () {
+        const artifact = {
+            id: 'artifact-789',
+            displayName: 'Test Artifact 3',
+            type: 'Report',
+            workspaceId: 'workspace-789',
+            fabricEnvironment: 'MOCK',
+        };
+
+        mockLocalFolderService
+            .setup(lfs => lfs.getLocalFolder(It.IsAny(), It.IsAny()))
+            .returns(Promise.resolve(undefined));
+
+        const result = await workspaceManager.getLocalFolderForArtifact(artifact);
+
+        assert.strictEqual(result, undefined, 'Should return undefined when LocalFolderService returns undefined');
     });
 
     function createFolder(id: string, displayName: string, parentFolderId?: string, workspaceId: string = 'workspace-aggregate'): IWorkspaceFolder {

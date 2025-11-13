@@ -6,6 +6,7 @@ import { getArtifactIconPath, getArtifactDefaultIconPath, getArtifactExtensionId
 import { IArtifact, ArtifactDesignerActions, ArtifactTreeNode, IFabricTreeNodeProvider } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
 import { MissingExtensionArtifactTreeNode } from './MissingExtensionArtifactTreeNode';
+import { ILocalFolderService } from '../../LocalFolderService';
 
 /**
  * Creates an artifact tree node with proper icon and context
@@ -14,7 +15,8 @@ export async function createArtifactTreeNode(
     context: vscode.ExtensionContext,
     artifact: IArtifact,
     extensionManager: IFabricExtensionManagerInternal,
-    treeNodeProvider: IFabricTreeNodeProvider | undefined
+    treeNodeProvider?: IFabricTreeNodeProvider,
+    localFolderService?: ILocalFolderService
 ): Promise<ArtifactTreeNode> {
     let artifactNode: ArtifactTreeNode;
     if (treeNodeProvider) {
@@ -35,6 +37,19 @@ export async function createArtifactTreeNode(
     }
     setContextValue(artifactNode, artifactNode.allowedDesignActions);
 
+    // Set tooltip if artifact has a local folder associated with it
+    if (localFolderService) {
+        try {
+            const localFolderResult = await localFolderService.getLocalFolder(artifact, { prompt: 'never' as any });
+            if (localFolderResult) {
+                artifactNode.tooltip = vscode.l10n.t('Local folder: {0}', localFolderResult.uri.fsPath);
+            }
+        }
+        catch (error) {
+            // If there's any error checking for local folder, continue without setting tooltip
+        }
+    }
+
     return artifactNode;
 }
 
@@ -53,6 +68,9 @@ function setContextValue(artifactNode: ArtifactTreeNode, allowedDesignActions: A
     }
     if (allowedDesignActions & ArtifactDesignerActions.definition || getSupportsArtifactWithDefinition(artifactNode.artifact)) {
         artifactNode.contextValue += '|item-export';
+    }
+    if (allowedDesignActions & ArtifactDesignerActions.openLocalFolder || getSupportsArtifactWithDefinition(artifactNode.artifact)) {
+        artifactNode.contextValue += '|item-open-local-folder';
     }
     if (allowedDesignActions & ArtifactDesignerActions.publish) {
         artifactNode.contextValue += '|item-publish';

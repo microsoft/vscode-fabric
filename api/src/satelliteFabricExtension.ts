@@ -317,9 +317,12 @@ export enum ArtifactDesignerActions {
     rename = 1 << 1,
     viewInPortal = 1 << 2,
     default = ~(~0 << 3),
+    /** @deprecated - Use openLocalFolder instead */
     open = 1 << 3,
+    /** @deprecated - Use definition instead */
     publish = 1 << 4,
     definition = 1 << 5,
+    openLocalFolder = 1 << 6,
 }
 
 /**
@@ -352,7 +355,7 @@ export interface IFabricTreeNodeProvider {
 /**
  * Allows the satellite extension to define item-specific nodes to show in the local project tree view.
  */
-export interface ILocalProjectTreeNodeProvider{
+export interface ILocalProjectTreeNodeProvider {
     /**
      * The type of artifact this provider can create nodes for
      */

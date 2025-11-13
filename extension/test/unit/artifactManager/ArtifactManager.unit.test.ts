@@ -878,9 +878,6 @@ describe('ArtifactManager', function () {
             const apiResponse: IApiClientResponse = {
                 status: status,
             };
-            // Provide folder so workflow path (even if none) still calls workspaceManager without throwing
-            workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
-                .returns(Promise.resolve(vscode.Uri.file('/tmp/def')));
 
             let sendRequestArgs: IApiClientRequestOptions | undefined;
             apiClientMock.setup(x => x.sendRequest(It.IsAny()))
@@ -909,49 +906,60 @@ describe('ArtifactManager', function () {
         });
     });
 
-    it('getArtifactDefinition: invokes get definition workflow hooks and modifies request', async function () {
-        // Arrange
-        const apiResponse: IApiClientResponse = { status: 200 } as any;
-        const folderUri = vscode.Uri.file('/tmp/folder');
-        workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
-            .returns(Promise.resolve(folderUri));
+    [
+        { folderProvided: true },
+        { folderProvided: false },
+    ].forEach(({ folderProvided }) => {
+        it(`getArtifactDefinition: correctly invokes get definition workflow hooks and modifies request ${folderProvided ? 'with' : 'without'} folder`, async function () {
+            // Arrange
+            const apiResponse: IApiClientResponse = { status: 200 } as any;
+            const folderUri = vscode.Uri.file('/tmp/folder');
 
-        const onBeforeGetDefinitionStub = sinon.stub().callsFake(async (_artifact: IArtifact, folder: vscode.Uri, options: IApiClientRequestOptions) => {
-            assert.strictEqual(folder.toString(), folderUri.toString(), 'Folder should match expected');
-            options.pathTemplate = options.pathTemplate + '?detail=full';
-            return options;
-        });
-        const onAfterGetDefinitionStub = sinon.stub().resolves();
-        const getWorkflow: IGetArtifactDefinitionWorkflow = {
-            onBeforeGetDefinition: onBeforeGetDefinitionStub,
-            onAfterGetDefinition: onAfterGetDefinitionStub,
-        };
-        const artifactHandlerMock = new Mock<IArtifactHandler>()
-            .setup(h => h.getDefinitionWorkflow)
-            .returns(getWorkflow);
-        const mapMock = new Mock<IObservableReadOnlyMap<string, IArtifactHandler>>();
-        mapMock.setup(m => m.get(It.Is(a => a === artifactType))).returns(artifactHandlerMock.object());
-        extensionManagerMock.setup(x => x.artifactHandlers).returns(mapMock.object());
-
-        const handleLongRunningOperationStub = sinon.stub(utilities, 'handleLongRunningOperation').resolves(apiResponse);
-
-        let sendRequestArgs: IApiClientRequestOptions | undefined;
-        apiClientMock.setup(x => x.sendRequest(It.IsAny()))
-            .callback(({ args }) => {
-                sendRequestArgs = args[0];
-                return Promise.resolve(apiResponse);
+            const onBeforeGetDefinitionStub = sinon.stub().callsFake(async (_artifact: IArtifact, folder: vscode.Uri, options: IApiClientRequestOptions) => {
+                assert.strictEqual(folder.toString(), folderUri.toString(), 'Folder should match expected');
+                options.pathTemplate = options.pathTemplate + '?detail=full';
+                return options;
             });
+            const onAfterGetDefinitionStub = sinon.stub().resolves();
+            const getWorkflow: IGetArtifactDefinitionWorkflow = {
+                onBeforeGetDefinition: onBeforeGetDefinitionStub,
+                onAfterGetDefinition: onAfterGetDefinitionStub,
+            };
+            const artifactHandlerMock = new Mock<IArtifactHandler>()
+                .setup(h => h.getDefinitionWorkflow)
+                .returns(getWorkflow);
+            const mapMock = new Mock<IObservableReadOnlyMap<string, IArtifactHandler>>();
+            mapMock.setup(m => m.get(It.Is(a => a === artifactType))).returns(artifactHandlerMock.object());
+            extensionManagerMock.setup(x => x.artifactHandlers).returns(mapMock.object());
 
-        // Act
-        const result = await artifactManager.getArtifactDefinition(artifactMock.object());
+            const handleLongRunningOperationStub = sinon.stub(utilities, 'handleLongRunningOperation').resolves(apiResponse);
 
-        // Assert
-        assert.strictEqual(result, apiResponse, 'Should return final API response');
-        assert.ok(onBeforeGetDefinitionStub.calledOnce, 'onBeforeGetDefinition should be called once');
-        assert.ok(onAfterGetDefinitionStub.calledOnce, 'onAfterGetDefinition should be called once');
-        assert.ok(sendRequestArgs, 'sendRequestArgs should be defined');
-        assert.ok(sendRequestArgs!.pathTemplate!.endsWith('?detail=full'), 'Path template should be modified by onBeforeGetDefinition');
-        assert.ok(handleLongRunningOperationStub.calledOnce, 'handleLongRunningOperation should be called');
+            let sendRequestArgs: IApiClientRequestOptions | undefined;
+            apiClientMock.setup(x => x.sendRequest(It.IsAny()))
+                .callback(({ args }) => {
+                    sendRequestArgs = args[0];
+                    return Promise.resolve(apiResponse);
+                });
+
+            // Act
+            const result = await artifactManager.getArtifactDefinition(
+                artifactMock.object(),
+                folderProvided ? folderUri : undefined);
+
+            // Assert
+            assert.strictEqual(result, apiResponse, 'Should return final API response');
+            assert.ok(sendRequestArgs, 'sendRequestArgs should be defined');
+            assert.ok(handleLongRunningOperationStub.calledOnce, 'handleLongRunningOperation should be called');
+            if (folderProvided) {
+                assert.ok(onBeforeGetDefinitionStub.calledOnce, 'onBeforeGetDefinition should be called once');
+                assert.ok(onAfterGetDefinitionStub.calledOnce, 'onAfterGetDefinition should be called once');
+                assert.ok(sendRequestArgs!.pathTemplate!.endsWith('?detail=full'), 'Path template should be modified by onBeforeGetDefinition');
+            }
+            else {
+                assert.ok(onBeforeGetDefinitionStub.notCalled, 'onBeforeGetDefinition should not be called');
+                assert.ok(onAfterGetDefinitionStub.notCalled, 'onAfterGetDefinition should not be called');
+            }
+        });
     });
 
     it('getArtifactDefinition: passes progress reporter to handleLongRunningOperation', async function () {
@@ -962,9 +970,6 @@ describe('ArtifactManager', function () {
             report: sinon.stub(),
         };
 
-        workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
-            .returns(Promise.resolve(folderUri));
-
         apiClientMock.setup(x => x.sendRequest(It.IsAny()))
             .returns(Promise.resolve(apiResponse));
 
@@ -973,6 +978,7 @@ describe('ArtifactManager', function () {
         // Act
         const result = await artifactManager.getArtifactDefinition(
             artifactMock.object(),
+            folderUri,
             { progress: progressReporter as any }
         );
 
@@ -1048,8 +1054,6 @@ describe('ArtifactManager', function () {
         const apiResponse: IApiClientResponse = { status: 201 } as any;
         const itemDefinition: IItemDefinition = { parts: [] };
         const folderUri = vscode.Uri.file('/tmp/folder-create-def');
-        workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
-            .returns(Promise.resolve(folderUri));
 
         const onBeforeCreateWithDefinitionStub = sinon.stub().callsFake(async (_artifact: IArtifact, def: IItemDefinition, folder: vscode.Uri, options: IApiClientRequestOptions) => {
             assert.strictEqual(def, itemDefinition, 'Definition should match');
@@ -1130,8 +1134,6 @@ describe('ArtifactManager', function () {
             const apiResponse: IApiClientResponse = {
                 status: status,
             };
-            workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
-                .returns(Promise.resolve(vscode.Uri.file('/tmp/udef')));
             const itemDefinition: IItemDefinition = {
                 parts: [
                     {
@@ -1184,8 +1186,6 @@ describe('ArtifactManager', function () {
         const apiResponse: IApiClientResponse = { status: 200 } as any;
         const itemDefinition: IItemDefinition = { parts: [] };
         const folderUri = vscode.Uri.file('/tmp/folder2');
-        workspaceManagerMock.setup(w => w.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
-            .returns(Promise.resolve(folderUri));
 
         const onBeforeUpdateDefinitionStub = sinon.stub().callsFake(async (_artifact: IArtifact, def: IItemDefinition, folder: vscode.Uri, options: IApiClientRequestOptions) => {
             assert.strictEqual(def, itemDefinition, 'Definition should match');

@@ -72,6 +72,7 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             currentTenant: undefined,
             viewState: {},
             workspaceFilters: undefined,
+            localFolders: undefined,
         };
         await memento.update(settingsFabricWorkspace, expectedSettings);
         const storage = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
@@ -182,6 +183,7 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             currentTenant: undefined,
             viewState: {},
             workspaceFilters: undefined,
+            localFolders: undefined,
         };
         assert.deepEqual(savedSettings, expectedSettings, 'Saved settings');
 
@@ -214,6 +216,7 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             currentTenant: undefined,
             viewState: {},
             workspaceFilters: undefined,
+            localFolders: undefined,
         };
         assert.deepEqual(memento.get(settingsFabricWorkspace), expectedSettings, 'Updated most recent workspace should have modified save order of workspace folders');
 
@@ -256,6 +259,7 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             currentTenant: undefined,
             viewState: {},
             workspaceFilters: undefined,
+            localFolders: undefined,
         };
         assert.deepEqual(memento.get(settingsFabricWorkspace), expectedSettings, 'Updated most recent workspace should have modified save order of workspace folders');
 
@@ -298,6 +302,7 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             currentTenant: undefined,
             viewState: {},
             workspaceFilters: undefined,
+            localFolders: undefined,
         };
         assert.equal(storage.settings.workspaces.length, expectedSettings.workspaces.length, 'Count of saved workspaces');
         assert.deepEqual(memento.get(settingsFabricWorkspace), expectedSettings, 'Updated most recent workspace should have maintained save order of workspace folders');
@@ -342,6 +347,7 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
             currentTenant: undefined,
             viewState: {},
             workspaceFilters: undefined,
+            localFolders: undefined,
         };
         assert.deepEqual(memento.get(settingsFabricWorkspace), expectedSettings, 'Updated most recent workspace should have modified save order of workspace folders');
     });
@@ -500,4 +506,174 @@ describe('FabricExtensionsSettingStorage unit tests', () => {
         assert.deepEqual(savedSettings.workspaceFilters, {}, 'Empty workspace filters should be saved correctly');
     });
 
+    it('Local folders are saved and loaded correctly', async () => {
+        const memento = new MockMemento();
+        const testLocalFolders = [
+            { artifactId: 'artifact-1', localFolder: '/path/to/folder1', workspaceId: 'workspace-id' },
+            { artifactId: 'artifact-2', localFolder: '/path/to/folder2', workspaceId: 'workspace-id' },
+            { artifactId: 'artifact-3', localFolder: '/path/to/folder3', workspaceId: 'workspace-id' },
+        ];
+
+        const settings: IFabricExtensionSettings = {
+            version: fabricWorkspaceSettingsVersion,
+            loginState: true,
+            workspaces: [
+                createWorkspaceFolder('workspace-1'),
+            ],
+            artifacts: [
+                { artifactId: 'artifact-1' },
+                { artifactId: 'artifact-2' },
+            ],
+            displayStyle: 'ListView',
+            currentTenant: {
+                tenantId: 'tenant-123',
+                displayName: 'Test Tenant',
+                defaultDomain: 'test.onmicrosoft.com',
+            },
+            localFolders: testLocalFolders,
+        };
+
+        await memento.update(settingsFabricWorkspace, settings);
+        const storage = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
+
+        // Test loading
+        const loadResult: boolean = await storage.load();
+        assert(loadResult, 'Settings load should have succeeded');
+
+        // Verify local folders were loaded correctly
+        assert.ok(storage.settings.localFolders, 'Local folders should be defined for modification');
+        assert.deepEqual(storage.settings.localFolders, testLocalFolders, 'Local folders should be loaded correctly');
+        assert.equal(storage.settings.localFolders.length, 3, 'Should have loaded 3 local folders');
+        assert.equal(storage.settings.localFolders[0].artifactId, 'artifact-1', 'First folder artifact ID should be correct');
+        assert.equal(storage.settings.localFolders[0].localFolder, '/path/to/folder1', 'First folder path should be correct');
+
+        // Test modifying and saving local folders
+        storage.settings.localFolders[1].localFolder = '/updated/path/to/folder2';
+        storage.settings.localFolders.push({ artifactId: 'artifact-4', localFolder: '/path/to/folder4', workspaceId: 'workspace-id' });
+        storage.settings.localFolders = storage.settings.localFolders.filter(f => f.artifactId !== 'artifact-3');
+
+        await storage.save();
+
+        // Verify the saved data
+        const savedSettings: IFabricExtensionSettings | undefined = memento.get(settingsFabricWorkspace);
+        assert(savedSettings, 'Settings should have been saved');
+        assert(savedSettings.localFolders, 'Local folders should be present in saved settings');
+
+        const expectedLocalFolders = [
+            { artifactId: 'artifact-1', localFolder: '/path/to/folder1', workspaceId: 'workspace-id' },
+            { artifactId: 'artifact-2', localFolder: '/updated/path/to/folder2', workspaceId: 'workspace-id' },
+            { artifactId: 'artifact-4', localFolder: '/path/to/folder4', workspaceId: 'workspace-id' },
+        ];
+
+        assert.deepEqual(savedSettings.localFolders, expectedLocalFolders, 'Modified local folders should be saved correctly');
+        assert.equal(savedSettings.localFolders!.length, 3, 'Should have saved 3 local folders after modifications');
+    });
+
+    it('Local folders handle undefined and empty values correctly', async () => {
+        const memento = new MockMemento();
+
+        // Test with undefined localFolders
+        const settingsWithUndefinedFolders: IFabricExtensionSettings = {
+            version: fabricWorkspaceSettingsVersion,
+            workspaces: [],
+            artifacts: [],
+            localFolders: undefined,
+        };
+
+        await memento.update(settingsFabricWorkspace, settingsWithUndefinedFolders);
+        const storage1 = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
+
+        const loadResult1: boolean = await storage1.load();
+        assert(loadResult1, 'Settings load should have succeeded with undefined local folders');
+        assert.equal(storage1.settings.localFolders, undefined, 'Local folders should remain undefined');
+
+        // Test with empty localFolders array
+        const settingsWithEmptyFolders: IFabricExtensionSettings = {
+            version: fabricWorkspaceSettingsVersion,
+            workspaces: [],
+            artifacts: [],
+            localFolders: [],
+        };
+
+        await memento.update(settingsFabricWorkspace, settingsWithEmptyFolders);
+        const storage2 = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
+
+        const loadResult2: boolean = await storage2.load();
+        assert(loadResult2, 'Settings load should have succeeded with empty local folders');
+        assert.deepEqual(storage2.settings.localFolders, [], 'Local folders should be empty array');
+
+        // Test saving empty folders
+        storage2.settings.localFolders = [];
+        await storage2.save();
+
+        const savedSettings: IFabricExtensionSettings | undefined = memento.get(settingsFabricWorkspace);
+        assert(savedSettings, 'Settings should have been saved');
+        assert.deepEqual(savedSettings.localFolders, [], 'Empty local folders should be saved correctly');
+    });
+
+    it('Local folders are preserved when not present in original settings', async () => {
+        const memento = new MockMemento();
+
+        // Test loading settings that don't have localFolders property at all
+        const settingsWithoutLocalFolders: any = {
+            version: fabricWorkspaceSettingsVersion,
+            workspaces: [createWorkspaceFolder('workspace-1')],
+            artifacts: [{ artifactId: 'artifact-1' }],
+        };
+        // Explicitly remove localFolders property to simulate old settings
+        delete settingsWithoutLocalFolders.localFolders;
+
+        await memento.update(settingsFabricWorkspace, settingsWithoutLocalFolders);
+        const storage = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
+
+        const loadResult: boolean = await storage.load();
+        assert(loadResult, 'Settings load should have succeeded');
+        assert.equal(storage.settings.localFolders, undefined, 'Local folders should be undefined when not present in original settings');
+
+        // Add some local folders and save
+        storage.settings.localFolders = [
+            { artifactId: 'artifact-1', localFolder: '/new/path', workspaceId: 'workspace-id' },
+        ];
+        await storage.save();
+
+        // Verify the saved data includes local folders
+        const savedSettings: IFabricExtensionSettings | undefined = memento.get(settingsFabricWorkspace);
+        assert(savedSettings, 'Settings should have been saved');
+        assert(savedSettings.localFolders, 'Local folders should be present in saved settings');
+        assert.equal(savedSettings.localFolders!.length, 1, 'Should have saved 1 local folder');
+        assert.equal(savedSettings.localFolders![0].artifactId, 'artifact-1', 'Artifact ID should be correct');
+        assert.equal(savedSettings.localFolders![0].localFolder, '/new/path', 'Folder path should be correct');
+    });
+
+    it('Local folders array is shallow copied during load', async () => {
+        const memento = new MockMemento();
+        const originalLocalFolders = [
+            { artifactId: 'artifact-1', localFolder: '/path/to/folder1', workspaceId: 'workspace-id' },
+            { artifactId: 'artifact-2', localFolder: '/path/to/folder2', workspaceId: 'workspace-id' },
+        ];
+
+        const settings: IFabricExtensionSettings = {
+            version: fabricWorkspaceSettingsVersion,
+            workspaces: [],
+            artifacts: [],
+            localFolders: originalLocalFolders,
+        };
+
+        await memento.update(settingsFabricWorkspace, settings);
+        const storage = new FabricExtensionsSettingStorage(memento, new MockFabricEnvironmentProvider(), new MockConfigurationProvider());
+
+        const loadResult: boolean = await storage.load();
+        assert(loadResult, 'Settings load should have succeeded');
+
+        // Verify that modifying the loaded array doesn't affect the original
+        assert(storage.settings.localFolders, 'Local folders should be defined');
+        assert.notStrictEqual(storage.settings.localFolders, originalLocalFolders, 'Local folders array should be a shallow copy, not the same reference');
+
+        // Modify the loaded array
+        storage.settings.localFolders.push({ artifactId: 'artifact-3', localFolder: '/path/to/folder3', workspaceId: 'workspace-id' });
+
+        // Original should be unchanged
+        assert.equal(originalLocalFolders.length, 2, 'Original local folders array should be unchanged');
+        assert.equal(storage.settings.localFolders.length, 3, 'Loaded local folders array should be modified');
+    });
 });

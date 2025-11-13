@@ -69,6 +69,10 @@ class MockWorkspaceManagerStub implements IWorkspaceManager {
     getLocalFolderForCurrentFabricWorkspace(options?: { createIfNotExists?: boolean | undefined; } | undefined): Promise<vscode.Uri | undefined> {
         throw new Error('Method not implemented.');
     }
+    // Deprecation: IWorkspaceManager.getLocalFolderForFabricWorkspace
+    /**
+     * @deprecated
+     */
     getLocalFolderForFabricWorkspace(workspace: IWorkspace, options?: { createIfNotExists?: boolean | undefined; } | undefined): Promise<vscode.Uri | undefined> {
         throw new Error('Method not implemented.');
     }

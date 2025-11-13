@@ -3,7 +3,7 @@
 
 import * as vscode from 'vscode';
 import { IArtifact, IWorkspaceManager, IArtifactManager, IWorkspace, IApiClientResponse, IItemDefinition, IUpdateArtifactDefinitionWorkflow, ICreateArtifactWithDefinitionWorkflow } from '@microsoft/vscode-fabric-api';
-import { ILocalFolderManager } from '../LocalFolderManager';
+import { ILocalFolderService } from '../LocalFolderService';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { formatErrorResponse, succeeded } from '../utilities';
 import { FabricError, TelemetryActivity, TelemetryService, IFabricEnvironmentProvider, UserCancelledError, ILogger } from '@microsoft/vscode-fabric-util';
@@ -21,7 +21,7 @@ export async function importArtifactCommand(
     workspaceManager: IWorkspaceManager,
     artifactManager: IArtifactManager,
     extensionManager: IFabricExtensionManagerInternal,
-    localFolderManager: ILocalFolderManager,
+    localFolderService: ILocalFolderService,
     workspaceFilterManager: IWorkspaceFilterManager,
     capacityManager: ICapacityManager,
     reader: IItemDefinitionReader,
@@ -56,16 +56,23 @@ export async function importArtifactCommand(
     const createWorkflow = handler?.createWithDefinitionWorkflow;
     const updateWorkflow = handler?.updateDefinitionWorkflow;
 
-    // Try to infer workspace from folder using localFolderManager
+    // Try to infer workspace and artifact from folder using localFolderService
     let targetWorkspace: IWorkspace | undefined;
-    const parentFolder = vscode.Uri.joinPath(folder, '..');
+    let artifact: IArtifact | undefined;
+
     if (!forcePromptForWorkspace) {
-        const inferredWorkspaceId = localFolderManager.getWorkspaceIdForLocalFolder(parentFolder);
-        if (inferredWorkspaceId) {
-            targetWorkspace = await workspaceManager.getWorkspaceById(inferredWorkspaceId);
+        const artifactInfo = localFolderService.getArtifactInformation(folder);
+        if (artifactInfo?.workspaceId) {
+            targetWorkspace = await workspaceManager.getWorkspaceById(artifactInfo.workspaceId);
             telemetryActivity.addOrUpdateProperties({
                 targetDetermination: 'inferred',
             });
+
+            // Try to get the artifact by ID if we have it
+            if (targetWorkspace && artifactInfo.artifactId) {
+                const allArtifacts = await artifactManager.listArtifacts(targetWorkspace);
+                artifact = allArtifacts.find(item => item.id === artifactInfo.artifactId);
+            }
         }
     }
 
@@ -93,8 +100,11 @@ export async function importArtifactCommand(
             cancellable: false,
         },
         async (progress) => {
-            const artifact: IArtifact | undefined = (await artifactManager.listArtifacts(targetWorkspace))
-                .find(item => item.type === targetType && item.displayName === displayName);
+            // Fallback: search by name and type if artifact ID lookup failed or wasn't available
+            if (!artifact) {
+                const allArtifacts = await artifactManager.listArtifacts(targetWorkspace);
+                artifact = allArtifacts.find(item => item.type === targetType && item.displayName === displayName);
+            }
 
             let definition: IItemDefinition;
             let definitionFiles: string[] | undefined = undefined;

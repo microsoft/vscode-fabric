@@ -19,6 +19,7 @@ import { IWorkspaceFilterManager } from './WorkspaceFilterManager';
 import { IAccountProvider, ITenantSettings } from '../authentication';
 import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { makeShouldExpand } from './viewExpansionState';
+import { ILocalFolderService } from '../LocalFolderService';
 
 /**
  * Provides tree data for a Fabric workspace
@@ -36,7 +37,8 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
         private readonly accountProvider: IAccountProvider,
         private readonly workspaceFilterManager: IWorkspaceFilterManager,
         private readonly storage: IFabricExtensionsSettingStorage,
-        private readonly fabricEnvironmentProvider: IFabricEnvironmentProvider) {
+        private readonly fabricEnvironmentProvider: IFabricEnvironmentProvider,
+        private readonly localFolderService: ILocalFolderService) {
 
         extensionManager.onExtensionsUpdated(() => this.refresh());
 
@@ -126,6 +128,7 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
                                 this.workspaceManager,
                                 this.accountProvider,
                                 currentDisplayStyle,
+                                this.localFolderService,
                                 shouldExpand,
                                 filteredWorkspaces // Pass filtered workspaces to root node
                             );
@@ -228,7 +231,8 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
         private extensionManager: IFabricExtensionManagerInternal,
         private workspaceManager: IWorkspaceManager,
         private accountProvider: IAccountProvider,
-        private telemetryService: TelemetryService | null = null
+        private telemetryService: TelemetryService | null = null,
+        private localFolderService: ILocalFolderService
     ) {
         this.dispose();
         RootTreeNodeProvider.disposables.push(
@@ -291,7 +295,7 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
 
     public create(tenant: ITenantSettings): FabricTreeNode {
         const displayStyle = this.storage.settings.displayStyle as DisplayStyle;
-        return new TenantTreeNode(this.context, this.extensionManager, this.telemetryService, this.workspaceManager, tenant, displayStyle, undefined);
+        return new TenantTreeNode(this.context, this.extensionManager, this.telemetryService, this.workspaceManager, tenant, displayStyle, this.localFolderService, undefined);
     }
 
     public getCurrentDisplayStyle(): DisplayStyle {

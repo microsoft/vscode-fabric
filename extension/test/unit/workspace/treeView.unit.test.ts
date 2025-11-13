@@ -23,19 +23,7 @@ import {
 import { TelemetryService } from '@microsoft/vscode-fabric-util';
 import { ITenantSettings, IAccountProvider } from '../../../src/authentication';
 import { ObservableMap } from '../../../src/collections/ObservableMap';
-
-async function createInstance(
-    storage: IFabricExtensionsSettingStorage,
-    context: vscode.ExtensionContext,
-    extensionManager: IFabricExtensionManagerInternal,
-    workspaceManager: IWorkspaceManager,
-    accountProvider: IAccountProvider,
-    telemetryService: TelemetryService | null
-): Promise<IRootTreeNodeProvider> {
-    const instance = new RootTreeNodeProvider(storage, context, extensionManager, workspaceManager, accountProvider, telemetryService);
-    await instance.enableCommands();
-    return instance;
-}
+import { ILocalFolderService } from '../../../src/LocalFolderService';
 
 describe('RootTreeNodeProvider', () => {
     let storageMock: Mock<IFabricExtensionsSettingStorage>;
@@ -47,6 +35,7 @@ describe('RootTreeNodeProvider', () => {
     let tenantMock: Mock<ITenantSettings>;
     let settingsMock: Mock<IFabricExtensionSettings>;
     let contextMock: Mock<vscode.ExtensionContext>;
+    let localFolderServiceMock: Mock<ILocalFolderService>;
 
     beforeEach(() => {
         storageMock = new Mock<IFabricExtensionsSettingStorage>();
@@ -56,6 +45,7 @@ describe('RootTreeNodeProvider', () => {
         accountProviderMock = new Mock<IAccountProvider>();
         workspaceMock = new Mock<IWorkspace>();
         tenantMock = new Mock<ITenantSettings>();
+        localFolderServiceMock = new Mock<ILocalFolderService>();
         settingsMock = new Mock<IFabricExtensionSettings>();
         contextMock = new Mock<vscode.ExtensionContext>();
 
@@ -78,7 +68,7 @@ describe('RootTreeNodeProvider', () => {
         workspaceManagerMock.setup(instance => instance.listWorkspaces()).returns(Promise.resolve([]));
         workspaceManagerMock.setup(instance => instance.getItemsInWorkspace(It.IsAny())).returns(Promise.resolve([]));
 
-        const provider = await createInstance(storageMock.object(), contextMock.object(), extensionManagerMock.object(), workspaceManagerMock.object(), accountProviderMock.object(), telemetryServiceMock.object());
+        const provider = await createInstance();
 
         const rootNode = provider.create(tenantMock.object());
         assert.notEqual(rootNode, undefined, 'Root node should not be undefined');
@@ -95,7 +85,7 @@ describe('RootTreeNodeProvider', () => {
         workspaceManagerMock.setup(instance => instance.listWorkspaces()).returns(Promise.resolve([]));
         workspaceManagerMock.setup(instance => instance.getItemsInWorkspace(It.IsAny())).returns(Promise.resolve([]));
 
-        const provider = await createInstance(storageMock.object(), contextMock.object(), extensionManagerMock.object(), workspaceManagerMock.object(), accountProviderMock.object(), telemetryServiceMock.object());
+        const provider = await createInstance();
 
         const rootNode = provider.create(tenantMock.object());
         assert.notEqual(rootNode, undefined, 'Root node should not be undefined');
@@ -113,7 +103,7 @@ describe('RootTreeNodeProvider', () => {
         workspaceManagerMock.setup(instance => instance.getItemsInWorkspace(It.IsAny())).returns(Promise.resolve([]));
         extensionManagerMock.setup(instance => instance.treeNodeProviders).returns(new ObservableMap<string, IFabricTreeNodeProvider>());
 
-        const provider = await createInstance(storageMock.object(), contextMock.object(), extensionManagerMock.object(), workspaceManagerMock.object(), accountProviderMock.object(), telemetryServiceMock.object());
+        const provider = await createInstance();
 
         const rootNode = provider.create(tenantMock.object());
         assert.notEqual(rootNode, undefined, 'Root node should not be undefined');
@@ -140,7 +130,7 @@ describe('RootTreeNodeProvider', () => {
         workspaceManagerMock.setup(instance => instance.listWorkspaces()).returns(Promise.resolve([workspaceMock.object()]));
         workspaceManagerMock.setup(instance => instance.getItemsInWorkspace(It.IsAny())).returns(Promise.resolve([item2B, item2A, item1C]));
         extensionManagerMock.setup(instance => instance.treeNodeProviders).returns(new ObservableMap<string, IFabricTreeNodeProvider>());
-        const provider = await createInstance(storageMock.object(), contextMock.object(), extensionManagerMock.object(), workspaceManagerMock.object(), accountProviderMock.object(), telemetryServiceMock.object());
+        const provider = await createInstance();
 
         const rootNode = provider.create(tenantMock.object());
         assert.notEqual(rootNode, undefined, 'Root node should not be undefined');
@@ -186,7 +176,7 @@ describe('RootTreeNodeProvider', () => {
         workspaceManagerMock.setup(instance => instance.listWorkspaces()).returns(Promise.resolve([workspaceMock.object()]));
         workspaceManagerMock.setup(instance => instance.getItemsInWorkspace(It.IsAny())).returns(Promise.resolve([item2B, item2A, item1C]));
         extensionManagerMock.setup(instance => instance.treeNodeProviders).returns(treeNodeProviders);
-        const provider = await createInstance(storageMock.object(), contextMock.object(), extensionManagerMock.object(), workspaceManagerMock.object(), accountProviderMock.object(), telemetryServiceMock.object());
+        const provider = await createInstance();
 
         const rootNode = provider.create(tenantMock.object());
         assert.notEqual(rootNode, undefined, 'Root node should not be undefined');
@@ -222,7 +212,7 @@ describe('RootTreeNodeProvider', () => {
         workspaceManagerMock.setup(instance => instance.getItemsInWorkspace(It.IsAny())).returns(Promise.resolve([rootArtifact, salesArtifact, q1Artifact]));
         extensionManagerMock.setup(instance => instance.treeNodeProviders).returns(new ObservableMap<string, IFabricTreeNodeProvider>());
 
-        const provider = await createInstance(storageMock.object(), contextMock.object(), extensionManagerMock.object(), workspaceManagerMock.object(), accountProviderMock.object(), telemetryServiceMock.object());
+        const provider = await createInstance();
 
         const rootNode = provider.create(tenantMock.object());
         const childNodes = await rootNode.getChildNodes();
@@ -267,7 +257,7 @@ describe('RootTreeNodeProvider', () => {
         workspaceManagerMock.setup(instance => instance.listWorkspaces()).returns(Promise.resolve([workspaceMock.object()]));
         workspaceManagerMock.setup(instance => instance.getItemsInWorkspace(It.IsAny())).returns(Promise.resolve([item2B, item2A, item1C]));
         extensionManagerMock.setup(instance => instance.treeNodeProviders).returns(treeNodeProviders);
-        const provider = await createInstance(storageMock.object(), contextMock.object(), extensionManagerMock.object(), workspaceManagerMock.object(), accountProviderMock.object(), telemetryServiceMock.object());
+        const provider = await createInstance();
 
         const rootNode = provider.create(tenantMock.object());
         assert.notEqual(rootNode, undefined, 'Root node should not be undefined');
@@ -292,6 +282,20 @@ describe('RootTreeNodeProvider', () => {
         treeNodeProviderMock.verify(instance => instance.createArtifactTreeNode(item2A), Times.Once());
         treeNodeProviderMock.verify(instance => instance.createArtifactTreeNode(item1C), Times.Never());
     });
+
+    async function createInstance(): Promise<IRootTreeNodeProvider> {
+        const instance = new RootTreeNodeProvider(
+            storageMock.object(),
+            contextMock.object(),
+            extensionManagerMock.object(),
+            workspaceManagerMock.object(),
+            accountProviderMock.object(),
+            telemetryServiceMock.object(),
+            localFolderServiceMock.object()
+        );
+        await instance.enableCommands();
+        return instance;
+    }
 
     function createArtifact(type: string, displayName: string, folderId?: string): IArtifact {
         return {
