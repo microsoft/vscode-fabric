@@ -1,5 +1,10 @@
 # Change Log
 
+## [Unreleased]
+
+### Added
+- Progress indicators for long running operations (Open in Explorer and Publish commands) displayed in the notification area.
+
 ## [0.26] - 2025-09-11
 
 ### Added
