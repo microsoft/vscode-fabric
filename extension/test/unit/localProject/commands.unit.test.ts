@@ -106,7 +106,7 @@ describe('registerLocalProjectCommands', () => {
 
         // Should be called after second registration
         assert.strictEqual(disposeSpy.called, true, 'dispose should be called after second registration');
-        assert.strictEqual(disposeSpy.callCount, 2, 'dispose should be called for each registered command');
+        assert.strictEqual(disposeSpy.callCount, 3, 'dispose should be called for each registered command');
     });
 
     describe('Execute callbacks', () => {
