@@ -31,24 +31,7 @@ export class FabricUriHandler implements vscode.UriHandler {
             // Check if this is a signup completion callback
             const signupComplete = searchParams.get('signedUp');
             if (signupComplete === '1') {
-                this.logger.info('Signup completion callback received');
-                activity.addOrUpdateProperties({
-                    'targetEnvironment': 'signupCallback',
-                    'uriQuery': uri.query,
-                });
-
-                // Refresh the workspace manager to reload workspaces
-                // Cast to any to access the concrete implementation method
-                // TODO: Expose a proper method in the interface
-                const workspaceManager = this.core.workspaceManager as any;
-                if (typeof workspaceManager.refreshConnectionToFabric === 'function') {
-                    await workspaceManager.refreshConnectionToFabric();
-                }
-
-                // Show the Fabric remote view
-                await vscode.commands.executeCommand('workbench.view.extension.vscode-fabric_view_workspace');
-
-                void vscode.window.showInformationMessage(vscode.l10n.t('Welcome to Microsoft Fabric! Your account setup is complete.'));
+                await this.handleSignupCompletion(searchParams, activity);
                 return;
             }
 
@@ -113,6 +96,35 @@ export class FabricUriHandler implements vscode.UriHandler {
             // open the artifact (registered item type handlers will be called)
             await this.core.artifactManager.openArtifact(artifact);
         });
+    }
+
+    private async handleSignupCompletion(searchParams: URLSearchParams, activity: TelemetryActivity): Promise<void> {
+        this.logger.info('Signup completion callback received');
+        activity.addOrUpdateProperties({
+            'targetEnvironment': 'signupCallback',
+            'uriQuery': searchParams.toString(),
+        });
+
+        // Refresh the workspace manager to reload workspaces
+        // Cast to any to access the concrete implementation method
+        // TODO: Expose a proper method in the interface
+        const workspaceManager = this.core.workspaceManager as any;
+        if (typeof workspaceManager.refreshConnectionToFabric === 'function') {
+            await workspaceManager.refreshConnectionToFabric();
+        }
+
+        // Show the Fabric remote view
+        await vscode.commands.executeCommand('workbench.view.extension.vscode-fabric_view_workspace');
+
+        // Check if a license was auto-assigned
+        const autoAssigned = searchParams.get('autoAssigned');
+        if (autoAssigned === '1') {
+            const learnMoreMessage = vscode.l10n.t('We\'ve assigned you a Microsoft Fabric (Free) license for personal use. You\'re signed in and can create and explore Fabric items. [Learn More...](https://aka.ms/fabric-trial)');
+            void vscode.window.showInformationMessage(learnMoreMessage);
+        }
+        else {
+            void vscode.window.showInformationMessage(vscode.l10n.t('Welcome to Microsoft Fabric! Your account setup is complete.'));
+        }
     }
 }
 
