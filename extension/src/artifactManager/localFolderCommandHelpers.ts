@@ -25,7 +25,7 @@ export async function downloadAndSaveArtifact(
     await vscode.window.withProgress(
         {
             location: vscode.ProgressLocation.Notification,
-            title: vscode.l10n.t('Opening {0}...', artifact.displayName),
+            title: vscode.l10n.t('Downloading {0}...', artifact.displayName),
             cancellable: false,
         },
         async (progress) => {
