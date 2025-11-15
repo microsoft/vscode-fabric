@@ -85,7 +85,6 @@ describe('openLocalFolderCommand', () => {
             assert.ok(message.includes(existingFolder.fsPath), 'Message should include folder path');
             assert.strictEqual(options?.modal, true, 'Dialog should be modal');
             assert.strictEqual(options?.includeDoNothing, false, 'Should not include do nothing option');
-            assert.strictEqual(options?.includeChooseDifferent, true, 'Should include choose different option');
 
             assert.ok(showInformationMessageStub.notCalled, 'Should not show info message for new folder');
             assert.ok(downloadAndSaveArtifactStub.notCalled, 'Should not download artifact');

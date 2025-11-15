@@ -223,11 +223,10 @@ interface FolderActionItem extends vscode.MessageItem {
 export async function showFolderActionDialog(
     folderUri: vscode.Uri,
     message: string,
-    options?: { modal?: boolean; includeDoNothing?: boolean; includeChooseDifferent?: boolean }
+    options?: { modal?: boolean; includeDoNothing?: boolean; }
 ): Promise<FolderAction | undefined> {
     const modal = options?.modal ?? false;
     const includeDoNothing = options?.includeDoNothing ?? true;
-    const includeChooseDifferent = options?.includeChooseDifferent ?? false;
 
     // Build the action items array in the correct order
     const actionItems: FolderActionItem[] = [];
@@ -238,16 +237,6 @@ export async function showFolderActionDialog(
 
     actionItems.push({ title: vscode.l10n.t('Open in current window'), action: FolderAction.openInCurrentWindow });
     actionItems.push({ title: vscode.l10n.t('Open in new window'), action: FolderAction.openInNewWindow });
-
-    // Add "Add to workspace" option only if there's an open workspace
-    const hasWorkspace = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0;
-    if (hasWorkspace) {
-        actionItems.push({ title: vscode.l10n.t('Add folder to workspace'), action: FolderAction.addToWorkspace });
-    }
-
-    if (includeChooseDifferent) {
-        actionItems.push({ title: vscode.l10n.t('Choose different folder'), action: FolderAction.chooseDifferentFolder });
-    }
 
     const choice = await vscode.window.showInformationMessage(
         message,
