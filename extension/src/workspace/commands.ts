@@ -42,10 +42,8 @@ export function registerWorkspaceCommands(
 
     registerCommand(commandNames.signIn, async () => {
         await auth.signIn();
-    }, context);
-
-    registerCommand(commandNames.signUpForFabric, async () => {
-        await signUpForFabric(auth, fabricEnvironmentProvider, telemetryService, logger);
+        // Check if user has a Fabric license, and trigger signup only if needed
+        await checkLicenseAndSignUpIfNeeded(auth, fabricEnvironmentProvider, telemetryService, logger, workspaceManager);
     }, context);
 
     registerCommand(commandNames.createWorkspace, async () => {
@@ -108,6 +106,43 @@ async function selectLocalFolder(manager: WorkspaceManagerBase, treeNode?: Works
     // If called from command palette without workspace context, show an error message
     void vscode.window.showErrorMessage(vscode.l10n.t('Please right-click on a workspace in the Fabric explorer to associate it with a local folder.'));
     return undefined;
+}
+
+/**
+ * Checks if the user has a Fabric license and triggers signup only if they don't
+ * @param auth The account provider to get session information
+ * @param fabricEnvironmentProvider The environment provider to get portal URI
+ * @param telemetryService The telemetry service for tracking signup initiation
+ * @param logger The logger for error reporting
+ * @param workspaceManager The workspace manager to check license status
+ */
+async function checkLicenseAndSignUpIfNeeded(
+    auth: IAccountProvider,
+    fabricEnvironmentProvider: IFabricEnvironmentProvider,
+    telemetryService: TelemetryService | null,
+    logger: ILogger,
+    workspaceManager: WorkspaceManagerBase
+): Promise<void> {
+    try {
+        // Try to list workspaces to check if user has a Fabric license
+        await workspaceManager.listWorkspaces();
+        // If successful, user has a license, no need to signup
+        logger.log('User has a Fabric license, skipping signup');
+    }
+    catch (error: any) {
+        // Check if this is an unlicensed user error (401 with 'unlicensed' in body)
+        const errorMessage = error?.message?.toLowerCase() || '';
+        const isUnlicensedError = errorMessage.includes('unlicensed');
+
+        if (isUnlicensedError) {
+            logger.log('User does not have a Fabric license, opening signup page');
+            await signUpForFabric(auth, fabricEnvironmentProvider, telemetryService, logger);
+        }
+        else {
+            // For other errors, just log them - don't trigger signup
+            logger.log(`Error checking Fabric license: ${errorMessage}`);
+        }
+    }
 }
 
 /**

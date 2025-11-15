@@ -43,12 +43,6 @@
         "category": "Fabric"
       },
       {
-        "command": "vscode-fabric.signUpForFabric",
-        "title": "%extension.signUpForFabric.title%",
-        "category": "Fabric",
-        "icon": "$(add)"
-      },
-      {
         "command": "vscode-fabric.switchTenant",
         "title": "%extension.switchTenant.title%",
         "category": "Fabric",
@@ -219,11 +213,6 @@
         "view": "vscode-fabric.view.workspace",
         "contents": "%extension.welcomeTitle.signIn%",
         "when": "fabricWorkspaceContext == signin"
-      },
-      {
-        "view": "vscode-fabric.view.workspace",
-        "contents": "%extension.welcomeTitle.signUp%",
-        "when": "fabricWorkspaceContext == signup"
       },
       {
         "view": "vscode-fabric.view.workspace",
