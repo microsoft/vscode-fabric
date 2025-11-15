@@ -38,6 +38,7 @@
   "extension.configuration.ApiTimeout.description": "Liczba milisekund zezwalających na wywołanie interfejsu API przed zgłoszeniem błędu przekroczenia limitu czasu",
   "extension.configuration.DefaultWorkspaceFolder.description": "Domyślnym folderem dla obszarów roboczych usługi Fabric jest c:\\users\\<username>>\\Workspaces",
   "extension.configuration.DebugLogging.description": "Włącz rejestrowanie debugowania w panelu danych wyjściowych usługi Fabric",
+  "extension.configuration.ShowFolders.description": "Display folders in the Fabric Workspace view",
   "extension.walkthrough.fabric.title": "Rozpocznij pracę z usługą Microsoft Fabric",
   "extension.walkthrough.fabric.description": "Pierwsze kroki do pracy z usługą Fabric!",
   "extension.walkthrough.openPortal.title": "Tworzenie przestrzeni roboczej",

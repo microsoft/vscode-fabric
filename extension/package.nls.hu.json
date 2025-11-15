@@ -38,6 +38,7 @@
   "extension.configuration.ApiTimeout.description": "API-híváshoz az időtúllépési hiba kiváltása előtt engedélyezett időtartam ezredmásodpercben",
   "extension.configuration.DefaultWorkspaceFolder.description": "A Fabric-munkaterületek alapértelmezett mappája alapértelmezés szerint a c:\\users\\<username>\\Workspaces",
   "extension.configuration.DebugLogging.description": "Hibakeresési naplózás bekapcsolása a Fabric kimeneti paneljén",
+  "extension.configuration.ShowFolders.description": "Display folders in the Fabric Workspace view",
   "extension.walkthrough.fabric.title": "Ismerkedés a Microsoft Fabric szolgáltatással",
   "extension.walkthrough.fabric.description": "Az első lépései a Fabric használatához!",
   "extension.walkthrough.openPortal.title": "Munkaterület létrehozása",

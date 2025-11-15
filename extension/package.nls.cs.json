@@ -38,6 +38,7 @@
   "extension.configuration.ApiTimeout.description": "Počet milisekund, které mají být povoleny pro volání rozhraní API před vyvoláním chyby kvůli vypršení časového limitu",
   "extension.configuration.DefaultWorkspaceFolder.description": "Výchozí složka pro pracovní prostory Fabricu, ve výchozím nastavení c:\\users\\<username>>\\Workspaces",
   "extension.configuration.DebugLogging.description": "Zapnout protokolování ladění na panelu výstupu Fabricu",
+  "extension.configuration.ShowFolders.description": "Display folders in the Fabric Workspace view",
   "extension.walkthrough.fabric.title": "Začínáme s Microsoft Fabricem",
   "extension.walkthrough.fabric.description": "První kroky při práci s Fabricem!",
   "extension.walkthrough.openPortal.title": "Vytvoření pracovního prostoru",

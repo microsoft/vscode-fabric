@@ -38,6 +38,7 @@
   "extension.configuration.ApiTimeout.description": "시간 제한 오류가 발생하기 전에 API 호출을 허용하는 시간(밀리초)",
   "extension.configuration.DefaultWorkspaceFolder.description": "Fabric 작업 영역의 기본 폴더입니다. 기본값은 c:\\users\\<username>>\\Workspaces입니다.",
   "extension.configuration.DebugLogging.description": "Fabric 출력 패널에서 디버그 로깅 켜기",
+  "extension.configuration.ShowFolders.description": "Display folders in the Fabric Workspace view",
   "extension.walkthrough.fabric.title": "Microsoft Fabric 시작",
   "extension.walkthrough.fabric.description": "Fabric으로 작업하기 위한 첫 번째 단계입니다!",
   "extension.walkthrough.openPortal.title": "작업 영역 만들기",

@@ -38,6 +38,7 @@
   "extension.configuration.ApiTimeout.description": "Zaman Aşımı Hatası oluşturmadan önce API çağrısına izin verilen milisaniye sayısı.",
   "extension.configuration.DefaultWorkspaceFolder.description": "Fabric çalışma alanları için varsayılan klasör, varsayılan olarak c:\\users\\<username>\\Workspaces olur.",
   "extension.configuration.DebugLogging.description": "Fabric Çıkış Paneli'nde hata ayıklama günlüğünü açın",
+  "extension.configuration.ShowFolders.description": "Display folders in the Fabric Workspace view",
   "extension.walkthrough.fabric.title": "Microsoft Fabric Kullanmaya Başlayın",
   "extension.walkthrough.fabric.description": "Fabric ile çalışmak için izleyeceğiniz ilk adımlar!",
   "extension.walkthrough.openPortal.title": "Çalışma alanı oluştur",

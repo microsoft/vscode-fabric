@@ -38,6 +38,7 @@
   "extension.configuration.ApiTimeout.description": "Количество миллисекунд, разрешенных для вызова API, прежде чем будет выдана ошибка тайм-аута",
   "extension.configuration.DefaultWorkspaceFolder.description": "Папка по умолчанию для рабочих пространств Fabric — c:\\users\\<username>>\\Workspaces",
   "extension.configuration.DebugLogging.description": "Включите отладочную регистрацию на панели вывода Fabric",
+  "extension.configuration.ShowFolders.description": "Display folders in the Fabric Workspace view",
   "extension.walkthrough.fabric.title": "Начните работу с Microsoft Fabric",
   "extension.walkthrough.fabric.description": "Ваши первые шаги в работе с Fabric!",
   "extension.walkthrough.openPortal.title": "Создать рабочую область",

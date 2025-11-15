@@ -38,6 +38,7 @@
   "extension.configuration.ApiTimeout.description": "擲回逾時錯誤前允許 API 呼叫的毫秒數",
   "extension.configuration.DefaultWorkspaceFolder.description": "Fabric 工作區的預設資料夾，預設為 c:\\users\\<username>\\Workspaces",
   "extension.configuration.DebugLogging.description": "在 Fabric 輸出面板中開啟偵錯記錄",
+  "extension.configuration.ShowFolders.description": "Display folders in the Fabric Workspace view",
   "extension.walkthrough.fabric.title": "開始使用 Microsoft Fabric",
   "extension.walkthrough.fabric.description": "使用 Fabric 作業的第一步!",
   "extension.walkthrough.openPortal.title": "建立工作區",

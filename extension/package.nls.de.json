@@ -38,6 +38,7 @@
   "extension.configuration.ApiTimeout.description": "Anzahl der Millisekunden, die ein API-Aufruf dauern darf, bevor ein Timeoutfehler ausgelöst wird",
   "extension.configuration.DefaultWorkspaceFolder.description": "Der Standardordner für Fabric-Arbeitsbereiche ist c:\\users\\<username>>\\Workspaces.",
   "extension.configuration.DebugLogging.description": "Debugprotokollierung im Fabric-Ausgabebereich aktivieren",
+  "extension.configuration.ShowFolders.description": "Display folders in the Fabric Workspace view",
   "extension.walkthrough.fabric.title": "Erste Schritte mit Microsoft Fabric",
   "extension.walkthrough.fabric.description": "Ihre ersten Schritte zur Arbeit mit Fabric!",
   "extension.walkthrough.openPortal.title": "Arbeitsbereich erstellen",

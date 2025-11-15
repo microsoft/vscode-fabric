@@ -38,6 +38,7 @@
   "extension.configuration.ApiTimeout.description": "Número de milisegundos que se permiten para una llamada API antes de producir un error de tiempo de espera",
   "extension.configuration.DefaultWorkspaceFolder.description": "La carpeta predeterminada para las áreas de trabajo de Fabric es c:\\users\\<username>>\\Workspaces",
   "extension.configuration.DebugLogging.description": "Activar el registro de depuración en el panel de salida de Fabric",
+  "extension.configuration.ShowFolders.description": "Display folders in the Fabric Workspace view",
   "extension.walkthrough.fabric.title": "Introducción a Microsoft Fabric",
   "extension.walkthrough.fabric.description": "Sus primeros pasos para trabajar con Fabric.",
   "extension.walkthrough.openPortal.title": "Crear un área de trabajo",
