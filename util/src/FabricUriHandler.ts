@@ -12,11 +12,11 @@ import { ILogger } from './logger/Logger';
 
 export class FabricUriHandler implements vscode.UriHandler {
     constructor(
-        private core: IFabricExtensionServiceCollection,
-        private telemetry: TelemetryService | null,
-        private logger: ILogger,
-        private fabricEnvironmentProvider: IFabricEnvironmentProvider,
-        private configProvider: IConfigurationProvider
+        protected core: IFabricExtensionServiceCollection,
+        protected telemetry: TelemetryService | null,
+        protected logger: ILogger,
+        protected fabricEnvironmentProvider: IFabricEnvironmentProvider,
+        protected configProvider: IConfigurationProvider
     ) {
         this.core = core;
         this.telemetry = telemetry;
@@ -27,13 +27,6 @@ export class FabricUriHandler implements vscode.UriHandler {
         const activity = new TelemetryActivity('handle-uri', this.telemetry);
         return doFabricAction({ fabricLogger: this.logger, telemetryActivity: activity }, async () => {
             const searchParams = new URLSearchParams(uri.query);
-
-            // Check if this is a signup completion callback
-            const signupComplete = searchParams.get('signedUp');
-            if (signupComplete === '1') {
-                await this.handleSignupCompletion(searchParams, activity);
-                return;
-            }
 
             // Handle standard artifact opening URI
             const workspaceId = searchParams.get('workspaceId') || '';
@@ -96,35 +89,6 @@ export class FabricUriHandler implements vscode.UriHandler {
             // open the artifact (registered item type handlers will be called)
             await this.core.artifactManager.openArtifact(artifact);
         });
-    }
-
-    private async handleSignupCompletion(searchParams: URLSearchParams, activity: TelemetryActivity): Promise<void> {
-        this.logger.info('Signup completion callback received');
-        activity.addOrUpdateProperties({
-            'targetEnvironment': 'signupCallback',
-            'uriQuery': searchParams.toString(),
-        });
-
-        // Refresh the workspace manager to reload workspaces
-        // Cast to any to access the concrete implementation method
-        // TODO: Expose a proper method in the interface
-        const workspaceManager = this.core.workspaceManager as any;
-        if (typeof workspaceManager.refreshConnectionToFabric === 'function') {
-            await workspaceManager.refreshConnectionToFabric();
-        }
-
-        // Show the Fabric remote view
-        await vscode.commands.executeCommand('workbench.view.extension.vscode-fabric_view_workspace');
-
-        // Check if a license was auto-assigned
-        const autoAssigned = searchParams.get('autoAssigned');
-        if (autoAssigned === '1') {
-            const learnMoreMessage = vscode.l10n.t('We\'ve assigned you a Microsoft Fabric (Free) license for personal use. You\'re signed in and can create and explore Fabric items. [Learn More...](https://aka.ms/fabric-trial)');
-            void vscode.window.showInformationMessage(learnMoreMessage);
-        }
-        else {
-            void vscode.window.showInformationMessage(vscode.l10n.t('Welcome to Microsoft Fabric! Your account setup is complete.'));
-        }
     }
 }
 
