@@ -12,6 +12,7 @@ import {
     ILogger,
     doFabricAction,
 } from '@microsoft/vscode-fabric-util';
+import { WorkspaceManager } from './workspace/WorkspaceManager';
 
 /**
  * Extension-specific URI handler that extends the base FabricUriHandler
@@ -54,7 +55,7 @@ export class ExtensionUriHandler extends FabricUriHandler {
         // Refresh the workspace manager to reload workspaces
         // Cast to any to access the concrete implementation method
         // TODO: Expose a proper method in the interface
-        const workspaceManager = this.core.workspaceManager as any;
+        const workspaceManager = this.core.workspaceManager as WorkspaceManager;
         if (typeof workspaceManager.refreshConnectionToFabric === 'function') {
             await workspaceManager.refreshConnectionToFabric();
         }
