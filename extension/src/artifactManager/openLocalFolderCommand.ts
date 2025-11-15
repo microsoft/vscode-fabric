@@ -28,7 +28,7 @@ export async function openLocalFolderCommand(
         const choice = await showFolderActionDialog(
             existingFolder.uri,
             vscode.l10n.t('How would you like to open {0}?', existingFolder.uri.fsPath),
-            { modal: true, includeDoNothing: false, includeChooseDifferent: true }
+            { modal: true, includeDoNothing: false }
         );
 
         telemetryActivity.addOrUpdateProperties({

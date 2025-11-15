@@ -466,15 +466,6 @@ describe('localFolderCommandHelpers', () => {
             assert.ok(!items.some((i: any) => i.action === FolderAction.doNothing), 'Should not include do nothing');
         });
 
-        it('should include choose different when includeChooseDifferent is true', async () => {
-            showInformationMessageStub.resolves(undefined);
-
-            await showFolderActionDialog(testFolder, testMessage, { includeChooseDifferent: true });
-
-            const [, , ...items] = showInformationMessageStub.firstCall.args;
-            assert.ok(items.some((i: any) => i.action === FolderAction.chooseDifferentFolder), 'Should include choose different');
-        });
-
         it('should execute openInCurrentWindow action', async () => {
             showInformationMessageStub.resolves({ title: 'Open in current window', action: FolderAction.openInCurrentWindow });
 
@@ -505,7 +496,7 @@ describe('localFolderCommandHelpers', () => {
         it('should return chooseDifferentFolder without executing action', async () => {
             showInformationMessageStub.resolves({ title: 'Choose different', action: FolderAction.chooseDifferentFolder });
 
-            const result = await showFolderActionDialog(testFolder, testMessage, { includeChooseDifferent: true });
+            const result = await showFolderActionDialog(testFolder, testMessage);
 
             assert.strictEqual(result, FolderAction.chooseDifferentFolder);
             assert.ok(executeCommandStub.notCalled, 'Should not execute any commands');
