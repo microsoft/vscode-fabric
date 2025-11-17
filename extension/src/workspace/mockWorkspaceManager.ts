@@ -5,7 +5,7 @@
 import { IFabricEnvironmentProvider, ILogger, IConfigurationProvider, FakeConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../authentication/interfaces';
 import { IArtifact, IWorkspace, IFabricApiClient } from '@microsoft/vscode-fabric-api';
-import { WorkspaceManagerBase } from './WorkspaceManager';
+import { WorkspaceManager } from './WorkspaceManager';
 import { LocalFolderManager } from '../LocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
 import { Memento } from 'vscode';
@@ -20,7 +20,7 @@ export const unfeaturedTreeViewBaseArtifactType = 'UnfeaturedMockArtifact';
 /**
  * A mock workspace manager that can be used for testing
  */
-export class MockWorkspaceManager extends WorkspaceManagerBase {
+export class MockWorkspaceManager extends WorkspaceManager {
     public currentWorkspaces: IWorkspace[] = [];
     public mapArtifacts: Map<string, IArtifact[]> = new Map<string, IArtifact[]>(); // workspace id=>Artifacts
     public static numWorkspaceItems: number = 10;

@@ -10,7 +10,7 @@ import { IWorkspace, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionsSettingStorage } from '../../../src/settings/definitions';
 import { IFabricEnvironmentProvider, TelemetryService, ILogger, FabricError } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../../../src/authentication/interfaces';
-import { WorkspaceManagerBase } from '../../../src/workspace/WorkspaceManager';
+import { WorkspaceManager } from '../../../src/workspace/WorkspaceManager';
 
 describe('WorkspaceFilterManager', function () {
     let mockSettingsStorage: Mock<IFabricExtensionsSettingStorage>;

@@ -47,55 +47,6 @@ export class MockArtifactManagerStub extends ArtifactManager {
     }
 }
 
-class MockWorkspaceManagerStub implements IWorkspaceManager {
-    createWorkspace(workspaceName: string, options?: { capacityId?: string; description?: string; }): Promise<IApiClientResponse> {
-        throw new Error('Method not implemented.');
-    }
-    listWorkspaces(): Promise<IWorkspace[]> {
-        throw new Error('Method not implemented.');
-    }
-    retrieveArtifacts(): Promise<IArtifact[]> {
-        throw new Error('Method not implemented.');
-    }
-    clearPriorStateIfAny(): void {
-        throw new Error('Method not implemented.');
-    }
-    getWorkspaceById(workspaceId: string): Promise<IWorkspace | undefined> {
-        throw new Error('Method not implemented.');
-    }
-    get fabricSharedUri(): string {
-        throw new Error('Method not implemented.');
-    }
-    getLocalFolderForCurrentFabricWorkspace(options?: { createIfNotExists?: boolean | undefined; } | undefined): Promise<vscode.Uri | undefined> {
-        throw new Error('Method not implemented.');
-    }
-    getLocalFolderForFabricWorkspace(workspace: IWorkspace, options?: { createIfNotExists?: boolean | undefined; } | undefined): Promise<vscode.Uri | undefined> {
-        throw new Error('Method not implemented.');
-    }
-    getLocalFolderForArtifact(artifact: IArtifact, options?: { createIfNotExists?: boolean | undefined; } | undefined): Promise<vscode.Uri | undefined> {
-        throw new Error('Method not implemented.');
-    }
-    getFoldersInWorkspace(workspaceId: string): Promise<IWorkspaceFolder[]> {
-        throw new Error('Method not implemented.');
-    }
-
-    get onDidChangePropertyValue(): vscode.Event<string> {
-        throw new Error('Method not implemented.');
-    }
-    getItemsInWorkspace(workspaceId: string): Promise<IArtifact[]> {
-        throw new Error('Method not implemented.');
-    }
-    isProcessingAutoLogin: boolean = false;
-    fabricWorkspaceContext: string = 'fabricWorkspaceContext';
-    isConnected(): Promise<boolean> {
-        throw new Error('Method not implemented.');
-    }
-    hasWorkspaces(): boolean {
-        throw new Error('Method not implemented.');
-    }
-    treeView: vscode.TreeView<FabricTreeNode> | undefined = undefined;
-}
-
 export class MockFabricEnvironmentProvider implements IFabricEnvironmentProvider {
     getCurrent(): FabricEnvironmentSettings {
         return {
@@ -154,7 +105,7 @@ export function initializeServiceCollection(
         artifactManager = new MockArtifactManagerStub(null!, null!, null!, new MockFabricEnvironmentProvider(), null!, null!, null!, null!);
     }
     if (!workspaceManager) {
-        workspaceManager = new MockWorkspaceManagerStub();
+        workspaceManager = new Mock<IWorkspaceManager>().object();
     }
     if (!logger) {
         logger = new MockLoggerStub();

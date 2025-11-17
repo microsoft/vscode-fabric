@@ -15,9 +15,9 @@ import { IAccountProvider, ITenantSettings } from '../authentication/interfaces'
 import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
 
 /**
- * Base class for managing the logged-in user's Fabric Workspace. Mock also inherits from this class. Put code common to both here
+ * Manages the logged-in user's Fabric Workspace
  */
-export abstract class WorkspaceManagerBase implements IWorkspaceManager {
+export class WorkspaceManager implements IWorkspaceManager {
     private static readonly showFoldersSettingKey = 'ShowFolders';
     protected disposables: vscode.Disposable[] = [];
     protected didInitializePriorState = false;
@@ -76,23 +76,6 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         this.disposables.push(this.fabricEnvironmentProvider.onDidEnvironmentChange(async () => {
             await this.refreshConnectionToFabric();
         }));
-    }
-
-    public async refreshConnectionToFabric(): Promise<boolean> {
-        // not connected -> connected = new FabricClient, remove workspace
-        // connected -> not connected = remove FabricClient, remove workspace
-        // connected -> connected = new fabric client, remove workspace
-        await this.closeWorkspaces();
-        if (await this.account.isSignedIn()) {
-            this.didInitializePriorState = false;
-            await this.initializePriorStateIfAny();
-            return true;
-        }
-        else {
-            // we're signing out. set context to show signin button
-            await vscode.commands.executeCommand('setContext', this.fabricWorkspaceContext, 'signin');
-            return false;
-        }
     }
 
     public clearPriorStateIfAny() { // if we're started from a URL, we don't want to use the prior state
@@ -315,7 +298,7 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
     }
 
     public isFolderGroupingEnabled(): boolean {
-        return this.configurationProvider.get(WorkspaceManagerBase.showFoldersSettingKey, false);
+        return this.configurationProvider.get(WorkspaceManager.showFoldersSettingKey, false);
     }
 
     public async getFoldersInWorkspace(workspaceId: string): Promise<IWorkspaceFolder[]> {
@@ -411,38 +394,23 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         return this.apiClient.sendRequest(req);
     }
 
-    abstract listWorkspaces(): Promise<IWorkspace[]>;
-    abstract logToOutPutChannel(message: string): void;
-}
-/**
- * Manages the logged-in user's Fabric Workspace
- */
-export class WorkspaceManager extends WorkspaceManagerBase {
-
-    constructor(account: IAccountProvider,
-        fabricEnvironmentProvider: IFabricEnvironmentProvider,
-        extensionSettingsStorage: IFabricExtensionsSettingStorage,
-        localFolderManager: LocalFolderManager,
-        apiClient: IFabricApiClient,
-        logger: ILogger,
-        gitOperator: IGitOperator,
-        configurationProvider: IConfigurationProvider
-    ) {
-
-        super(extensionSettingsStorage, localFolderManager, account, fabricEnvironmentProvider, apiClient, gitOperator, logger, configurationProvider);
-        /**
-         * The context object can store workspaceState (for the current VSCode workspace) or globalState (stringifyable JSON)
-         * When our extensions tries to open a VSCode Folder, our extension is deactivated
-         * (in fact, a whole new extensionhost process is spawned)
-         * and we want to re-initialize our state when the user re-activates us
-         * So we save settings across activations
-         */
-    }
-
     public async refreshConnectionToFabric(): Promise<boolean> {
         await this.extensionSettingsStorage.load();
 
-        return super.refreshConnectionToFabric();
+        // not connected -> connected = new FabricClient, remove workspace
+        // connected -> not connected = remove FabricClient, remove workspace
+        // connected -> connected = new fabric client, remove workspace
+        await this.closeWorkspaces();
+        if (await this.account.isSignedIn()) {
+            this.didInitializePriorState = false;
+            await this.initializePriorStateIfAny();
+            return true;
+        }
+        else {
+            // we're signing out. set context to show signin button
+            await vscode.commands.executeCommand('setContext', this.fabricWorkspaceContext, 'signin');
+            return false;
+        }
     }
 
     /**

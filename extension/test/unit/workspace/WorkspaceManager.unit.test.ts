@@ -69,13 +69,13 @@ describe('WorkspaceManager', function () {
 
         // Initialize workspace manager with mocks
         workspaceManager = new WorkspaceManager(
-            mockAccountProvider.object(),
-            mockFabricEnvironmentProvider.object(),
             mockExtensionSettingsStorage.object(),
             mockLocalFolderManager.object(),
+            mockAccountProvider.object(),
+            mockFabricEnvironmentProvider.object(),
             mockApiClient.object(),
-            mockLogger.object(),
             mockGitOperator.object(),
+            mockLogger.object(),
             configurationProvider
         );
     });

@@ -6,7 +6,7 @@ import { ExtensionContext } from 'vscode';
 import * as querystring from 'querystring';
 
 import { FeedbackTreeDataProvider } from './feedback/FeedbackTreeDataProvider';
-import { WorkspaceManager, WorkspaceManagerBase } from './workspace/WorkspaceManager';
+import { WorkspaceManager } from './workspace/WorkspaceManager';
 import { IFabricExtensionManager, Schema, IArtifactManager, IFabricApiClient, IFabricExtensionServiceCollection, IWorkspaceManager, FabricTreeNode } from '@microsoft/vscode-fabric-api';
 import { TelemetryService, TelemetryActivity, FabricUriHandler, FabricEnvironmentProvider, ConfigurationProvider, IConfigurationProvider, IFabricEnvironmentProvider, ILogger, IDisposableCollection, DisposableCollection, FakeConfigurationProvider, MockConsoleLogger, VSCodeUIBypass } from '@microsoft/vscode-fabric-util';
 import { ITokenAcquisitionService, IAccountProvider } from './authentication/interfaces';
@@ -79,7 +79,7 @@ export class FabricVsCodeExtension {
 
             const extensionManager = this.container.get<IFabricExtensionManagerInternal>();
             const account = this.container.get<IAccountProvider>();
-            const workspaceManager = this.container.get<IWorkspaceManager>() as WorkspaceManagerBase;
+            const workspaceManager = this.container.get<IWorkspaceManager>() as WorkspaceManager;
             const workspaceFilterManager = this.container.get<IWorkspaceFilterManager>();
             const dataProvider = this.container.get<FabricWorkspaceDataProvider>();
             const artifactManager = this.container.get<IArtifactManagerInternal>();

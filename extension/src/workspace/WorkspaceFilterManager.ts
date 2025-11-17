@@ -6,7 +6,7 @@ import { IWorkspace, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
 import { IFabricEnvironmentProvider, TelemetryService, ILogger, IFabricError, doCancelableActionWithErrorHandling, TelemetryActivity, TelemetryEventRecord, FabricError } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../authentication/interfaces';
-import { WorkspaceManagerBase } from './WorkspaceManager';
+import { WorkspaceManager } from './WorkspaceManager';
 
 /**
  * Interface for managing workspace filtering preferences
@@ -72,7 +72,7 @@ export class WorkspaceFilterManager implements IWorkspaceFilterManager {
      * Refreshes the tree view and updates the title
      */
     private refreshTreeView(): void {
-        const wm = this.workspaceManager as WorkspaceManagerBase;
+        const wm = this.workspaceManager as WorkspaceManager;
         wm.tvProvider?.refresh();
     }
 
@@ -296,7 +296,7 @@ export class WorkspaceFilterManager implements IWorkspaceFilterManager {
 
         // Process the selection
         const workspaceIdsToShow = selectedItems.map(item => item.workspace.objectId);
-        const wm = this.workspaceManager as WorkspaceManagerBase;
+        const wm = this.workspaceManager as WorkspaceManager;
 
         let message: string;
         let action: () => Promise<void>;

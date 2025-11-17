@@ -4,7 +4,7 @@
 import * as vscode from 'vscode';
 import { commandNames } from '../constants';
 import { showSignInPrompt } from '../ui/prompts';
-import { WorkspaceManagerBase } from './WorkspaceManager';
+import { WorkspaceManager } from './WorkspaceManager';
 import { WorkspaceTreeNode } from './treeNodes/WorkspaceTreeNode';
 import { showCreateWorkspaceWizard } from '../ui/showCreateWorkspaceWizard';
 import { IFabricApiClient, IWorkspace, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
@@ -27,8 +27,8 @@ function registerCommand<T>(
 
 export function registerWorkspaceCommands(
     context: vscode.ExtensionContext,
-    auth: IAccountProvider,
-    workspaceManager: WorkspaceManagerBase,
+    account: IAccountProvider,
+    workspaceManager: WorkspaceManager,
     capacityManager: ICapacityManager,
     telemetryService: TelemetryService  | null,
     logger: ILogger,
@@ -40,7 +40,7 @@ export function registerWorkspaceCommands(
     workspaceCommandDisposables = [];
 
     registerCommand(commandNames.signIn, async () => {
-        await auth.signIn();
+        await account.signIn();
     }, context);
 
     registerCommand(commandNames.createWorkspace, async () => {
@@ -64,7 +64,7 @@ export function registerWorkspaceCommands(
  * If logged in, allows the user to enter a the name of a new workspace to create along with the capacity to use for the new workspace
  * @param manager Handles the Fabric workspaces for the user
  */
-async function createWorkspace(manager: WorkspaceManagerBase, workspaceFilterManager: IWorkspaceFilterManager, capacityManager: ICapacityManager, telemetryService: TelemetryService | null, logger: ILogger): Promise<IWorkspace | undefined> {
+async function createWorkspace(manager: WorkspaceManager, workspaceFilterManager: IWorkspaceFilterManager, capacityManager: ICapacityManager, telemetryService: TelemetryService | null, logger: ILogger): Promise<IWorkspace | undefined> {
     try {
         if (!(await manager.isConnected())) {
             await showSignInPrompt();
@@ -89,7 +89,7 @@ async function createWorkspace(manager: WorkspaceManagerBase, workspaceFilterMan
  * @param manager Handles the Fabric workspaces for the user
  * @param treeNode Optional workspace tree node from context menu, contains the workspace to associate with a local folder
  */
-async function selectLocalFolder(manager: WorkspaceManagerBase, treeNode?: WorkspaceTreeNode): Promise<vscode.Uri | undefined> {
+async function selectLocalFolder(manager: WorkspaceManager, treeNode?: WorkspaceTreeNode): Promise<vscode.Uri | undefined> {
     if (!(await manager.isConnected())) {
         await showSignInPrompt();
         return;
