@@ -61,7 +61,7 @@
   "dependencies": {
     "@types/decompress": "^4.2.7",
     "@wessberg/di": "^3.0.2",
-    "glob": "^11.0.1",
+    "glob": "^11.1.0",
     "web-tree-sitter": "^0.24.3"
   }
 }
