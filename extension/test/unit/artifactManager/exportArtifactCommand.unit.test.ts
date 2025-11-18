@@ -29,8 +29,7 @@ describe('exportArtifactCommand', () => {
     let itemDefinitionWriterMock: Mock<IItemDefinitionWriter>;
 
     let downloadAndSaveArtifactStub: sinon.SinonStub;
-    let showFolderActionDialogStub: sinon.SinonStub;
-    let handleSavePreferenceDialogStub: sinon.SinonStub;
+    let showFolderActionAndSavePreferenceStub: sinon.SinonStub;
 
     beforeEach(() => {
         artifactManagerMock = new Mock<IArtifactManager>();
@@ -53,8 +52,7 @@ describe('exportArtifactCommand', () => {
 
         // Stub artifactOperations methods
         downloadAndSaveArtifactStub = sinon.stub(artifactOperations, 'downloadAndSaveArtifact').resolves();
-        showFolderActionDialogStub = sinon.stub(artifactOperations, 'showFolderActionDialog').resolves(undefined);
-        handleSavePreferenceDialogStub = sinon.stub(artifactOperations, 'performFolderAction').resolves();
+        showFolderActionAndSavePreferenceStub = sinon.stub(artifactOperations, 'showFolderActionAndSavePreference').resolves(undefined);
     });
 
     afterEach(() => {
@@ -62,6 +60,9 @@ describe('exportArtifactCommand', () => {
     });
 
     it('Export artifact successfully', async () => {
+        // Arrange
+        showFolderActionAndSavePreferenceStub.resolves(artifactOperations.FolderAction.doNothing);
+
         // Act
         await executeCommand();
 
@@ -71,7 +72,7 @@ describe('exportArtifactCommand', () => {
                 It.Is(artifact => artifact === artifactMock.object()),
                 It.IsAny()),
             Times.Once());
-        
+
         assert.ok(downloadAndSaveArtifactStub.calledOnce, 'downloadAndSaveArtifact should be called once');
         assert.ok(downloadAndSaveArtifactStub.calledWith(
             artifactMock.object(),
@@ -82,8 +83,7 @@ describe('exportArtifactCommand', () => {
             telemetryActivityMock.object()
         ), 'downloadAndSaveArtifact should be called with correct arguments');
 
-        assert.ok(showFolderActionDialogStub.calledOnce, 'showFolderActionDialog should be called once');
-        assert.ok(handleSavePreferenceDialogStub.calledOnce, 'handleSavePreferenceDialog should be called once');
+        assert.ok(showFolderActionAndSavePreferenceStub.calledOnce, 'showFolderActionAndSavePreference should be called once');
     });
 
     it('Cancel local folder selection', async () => {
@@ -111,8 +111,7 @@ describe('exportArtifactCommand', () => {
                 It.IsAny()),
             Times.Once());
         assert.ok(downloadAndSaveArtifactStub.notCalled, 'downloadAndSaveArtifact should not be called');
-        assert.ok(showFolderActionDialogStub.notCalled, 'showFolderActionDialog should not be called');
-        assert.ok(handleSavePreferenceDialogStub.notCalled, 'handleSavePreferenceDialog should not be called');
+        assert.ok(showFolderActionAndSavePreferenceStub.notCalled, 'showFolderActionAndSavePreference should not be called');
     });
 
     it('Error: downloadAndSaveArtifact throws UserCancelledError', async () => {
@@ -133,8 +132,7 @@ describe('exportArtifactCommand', () => {
         );
 
         assert.ok(downloadAndSaveArtifactStub.calledOnce, 'downloadAndSaveArtifact should be called');
-        assert.ok(showFolderActionDialogStub.notCalled, 'showFolderActionDialog should not be called');
-        assert.ok(handleSavePreferenceDialogStub.notCalled, 'handleSavePreferenceDialog should not be called');
+        assert.ok(showFolderActionAndSavePreferenceStub.notCalled, 'showFolderActionAndSavePreference should not be called');
     });
 
     it('Error: downloadAndSaveArtifact throws generic error', async () => {
@@ -158,8 +156,7 @@ describe('exportArtifactCommand', () => {
         );
 
         assert.ok(downloadAndSaveArtifactStub.calledOnce, 'downloadAndSaveArtifact should be called');
-        assert.ok(showFolderActionDialogStub.notCalled, 'showFolderActionDialog should not be called');
-        assert.ok(handleSavePreferenceDialogStub.notCalled, 'handleSavePreferenceDialog should not be called');
+        assert.ok(showFolderActionAndSavePreferenceStub.notCalled, 'showFolderActionAndSavePreference should not be called');
         assert.ok(error!.message.includes(errorText), 'message should include errorText');
     });
 
@@ -181,8 +178,9 @@ describe('showCompletionMessage', () => {
     let localFolderServiceMock: Mock<ILocalFolderService>;
     let configurationProviderMock: Mock<IConfigurationProvider>;
 
-    let showFolderActionDialogStub: sinon.SinonStub;
-    let handleSavePreferenceDialogStub: sinon.SinonStub;
+    let showFolderActionAndSavePreferenceStub: sinon.SinonStub;
+    let performFolderActionStub: sinon.SinonStub;
+    let handleLocalFolderSavePreferenceStub: sinon.SinonStub;
 
     const testArtifact = {
         id: 'test-artifact-id',
@@ -203,8 +201,7 @@ describe('showCompletionMessage', () => {
         artifactMock.setup(a => a.displayName).returns(testArtifact.displayName);
         artifactMock.setup(a => a.id).returns(testArtifact.id);
 
-        showFolderActionDialogStub = sinon.stub(artifactOperations, 'showFolderActionDialog').resolves(undefined);
-        handleSavePreferenceDialogStub = sinon.stub(artifactOperations, 'performFolderAction').resolves();
+        showFolderActionAndSavePreferenceStub = sinon.stub(artifactOperations, 'showFolderActionAndSavePreference').resolves(undefined);
     });
 
     afterEach(() => {
@@ -221,15 +218,15 @@ describe('showCompletionMessage', () => {
             configurationProviderMock.object()
         );
 
-        assert.ok(showFolderActionDialogStub.calledOnce, 'showFolderActionDialog should be called once');
-        const [folderUri, message] = showFolderActionDialogStub.firstCall.args;
-        assert.strictEqual(folderUri, testFolderUri, 'Should pass correct folder URI');
+        assert.ok(showFolderActionAndSavePreferenceStub.calledOnce, 'showFolderActionDialog should be called once');
+        const [message] = showFolderActionAndSavePreferenceStub.firstCall.args;
         assert.ok(message.includes('Test Notebook'), 'Message should include artifact name');
         assert.ok(message.includes('TestNotebook.Notebook'), 'Message should include folder name');
     });
 
-    it('should call handleSavePreferenceDialog with correct parameters', async () => {
+    it('should not call performFolderAction when user dismisses dialog', async () => {
         const localFolderResults = { uri: testFolderUri, prompted: true };
+        showFolderActionAndSavePreferenceStub.resolves(undefined);
 
         await showCompletionMessage(
             artifactMock.object(),
@@ -238,12 +235,6 @@ describe('showCompletionMessage', () => {
             configurationProviderMock.object()
         );
 
-        assert.ok(handleSavePreferenceDialogStub.calledOnce, 'handleSavePreferenceDialog should be called once');
-        const [artifact, folderUri, localFolderService, configProvider, prompted] = handleSavePreferenceDialogStub.firstCall.args;
-        assert.strictEqual(artifact, artifactMock.object(), 'Should pass artifact');
-        assert.strictEqual(folderUri, testFolderUri, 'Should pass folder URI');
-        assert.strictEqual(localFolderService, localFolderServiceMock.object(), 'Should pass localFolderService');
-        assert.strictEqual(configProvider, configurationProviderMock.object(), 'Should pass configurationProvider');
-        assert.strictEqual(prompted, true, 'Should pass prompted flag');
+        assert.ok(showFolderActionAndSavePreferenceStub.called, 'showFolderActionAndSavePreference should be called');
     });
 });

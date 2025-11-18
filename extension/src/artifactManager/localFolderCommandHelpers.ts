@@ -112,7 +112,7 @@ export async function copyFolderContents(
  *
  * @param prompted - If true, indicates the user was prompted to select this folder (vs. using a saved/default folder)
  */
-export async function handleLocalFolderSavePreference(
+async function handleLocalFolderSavePreference(
     artifact: IArtifact,
     folderUri: vscode.Uri,
     localFolderService: ILocalFolderService,
@@ -269,7 +269,7 @@ export async function showFolderActionDialog(
     return choice.action;
 }
 
-export async function performFolderAction(folderUri: vscode.Uri, action: FolderAction): Promise<void> {
+async function performFolderAction(folderUri: vscode.Uri, action: FolderAction): Promise<void> {
     switch (action) {
         case FolderAction.addToWorkspace:
             const workspaceFolders = vscode.workspace.workspaceFolders || [];
@@ -286,4 +286,105 @@ export async function performFolderAction(folderUri: vscode.Uri, action: FolderA
             await vscode.commands.executeCommand('vscode.openFolder', folderUri, true);
             break;
     }
+}
+
+/**
+ * Performs a folder action with integrated save preference handling.
+ * 
+ * This helper handles the workflow of:
+ * 1. Detecting if the action will update the workspace (causing extension reload)
+ * 2. If updating workspace: handling save preference with modal dialog BEFORE reload
+ * 3. Performing the selected action
+ * 4. If not updating workspace: handling save preference with non-modal dialog AFTER action
+ * 
+ * @param folderUri - The URI of the folder to work with
+ * @param action - The folder action to perform
+ * @param artifact - The artifact associated with the folder
+ * @param localFolderService - Service for managing local folder mappings
+ * @param configurationProvider - Provider for accessing user configuration
+ * @param prompted - Whether the user was prompted to select this folder
+ */
+export async function performFolderActionAndSavePreference(
+    folderUri: vscode.Uri,
+    action: FolderAction,
+    artifact: IArtifact,
+    localFolderService: ILocalFolderService,
+    configurationProvider: IConfigurationProvider,
+    prompted: boolean
+): Promise<void> {
+    // Check if this action will update the workspace (causing extension reload)
+    const updatingWorkspace: boolean = (action === FolderAction.addToWorkspace || action === FolderAction.openInCurrentWindow);
+
+    // If updating workspace, handle save preference with modal dialog BEFORE reload
+    if (updatingWorkspace) {
+        await handleLocalFolderSavePreference(
+            artifact,
+            folderUri,
+            localFolderService,
+            configurationProvider,
+            prompted,
+            { modal: true }
+        );
+    }
+
+    // Perform the selected action
+    if (action !== FolderAction.doNothing) {
+        await performFolderAction(folderUri, action);
+    }
+
+    // If not updating workspace, handle save preference with non-modal dialog AFTER action
+    if (!updatingWorkspace) {
+        void handleLocalFolderSavePreference(
+            artifact,
+            folderUri,
+            localFolderService,
+            configurationProvider,
+            prompted
+        );
+    }
+}
+
+/**
+ * Shows a folder action dialog and performs the selected action with integrated save preference handling.
+ *
+ * This helper encapsulates the common workflow of:
+ * 1. Showing the folder action dialog
+ * 2. Performing the selected action with save preference handling
+ *
+ * @param folderUri - The URI of the folder to work with
+ * @param artifact - The artifact associated with the folder
+ * @param localFolderService - Service for managing local folder mappings
+ * @param configurationProvider - Provider for accessing user configuration
+ * @param prompted - Whether the user was prompted to select this folder
+ * @param message - The message to display in the folder action dialog
+ * @param options - Optional configuration for the dialog (modal, includeDoNothing)
+ * @returns The selected FolderAction, or undefined if user cancelled
+ */
+export async function showFolderActionAndSavePreference(
+    message: string,
+    folderUri: vscode.Uri,
+    artifact: IArtifact,
+    localFolderService: ILocalFolderService,
+    configurationProvider: IConfigurationProvider,
+    prompted: boolean,
+    options?: { modal?: boolean; includeDoNothing?: boolean; }
+): Promise<FolderAction | undefined> {
+    // Show folder action dialog
+    const action = await showFolderActionDialog(message, options);
+
+    if (!action) {
+        return undefined; // User cancelled
+    }
+
+    // Perform the action with save preference handling
+    await performFolderActionAndSavePreference(
+        folderUri,
+        action,
+        artifact,
+        localFolderService,
+        configurationProvider,
+        prompted
+    );
+
+    return action;
 }
