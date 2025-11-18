@@ -7,8 +7,8 @@ import { TelemetryActivity, UserCancelledError, IConfigurationProvider } from '@
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { IItemDefinitionConflictDetector } from '../itemDefinition/ItemDefinitionConflictDetector';
 import { IItemDefinitionWriter } from '../itemDefinition/ItemDefinitionWriter';
-import { ILocalFolderService, LocalFolderPromptMode, LocalFolderSaveBehavior } from '../LocalFolderService';
-import { downloadAndSaveArtifact, handleLocalFolderSavePreference, showFolderActionDialog, FolderAction, performFolderAction } from './localFolderCommandHelpers';
+import { ILocalFolderService, LocalFolderPromptMode } from '../LocalFolderService';
+import { downloadAndSaveArtifact, performFolderActionAndSavePreference, showFolderActionDialog, FolderAction, showFolderActionAndSavePreference } from './localFolderCommandHelpers';
 import { changeLocalFolderCommand } from './changeLocalFolderCommand';
 
 export async function openLocalFolderCommand(
@@ -49,32 +49,15 @@ export async function openLocalFolderCommand(
             );
         }
         else if (choice) {
-            const updatingWorkspace: boolean = (choice === FolderAction.addToWorkspace || choice === FolderAction.openInCurrentWindow);
-
-            // Updating the workspace means the extension is going to get reloaded. Let's get the save preference before that happens
-            if (updatingWorkspace) {
-                // Handle save preference based on user's LocalFolderSaveBehavior setting
-                await handleLocalFolderSavePreference(
-                    artifact,
-                    existingFolder.uri,
-                    localFolderService,
-                    configurationProvider,
-                    false,
-                    { modal: true }
-                );
-            }
-
-            await performFolderAction(existingFolder.uri, choice);
-
-            if (!updatingWorkspace) {
-                void handleLocalFolderSavePreference(
-                    artifact,
-                    existingFolder.uri,
-                    localFolderService,
-                    configurationProvider,
-                    false
-                );
-            }
+            // Perform the action with save preference handling
+            await performFolderActionAndSavePreference(
+                existingFolder.uri,
+                choice,
+                artifact,
+                localFolderService,
+                configurationProvider,
+                false
+            );
         }
 
         return;
@@ -120,18 +103,14 @@ export async function openLocalFolderCommand(
         telemetryActivity
     );
 
-    // Handle save preference based on user's LocalFolderSaveBehavior setting
-    void handleLocalFolderSavePreference(
-        artifact,
+    // Show action dialog and perform the selected action
+    await showFolderActionAndSavePreference(
+        vscode.l10n.t('How would you like to open {0}?', localFolderResults.uri.fsPath),
         localFolderResults.uri,
+        artifact,
         localFolderService,
         configurationProvider,
-        localFolderResults.prompted
-    );
-
-    // Show action dialog
-    await showFolderActionDialog(
-        vscode.l10n.t('How would you like to open {0}?', localFolderResults.uri.fsPath),
+        localFolderResults.prompted,
         { modal: true, includeDoNothing: false }
     );
 }

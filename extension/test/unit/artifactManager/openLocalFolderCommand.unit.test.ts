@@ -31,7 +31,8 @@ describe('openLocalFolderCommand', () => {
 
     let downloadAndSaveArtifactStub: sinon.SinonStub;
     let showFolderActionDialogStub: sinon.SinonStub;
-    let handleSavePreferenceDialogStub: sinon.SinonStub;
+    let showFolderActionAndSavePreferenceStub: sinon.SinonStub;
+    let performFolderActionAndSavePreferenceStub: sinon.SinonStub;
     let changeLocalFolderCommandStub: sinon.SinonStub;
     let showInformationMessageStub: sinon.SinonStub;
 
@@ -54,7 +55,8 @@ describe('openLocalFolderCommand', () => {
         // Stub artifactOperations methods
         downloadAndSaveArtifactStub = sinon.stub(artifactOperations, 'downloadAndSaveArtifact').resolves();
         showFolderActionDialogStub = sinon.stub(artifactOperations, 'showFolderActionDialog').resolves(undefined);
-        handleSavePreferenceDialogStub = sinon.stub(artifactOperations, 'performFolderAction').resolves();
+        showFolderActionAndSavePreferenceStub = sinon.stub(artifactOperations, 'showFolderActionAndSavePreference').resolves(undefined);
+        performFolderActionAndSavePreferenceStub = sinon.stub(artifactOperations, 'performFolderActionAndSavePreference').resolves();
 
         // Stub VS Code dialogs
         showInformationMessageStub = sinon.stub(vscode.window, 'showInformationMessage');
@@ -80,12 +82,13 @@ describe('openLocalFolderCommand', () => {
             await executeCommand();
 
             assert.ok(showFolderActionDialogStub.calledOnce, 'Should show folder action dialog');
-            const [folderUri, message, options] = showFolderActionDialogStub.firstCall.args;
-            assert.strictEqual(folderUri, existingFolder, 'Should pass existing folder URI');
+            const [message, options] = showFolderActionDialogStub.firstCall.args;
             assert.ok(message.includes(existingFolder.fsPath), 'Message should include folder path');
             assert.strictEqual(options?.modal, true, 'Dialog should be modal');
             assert.strictEqual(options?.includeDoNothing, false, 'Should not include do nothing option');
 
+            assert.ok(performFolderActionAndSavePreferenceStub.calledOnce, 'Should call performFolderActionAndSavePreference');
+            assert.ok(showFolderActionAndSavePreferenceStub.notCalled, 'Should not call showFolderActionAndSavePreference');
             assert.ok(showInformationMessageStub.notCalled, 'Should not show info message for new folder');
             assert.ok(downloadAndSaveArtifactStub.notCalled, 'Should not download artifact');
         });
@@ -129,8 +132,13 @@ describe('openLocalFolderCommand', () => {
         });
 
         it('should prompt user and download to new folder', async () => {
+            // Ararnge
+            showFolderActionDialogStub.resolves(artifactOperations.FolderAction.openInCurrentWindow);
+
+            // Act
             await executeCommand();
 
+            // Assert
             assert.ok(showInformationMessageStub.calledOnce, 'Should show info message');
             const [message, options] = showInformationMessageStub.firstCall.args;
             assert.ok(message.includes('No local folder has been selected'), 'Message should indicate no folder selected');
@@ -155,8 +163,7 @@ describe('openLocalFolderCommand', () => {
                 telemetryActivityMock.object()
             ), 'Should call downloadAndSaveArtifact with correct arguments');
 
-            assert.ok(handleSavePreferenceDialogStub.calledOnce, 'Should call handleSavePreferenceDialog');
-            assert.ok(showFolderActionDialogStub.calledOnce, 'Should show folder action dialog');
+            assert.ok(showFolderActionAndSavePreferenceStub.calledOnce, 'Should perform folder action');
         });
 
         it('should throw UserCancelledError when user cancels folder selection prompt', async () => {
@@ -194,8 +201,8 @@ describe('openLocalFolderCommand', () => {
         it('should call handleSavePreferenceDialog with correct parameters', async () => {
             await executeCommand();
 
-            assert.ok(handleSavePreferenceDialogStub.calledOnce, 'Should call handleSavePreferenceDialog');
-            const [artifact, folderUri, localFolderService, configProvider, prompted] = handleSavePreferenceDialogStub.firstCall.args;
+            assert.ok(showFolderActionAndSavePreferenceStub.calledOnce, 'Should call showFolderActionAndSavePreference');
+            const [message, folderUri, artifact, localFolderService, configProvider, prompted] = showFolderActionAndSavePreferenceStub.firstCall.args;
             assert.strictEqual(artifact, artifactMock.object(), 'Should pass artifact');
             assert.strictEqual(folderUri, newFolder, 'Should pass new folder URI');
             assert.strictEqual(localFolderService, localFolderServiceMock.object(), 'Should pass localFolderService');
@@ -204,13 +211,19 @@ describe('openLocalFolderCommand', () => {
         });
 
         it('should show folder action dialog after download', async () => {
+            // Arrange
+            showFolderActionAndSavePreferenceStub.resolves(artifactOperations.FolderAction.openInCurrentWindow);
+
+            // Act
             await executeCommand();
 
-            assert.ok(showFolderActionDialogStub.calledOnce, 'Should show folder action dialog');
-            const [folderUri, message, options] = showFolderActionDialogStub.firstCall.args;
-            assert.strictEqual(folderUri, newFolder, 'Should pass new folder URI');
+            // Assert
+            assert.ok(showFolderActionAndSavePreferenceStub.calledOnce, 'Should show folder action dialog');
+            const [message, folderUri, artifact, localFolderService, configProvider, prompted, options] = showFolderActionAndSavePreferenceStub.firstCall.args;
             assert.strictEqual(options?.modal, true, 'Dialog should be modal');
             assert.strictEqual(options?.includeDoNothing, false, 'Should not include do nothing option');
+            assert.ok(message.includes(newFolder.fsPath), 'Message should include new folder path');
+            assert.ok(showFolderActionAndSavePreferenceStub.calledOnce, 'Should perform folder action');
         });
     });
 

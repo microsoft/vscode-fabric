@@ -32,8 +32,9 @@ describe('changeLocalFolderCommand', () => {
 
     let downloadAndSaveArtifactStub: sinon.SinonStub;
     let copyFolderContentsStub: sinon.SinonStub;
-    let showFolderActionDialogStub: sinon.SinonStub;
-    let handleSavePreferenceDialogStub: sinon.SinonStub;
+    let showFolderActionAndSavePreferenceStub: sinon.SinonStub;
+    let handleLocalFolderSavePreferenceStub: sinon.SinonStub;
+    let performFolderActionStub: sinon.SinonStub;
     let exportArtifactCommandStub: sinon.SinonStub;
     let isDirectoryStub: sinon.SinonStub;
     let showWarningMessageStub: sinon.SinonStub;
@@ -58,8 +59,7 @@ describe('changeLocalFolderCommand', () => {
         // Stub artifactOperations methods
         downloadAndSaveArtifactStub = sinon.stub(artifactOperations, 'downloadAndSaveArtifact').resolves();
         copyFolderContentsStub = sinon.stub(artifactOperations, 'copyFolderContents').resolves();
-        showFolderActionDialogStub = sinon.stub(artifactOperations, 'showFolderActionDialog').resolves(undefined);
-        handleSavePreferenceDialogStub = sinon.stub(artifactOperations, 'performFolderAction').resolves();
+        showFolderActionAndSavePreferenceStub = sinon.stub(artifactOperations, 'showFolderActionAndSavePreference').resolves(undefined);
 
         // Stub utilities
         isDirectoryStub = sinon.stub(utilities, 'isDirectory').returns(Promise.resolve(true));
@@ -128,6 +128,8 @@ describe('changeLocalFolderCommand', () => {
         });
 
         it('should show warning and download to new folder', async () => {
+            showFolderActionAndSavePreferenceStub.resolves(artifactOperations.FolderAction.doNothing);
+
             await executeCommand();
 
             assert.ok(showWarningMessageStub.calledOnce, 'Should show warning message');
@@ -150,11 +152,12 @@ describe('changeLocalFolderCommand', () => {
                 Times.Once()
             );
 
-            assert.ok(showFolderActionDialogStub.calledOnce, 'Should show folder action dialog');
+            assert.ok(showFolderActionAndSavePreferenceStub.calledOnce, 'Should show folder action dialog');
         });
 
         it('should copy from existing folder when user chooses Copy', async () => {
             showInformationMessageStub.resolves('Copy');
+            showFolderActionAndSavePreferenceStub.resolves(artifactOperations.FolderAction.openInNewWindow);
 
             await executeCommand();
 
@@ -167,6 +170,14 @@ describe('changeLocalFolderCommand', () => {
                 l => l.updateLocalFolder(artifactMock.object(), newFolder),
                 Times.Once()
             );
+        });
+
+        it('should not call performFolderAction when user dismisses folder action dialog', async () => {
+            showFolderActionAndSavePreferenceStub.resolves(undefined);
+
+            await executeCommand();
+
+            assert.ok(showFolderActionAndSavePreferenceStub.calledOnce, 'Should show folder action dialog');
         });
 
         it('should skip warning when skipWarning option is true', async () => {
@@ -184,12 +195,6 @@ describe('changeLocalFolderCommand', () => {
                 l => l.updateLocalFolder(It.IsAny(), It.IsAny()),
                 Times.Never()
             );
-
-            assert.ok(handleSavePreferenceDialogStub.calledOnce, 'Should call handleSavePreferenceDialog');
-            const [artifact, folderUri, localFolderService, configProvider, prompted] = handleSavePreferenceDialogStub.firstCall.args;
-            assert.strictEqual(artifact, artifactMock.object(), 'Should pass artifact');
-            assert.strictEqual(folderUri, newFolder, 'Should pass new folder URI');
-            assert.strictEqual(prompted, true, 'Should pass prompted flag');
         });
 
         it('should throw UserCancelledError when user cancels warning', async () => {
@@ -259,7 +264,7 @@ describe('changeLocalFolderCommand', () => {
                 l => l.updateLocalFolder(It.IsAny(), It.IsAny()),
                 Times.Never()
             );
-            assert.ok(showFolderActionDialogStub.notCalled, 'Should not show folder action dialog');
+            assert.ok(showFolderActionAndSavePreferenceStub.notCalled, 'Should not show folder action dialog');
         });
 
         it('should wrap generic errors in FabricError', async () => {
@@ -284,7 +289,7 @@ describe('changeLocalFolderCommand', () => {
                 l => l.updateLocalFolder(It.IsAny(), It.IsAny()),
                 Times.Never()
             );
-            assert.ok(showFolderActionDialogStub.notCalled, 'Should not show folder action dialog');
+            assert.ok(showFolderActionAndSavePreferenceStub.notCalled, 'Should not show folder action dialog');
         });
     });
 
