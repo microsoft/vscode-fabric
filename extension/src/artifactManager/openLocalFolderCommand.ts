@@ -2,13 +2,13 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { IArtifact, IWorkspaceManager, IArtifactManager } from '@microsoft/vscode-fabric-api';
+import { IArtifact, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { TelemetryActivity, UserCancelledError, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { IItemDefinitionConflictDetector } from '../itemDefinition/ItemDefinitionConflictDetector';
 import { IItemDefinitionWriter } from '../itemDefinition/ItemDefinitionWriter';
 import { ILocalFolderService, LocalFolderPromptMode, LocalFolderSaveBehavior } from '../LocalFolderService';
-import { downloadAndSaveArtifact, handleSavePreferenceDialog, showFolderActionDialog, FolderAction } from './localFolderCommandHelpers';
+import { downloadAndSaveArtifact, handleLocalFolderSavePreference, showFolderActionDialog, FolderAction, performFolderAction } from './localFolderCommandHelpers';
 import { changeLocalFolderCommand } from './changeLocalFolderCommand';
 
 export async function openLocalFolderCommand(
@@ -26,7 +26,6 @@ export async function openLocalFolderCommand(
     if (existingFolder) {
         // We have an existing folder, show action dialog with option to choose different folder
         const choice = await showFolderActionDialog(
-            existingFolder.uri,
             vscode.l10n.t('How would you like to open {0}?', existingFolder.uri.fsPath),
             { modal: true, includeDoNothing: false }
         );
@@ -49,6 +48,35 @@ export async function openLocalFolderCommand(
                 { skipWarning: true, promptForSave: true }
             );
         }
+        else if (choice) {
+            const updatingWorkspace: boolean = (choice === FolderAction.addToWorkspace || choice === FolderAction.openInCurrentWindow);
+
+            // Updating the workspace means the extension is going to get reloaded. Let's get the save preference before that happens
+            if (updatingWorkspace) {
+                // Handle save preference based on user's LocalFolderSaveBehavior setting
+                await handleLocalFolderSavePreference(
+                    artifact,
+                    existingFolder.uri,
+                    localFolderService,
+                    configurationProvider,
+                    false,
+                    { modal: true }
+                );
+            }
+
+            await performFolderAction(existingFolder.uri, choice);
+
+            if (!updatingWorkspace) {
+                void handleLocalFolderSavePreference(
+                    artifact,
+                    existingFolder.uri,
+                    localFolderService,
+                    configurationProvider,
+                    false
+                );
+            }
+        }
+
         return;
     }
 
@@ -93,7 +121,7 @@ export async function openLocalFolderCommand(
     );
 
     // Handle save preference based on user's LocalFolderSaveBehavior setting
-    void handleSavePreferenceDialog(
+    void handleLocalFolderSavePreference(
         artifact,
         localFolderResults.uri,
         localFolderService,
@@ -103,7 +131,6 @@ export async function openLocalFolderCommand(
 
     // Show action dialog
     await showFolderActionDialog(
-        localFolderResults.uri,
         vscode.l10n.t('How would you like to open {0}?', localFolderResults.uri.fsPath),
         { modal: true, includeDoNothing: false }
     );

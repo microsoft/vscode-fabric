@@ -10,7 +10,7 @@ import { IItemDefinitionConflictDetector } from '../itemDefinition/ItemDefinitio
 import { IItemDefinitionWriter } from '../itemDefinition/ItemDefinitionWriter';
 import { ILocalFolderService, LocalFolderPromptMode } from '../LocalFolderService';
 import { exportArtifactCommand } from './exportArtifactCommand';
-import { downloadAndSaveArtifact, copyFolderContents, getFolderDisplayName, showFolderActionDialog, handleSavePreferenceDialog } from './localFolderCommandHelpers';
+import { downloadAndSaveArtifact, copyFolderContents, getFolderDisplayName, showFolderActionDialog, handleLocalFolderSavePreference, performFolderAction } from './localFolderCommandHelpers';
 
 export async function changeLocalFolderCommand(
     artifact: IArtifact,
@@ -113,8 +113,8 @@ export async function changeLocalFolderCommand(
 
         // Save the new folder location (or prompt if requested)
         if (options?.promptForSave) {
-            // Let handleSavePreferenceDialog decide based on LocalFolderSaveBehavior
-            await handleSavePreferenceDialog(
+            // Let handleLocalFolderSavePreference decide based on LocalFolderSaveBehavior
+            await handleLocalFolderSavePreference(
                 artifact,
                 targetFolder,
                 localFolderService,
@@ -129,11 +129,12 @@ export async function changeLocalFolderCommand(
 
         // Show success message with folder action options
         const folderName = getFolderDisplayName(targetFolder);
-        await showFolderActionDialog(
-            targetFolder,
+        const action = await showFolderActionDialog(
             vscode.l10n.t('Local folder for {0} has been changed to {1}. What would you like to do?', artifact.displayName, folderName)
         );
-
+        if (action) {
+            await performFolderAction(targetFolder, action);
+        }
     }
     catch (error: any) {
         if (error instanceof UserCancelledError) {

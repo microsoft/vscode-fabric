@@ -5,13 +5,12 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
-import { IApiClientResponse, IArtifactManager, IArtifact, IItemDefinition } from '@microsoft/vscode-fabric-api';
+import { IApiClientResponse, IArtifactManager, IArtifact } from '@microsoft/vscode-fabric-api';
 import { FabricError, TelemetryActivity, UserCancelledError, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import {
     downloadAndSaveArtifact,
     copyFolderContents,
-    handleSavePreferenceDialog,
-    getFolderDisplayName,
+    handleLocalFolderSavePreference,
     showFolderActionDialog,
     FolderAction,
 } from '../../../src/artifactManager/localFolderCommandHelpers';
@@ -22,7 +21,6 @@ import { IItemDefinitionWriter } from '../../../src/itemDefinition/ItemDefinitio
 import { ILocalFolderService, LocalFolderSaveBehavior } from '../../../src/LocalFolderService';
 
 const artifactDisplayName = 'Test Artifact';
-const artifactId = 'Test Artifact Id';
 
 describe('localFolderCommandHelpers', () => {
     describe('downloadAndSaveArtifact', () => {
@@ -276,7 +274,7 @@ describe('localFolderCommandHelpers', () => {
         });
     });
 
-    describe('handleSavePreferenceDialog', () => {
+    describe('handleLocalFolderSavePreference', () => {
         const testFolder = vscode.Uri.file('/test/folder');
 
         let artifactMock: Mock<IArtifact>;
@@ -302,7 +300,7 @@ describe('localFolderCommandHelpers', () => {
         });
 
         it('should do nothing when prompted is false', async () => {
-            await handleSavePreferenceDialog(
+            await handleLocalFolderSavePreference(
                 artifactMock.object(),
                 testFolder,
                 localFolderServiceMock.object(),
@@ -318,7 +316,7 @@ describe('localFolderCommandHelpers', () => {
             configurationProviderMock.setup(c => c.get('LocalFolderSaveBehavior', LocalFolderSaveBehavior.prompt))
                 .returns(LocalFolderSaveBehavior.always);
 
-            await handleSavePreferenceDialog(
+            await handleLocalFolderSavePreference(
                 artifactMock.object(),
                 testFolder,
                 localFolderServiceMock.object(),
@@ -334,7 +332,7 @@ describe('localFolderCommandHelpers', () => {
             configurationProviderMock.setup(c => c.get('LocalFolderSaveBehavior', LocalFolderSaveBehavior.prompt))
                 .returns(LocalFolderSaveBehavior.never);
 
-            await handleSavePreferenceDialog(
+            await handleLocalFolderSavePreference(
                 artifactMock.object(),
                 testFolder,
                 localFolderServiceMock.object(),
@@ -351,7 +349,7 @@ describe('localFolderCommandHelpers', () => {
                 .returns(LocalFolderSaveBehavior.prompt);
             showInformationMessageStub.resolves('Yes');
 
-            await handleSavePreferenceDialog(
+            await handleLocalFolderSavePreference(
                 artifactMock.object(),
                 testFolder,
                 localFolderServiceMock.object(),
@@ -377,12 +375,12 @@ describe('localFolderCommandHelpers', () => {
             it(`should handle ${choice} choice correctly`, async () => {
                 configurationProviderMock.setup(c => c.get('LocalFolderSaveBehavior', LocalFolderSaveBehavior.prompt))
                     .returns(LocalFolderSaveBehavior.prompt);
-                
+
                 let resolvePromise: (value: string) => void;
                 const promise = new Promise<string>((resolve) => { resolvePromise = resolve; });
                 showInformationMessageStub.returns(promise);
 
-                const resultPromise = handleSavePreferenceDialog(
+                const resultPromise = handleLocalFolderSavePreference(
                     artifactMock.object(),
                     testFolder,
                     localFolderServiceMock.object(),
@@ -423,7 +421,7 @@ describe('localFolderCommandHelpers', () => {
         beforeEach(() => {
             showInformationMessageStub = sinon.stub(vscode.window, 'showInformationMessage');
             executeCommandStub = sinon.stub(vscode.commands, 'executeCommand').resolves();
-            
+
             // Stub workspace properties
             workspaceFoldersStub = sinon.stub(vscode.workspace, 'workspaceFolders').value([
                 { uri: vscode.Uri.file('/existing'), name: 'Existing', index: 0 }
@@ -438,7 +436,7 @@ describe('localFolderCommandHelpers', () => {
         it('should show dialog with default options', async () => {
             showInformationMessageStub.resolves({ title: 'Do nothing', action: FolderAction.doNothing });
 
-            const result = await showFolderActionDialog(testFolder, testMessage);
+            const result = await showFolderActionDialog(testMessage);
 
             assert.ok(showInformationMessageStub.calledOnce, 'Should show dialog');
             const [message, options, ...items] = showInformationMessageStub.firstCall.args;
@@ -451,7 +449,7 @@ describe('localFolderCommandHelpers', () => {
         it('should show modal dialog when modal option is true', async () => {
             showInformationMessageStub.resolves(undefined);
 
-            await showFolderActionDialog(testFolder, testMessage, { modal: true });
+            await showFolderActionDialog(testMessage, { modal: true });
 
             const [, options] = showInformationMessageStub.firstCall.args;
             assert.deepStrictEqual(options, { modal: true });
@@ -460,7 +458,7 @@ describe('localFolderCommandHelpers', () => {
         it('should exclude do nothing when includeDoNothing is false', async () => {
             showInformationMessageStub.resolves(undefined);
 
-            await showFolderActionDialog(testFolder, testMessage, { includeDoNothing: false });
+            await showFolderActionDialog(testMessage, { includeDoNothing: false });
 
             const [, , ...items] = showInformationMessageStub.firstCall.args;
             assert.ok(!items.some((i: any) => i.action === FolderAction.doNothing), 'Should not include do nothing');
@@ -469,7 +467,7 @@ describe('localFolderCommandHelpers', () => {
         it('should execute openInCurrentWindow action', async () => {
             showInformationMessageStub.resolves({ title: 'Open in current window', action: FolderAction.openInCurrentWindow });
 
-            const result = await showFolderActionDialog(testFolder, testMessage);
+            const result = await showFolderActionDialog(testMessage);
 
             assert.strictEqual(result, FolderAction.openInCurrentWindow);
             assert.ok(executeCommandStub.calledWith('vscode.openFolder', testFolder, false), 'Should execute open command');
@@ -478,7 +476,7 @@ describe('localFolderCommandHelpers', () => {
         it('should execute openInNewWindow action', async () => {
             showInformationMessageStub.resolves({ title: 'Open in new window', action: FolderAction.openInNewWindow });
 
-            const result = await showFolderActionDialog(testFolder, testMessage);
+            const result = await showFolderActionDialog(testMessage);
 
             assert.strictEqual(result, FolderAction.openInNewWindow);
             assert.ok(executeCommandStub.calledWith('vscode.openFolder', testFolder, true), 'Should execute open command');
@@ -487,7 +485,7 @@ describe('localFolderCommandHelpers', () => {
         it('should execute addToWorkspace action', async () => {
             showInformationMessageStub.resolves({ title: 'Add to workspace', action: FolderAction.addToWorkspace });
 
-            const result = await showFolderActionDialog(testFolder, testMessage);
+            const result = await showFolderActionDialog(testMessage);
 
             assert.strictEqual(result, FolderAction.addToWorkspace);
             assert.ok(updateWorkspaceFoldersStub.called, 'Should update workspace folders');
@@ -496,7 +494,7 @@ describe('localFolderCommandHelpers', () => {
         it('should return chooseDifferentFolder without executing action', async () => {
             showInformationMessageStub.resolves({ title: 'Choose different', action: FolderAction.chooseDifferentFolder });
 
-            const result = await showFolderActionDialog(testFolder, testMessage);
+            const result = await showFolderActionDialog(testMessage);
 
             assert.strictEqual(result, FolderAction.chooseDifferentFolder);
             assert.ok(executeCommandStub.notCalled, 'Should not execute any commands');
@@ -506,7 +504,7 @@ describe('localFolderCommandHelpers', () => {
         it('should return undefined when user dismisses', async () => {
             showInformationMessageStub.resolves(undefined);
 
-            const result = await showFolderActionDialog(testFolder, testMessage);
+            const result = await showFolderActionDialog(testMessage);
 
             assert.strictEqual(result, undefined);
         });
@@ -515,7 +513,7 @@ describe('localFolderCommandHelpers', () => {
             workspaceFoldersStub.value(undefined);
             showInformationMessageStub.resolves(undefined);
 
-            await showFolderActionDialog(testFolder, testMessage);
+            await showFolderActionDialog(testMessage);
 
             const [, , ...items] = showInformationMessageStub.firstCall.args;
             assert.ok(!items.some((i: any) => i.action === FolderAction.addToWorkspace), 'Should not include add to workspace');

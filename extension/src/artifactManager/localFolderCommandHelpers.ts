@@ -104,20 +104,21 @@ export async function copyFolderContents(
 }
 
 /**
- * Handles the save preference dialog for remembering folder locations.
+ * Handles the save preference workflow for remembering folder locations.
  * Checks the current LocalFolderSaveBehavior and either:
  * - Auto-saves if set to 'always'
  * - Does nothing if set to 'never'
  * - Shows a prompt if set to 'prompt'
- * 
+ *
  * @param prompted - If true, indicates the user was prompted to select this folder (vs. using a saved/default folder)
  */
-export async function handleSavePreferenceDialog(
+export async function handleLocalFolderSavePreference(
     artifact: IArtifact,
     folderUri: vscode.Uri,
     localFolderService: ILocalFolderService,
     configurationProvider: IConfigurationProvider,
-    prompted: boolean
+    prompted: boolean,
+    options?: { modal?: boolean;  }
 ): Promise<void> {
     // Only handle save preference if the user was prompted to select a folder
     if (!prompted) {
@@ -143,14 +144,9 @@ export async function handleSavePreferenceDialog(
     const alwaysOption = vscode.l10n.t('Always');
     const neverOption = vscode.l10n.t('Never');
 
-    // Show the save preference dialog without awaiting (non-modal)
-    void vscode.window.showInformationMessage(
-        vscode.l10n.t('Do you want to remember folder {0} to use for {1} in the future?', folderUri.fsPath, artifact.displayName),
-        yesOption,
-        noOption,
-        alwaysOption,
-        neverOption
-    ).then(async (choice) => {
+    const modal = options?.modal ?? false;
+
+    const handleChoice = async (choice: string | undefined) => {
         if (!choice) {
             return; // User dismissed
         }
@@ -189,7 +185,30 @@ export async function handleSavePreferenceDialog(
         catch (error) {
             console.error('Error handling save preference:', error);
         }
-    });
+    };
+
+    if (modal) {
+        // Show modal dialog and await the response
+        const choice = await vscode.window.showInformationMessage(
+            vscode.l10n.t('Do you want to remember folder {0} to use for {1} in the future?', folderUri.fsPath, artifact.displayName),
+            { modal: true },
+            yesOption,
+            noOption,
+            alwaysOption,
+            neverOption
+        );
+        await handleChoice(choice);
+    }
+    else {
+        // Show non-modal dialog without awaiting
+        void vscode.window.showInformationMessage(
+            vscode.l10n.t('Do you want to remember folder {0} to use for {1} in the future?', folderUri.fsPath, artifact.displayName),
+            yesOption,
+            noOption,
+            alwaysOption,
+            neverOption
+        ).then(handleChoice);
+    }
 }
 
 /**
@@ -221,7 +240,6 @@ interface FolderActionItem extends vscode.MessageItem {
  * Shows folder action dialog with options to add to workspace, open in current window, or open in new window.
  */
 export async function showFolderActionDialog(
-    folderUri: vscode.Uri,
     message: string,
     options?: { modal?: boolean; includeDoNothing?: boolean; }
 ): Promise<FolderAction | undefined> {
@@ -248,18 +266,10 @@ export async function showFolderActionDialog(
         return undefined; // User dismissed
     }
 
-    const action = choice.action;
+    return choice.action;
+}
 
-    if (action === FolderAction.doNothing) {
-        return undefined;
-    }
-
-    // Return early for "Choose different folder" - no action to perform
-    if (action === FolderAction.chooseDifferentFolder) {
-        return action;
-    }
-
-    // Perform the folder action
+export async function performFolderAction(folderUri: vscode.Uri, action: FolderAction): Promise<void> {
     switch (action) {
         case FolderAction.addToWorkspace:
             const workspaceFolders = vscode.workspace.workspaceFolders || [];
@@ -276,6 +286,4 @@ export async function showFolderActionDialog(
             await vscode.commands.executeCommand('vscode.openFolder', folderUri, true);
             break;
     }
-
-    return action;
 }

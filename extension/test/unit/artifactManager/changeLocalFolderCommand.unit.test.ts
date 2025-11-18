@@ -59,7 +59,7 @@ describe('changeLocalFolderCommand', () => {
         downloadAndSaveArtifactStub = sinon.stub(artifactOperations, 'downloadAndSaveArtifact').resolves();
         copyFolderContentsStub = sinon.stub(artifactOperations, 'copyFolderContents').resolves();
         showFolderActionDialogStub = sinon.stub(artifactOperations, 'showFolderActionDialog').resolves(undefined);
-        handleSavePreferenceDialogStub = sinon.stub(artifactOperations, 'handleSavePreferenceDialog').resolves();
+        handleSavePreferenceDialogStub = sinon.stub(artifactOperations, 'performFolderAction').resolves();
 
         // Stub utilities
         isDirectoryStub = sinon.stub(utilities, 'isDirectory').returns(Promise.resolve(true));

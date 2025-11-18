@@ -54,7 +54,7 @@ describe('openLocalFolderCommand', () => {
         // Stub artifactOperations methods
         downloadAndSaveArtifactStub = sinon.stub(artifactOperations, 'downloadAndSaveArtifact').resolves();
         showFolderActionDialogStub = sinon.stub(artifactOperations, 'showFolderActionDialog').resolves(undefined);
-        handleSavePreferenceDialogStub = sinon.stub(artifactOperations, 'handleSavePreferenceDialog').resolves();
+        handleSavePreferenceDialogStub = sinon.stub(artifactOperations, 'performFolderAction').resolves();
 
         // Stub VS Code dialogs
         showInformationMessageStub = sinon.stub(vscode.window, 'showInformationMessage');
