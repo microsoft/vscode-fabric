@@ -8,7 +8,7 @@ import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { IItemDefinitionConflictDetector } from '../itemDefinition/ItemDefinitionConflictDetector';
 import { IItemDefinitionWriter } from '../itemDefinition/ItemDefinitionWriter';
 import { ILocalFolderService, LocalFolderPromptMode } from '../LocalFolderService';
-import { downloadAndSaveArtifact, handleSavePreferenceDialog, getFolderDisplayName, showFolderActionDialog } from './localFolderCommandHelpers';
+import { downloadAndSaveArtifact, handleLocalFolderSavePreference, getFolderDisplayName, showFolderActionDialog, FolderAction, performFolderAction } from './localFolderCommandHelpers';
 
 /**
  * Shows completion message with integrated save preference handling.
@@ -24,19 +24,38 @@ export async function showCompletionMessage(
     const baseMessage = vscode.l10n.t('Item {0} has been downloaded to {1}', artifact.displayName, folderName);
 
     // Show folder action dialog
-    await showFolderActionDialog(
-        localFolderResults.uri,
+    const action = await showFolderActionDialog(
         vscode.l10n.t('{0}. What would you like to do?', baseMessage)
     );
 
-    // Handle save preference based on user's LocalFolderSaveBehavior setting
-    void handleSavePreferenceDialog(
-        artifact,
-        localFolderResults.uri,
-        localFolderService,
-        configurationProvider,
-        localFolderResults.prompted
-    );
+    if (action) {
+        const updatingWorkspace: boolean = (action === FolderAction.addToWorkspace || action === FolderAction.openInCurrentWindow);
+
+        // Updating the workspace means the extension is going to get reloaded. Let's get the save preference before that happens
+        if (updatingWorkspace) {
+            // Handle save preference based on user's LocalFolderSaveBehavior setting
+            await handleLocalFolderSavePreference(
+                artifact,
+                localFolderResults.uri,
+                localFolderService,
+                configurationProvider,
+                localFolderResults.prompted,
+                { modal: true }
+            );
+        }
+
+        await performFolderAction(localFolderResults.uri, action);
+
+        if (!updatingWorkspace) {
+            void handleLocalFolderSavePreference(
+                artifact,
+                localFolderResults.uri,
+                localFolderService,
+                configurationProvider,
+                localFolderResults.prompted
+            );
+        }
+    }
 }
 
 export async function exportArtifactCommand(

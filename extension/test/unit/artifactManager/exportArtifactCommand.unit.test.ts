@@ -54,7 +54,7 @@ describe('exportArtifactCommand', () => {
         // Stub artifactOperations methods
         downloadAndSaveArtifactStub = sinon.stub(artifactOperations, 'downloadAndSaveArtifact').resolves();
         showFolderActionDialogStub = sinon.stub(artifactOperations, 'showFolderActionDialog').resolves(undefined);
-        handleSavePreferenceDialogStub = sinon.stub(artifactOperations, 'handleSavePreferenceDialog').resolves();
+        handleSavePreferenceDialogStub = sinon.stub(artifactOperations, 'performFolderAction').resolves();
     });
 
     afterEach(() => {
@@ -204,7 +204,7 @@ describe('showCompletionMessage', () => {
         artifactMock.setup(a => a.id).returns(testArtifact.id);
 
         showFolderActionDialogStub = sinon.stub(artifactOperations, 'showFolderActionDialog').resolves(undefined);
-        handleSavePreferenceDialogStub = sinon.stub(artifactOperations, 'handleSavePreferenceDialog').resolves();
+        handleSavePreferenceDialogStub = sinon.stub(artifactOperations, 'performFolderAction').resolves();
     });
 
     afterEach(() => {
