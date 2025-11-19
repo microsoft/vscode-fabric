@@ -14,7 +14,7 @@ import { IFabricEnvironmentProvider, FabricError, ILogger, IConfigurationProvide
 import { IAccountProvider, ITenantSettings } from '../authentication/interfaces';
 import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
 
-class UnlicensedUserError extends Error {
+export class UnlicensedUserError extends Error {
     constructor() {
         super('User does not have a Fabric account');
         this.name = 'UnlicensedUserError';
@@ -491,7 +491,7 @@ export class WorkspaceManager extends WorkspaceManagerBase {
             pathTemplate: '/v1/workspaces',
         });
         if (res?.status !== 200) {
-            if (res?.status === 401 && res?.bodyAsText?.toLowerCase().includes('unlicensed')) {
+            if (res?.status === 401 && res?.bodyAsText?.toLowerCase().includes('usernotlicensed')) {
                 throw new UnlicensedUserError();
             }
 

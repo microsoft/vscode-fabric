@@ -4,7 +4,7 @@
 import * as vscode from 'vscode';
 import { commandNames } from '../constants';
 import { showSignInPrompt } from '../ui/prompts';
-import { WorkspaceManagerBase } from './WorkspaceManager';
+import { WorkspaceManagerBase, UnlicensedUserError } from './WorkspaceManager';
 import { WorkspaceTreeNode } from './treeNodes/WorkspaceTreeNode';
 import { showCreateWorkspaceWizard } from '../ui/showCreateWorkspaceWizard';
 import { IFabricApiClient, IWorkspace, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
@@ -130,9 +130,7 @@ async function checkLicenseAndSignUpIfNeeded(
         logger.log('User has a Fabric license, skipping signup');
     }
     catch (error: any) {
-        // Check if this is an unlicensed user error (401 with 'unlicensed' in body)
-        const errorMessage = error?.message?.toLowerCase() || '';
-        const isUnlicensedError = errorMessage.includes('unlicensed');
+        const isUnlicensedError = error instanceof UnlicensedUserError;
 
         if (isUnlicensedError) {
             logger.log('User does not have a Fabric license, opening signup page');
@@ -140,7 +138,7 @@ async function checkLicenseAndSignUpIfNeeded(
         }
         else {
             // For other errors, just log them - don't trigger signup
-            logger.log(`Error checking Fabric license: ${errorMessage}`);
+            logger.log(`Error checking Fabric license: ${error?.message}`);
         }
     }
 }
@@ -172,7 +170,7 @@ async function signUpForFabric(
         telemetryService?.sendTelemetryEvent('fabric/signUpInitiated', {
             portalUri,
             vscodeApp,
-            hasLoginHint: loginHint ? 'true' : 'false',
+            hasLoginHint: loginHint,
         });
     }
     catch (error: any) {
