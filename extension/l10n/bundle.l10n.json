@@ -1,8 +1,11 @@
 {
   "Learn more": "Learn more",
   "Failed to create \"{0}\": {1}": "Failed to create \"{0}\": {1}",
+  "Long running operation failed": "Long running operation failed",
   "Select Folder": "Select Folder",
   "Item definition will be saved to {0}.{1}": "Item definition will be saved to {0}.{1}",
+  "Replace": "Replace",
+  "The selected folder is in use by different item. Would you like to replace it?": "The selected folder is in use by different item. Would you like to replace it?",
   "Unable to list capacities": "Unable to list capacities",
   "The workspace has not been set": "The workspace has not been set",
   "Currently not connected to Fabric": "Currently not connected to Fabric",
