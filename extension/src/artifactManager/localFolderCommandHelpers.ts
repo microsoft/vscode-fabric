@@ -189,11 +189,11 @@ async function handleLocalFolderSavePreference(
 
     if (modal) {
         // Show modal dialog and await the response
+        // Don't show 'No' because in modal: 'Cancel' acts as 'No''
         const choice = await vscode.window.showInformationMessage(
             vscode.l10n.t('Do you want to remember folder {0} to use for {1} in the future?', folderUri.fsPath, artifact.displayName),
             { modal: true },
             yesOption,
-            noOption,
             alwaysOption,
             neverOption
         );
