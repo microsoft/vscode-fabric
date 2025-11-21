@@ -150,6 +150,22 @@ export class LocalFolderService implements ILocalFolderService {
             if (selectedUris && selectedUris.length > 0) {
                 prompted = true;
                 folderUri = vscode.Uri.joinPath(selectedUris[0], `${artifact.displayName}.${artifact.type}`);
+
+                // Make sure the user wants to overwrite the existing folder
+                const existingArtifact = this.getArtifactInformation(folderUri);
+                if (existingArtifact && existingArtifact.artifactId !== artifact.id) {
+                    const replaceOption = vscode.l10n.t('Replace');
+
+                    const warningChoice = await vscode.window.showWarningMessage(
+                        vscode.l10n.t('The selected folder is in use by different item. Would you like to replace it?'),
+                        { modal: true },
+                        replaceOption
+                    );
+
+                    if (warningChoice !== replaceOption) {
+                        return undefined;
+                    }
+                }
             }
         }
         else if (existingPath) {

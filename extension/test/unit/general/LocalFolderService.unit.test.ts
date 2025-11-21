@@ -372,4 +372,144 @@ describe('LocalFolderService unit tests', () => {
             assert.ok(showOpenDialogStub.calledOnce, 'showOpenDialog should be called once');
         });
     });
+
+    describe('folder conflict detection', () => {
+        let showWarningMessageStub: sinon.SinonStub;
+        const localFolder = vscode.Uri.file('/path/to/local/folder');
+        const localFolderForMockArtifact = vscode.Uri.joinPath(localFolder, `${mockArtifact.displayName}.${mockArtifact.type}`);
+
+        beforeEach(() => {
+            showWarningMessageStub = sinon.stub(vscode.window, 'showWarningMessage');
+            showWarningMessageStub.resolves('Replace');
+
+            settingsStoreMock.setup(s => s.getLocalFolder(mockArtifact.id)).returns(undefined);
+
+            storageMock.setup(s => s.settings).returns({
+                version: 1,
+                workspaces: [],
+                artifacts: [],
+                localFolders: [
+                    {
+                        artifactId: 'stored-artifact-id',
+                        workspaceId: 'some-workspace',
+                        localFolder: localFolderForMockArtifact.fsPath,
+                        fabricEnvironment: 'MOCK',
+                    },
+                ],
+            });
+
+            showOpenDialogStub.resolves([localFolder]);
+        });
+
+        it('should prompt user when selected folder is in use by different artifact', async () => {
+            // Act
+            const result = await service.getLocalFolder(mockArtifact, { prompt: LocalFolderPromptMode.discretionary });
+
+            // Assert
+            // Should show warning about conflict
+            assert.ok(showWarningMessageStub.calledOnce, 'Should show warning message');
+
+            // Validate the parameters passed to showWarningMessage
+            const [message, options, ...items] = showWarningMessageStub.firstCall.args;
+            assert.ok(message.includes('in use by different item'), 'Message should mention folder is in use');
+            assert.ok(message.includes('Would you like to replace it?'), 'Message should ask about replacement');
+            assert.deepStrictEqual(options, { modal: true }, 'Warning should be modal');
+            assert.strictEqual(items.length, 1, 'Should have one button');
+            assert.strictEqual(items[0], 'Replace', 'Should show Replace button');
+
+            // Should return the selected folder
+            assert.ok(result);
+            assert.strictEqual(result.uri.fsPath, localFolderForMockArtifact.fsPath);
+            assert.strictEqual(result.prompted, true);
+        });
+
+        it('should return undefined when user cancels folder replacement', async () => {
+            // Arrange
+            // User cancels or dismisses the warning
+            showWarningMessageStub.resolves(undefined);
+
+            // Act
+            const result = await service.getLocalFolder(mockArtifact, { prompt: LocalFolderPromptMode.discretionary });
+
+            // Assert
+            assert.ok(showWarningMessageStub.calledOnce, 'Should show warning message');
+            assert.strictEqual(result, undefined, 'Should return undefined when user cancels');
+        });
+
+        it('should not prompt when selected folder is in use by same artifact', async () => {
+            // Arrange
+            // Storage has the selected folder mapped to the same artifact
+            storageMock.setup(s => s.settings).returns({
+                version: 1,
+                workspaces: [],
+                artifacts: [],
+                localFolders: [
+                    {
+                        artifactId: mockArtifact.id, // Same artifact ID
+                        workspaceId: mockArtifact.workspaceId,
+                        localFolder: localFolderForMockArtifact.fsPath,
+                        fabricEnvironment: 'MOCK',
+                    },
+                ],
+            });
+
+            // Act
+            const result = await service.getLocalFolder(mockArtifact, { prompt: LocalFolderPromptMode.discretionary });
+
+            // Assert
+            assert.ok(!showWarningMessageStub.called, 'Should not show warning when folder belongs to same artifact');
+            assert.ok(result);
+            assert.strictEqual(result.uri.fsPath, localFolderForMockArtifact.fsPath);
+        });
+
+        it('should not prompt when selected folder is not in use', async () => {
+            // Arrange
+            // Storage has no entry for the folder
+            storageMock.setup(s => s.settings).returns({
+                version: 1,
+                workspaces: [],
+                artifacts: [],
+                localFolders: [],
+            });
+
+            // Act
+            const result = await service.getLocalFolder(mockArtifact, { prompt: LocalFolderPromptMode.discretionary });
+
+            // Assert
+            assert.ok(!showWarningMessageStub.called, 'Should not show warning when folder is not in use');
+            assert.ok(result);
+            assert.strictEqual(result.uri.fsPath, localFolderForMockArtifact.fsPath);
+        });
+
+        it('should handle conflict check when user cancels the warning dialog', async () => {
+            // Arrange
+            // User presses escape or clicks cancel
+            showWarningMessageStub.resolves(undefined);
+
+            // Act
+            const result = await service.getLocalFolder(mockArtifact, { prompt: LocalFolderPromptMode.discretionary });
+
+            // Assert
+            assert.ok(showWarningMessageStub.calledOnce);
+            assert.strictEqual(result, undefined, 'Should return undefined when user cancels');
+        });
+
+        it('should check for conflicts even when prompt mode is always with existing path', async () => {
+            // Arrange
+            // Artifact has an existing folder path
+            const existingPath = '/existing/MyNotebook.Notebook';
+            const expectedArtifactUri = vscode.Uri.joinPath(localFolder, `${mockArtifact.displayName}.${mockArtifact.type}`);
+
+            settingsStoreMock.setup(s => s.getLocalFolder(mockArtifact.id)).returns(existingPath);
+
+            // Act
+            const result = await service.getLocalFolder(mockArtifact, { prompt: LocalFolderPromptMode.always });
+
+            // Assert
+            assert.ok(showWarningMessageStub.calledOnce, 'Should show warning message');
+            assert.ok(result);
+            assert.strictEqual(result.uri.fsPath, expectedArtifactUri.fsPath);
+            assert.strictEqual(result.prompted, true);
+        });
+    });
 });
