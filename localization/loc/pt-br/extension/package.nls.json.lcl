@@ -63,6 +63,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";extension.configuration.ShowFolders.description" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Display folders in the Fabric Workspace view]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Exibir pastas na exibição do Workspace do Fabric]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";extension.copyConnectionString.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Copy Connection String]]></Val>
@@ -361,7 +370,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Go to the Fabric Portal to create a new workspace. If you already have a workspace then you can skip this step!]A;[Go to Fabric Portal]5D;(https://app.fabric.microsoft.com/)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Vá para o Portal do Fabric para criar um novo workspace. Se você já tiver um workspace, ignore esta etapa!]A;[Ir para o Portal do Fabric]5D;(https://app.fabric.microsoft.com/)]]></Val>
+            <Val><![CDATA[Acesse o Portal do Fabric para criar um espaço de trabalho. Se você já tiver um espaço de trabalho, poderá pular essa etapa!]A;[Acesse o Portal do Fabric]5D;(https://app.fabric.microsoft.com/)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
