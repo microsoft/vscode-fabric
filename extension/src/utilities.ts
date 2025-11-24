@@ -147,9 +147,38 @@ export function __setLroSleep(impl: (ms: number) => Promise<any>): void {
     lroSleepImpl = impl;
 }
 
-export async function handleLongRunningOperation(apiClient: IFabricApiClient, response: IApiClientResponse, logger?: ILogger): Promise<IApiClientResponse> {
+/**
+ * Helper class to manage progress reporting for long running operations.
+ * Tracks the last reported percentage and only reports when progress increases.
+ */
+class LongRunningOperationProgressReporter {
+    private lastReportedPercent: number = 0;
+
+    constructor(private progress: vscode.Progress<{ message?: string; increment?: number }>) {}
+
+    /**
+     * Reports progress if the percentage has increased since the last report.
+     * @param pollResponse The API response containing progress information
+     * @returns The current percent complete (0-100)
+     */
+    report(pollResponse: IApiClientResponse): number {
+        const percentComplete: number | undefined = typeof pollResponse.parsedBody?.percentComplete === 'number'
+            ? pollResponse.parsedBody.percentComplete
+            : undefined;
+
+        if (percentComplete !== undefined && percentComplete > this.lastReportedPercent) {
+            const increment = percentComplete - this.lastReportedPercent;
+            this.progress.report({ increment: increment });
+            this.lastReportedPercent = percentComplete;
+        }
+
+        return this.lastReportedPercent;
+    }
+}
+
+export async function handleLongRunningOperation(apiClient: IFabricApiClient, response: IApiClientResponse, logger?: ILogger, progress?: vscode.Progress<{ message?: string; increment?: number }>): Promise<IApiClientResponse> {
     const trace = (message: string): void => {
-        logger?.log(`[Fabric LRO2] ${message}`, LogImportance.normal);
+        logger?.trace(`[Fabric LRO2] ${message}`);
     };
 
     // Preserve the original 202 response for fallback scenarios.
@@ -168,6 +197,8 @@ export async function handleLongRunningOperation(apiClient: IFabricApiClient, re
     }
 
     trace(`Starting poll loop. location='${location}', operationId='${operationId}'.`);
+
+    const progressReporter = progress ? new LongRunningOperationProgressReporter(progress) : undefined;
 
     // Poll strategy: start fast (400ms) and exponential backoff up to a modest ceiling (10s) to reduce load.
     let waitMs: number = 400;
@@ -198,7 +229,8 @@ export async function handleLongRunningOperation(apiClient: IFabricApiClient, re
 
         lastSuccessfulPoll = pollResponse;
         const operationStatus: string | undefined = pollResponse.parsedBody?.status;
-        trace(`Iteration ${iteration}: httpStatus=${pollResponse.status}, opStatus='${operationStatus ?? 'n/a'}'.`);
+        const percentComplete = progressReporter?.report(pollResponse) ?? -1;
+        trace(`Iteration ${iteration}: httpStatus=${pollResponse.status}, opStatus='${operationStatus ?? 'n/a'}', percentComplete=${percentComplete >= 0 ? percentComplete : 'n/a'}.`);
 
         // Always adopt Location from the latest poll response if present.
         const latestLocation: string | undefined = pollResponse.headers?.get('location') || undefined;

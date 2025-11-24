@@ -447,4 +447,206 @@ describe('handleLongRunningOperation', () => {
         const final = await handleLongRunningOperation(apiClientMock.object(), initialResponse);
         assert.deepStrictEqual(final, result404);
     });
+
+    it('should report progress when percentComplete increases', async () => {
+        const operationId = 'progress-test';
+        const locationUrl = `https://fabric/v1/operations/${operationId}`;
+        const resultUrl = `${locationUrl}/result`;
+
+        const initialResponse: IApiClientResponse = {
+            status: 202,
+            parsedBody: {},
+            headers: {
+                get: (header: string) => {
+                    switch (header.toLowerCase()) {
+                        case 'location': return locationUrl;
+                        case 'x-ms-operation-id': return operationId;
+                        default: return undefined;
+                    }
+                },
+            } as any,
+        };
+
+        const pollResponses: IApiClientResponse[] = [
+            { status: 200, parsedBody: { status: 'Running', percentComplete: 25 }, headers: { get: (h: string) => h.toLowerCase() === 'location' ? locationUrl : undefined } as any },
+            { status: 200, parsedBody: { status: 'Running', percentComplete: 50 }, headers: { get: (h: string) => h.toLowerCase() === 'location' ? locationUrl : undefined } as any },
+            { status: 200, parsedBody: { status: 'Running', percentComplete: 75 }, headers: { get: (h: string) => h.toLowerCase() === 'location' ? locationUrl : undefined } as any },
+            { status: 200, parsedBody: { status: 'Succeeded', percentComplete: 100 }, headers: { get: (h: string) => h.toLowerCase() === 'location' ? resultUrl : undefined } as any },
+        ];
+
+        const resultResponse: IApiClientResponse = { status: 200, parsedBody: { result: 'success' } };
+
+        const apiClientMock = new Mock<IFabricApiClient>();
+        let pollCallCount = 0;
+        apiClientMock
+            .setup(api => api.sendRequest(It.Is<IApiClientRequestOptions>(obj => obj.url === locationUrl && obj.method === 'GET')))
+            .callback(() => Promise.resolve(pollResponses[pollCallCount++]));
+        apiClientMock
+            .setup(api => api.sendRequest(It.Is<IApiClientRequestOptions>(obj => obj.url === resultUrl && obj.method === 'GET')))
+            .returnsAsync(resultResponse);
+
+        // Mock progress reporter
+        const progressReports: { increment?: number; message?: string }[] = [];
+        const mockProgress: vscode.Progress<{ message?: string; increment?: number }> = {
+            report: (value) => {
+                progressReports.push(value);
+            },
+        };
+
+        // Act
+        await handleLongRunningOperation(apiClientMock.object(), initialResponse, undefined, mockProgress);
+
+        // Assert
+        assert.strictEqual(progressReports.length, 4, 'Should report progress 4 times');
+        assert.strictEqual(progressReports[0].increment, 25, 'First increment should be 25');
+        assert.strictEqual(progressReports[1].increment, 25, 'Second increment should be 25');
+        assert.strictEqual(progressReports[2].increment, 25, 'Third increment should be 25');
+        assert.strictEqual(progressReports[3].increment, 25, 'Fourth increment should be 25');
+    });
+
+    it('should not report progress when percentComplete is missing', async () => {
+        const operationId = 'no-progress-test';
+        const locationUrl = `https://fabric/v1/operations/${operationId}`;
+        const resultUrl = `${locationUrl}/result`;
+
+        const initialResponse: IApiClientResponse = {
+            status: 202,
+            parsedBody: {},
+            headers: {
+                get: (header: string) => {
+                    switch (header.toLowerCase()) {
+                        case 'location': return locationUrl;
+                        case 'x-ms-operation-id': return operationId;
+                        default: return undefined;
+                    }
+                },
+            } as any,
+        };
+
+        const pollResponses: IApiClientResponse[] = [
+            { status: 200, parsedBody: { status: 'Running' }, headers: { get: (h: string) => h.toLowerCase() === 'location' ? locationUrl : undefined } as any },
+            { status: 200, parsedBody: { status: 'Succeeded' }, headers: { get: (h: string) => h.toLowerCase() === 'location' ? resultUrl : undefined } as any },
+        ];
+
+        const resultResponse: IApiClientResponse = { status: 200, parsedBody: { result: 'success' } };
+
+        const apiClientMock = new Mock<IFabricApiClient>();
+        let pollCallCount = 0;
+        apiClientMock
+            .setup(api => api.sendRequest(It.Is<IApiClientRequestOptions>(obj => obj.url === locationUrl && obj.method === 'GET')))
+            .callback(() => Promise.resolve(pollResponses[pollCallCount++]));
+        apiClientMock
+            .setup(api => api.sendRequest(It.Is<IApiClientRequestOptions>(obj => obj.url === resultUrl && obj.method === 'GET')))
+            .returnsAsync(resultResponse);
+
+        // Mock progress reporter
+        const progressReports: { increment?: number; message?: string }[] = [];
+        const mockProgress: vscode.Progress<{ message?: string; increment?: number }> = {
+            report: (value) => {
+                progressReports.push(value);
+            },
+        };
+
+        // Act
+        await handleLongRunningOperation(apiClientMock.object(), initialResponse, undefined, mockProgress);
+
+        // Assert
+        assert.strictEqual(progressReports.length, 0, 'Should not report progress when percentComplete is missing');
+    });
+
+    it('should not report progress when percentComplete does not increase', async () => {
+        const operationId = 'stalled-progress-test';
+        const locationUrl = `https://fabric/v1/operations/${operationId}`;
+        const resultUrl = `${locationUrl}/result`;
+
+        const initialResponse: IApiClientResponse = {
+            status: 202,
+            parsedBody: {},
+            headers: {
+                get: (header: string) => {
+                    switch (header.toLowerCase()) {
+                        case 'location': return locationUrl;
+                        case 'x-ms-operation-id': return operationId;
+                        default: return undefined;
+                    }
+                },
+            } as any,
+        };
+
+        const pollResponses: IApiClientResponse[] = [
+            { status: 200, parsedBody: { status: 'Running', percentComplete: 50 }, headers: { get: (h: string) => h.toLowerCase() === 'location' ? locationUrl : undefined } as any },
+            { status: 200, parsedBody: { status: 'Running', percentComplete: 50 }, headers: { get: (h: string) => h.toLowerCase() === 'location' ? locationUrl : undefined } as any },
+            { status: 200, parsedBody: { status: 'Running', percentComplete: 50 }, headers: { get: (h: string) => h.toLowerCase() === 'location' ? locationUrl : undefined } as any },
+            { status: 200, parsedBody: { status: 'Succeeded', percentComplete: 100 }, headers: { get: (h: string) => h.toLowerCase() === 'location' ? resultUrl : undefined } as any },
+        ];
+
+        const resultResponse: IApiClientResponse = { status: 200, parsedBody: { result: 'success' } };
+
+        const apiClientMock = new Mock<IFabricApiClient>();
+        let pollCallCount = 0;
+        apiClientMock
+            .setup(api => api.sendRequest(It.Is<IApiClientRequestOptions>(obj => obj.url === locationUrl && obj.method === 'GET')))
+            .callback(() => Promise.resolve(pollResponses[pollCallCount++]));
+        apiClientMock
+            .setup(api => api.sendRequest(It.Is<IApiClientRequestOptions>(obj => obj.url === resultUrl && obj.method === 'GET')))
+            .returnsAsync(resultResponse);
+
+        // Mock progress reporter
+        const progressReports: { increment?: number; message?: string }[] = [];
+        const mockProgress: vscode.Progress<{ message?: string; increment?: number }> = {
+            report: (value) => {
+                progressReports.push(value);
+            },
+        };
+
+        // Act
+        await handleLongRunningOperation(apiClientMock.object(), initialResponse, undefined, mockProgress);
+
+        // Assert
+        assert.strictEqual(progressReports.length, 2, 'Should report progress twice (50% and 100%)');
+        assert.strictEqual(progressReports[0].increment, 50, 'First increment should be 50');
+        assert.strictEqual(progressReports[1].increment, 50, 'Second increment should be 50 (from 50 to 100)');
+    });
+
+    it('should work without progress reporter provided', async () => {
+        const operationId = 'no-reporter-test';
+        const locationUrl = `https://fabric/v1/operations/${operationId}`;
+        const resultUrl = `${locationUrl}/result`;
+
+        const initialResponse: IApiClientResponse = {
+            status: 202,
+            parsedBody: {},
+            headers: {
+                get: (header: string) => {
+                    switch (header.toLowerCase()) {
+                        case 'location': return locationUrl;
+                        case 'x-ms-operation-id': return operationId;
+                        default: return undefined;
+                    }
+                },
+            } as any,
+        };
+
+        const pollResponses: IApiClientResponse[] = [
+            { status: 200, parsedBody: { status: 'Running', percentComplete: 50 }, headers: { get: (h: string) => h.toLowerCase() === 'location' ? locationUrl : undefined } as any },
+            { status: 200, parsedBody: { status: 'Succeeded', percentComplete: 100 }, headers: { get: (h: string) => h.toLowerCase() === 'location' ? resultUrl : undefined } as any },
+        ];
+
+        const resultResponse: IApiClientResponse = { status: 200, parsedBody: { result: 'success' } };
+
+        const apiClientMock = new Mock<IFabricApiClient>();
+        let pollCallCount = 0;
+        apiClientMock
+            .setup(api => api.sendRequest(It.Is<IApiClientRequestOptions>(obj => obj.url === locationUrl && obj.method === 'GET')))
+            .callback(() => Promise.resolve(pollResponses[pollCallCount++]));
+        apiClientMock
+            .setup(api => api.sendRequest(It.Is<IApiClientRequestOptions>(obj => obj.url === resultUrl && obj.method === 'GET')))
+            .returnsAsync(resultResponse);
+
+        // Act - no progress reporter provided
+        const result = await handleLongRunningOperation(apiClientMock.object(), initialResponse);
+
+        // Assert - should complete successfully without errors
+        assert.deepStrictEqual(result, resultResponse);
+    });
 });

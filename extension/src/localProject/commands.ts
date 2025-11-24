@@ -105,26 +105,24 @@ async function doAction(
 ): Promise<void> {
     return withErrorHandling(description, logger, telemetryService, async () => {
         const activity = new TelemetryActivity<CoreTelemetryEventNames>(eventName, telemetryService);
-        await vscode.window.withProgress({ location: { viewId: fabricViewWorkspace } }, async () => {
-            await doFabricAction({ fabricLogger: logger, telemetryActivity: activity }, async () => {
-                if (folder) {
-                    try {
-                        await callback(activity, folder);
-                        activity.addOrUpdateProperties({ result: 'Succeeded' });
-                    }
-                    catch (err) {
-                        if (err instanceof UserCancelledError) {
-                            activity.addOrUpdateProperties({ result: 'Canceled' });
-                            if (err.stepName) {
-                                activity.addOrUpdateProperties({ lastStep: err.stepName });
-                            }
-                            return;
-                        }
-                        activity.addOrUpdateProperties({ result: 'Failed' });
-                        throw err;
-                    }
+        await doFabricAction({ fabricLogger: logger, telemetryActivity: activity }, async () => {
+            if (folder) {
+                try {
+                    await callback(activity, folder);
+                    activity.addOrUpdateProperties({ result: 'Succeeded' });
                 }
-            });
+                catch (err) {
+                    if (err instanceof UserCancelledError) {
+                        activity.addOrUpdateProperties({ result: 'Canceled' });
+                        if (err.stepName) {
+                            activity.addOrUpdateProperties({ lastStep: err.stepName });
+                        }
+                        return;
+                    }
+                    activity.addOrUpdateProperties({ result: 'Failed' });
+                    throw err;
+                }
+            }
         });
     })();
 }

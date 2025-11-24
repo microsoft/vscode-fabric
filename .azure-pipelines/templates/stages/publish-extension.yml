@@ -64,8 +64,8 @@ stages:
               scriptType: pscore
               scriptLocation: inlineScript
               inlineScript: |
-                npx @vscode/vsce@latest publish \
-                  -i $(Pipeline.Workspace)/vsix-artifacts/$(VSIX_FILE_NAME) \
-                  --manifestPath $(Pipeline.Workspace)/vsix-artifacts/extension.manifest \
-                  --signaturePath $(Pipeline.Workspace)/vsix-artifacts/extension.signature.p7s \
+                npx @vscode/vsce@latest publish `
+                  -i $(Pipeline.Workspace)/vsix-artifacts/$(VSIX_FILE_NAME) `
+                  --manifestPath $(Pipeline.Workspace)/vsix-artifacts/extension.manifest `
+                  --signaturePath $(Pipeline.Workspace)/vsix-artifacts/extension.signature.p7s `
                   --azure-credential
