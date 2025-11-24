@@ -12,6 +12,7 @@ import { TreeViewWorkspaceTreeNode } from './TreeViewWorkspaceTreeNode';
 import { TenantTreeNode } from './TenantTreeNode';
 import { DisplayStyle } from '../definitions';
 import { WorkspaceManager } from '../WorkspaceManager';
+import { ILocalFolderService } from '../../LocalFolderService';
 
 export class RootTreeNode extends FabricTreeNode {
     constructor(
@@ -21,6 +22,7 @@ export class RootTreeNode extends FabricTreeNode {
         protected workspaceManager: IWorkspaceManager,
         protected accountProvider: IAccountProvider,
         private displayStyle: DisplayStyle,
+        private localFolderService: ILocalFolderService,
         private shouldExpand?: (id: string | undefined) => boolean,
         private filteredWorkspaces?: IWorkspace[]
     ) {
@@ -43,6 +45,7 @@ export class RootTreeNode extends FabricTreeNode {
                 this.workspaceManager,
                 currentTenant,
                 this.displayStyle,
+                this.localFolderService,
                 this.shouldExpand,
                 this.filteredWorkspaces
             )];
@@ -55,8 +58,8 @@ export class RootTreeNode extends FabricTreeNode {
 
             return workspaces.map(workspace =>
                 this.displayStyle === DisplayStyle.list
-                    ? new ListViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager, /*tenantId*/ null, this.shouldExpand)
-                    : new TreeViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager, /*tenantId*/ undefined, this.shouldExpand)
+                    ? new ListViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager, /*tenantId*/ null, this.localFolderService, this.shouldExpand)
+                    : new TreeViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager, /*tenantId*/ undefined, this.localFolderService, this.shouldExpand)
             );
         }
         catch (error) {

@@ -47,10 +47,6 @@ export function registerWorkspaceCommands(
         return await createWorkspace(workspaceManager, workspaceFilterManager, capacityManager, telemetryService, logger);
     }, context);
 
-    registerCommand(commandNames.selectWorkspaceLocalFolder, async (treeNode?: WorkspaceTreeNode) => {
-        await selectLocalFolder(workspaceManager, treeNode);
-    }, context);
-
     registerCommand(commandNames.filterWorkspaces, async () => {
         await workspaceFilterManager.showWorkspaceFilterDialog();
     }, context);
@@ -82,25 +78,4 @@ async function createWorkspace(manager: WorkspaceManagerBase, workspaceFilterMan
         void vscode.window.showErrorMessage(error.message);
         logger.reportExceptionTelemetryAndLog('createWorkspace', 'workspace/create', error, telemetryService);
     }
-}
-
-/**
- * If a workspace has been selected, shows the user to select a local folder to associate with the workspace
- * @param manager Handles the Fabric workspaces for the user
- * @param treeNode Optional workspace tree node from context menu, contains the workspace to associate with a local folder
- */
-async function selectLocalFolder(manager: WorkspaceManagerBase, treeNode?: WorkspaceTreeNode): Promise<vscode.Uri | undefined> {
-    if (!(await manager.isConnected())) {
-        await showSignInPrompt();
-        return;
-    }
-
-    // If called from context menu, use the workspace from the tree node
-    if (treeNode && treeNode.workspace) {
-        return await manager.promptForLocalFolder(treeNode.workspace);
-    }
-
-    // If called from command palette without workspace context, show an error message
-    void vscode.window.showErrorMessage(vscode.l10n.t('Please right-click on a workspace in the Fabric explorer to associate it with a local folder.'));
-    return undefined;
 }

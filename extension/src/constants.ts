@@ -5,13 +5,15 @@ export namespace commandNames {
     export const signIn = 'vscode-fabric.signIn';
     export const switchTenant = 'vscode-fabric.switchTenant';
     export const createWorkspace = 'vscode-fabric.createWorkspace';
-    export const selectWorkspaceLocalFolder = 'vscode-fabric.selectWorkspaceLocalFolder';
     export const createArtifact = 'vscode-fabric.createArtifact';
     export const readArtifact = 'vscode-fabric.readArtifact';
     export const openArtifact = 'vscode-fabric.openArtifact';
+    export const openLocalFolder = 'vscode-fabric.openLocalFolder';
+    export const changeLocalFolder = 'vscode-fabric.changeLocalFolder';
     export const exportArtifact = 'vscode-fabric.exportArtifact';
     export const importArtifact = 'vscode-fabric.importArtifact';
-    export const importArtifactPromptWorkspace = 'vscode-fabric.importArtifactPromptWorkspace';
+    export const importArtifactInline = 'vscode-fabric.importArtifact.inline';
+    export const importArtifactPromptWorkspace = 'vscode-fabric.importArtifact.promptWorkspace';
     export const refreshArtifactView = 'vscode-fabric.refreshArtifactView';
     export const refreshLocalProjectView = 'vscode-fabric.refreshLocalFolderView';
     export const openInPortal = 'vscode-fabric.openInPortal';
