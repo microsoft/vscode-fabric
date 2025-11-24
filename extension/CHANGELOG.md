@@ -3,6 +3,7 @@
 ## [0.35 (Pre-release)] 2025-11
 
 ### Added
+- New local folder commands to download item definitions, open folders for items, and change folder mappings.
 - Progress indicators for long running operations (Open in Explorer and Publish commands) displayed in the notification area.
 
 ## [0.26] - 2025-09-11

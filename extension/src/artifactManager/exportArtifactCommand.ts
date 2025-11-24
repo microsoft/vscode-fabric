@@ -8,7 +8,7 @@ import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { IItemDefinitionConflictDetector } from '../itemDefinition/ItemDefinitionConflictDetector';
 import { IItemDefinitionWriter } from '../itemDefinition/ItemDefinitionWriter';
 import { ILocalFolderService, LocalFolderPromptMode } from '../LocalFolderService';
-import { downloadAndSaveArtifact, getFolderDisplayName, showFolderActionAndSavePreference } from './localFolderCommandHelpers';
+import { downloadAndSaveArtifact, getFolderDisplayName, showFolderActionAndSavePreference, LocalFolderServices, FolderActionRequest } from './localFolderCommandHelpers';
 
 /**
  * Shows completion message with integrated save preference handling.
@@ -24,13 +24,12 @@ export async function showCompletionMessage(
     const baseMessage = vscode.l10n.t('Item {0} has been downloaded to {1}', artifact.displayName, folderName);
 
     // Show folder action dialog and perform the selected action
+    const services: LocalFolderServices = { localFolderService, configurationProvider };
+    const request: FolderActionRequest = { folderUri: localFolderResults.uri, artifact, prompted: localFolderResults.prompted };
     await showFolderActionAndSavePreference(
         vscode.l10n.t('{0}. What would you like to do?', baseMessage),
-        localFolderResults.uri,
-        artifact,
-        localFolderService,
-        configurationProvider,
-        localFolderResults.prompted
+        request,
+        services
     );
 }
 

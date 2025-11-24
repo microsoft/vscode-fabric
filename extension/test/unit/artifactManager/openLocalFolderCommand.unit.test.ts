@@ -202,12 +202,12 @@ describe('openLocalFolderCommand', () => {
             await executeCommand();
 
             assert.ok(showFolderActionAndSavePreferenceStub.calledOnce, 'Should call showFolderActionAndSavePreference');
-            const [message, folderUri, artifact, localFolderService, configProvider, prompted] = showFolderActionAndSavePreferenceStub.firstCall.args;
-            assert.strictEqual(artifact, artifactMock.object(), 'Should pass artifact');
-            assert.strictEqual(folderUri, newFolder, 'Should pass new folder URI');
-            assert.strictEqual(localFolderService, localFolderServiceMock.object(), 'Should pass localFolderService');
-            assert.strictEqual(configProvider, configurationProviderMock.object(), 'Should pass configurationProvider');
-            assert.strictEqual(prompted, true, 'Should pass prompted flag');
+            const [message, request, services] = showFolderActionAndSavePreferenceStub.firstCall.args;
+            assert.strictEqual(request.artifact, artifactMock.object(), 'Request should contain artifact');
+            assert.strictEqual(request.folderUri, newFolder, 'Request should contain new folder URI');
+            assert.strictEqual(request.prompted, true, 'Request should have prompted flag');
+            assert.strictEqual(services.localFolderService, localFolderServiceMock.object(), 'Services should contain localFolderService');
+            assert.strictEqual(services.configurationProvider, configurationProviderMock.object(), 'Services should contain configurationProvider');
         });
 
         it('should show folder action dialog after download', async () => {
@@ -219,7 +219,7 @@ describe('openLocalFolderCommand', () => {
 
             // Assert
             assert.ok(showFolderActionAndSavePreferenceStub.calledOnce, 'Should show folder action dialog');
-            const [message, folderUri, artifact, localFolderService, configProvider, prompted, options] = showFolderActionAndSavePreferenceStub.firstCall.args;
+            const [message, request, services, options] = showFolderActionAndSavePreferenceStub.firstCall.args;
             assert.strictEqual(options?.modal, true, 'Dialog should be modal');
             assert.strictEqual(options?.includeDoNothing, false, 'Should not include do nothing option');
             assert.ok(message.includes(newFolder.fsPath), 'Message should include new folder path');

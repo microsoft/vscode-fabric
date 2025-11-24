@@ -14,6 +14,8 @@ import {
     performFolderActionAndSavePreference,
     showFolderActionAndSavePreference,
     FolderAction,
+    LocalFolderServices,
+    FolderActionRequest,
 } from '../../../src/artifactManager/localFolderCommandHelpers';
 import { CoreTelemetryEventNames } from '../../../src/TelemetryEventNames';
 import { verifyAddOrUpdateProperties } from '../../utilities/moqUtilities';
@@ -365,75 +367,59 @@ describe('localFolderCommandHelpers', () => {
         });
 
         describe('workspace-updating actions (modal save preference before action)', () => {
-            [FolderAction.addToWorkspace, FolderAction.openInCurrentWindow].forEach(action => {
-                it(`should handle save preference with modal before performing ${action} when prompted=true`, async () => {
-                    configurationProviderMock.setup(c => c.get(It.IsAny(), It.IsAny())).returns(LocalFolderSaveBehavior.prompt);
-                    showInformationMessageStub.resolves('Yes');
-                    executeCommandStub.resolves();
+            it('should handle save preference with modal before performing open in current window when prompted=true', async () => {
+                const action: FolderAction = FolderAction.openInCurrentWindow;
+                configurationProviderMock.setup(c => c.get(It.IsAny(), It.IsAny())).returns(LocalFolderSaveBehavior.prompt);
+                showInformationMessageStub.resolves('Yes');
+                executeCommandStub.resolves();
 
-                    await performFolderActionAndSavePreference(
-                        folderUri,
-                        action,
-                        artifactMock.object(),
-                        localFolderServiceMock.object(),
-                        configurationProviderMock.object(),
-                        true // prompted
-                    );
+                const services: LocalFolderServices = {
+                    localFolderService: localFolderServiceMock.object(),
+                    configurationProvider: configurationProviderMock.object()
+                };
+                const request: FolderActionRequest = {
+                    folderUri,
+                    artifact: artifactMock.object(),
+                    prompted: true
+                };
 
-                    // Verify modal save preference was shown
-                    assert.ok(showInformationMessageStub.calledOnce, 'Should show save preference dialog');
-                    const [message, options] = showInformationMessageStub.firstCall.args;
-                    assert.ok(message.includes('remember folder'), 'Should ask about remembering folder');
-                    assert.deepStrictEqual(options, { modal: true }, 'Should be modal');
+                await performFolderActionAndSavePreference(request, action, services);
 
-                    // Verify action was performed
-                    if (action === FolderAction.openInCurrentWindow) {
-                        assert.ok(executeCommandStub.calledWith('vscode.openFolder', folderUri, false));
-                    }
-                });
+                // Verify modal save preference was shown
+                assert.ok(showInformationMessageStub.calledOnce, 'Should show save preference dialog');
+                const [message, options] = showInformationMessageStub.firstCall.args;
+                assert.ok(message.includes('remember folder'), 'Should ask about remembering folder');
+                assert.deepStrictEqual(options, { modal: true }, 'Should be modal');
 
-                it(`should not show save preference for ${action} when prompted=false`, async () => {
-                    executeCommandStub.resolves();
-
-                    await performFolderActionAndSavePreference(
-                        folderUri,
-                        action,
-                        artifactMock.object(),
-                        localFolderServiceMock.object(),
-                        configurationProviderMock.object(),
-                        false // not prompted
-                    );
-
-                    // Should not show save preference dialog
-                    assert.ok(!showInformationMessageStub.called, 'Should not show save preference dialog');
-
-                    // Verify action was still performed
-                    if (action === FolderAction.openInCurrentWindow) {
-                        assert.ok(executeCommandStub.calledWith('vscode.openFolder', folderUri, false));
-                    }
-                });
+                // Verify action was performed
+                if (action === FolderAction.openInCurrentWindow) {
+                    assert.ok(executeCommandStub.calledWith('vscode.openFolder', folderUri, false));
+                }
             });
 
-            it('should handle addToWorkspace action correctly', async () => {
-                configurationProviderMock.setup(c => c.get(It.IsAny(), It.IsAny())).returns(LocalFolderSaveBehavior.never);
-                sinon.stub(vscode.workspace, 'workspaceFolders').value([]);
-                updateWorkspaceFoldersStub.resolves(true);
+            it('should not show save preference for open in current window when prompted=false', async () => {
+                const action: FolderAction = FolderAction.openInCurrentWindow;
+                executeCommandStub.resolves();
 
-                await performFolderActionAndSavePreference(
+                const services: LocalFolderServices = {
+                    localFolderService: localFolderServiceMock.object(),
+                    configurationProvider: configurationProviderMock.object()
+                };
+                const request: FolderActionRequest = {
                     folderUri,
-                    FolderAction.addToWorkspace,
-                    artifactMock.object(),
-                    localFolderServiceMock.object(),
-                    configurationProviderMock.object(),
-                    false
-                );
+                    artifact: artifactMock.object(),
+                    prompted: false
+                };
 
-                assert.ok(updateWorkspaceFoldersStub.calledOnce, 'Should update workspace folders');
-                const [start, deleteCount, ...foldersToAdd] = updateWorkspaceFoldersStub.firstCall.args;
-                assert.strictEqual(start, 0);
-                assert.strictEqual(deleteCount, 0);
-                assert.strictEqual(foldersToAdd.length, 1);
-                assert.deepStrictEqual(foldersToAdd[0].uri, folderUri);
+                await performFolderActionAndSavePreference(request, action, services);
+
+                // Should not show save preference dialog
+                assert.ok(!showInformationMessageStub.called, 'Should not show save preference dialog');
+
+                // Verify action was still performed
+                if (action === FolderAction.openInCurrentWindow) {
+                    assert.ok(executeCommandStub.calledWith('vscode.openFolder', folderUri, false));
+                }
             });
         });
 
@@ -441,20 +427,23 @@ describe('localFolderCommandHelpers', () => {
             [FolderAction.openInNewWindow, FolderAction.doNothing].forEach(action => {
                 it(`should handle save preference non-modally after ${action} when prompted=true`, async () => {
                     configurationProviderMock.setup(c => c.get(It.IsAny(), It.IsAny())).returns(LocalFolderSaveBehavior.prompt);
-                    
+
                     // Non-modal returns a promise that resolves with the choice
                     const choicePromise = Promise.resolve('Yes');
                     showInformationMessageStub.returns(choicePromise);
                     executeCommandStub.resolves();
 
-                    await performFolderActionAndSavePreference(
+                    const services: LocalFolderServices = {
+                        localFolderService: localFolderServiceMock.object(),
+                        configurationProvider: configurationProviderMock.object()
+                    };
+                    const request: FolderActionRequest = {
                         folderUri,
-                        action,
-                        artifactMock.object(),
-                        localFolderServiceMock.object(),
-                        configurationProviderMock.object(),
-                        true // prompted
-                    );
+                        artifact: artifactMock.object(),
+                        prompted: true
+                    };
+
+                    await performFolderActionAndSavePreference(request, action, services);
 
                     // Verify action was performed first
                     if (action === FolderAction.openInNewWindow) {
@@ -474,14 +463,17 @@ describe('localFolderCommandHelpers', () => {
                 configurationProviderMock.setup(c => c.get(It.IsAny(), It.IsAny())).returns(LocalFolderSaveBehavior.never);
                 executeCommandStub.resolves();
 
-                await performFolderActionAndSavePreference(
+                const services: LocalFolderServices = {
+                    localFolderService: localFolderServiceMock.object(),
+                    configurationProvider: configurationProviderMock.object()
+                };
+                const request: FolderActionRequest = {
                     folderUri,
-                    FolderAction.openInNewWindow,
-                    artifactMock.object(),
-                    localFolderServiceMock.object(),
-                    configurationProviderMock.object(),
-                    false
-                );
+                    artifact: artifactMock.object(),
+                    prompted: false
+                };
+
+                await performFolderActionAndSavePreference(request, FolderAction.openInNewWindow, services);
 
                 assert.ok(executeCommandStub.calledWith('vscode.openFolder', folderUri, true));
             });
@@ -489,14 +481,17 @@ describe('localFolderCommandHelpers', () => {
             it('should not perform any action for doNothing', async () => {
                 configurationProviderMock.setup(c => c.get(It.IsAny(), It.IsAny())).returns(LocalFolderSaveBehavior.never);
 
-                await performFolderActionAndSavePreference(
+                const services: LocalFolderServices = {
+                    localFolderService: localFolderServiceMock.object(),
+                    configurationProvider: configurationProviderMock.object()
+                };
+                const request: FolderActionRequest = {
                     folderUri,
-                    FolderAction.doNothing,
-                    artifactMock.object(),
-                    localFolderServiceMock.object(),
-                    configurationProviderMock.object(),
-                    false
-                );
+                    artifact: artifactMock.object(),
+                    prompted: false
+                };
+
+                await performFolderActionAndSavePreference(request, FolderAction.doNothing, services);
 
                 assert.ok(!executeCommandStub.called, 'Should not execute any command');
                 assert.ok(!updateWorkspaceFoldersStub.called, 'Should not update workspace folders');
@@ -508,14 +503,17 @@ describe('localFolderCommandHelpers', () => {
                 configurationProviderMock.setup(c => c.get('LocalFolderSaveBehavior', It.IsAny())).returns(LocalFolderSaveBehavior.always);
                 executeCommandStub.resolves();
 
-                await performFolderActionAndSavePreference(
+                const services: LocalFolderServices = {
+                    localFolderService: localFolderServiceMock.object(),
+                    configurationProvider: configurationProviderMock.object()
+                };
+                const request: FolderActionRequest = {
                     folderUri,
-                    FolderAction.openInCurrentWindow,
-                    artifactMock.object(),
-                    localFolderServiceMock.object(),
-                    configurationProviderMock.object(),
-                    true // prompted
-                );
+                    artifact: artifactMock.object(),
+                    prompted: true
+                };
+
+                await performFolderActionAndSavePreference(request, FolderAction.openInCurrentWindow, services);
 
                 // Should auto-save without showing dialog
                 assert.ok(!showInformationMessageStub.called, 'Should not show dialog');
@@ -526,14 +524,17 @@ describe('localFolderCommandHelpers', () => {
                 configurationProviderMock.setup(c => c.get('LocalFolderSaveBehavior', It.IsAny())).returns(LocalFolderSaveBehavior.never);
                 executeCommandStub.resolves();
 
-                await performFolderActionAndSavePreference(
+                const services: LocalFolderServices = {
+                    localFolderService: localFolderServiceMock.object(),
+                    configurationProvider: configurationProviderMock.object()
+                };
+                const request: FolderActionRequest = {
                     folderUri,
-                    FolderAction.openInCurrentWindow,
-                    artifactMock.object(),
-                    localFolderServiceMock.object(),
-                    configurationProviderMock.object(),
-                    true // prompted
-                );
+                    artifact: artifactMock.object(),
+                    prompted: true
+                };
+
+                await performFolderActionAndSavePreference(request, FolderAction.openInCurrentWindow, services);
 
                 // Should not save or show dialog
                 assert.ok(!showInformationMessageStub.called, 'Should not show dialog');
@@ -574,14 +575,17 @@ describe('localFolderCommandHelpers', () => {
             showInformationMessageStub.onFirstCall().resolves({ title: 'Open in new window', action: FolderAction.openInNewWindow });
             executeCommandStub.resolves();
 
-            const result = await showFolderActionAndSavePreference(
-                testMessage,
+            const services: LocalFolderServices = {
+                localFolderService: localFolderServiceMock.object(),
+                configurationProvider: configurationProviderMock.object()
+            };
+            const request: FolderActionRequest = {
                 folderUri,
-                artifactMock.object(),
-                localFolderServiceMock.object(),
-                configurationProviderMock.object(),
-                false
-            );
+                artifact: artifactMock.object(),
+                prompted: false
+            };
+
+            const result = await showFolderActionAndSavePreference(testMessage, request, services);
 
             assert.strictEqual(result, FolderAction.openInNewWindow);
             assert.ok(executeCommandStub.calledWith('vscode.openFolder', folderUri, true));
@@ -590,14 +594,17 @@ describe('localFolderCommandHelpers', () => {
         it('should return undefined when user cancels dialog', async () => {
             showInformationMessageStub.resolves(undefined);
 
-            const result = await showFolderActionAndSavePreference(
-                testMessage,
+            const services: LocalFolderServices = {
+                localFolderService: localFolderServiceMock.object(),
+                configurationProvider: configurationProviderMock.object()
+            };
+            const request: FolderActionRequest = {
                 folderUri,
-                artifactMock.object(),
-                localFolderServiceMock.object(),
-                configurationProviderMock.object(),
-                false
-            );
+                artifact: artifactMock.object(),
+                prompted: false
+            };
+
+            const result = await showFolderActionAndSavePreference(testMessage, request, services);
 
             assert.strictEqual(result, undefined);
             assert.ok(!executeCommandStub.called, 'Should not perform any action');
@@ -606,13 +613,20 @@ describe('localFolderCommandHelpers', () => {
         it('should pass options to showFolderActionDialog', async () => {
             showInformationMessageStub.resolves({ title: 'Do nothing', action: FolderAction.doNothing });
 
+            const services: LocalFolderServices = {
+                localFolderService: localFolderServiceMock.object(),
+                configurationProvider: configurationProviderMock.object()
+            };
+            const request: FolderActionRequest = {
+                folderUri,
+                artifact: artifactMock.object(),
+                prompted: false
+            };
+
             await showFolderActionAndSavePreference(
                 testMessage,
-                folderUri,
-                artifactMock.object(),
-                localFolderServiceMock.object(),
-                configurationProviderMock.object(),
-                false,
+                request,
+                services,
                 { modal: true, includeDoNothing: false }
             );
 
@@ -627,14 +641,17 @@ describe('localFolderCommandHelpers', () => {
             showInformationMessageStub.onSecondCall().resolves('Yes'); // Save preference
             executeCommandStub.resolves();
 
-            const result = await showFolderActionAndSavePreference(
-                testMessage,
+            const services: LocalFolderServices = {
+                localFolderService: localFolderServiceMock.object(),
+                configurationProvider: configurationProviderMock.object()
+            };
+            const request: FolderActionRequest = {
                 folderUri,
-                artifactMock.object(),
-                localFolderServiceMock.object(),
-                configurationProviderMock.object(),
-                true // prompted
-            );
+                artifact: artifactMock.object(),
+                prompted: true
+            };
+
+            const result = await showFolderActionAndSavePreference(testMessage, request, services);
 
             assert.strictEqual(result, FolderAction.openInCurrentWindow);
             // Should have shown both folder action dialog and save preference dialog
@@ -649,14 +666,17 @@ describe('localFolderCommandHelpers', () => {
         it('should handle doNothing action without performing any folder operation', async () => {
             showInformationMessageStub.resolves({ title: 'Do nothing', action: FolderAction.doNothing });
 
-            const result = await showFolderActionAndSavePreference(
-                testMessage,
+            const services: LocalFolderServices = {
+                localFolderService: localFolderServiceMock.object(),
+                configurationProvider: configurationProviderMock.object()
+            };
+            const request: FolderActionRequest = {
                 folderUri,
-                artifactMock.object(),
-                localFolderServiceMock.object(),
-                configurationProviderMock.object(),
-                false
-            );
+                artifact: artifactMock.object(),
+                prompted: false
+            };
+
+            const result = await showFolderActionAndSavePreference(testMessage, request, services);
 
             assert.strictEqual(result, FolderAction.doNothing);
             assert.ok(!executeCommandStub.called, 'Should not execute any command');

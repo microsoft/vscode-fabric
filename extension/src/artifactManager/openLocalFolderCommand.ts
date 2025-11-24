@@ -8,7 +8,7 @@ import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { IItemDefinitionConflictDetector } from '../itemDefinition/ItemDefinitionConflictDetector';
 import { IItemDefinitionWriter } from '../itemDefinition/ItemDefinitionWriter';
 import { ILocalFolderService, LocalFolderPromptMode } from '../LocalFolderService';
-import { downloadAndSaveArtifact, performFolderActionAndSavePreference, showFolderActionDialog, FolderAction, showFolderActionAndSavePreference } from './localFolderCommandHelpers';
+import { downloadAndSaveArtifact, performFolderActionAndSavePreference, showFolderActionDialog, FolderAction, showFolderActionAndSavePreference, LocalFolderServices, FolderActionRequest } from './localFolderCommandHelpers';
 import { changeLocalFolderCommand } from './changeLocalFolderCommand';
 
 export async function openLocalFolderCommand(
@@ -50,14 +50,9 @@ export async function openLocalFolderCommand(
         }
         else if (choice) {
             // Perform the action with save preference handling
-            await performFolderActionAndSavePreference(
-                existingFolder.uri,
-                choice,
-                artifact,
-                localFolderService,
-                configurationProvider,
-                false
-            );
+            const services: LocalFolderServices = { localFolderService, configurationProvider };
+            const request: FolderActionRequest = { folderUri: existingFolder.uri, artifact, prompted: false };
+            await performFolderActionAndSavePreference(request, choice, services);
         }
 
         return;
@@ -104,13 +99,12 @@ export async function openLocalFolderCommand(
     );
 
     // Show action dialog and perform the selected action
+    const services: LocalFolderServices = { localFolderService, configurationProvider };
+    const request: FolderActionRequest = { folderUri: localFolderResults.uri, artifact, prompted: localFolderResults.prompted };
     await showFolderActionAndSavePreference(
         vscode.l10n.t('How would you like to open {0}?', localFolderResults.uri.fsPath),
-        localFolderResults.uri,
-        artifact,
-        localFolderService,
-        configurationProvider,
-        localFolderResults.prompted,
+        request,
+        services,
         { modal: true, includeDoNothing: false }
     );
 }

@@ -11,6 +11,47 @@ import { IItemDefinitionWriter } from '../itemDefinition/ItemDefinitionWriter';
 import { ILocalFolderService, LocalFolderSaveBehavior } from '../LocalFolderService';
 
 /**
+ * Gets the display name for a folder from its URI.
+ */
+export function getFolderDisplayName(uri: vscode.Uri): string {
+    return uri.path.split('/').pop() || uri.fsPath.split(/[/\\]/).pop() || 'folder';
+}
+
+/**
+ * Copies all contents from a source folder to a target folder.
+ * Used when user chooses to copy from existing folder instead of downloading fresh.
+ */
+export async function copyFolderContents(
+    sourceFolder: vscode.Uri,
+    targetFolder: vscode.Uri,
+    fileSystem: vscode.FileSystem = vscode.workspace.fs
+): Promise<void> {
+    try {
+        // Check if source folder exists
+        await fileSystem.stat(sourceFolder);
+
+        // Copy all contents from source folder to target folder
+        const sourceFiles = await fileSystem.readDirectory(sourceFolder);
+
+        for (const [fileName, fileType] of sourceFiles) {
+            const sourceFile = vscode.Uri.joinPath(sourceFolder, fileName);
+            const targetFile = vscode.Uri.joinPath(targetFolder, fileName);
+
+            if (fileType === vscode.FileType.File || fileType === vscode.FileType.Directory) {
+                await fileSystem.copy(sourceFile, targetFile, { overwrite: true });
+            }
+        }
+    }
+    catch (error) {
+        throw new FabricError(
+            vscode.l10n.t('Error copying from existing folder: {0}', error instanceof Error ? error.message : 'Unknown error'),
+            'Copy from existing folder failed',
+            { showInUserNotification: 'Information' }
+        );
+    }
+}
+
+/**
  * Downloads an artifact from the API and saves it to the specified folder.
  * Handles conflict detection, user confirmation, and error handling.
  */
@@ -70,37 +111,30 @@ export async function downloadAndSaveArtifact(
 }
 
 /**
- * Copies all contents from a source folder to a target folder.
- * Used when user chooses to copy from existing folder instead of downloading fresh.
+ * Bundle of services commonly used together for local folder operations.
  */
-export async function copyFolderContents(
-    sourceFolder: vscode.Uri,
-    targetFolder: vscode.Uri,
-    fileSystem: vscode.FileSystem = vscode.workspace.fs
-): Promise<void> {
-    try {
-        // Check if source folder exists
-        await fileSystem.stat(sourceFolder);
+export interface LocalFolderServices {
+    localFolderService: ILocalFolderService;
+    configurationProvider: IConfigurationProvider;
+}
 
-        // Copy all contents from source folder to target folder
-        const sourceFiles = await fileSystem.readDirectory(sourceFolder);
+/**
+ * Request object containing the data needed for folder action operations.
+ */
+export interface FolderActionRequest {
+    folderUri: vscode.Uri;
+    artifact: IArtifact;
+    prompted: boolean;
+}
 
-        for (const [fileName, fileType] of sourceFiles) {
-            const sourceFile = vscode.Uri.joinPath(sourceFolder, fileName);
-            const targetFile = vscode.Uri.joinPath(targetFolder, fileName);
-
-            if (fileType === vscode.FileType.File || fileType === vscode.FileType.Directory) {
-                await fileSystem.copy(sourceFile, targetFile, { overwrite: true });
-            }
-        }
-    }
-    catch (error) {
-        throw new FabricError(
-            vscode.l10n.t('Error copying from existing folder: {0}', error instanceof Error ? error.message : 'Unknown error'),
-            'Copy from existing folder failed',
-            { showInUserNotification: 'Information' }
-        );
-    }
+/**
+ * Enum representing the possible actions a user can take with a folder.
+ */
+export enum FolderAction {
+    doNothing = 'doNothing',
+    openInCurrentWindow = 'openInCurrentWindow',
+    openInNewWindow = 'openInNewWindow',
+    chooseDifferentFolder = 'chooseDifferentFolder'
 }
 
 /**
@@ -110,26 +144,26 @@ export async function copyFolderContents(
  * - Does nothing if set to 'never'
  * - Shows a prompt if set to 'prompt'
  *
- * @param prompted - If true, indicates the user was prompted to select this folder (vs. using a saved/default folder)
+ * @param request - Contains the folder URI, artifact, and whether user was prompted
+ * @param services - Bundle of services for managing local folders
+ * @param options - Optional configuration for the dialog (modal)
  */
 async function handleLocalFolderSavePreference(
-    artifact: IArtifact,
-    folderUri: vscode.Uri,
-    localFolderService: ILocalFolderService,
-    configurationProvider: IConfigurationProvider,
-    prompted: boolean,
+    request: FolderActionRequest,
+    services: LocalFolderServices,
     options?: { modal?: boolean;  }
 ): Promise<void> {
     // Only handle save preference if the user was prompted to select a folder
-    if (!prompted) {
+    if (!request.prompted) {
         return;
     }
 
-    const currentBehavior = configurationProvider.get<LocalFolderSaveBehavior>('LocalFolderSaveBehavior', LocalFolderSaveBehavior.prompt);
+    const currentBehavior = services.configurationProvider.get<LocalFolderSaveBehavior>('LocalFolderSaveBehavior', LocalFolderSaveBehavior.prompt);
 
     // Auto-save without prompting
+    // Auto-save without prompting
     if (currentBehavior === LocalFolderSaveBehavior.always) {
-        await localFolderService.updateLocalFolder(artifact, folderUri);
+        await services.localFolderService.updateLocalFolder(request.artifact, request.folderUri);
         return;
     }
 
@@ -174,12 +208,12 @@ async function handleLocalFolderSavePreference(
         try {
             // Update global behavior if changed
             if (newBehavior) {
-                await configurationProvider.update('LocalFolderSaveBehavior', newBehavior);
+                await services.configurationProvider.update('LocalFolderSaveBehavior', newBehavior);
             }
 
             // Handle saving/not saving the path
             if (shouldSave) {
-                await localFolderService.updateLocalFolder(artifact, folderUri);
+                await services.localFolderService.updateLocalFolder(request.artifact, request.folderUri);
             }
         }
         catch (error) {
@@ -191,7 +225,7 @@ async function handleLocalFolderSavePreference(
         // Show modal dialog and await the response
         // Don't show 'No' because in modal: 'Cancel' acts as 'No''
         const choice = await vscode.window.showInformationMessage(
-            vscode.l10n.t('Do you want to remember folder {0} to use for {1} in the future?', folderUri.fsPath, artifact.displayName),
+            vscode.l10n.t('Do you want to remember folder {0} to use for {1} in the future?', request.folderUri.fsPath, request.artifact.displayName),
             { modal: true },
             yesOption,
             alwaysOption,
@@ -202,31 +236,13 @@ async function handleLocalFolderSavePreference(
     else {
         // Show non-modal dialog without awaiting
         void vscode.window.showInformationMessage(
-            vscode.l10n.t('Do you want to remember folder {0} to use for {1} in the future?', folderUri.fsPath, artifact.displayName),
+            vscode.l10n.t('Do you want to remember folder {0} to use for {1} in the future?', request.folderUri.fsPath, request.artifact.displayName),
             yesOption,
             noOption,
             alwaysOption,
             neverOption
         ).then(handleChoice);
     }
-}
-
-/**
- * Gets the display name for a folder from its URI.
- */
-export function getFolderDisplayName(uri: vscode.Uri): string {
-    return uri.path.split('/').pop() || uri.fsPath.split(/[/\\]/).pop() || 'folder';
-}
-
-/**
- * Enum representing the possible actions a user can take with a folder.
- */
-export enum FolderAction {
-    doNothing = 'doNothing',
-    openInCurrentWindow = 'openInCurrentWindow',
-    openInNewWindow = 'openInNewWindow',
-    addToWorkspace = 'addToWorkspace',
-    chooseDifferentFolder = 'chooseDifferentFolder'
 }
 
 /**
@@ -271,14 +287,6 @@ export async function showFolderActionDialog(
 
 async function performFolderAction(folderUri: vscode.Uri, action: FolderAction): Promise<void> {
     switch (action) {
-        case FolderAction.addToWorkspace:
-            const workspaceFolders = vscode.workspace.workspaceFolders || [];
-            const updatedFolders = [
-                ...workspaceFolders.map(folder => ({ uri: folder.uri, name: folder.name })),
-                { uri: folderUri }
-            ];
-            await vscode.workspace.updateWorkspaceFolders(workspaceFolders.length, 0, ...updatedFolders.slice(workspaceFolders.length));
-            break;
         case FolderAction.openInCurrentWindow:
             await vscode.commands.executeCommand('vscode.openFolder', folderUri, false);
             break;
@@ -290,56 +298,44 @@ async function performFolderAction(folderUri: vscode.Uri, action: FolderAction):
 
 /**
  * Performs a folder action with integrated save preference handling.
- * 
+ *
  * This helper handles the workflow of:
  * 1. Detecting if the action will update the workspace (causing extension reload)
  * 2. If updating workspace: handling save preference with modal dialog BEFORE reload
  * 3. Performing the selected action
  * 4. If not updating workspace: handling save preference with non-modal dialog AFTER action
- * 
- * @param folderUri - The URI of the folder to work with
+ *
+ * @param request - Contains the folder URI, artifact, and whether user was prompted
  * @param action - The folder action to perform
- * @param artifact - The artifact associated with the folder
- * @param localFolderService - Service for managing local folder mappings
- * @param configurationProvider - Provider for accessing user configuration
- * @param prompted - Whether the user was prompted to select this folder
+ * @param services - Bundle of services for managing local folders
  */
 export async function performFolderActionAndSavePreference(
-    folderUri: vscode.Uri,
+    request: FolderActionRequest,
     action: FolderAction,
-    artifact: IArtifact,
-    localFolderService: ILocalFolderService,
-    configurationProvider: IConfigurationProvider,
-    prompted: boolean
+    services: LocalFolderServices
 ): Promise<void> {
     // Check if this action will update the workspace (causing extension reload)
-    const updatingWorkspace: boolean = (action === FolderAction.addToWorkspace || action === FolderAction.openInCurrentWindow);
+    const updatingWorkspace: boolean = (action === FolderAction.openInCurrentWindow);
 
     // If updating workspace, handle save preference with modal dialog BEFORE reload
     if (updatingWorkspace) {
         await handleLocalFolderSavePreference(
-            artifact,
-            folderUri,
-            localFolderService,
-            configurationProvider,
-            prompted,
+            request,
+            services,
             { modal: true }
         );
     }
 
     // Perform the selected action
     if (action !== FolderAction.doNothing) {
-        await performFolderAction(folderUri, action);
+        await performFolderAction(request.folderUri, action);
     }
 
     // If not updating workspace, handle save preference with non-modal dialog AFTER action
     if (!updatingWorkspace) {
         void handleLocalFolderSavePreference(
-            artifact,
-            folderUri,
-            localFolderService,
-            configurationProvider,
-            prompted
+            request,
+            services
         );
     }
 }
@@ -356,17 +352,23 @@ export async function performFolderActionAndSavePreference(
  * @param localFolderService - Service for managing local folder mappings
  * @param configurationProvider - Provider for accessing user configuration
  * @param prompted - Whether the user was prompted to select this folder
+/**
+ * Shows a folder action dialog and performs the selected action with integrated save preference handling.
+ *
+ * This helper encapsulates the common workflow of:
+ * 1. Showing the folder action dialog
+ * 2. Performing the selected action with save preference handling
+ *
  * @param message - The message to display in the folder action dialog
+ * @param request - Contains the folder URI, artifact, and whether user was prompted
+ * @param services - Bundle of services for managing local folders
  * @param options - Optional configuration for the dialog (modal, includeDoNothing)
  * @returns The selected FolderAction, or undefined if user cancelled
  */
 export async function showFolderActionAndSavePreference(
     message: string,
-    folderUri: vscode.Uri,
-    artifact: IArtifact,
-    localFolderService: ILocalFolderService,
-    configurationProvider: IConfigurationProvider,
-    prompted: boolean,
+    request: FolderActionRequest,
+    services: LocalFolderServices,
     options?: { modal?: boolean; includeDoNothing?: boolean; }
 ): Promise<FolderAction | undefined> {
     // Show folder action dialog
@@ -378,12 +380,9 @@ export async function showFolderActionAndSavePreference(
 
     // Perform the action with save preference handling
     await performFolderActionAndSavePreference(
-        folderUri,
+        request,
         action,
-        artifact,
-        localFolderService,
-        configurationProvider,
-        prompted
+        services
     );
 
     return action;
