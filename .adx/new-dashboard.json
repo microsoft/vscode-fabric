@@ -328,7 +328,7 @@
         },
         {
             "id": "d1e2f3a4-b5c6-4789-d8ef-111111111128",
-            "title": "Workspace Open Success Rate",
+            "title": "Item Export Success Rate",
             "visualType": "card",
             "pageId": "a1b2c3d4-e5f6-4789-a0bc-444444444444",
             "layout": {
@@ -809,7 +809,7 @@
                 "kind": "inline",
                 "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
             },
-            "text": "_events\n| where EventName == \"fabric.vscode-fabric/workspace/open\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
+            "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/export\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
             "usedVariables": [
                 "_events"
             ]
