@@ -133,12 +133,12 @@ async function checkLicenseAndSignUpIfNeeded(
         const isUnlicensedError = error instanceof UnlicensedUserError;
 
         if (isUnlicensedError) {
-            logger.log('User does not have a Fabric license, opening signup page');
+            logger.info('User does not have a Fabric license, opening signup page');
             await signUpForFabric(auth, fabricEnvironmentProvider, telemetryService, logger);
         }
         else {
             // For other errors, just log them - don't trigger signup
-            logger.log(`Error checking Fabric license: ${error?.message}`);
+            logger.info(`Error checking Fabric license: ${error?.message}`);
         }
     }
 }
@@ -174,7 +174,14 @@ async function signUpForFabric(
         });
     }
     catch (error: any) {
-        logger.reportExceptionTelemetryAndLog('signUpForFabric', 'fabric/signUpError', error, telemetryService);
-        void vscode.window.showErrorMessage(vscode.l10n.t('Failed to open Fabric signup page: {0}', error.message));
+        const errorMessage: string = error instanceof Error ? error.message : String(error);
+
+        telemetryService?.sendTelemetryErrorEvent(error, {
+            errorEventName: 'fabric/signUpError',
+            fault: errorMessage,
+        });
+
+        logger.error(`Error occurred in signUpForFabric: ${errorMessage}`);
+        void vscode.window.showErrorMessage(vscode.l10n.t('Failed to open Fabric signup page: {0}', errorMessage));
     }
 }
