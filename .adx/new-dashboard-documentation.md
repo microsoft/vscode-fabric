@@ -55,7 +55,7 @@ This dashboard provides actionable health metrics for the Core VS Code Fabric ex
   - 🟢 Green (>95%): Healthy
   - 🟡 Yellow (90-95%): Warning
   - 🔴 Red (<90%): Critical
-- **Filters Applied**: Excludes operations where user cancelled (message contains 'Cancel')
+- **Filters Applied**: Excludes operations where user cancelled (message contains 'Cancel'), FeatureNotAvailable errors
 - **Event**: `fabric.vscode-fabric/workspace/create`
 
 ### Item Open Success Rate
@@ -69,6 +69,7 @@ This dashboard provides actionable health metrics for the Core VS Code Fabric ex
   - 🔴 Red (<90%): Critical
 - **Filters Applied**:
   - Excludes operations where user cancelled (message contains 'Cancel')
+  - Excludes FeatureNotAvailable errors
   - Respects Item Type parameter filter
 - **Event**: `fabric.vscode-fabric/item/open`
 
@@ -112,7 +113,7 @@ This dashboard provides actionable health metrics for the Core VS Code Fabric ex
 - **Purpose**: Monitor reliability of item update/save operations
 - **Metric**: Percentage of successful item update operations (excluding user cancellations)
 - **Color Coding**: 🟢 Green (>95%), 🟡 Yellow (90-95%), 🔴 Red (<90%)
-- **Filters Applied**: Excludes cancellations, respects Item Type filter
+- **Filters Applied**: Excludes cancellations, FeatureNotAvailable errors, respects Item Type filter
 - **Event**: `fabric.vscode-fabric/item/update`
 
 ### Item Delete Success Rate
@@ -121,7 +122,7 @@ This dashboard provides actionable health metrics for the Core VS Code Fabric ex
 - **Purpose**: Monitor reliability of item deletion operations
 - **Metric**: Percentage of successful item delete operations (excluding user cancellations)
 - **Color Coding**: 🟢 Green (>95%), 🟡 Yellow (90-95%), 🔴 Red (<90%)
-- **Filters Applied**: Excludes cancellations, respects Item Type filter
+- **Filters Applied**: Excludes cancellations, FeatureNotAvailable errors, respects Item Type filter
 - **Event**: `fabric.vscode-fabric/item/delete`
 
 ### Workspace Open Success Rate
@@ -130,7 +131,7 @@ This dashboard provides actionable health metrics for the Core VS Code Fabric ex
 - **Purpose**: Monitor reliability of workspace open operations
 - **Metric**: Percentage of successful workspace open operations (excluding user cancellations)
 - **Color Coding**: 🟢 Green (>95%), 🟡 Yellow (90-95%), 🔴 Red (<90%)
-- **Filters Applied**: Excludes cancellations
+- **Filters Applied**: Excludes cancellations, FeatureNotAvailable errors
 - **Event**: `fabric.vscode-fabric/workspace/open`
 
 ### Load Items Success Rate
@@ -139,7 +140,7 @@ This dashboard provides actionable health metrics for the Core VS Code Fabric ex
 - **Purpose**: Monitor reliability of workspace item listing operations
 - **Metric**: Percentage of successful load-items operations (excluding user cancellations)
 - **Color Coding**: 🟢 Green (>95%), 🟡 Yellow (90-95%), 🔴 Red (<90%)
-- **Filters Applied**: Excludes cancellations
+- **Filters Applied**: Excludes cancellations, FeatureNotAvailable errors
 - **Event**: `fabric.vscode-fabric/workspace/load-items`
 - **Use Case**: Detect issues with workspace item enumeration that could impact user experience
 
@@ -206,6 +207,7 @@ This dashboard provides actionable health metrics for the Core VS Code Fabric ex
 ### What's Excluded (Non-Actionable)
 
 - **User Cancellations**: Operations where the user explicitly cancelled (detected via message containing 'Cancel' or `isCanceledError` flag)
+- **FeatureNotAvailable Errors**: Failures where a feature is not available in the user's Fabric environment or capacity (non-actionable for the extension team)
 - **Authentication Errors**: Auth-related failures that are typically transient or user environment issues
 - **Test Mode**: Extension running in test/UI test mode (`ExtensionMode == 3`)
 

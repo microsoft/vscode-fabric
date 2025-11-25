@@ -172,7 +172,7 @@
                 "x": 16,
                 "y": 3,
                 "width": 4,
-                "height": 3
+                "height": 4
             },
             "queryRef": {
                 "kind": "query",
@@ -717,7 +717,7 @@
                 "kind": "inline",
                 "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
             },
-            "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/create\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isempty(['_ItemType']) or ItemType == ['_ItemType']\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
+            "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/create\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isempty(['_ItemType']) or ItemType == ['_ItemType']\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
             "usedVariables": [
                 "_events",
                 "_ItemType"
@@ -729,7 +729,7 @@
                 "kind": "inline",
                 "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
             },
-            "text": "_events\n| where EventName == \"fabric.vscode-fabric/workspace/create\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
+            "text": "_events\n| where EventName == \"fabric.vscode-fabric/workspace/create\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
             "usedVariables": [
                 "_events"
             ]
@@ -740,7 +740,7 @@
                 "kind": "inline",
                 "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
             },
-            "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/open\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isempty(['_ItemType']) or ItemType == ['_ItemType']\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
+            "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/open\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isempty(['_ItemType']) or ItemType == ['_ItemType']\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
             "usedVariables": [
                 "_events",
                 "_ItemType"
@@ -785,7 +785,7 @@
                 "kind": "inline",
                 "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
             },
-            "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/update\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isempty(['_ItemType']) or ItemType == ['_ItemType']\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
+            "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/update\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isempty(['_ItemType']) or ItemType == ['_ItemType']\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
             "usedVariables": [
                 "_events",
                 "_ItemType"
@@ -797,7 +797,7 @@
                 "kind": "inline",
                 "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
             },
-            "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/delete\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isempty(['_ItemType']) or ItemType == ['_ItemType']\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
+            "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/delete\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isempty(['_ItemType']) or ItemType == ['_ItemType']\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
             "usedVariables": [
                 "_events",
                 "_ItemType"
@@ -809,7 +809,7 @@
                 "kind": "inline",
                 "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
             },
-            "text": "_events\n| where EventName == \"fabric.vscode-fabric/workspace/open\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
+            "text": "_events\n| where EventName == \"fabric.vscode-fabric/workspace/open\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
             "usedVariables": [
                 "_events"
             ]
@@ -820,7 +820,7 @@
                 "kind": "inline",
                 "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
             },
-            "text": "_events\n| where EventName == \"fabric.vscode-fabric/workspace/load-items\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
+            "text": "_events\n| where EventName == \"fabric.vscode-fabric/workspace/load-items\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
             "usedVariables": [
                 "_events"
             ]
