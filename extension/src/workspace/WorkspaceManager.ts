@@ -73,9 +73,9 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         protected apiClient: IFabricApiClient,
         protected gitOperator: IGitOperator,
         protected logger: ILogger,
-        protected localFolderService: ILocalFolderService
-        protected configurationProvider: IConfigurationProvider,
         protected telemetryService: TelemetryService | null,
+        protected configurationProvider: IConfigurationProvider,
+        protected localFolderService: ILocalFolderService
     ) {
         this.disposables.push(this.account.onSignInChanged(async () => {
             await this.refreshConnectionToFabric();
@@ -289,7 +289,7 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         return result?.uri;
     }
 
-    private async promptForLocalFolder(workspace: IWorkspace): Promise<vscode.Uri | undefined> {
+    public async promptForLocalFolder(workspace: IWorkspace): Promise<vscode.Uri | undefined> {
         this.ensureWorkspace(workspace);
         let localWorkspaceFolder: vscode.Uri | undefined = await this.localFolderManager.getLocalFolderForFabricWorkspace(workspace);
         if (!localWorkspaceFolder) {

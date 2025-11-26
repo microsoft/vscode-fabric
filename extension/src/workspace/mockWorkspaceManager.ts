@@ -36,7 +36,7 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
         telemetryService: TelemetryService | null = null,
         configurationProvider: IConfigurationProvider = new FakeConfigurationProvider()
     ) {
-        super(storage, new LocalFolderManager(storage, fabricEnvironmentProvider), account, fabricEnvironmentProvider, apiClient, gitOperator, logger, telemetryService, configurationProvider);
+        super(storage, new LocalFolderManager(storage, fabricEnvironmentProvider), account, fabricEnvironmentProvider, apiClient, gitOperator, logger, telemetryService, configurationProvider, localFolderService);
 
         const workspaceIds: string[] = Array.from({ length: 4 }, (e, i) => `wspaceId${i}`);
         workspaceIds.push(mockGuidWorkspaceId);
