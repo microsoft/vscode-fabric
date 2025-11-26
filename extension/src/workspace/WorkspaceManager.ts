@@ -114,6 +114,10 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
 
                 if (error instanceof UnlicensedUserError) {
                     this.logger.log('User does not have a Fabric account (401 response)');
+                    if (afterSignUp) {
+                        this.logger.error('User still unlicensed after sign up attempt');
+                        this.telemetryService?.sendTelemetryEvent('fabric/signUpFailed');
+                    }
                     await vscode.commands.executeCommand('setContext', this.fabricWorkspaceContext, 'signin');
                     return false;
                 }

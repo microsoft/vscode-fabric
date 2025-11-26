@@ -178,6 +178,6 @@ async function signUpForFabric(
         });
 
         logger.error(`Error occurred in signUpForFabric: ${errorMessage}`);
-        void vscode.window.showErrorMessage(vscode.l10n.t('Failed to open Fabric signup page: {0}', errorMessage));
+        void vscode.window.showErrorMessage(vscode.l10n.t('Failed to open Fabric signup pagee'));
     }
 }

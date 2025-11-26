@@ -37,7 +37,6 @@ export type TelemetryEventNames = {
 	'apiclient/send-request': { properties: ApiResultPropertyNames; measurements: never },
 
 	// uri handler
-	'fabric/signUpCompleted': { properties: ResultPropertyNames | ArtifactPropertyNames | 'query' | 'error' | 'targetEnvironment' | 'openArtifact' | 'uriQuery'; measurements: never }
-	'fabric/signUpSuccessful': { properties: ResultPropertyNames | ArtifactPropertyNames | 'query' | 'error' | 'targetEnvironment' | 'openArtifact' | 'uriQuery'; measurements: never }
+
 	'fabric/handleUri': { properties: ResultPropertyNames | ArtifactPropertyNames | 'query' | 'error' | 'targetEnvironment' | 'openArtifact' | 'uriQuery'; measurements: never }
 };
