@@ -22,7 +22,7 @@ import { exportArtifactCommand } from './exportArtifactCommand';
 import { openLocalFolderCommand } from './openLocalFolderCommand';
 import { changeLocalFolderCommand } from './changeLocalFolderCommand';
 import { ItemDefinitionWriter } from '../itemDefinition/ItemDefinitionWriter';
-import { UserCancelledError } from '@microsoft/vscode-fabric-util';
+import { FabricError, UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { showSignInPrompt } from '../ui/prompts';
 import { ICapacityManager } from '../CapacityManager';
 import { showWorkspaceQuickPick } from '../ui/showWorkspaceQuickPick';
@@ -30,6 +30,9 @@ import { WorkspaceTreeNode } from '../workspace/treeNodes/WorkspaceTreeNode';
 import { ItemDefinitionConflictDetector } from '../itemDefinition/ItemDefinitionConflictDetector';
 import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 import { ILocalFolderService } from '../LocalFolderService';
+import { IAccountProvider } from '../authentication';
+import { NotSignedInError } from '../ui/NotSignedInError';
+
 
 let artifactCommandDisposables: vscode.Disposable[] = [];
 
@@ -53,6 +56,7 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
     extensionManager: IFabricExtensionManagerInternal,
     workspaceFilterManager: IWorkspaceFilterManager,
     capacityManager: ICapacityManager,
+    accountProvider: IAccountProvider,
     telemetryService: TelemetryService | null,
     logger: ILogger
 ): Promise<void> {
@@ -60,6 +64,34 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
     // Dispose of any existing commands
     artifactCommandDisposables.forEach(disposable => disposable.dispose());
     artifactCommandDisposables = [];
+
+    registerCommand(
+        commandNames.changeLocalFolder,
+        async (...cmdArgs) => {
+            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode;
+            await doArtifactAction(
+                artifactTreeNode?.artifact,
+                'changeLocalFolder',
+                'item/localFolder/change',
+                logger,
+                telemetryService,
+                async (activity, item) => {
+                    addCommonArtifactTelemetryProps(activity, fabricEnvironmentProvider, item);
+                    await changeLocalFolderCommand(
+                        item,
+                        artifactManager,
+                        localFolderService,
+                        configurationProvider,
+                        new ItemDefinitionConflictDetector(vscode.workspace.fs),
+                        new ItemDefinitionWriter(vscode.workspace.fs),
+                        activity,
+                        { skipWarning: false, promptForSave: false }
+                    );
+                }
+            );
+        },
+        context
+    );
 
     registerCommand(
         commandNames.createArtifact,
@@ -121,43 +153,8 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                 );
             }
         },
-        context);
-
-    registerCommand(
-        commandNames.readArtifact,
-        async (...cmdArgs) => {
-            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode | undefined;
-            await doArtifactAction(
-                artifactTreeNode?.artifact,
-                'readArtifact',
-                'item/read',
-                logger,
-                telemetryService,
-                async (activity, item) => {
-                    addCommonArtifactTelemetryProps(activity, fabricEnvironmentProvider, item);
-                    await readArtifactCommand(item, artifactManager, activity);
-                }
-            );
-        },
-        context);
-
-    registerCommand(
-        commandNames.renameArtifact,
-        async (...cmdArgs) => {
-            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode | undefined;
-            await doArtifactAction(
-                artifactTreeNode?.artifact,
-                'renameArtifact',
-                'item/update',
-                logger,
-                telemetryService,
-                async (activity, item) => {
-                    addCommonArtifactTelemetryProps(activity, fabricEnvironmentProvider, item);
-                    await renameArtifactCommand(item, artifactManager, dataProvider, activity);
-                }
-            );
-        },
-        context);
+        context
+    );
 
     registerCommand(
         commandNames.deleteArtifact,
@@ -175,19 +172,43 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                 }
             );
         },
-        context);
+        context
+    );
 
     registerCommand(
         commandNames.exportArtifact,
         async (...cmdArgs) => {
-            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode | undefined;
-            const artifact = artifactTreeNode?.artifact;
-            if (!artifact) {
-                return;
-            }
-
             await withErrorHandling('exportArtifact', logger, telemetryService, async () => {
+                const arg = cmdArgs[0];
+                let artifact: IArtifact | undefined;
+
+                // If called with an ArtifactTreeNode, use its artifact
+                if (arg && typeof arg === 'object' && 'artifact' in arg) {
+                    artifact = arg.artifact;
+                }
+                else if (arg && typeof arg === 'object' && 'artifactId' in arg && 'workspaceId' in arg) {
+                    validateIdentifiers(arg.artifactId, arg.workspaceId);
+
+                    const isSignedIn: boolean = await ensureSignedIn(accountProvider);
+                    if (!isSignedIn) {
+                        throw new NotSignedInError();
+                    }
+
+                    // If called with an object from UriHandler, resolve environment and artifact
+                    if (arg.environment) {
+                        if (!(await fabricEnvironmentProvider.switchToEnvironment(arg.environment))) {
+                            throw new FabricError(vscode.l10n.t('Environment parameter not valid: {0}', arg.environment), 'Environment parameter not valid');
+                        }
+                    }
+                    const artifacts = await workspaceManager.getItemsInWorkspace(arg.workspaceId);
+                    artifact = artifacts.find(a => a.id === arg.artifactId);
+                }
+
+                if (!artifact) {
+                    throw new FabricError(vscode.l10n.t('Could not resolve item for Download Item Definition command.'), 'Item not found');
+                }
                 const activity = new TelemetryActivity<CoreTelemetryEventNames>('item/export', telemetryService);
+
                 // Don't use doArtifactAction because exportArtifactCommand should be handling the progress
                 await doFabricAction({ fabricLogger: logger, telemetryActivity: activity }, async () => {
                     try {
@@ -216,60 +237,6 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                     }
                 });
             })();
-        },
-        context);
-
-    registerCommand(
-        commandNames.openLocalFolder,
-        async (...cmdArgs) => {
-            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode;
-            await doArtifactAction(
-                artifactTreeNode?.artifact,
-                'openLocalFolder',
-                'item/localFolder/open',
-                logger,
-                telemetryService,
-                async (activity, item) => {
-                    addCommonArtifactTelemetryProps(activity, fabricEnvironmentProvider, item);
-                    await openLocalFolderCommand(
-                        item,
-                        artifactManager,
-                        localFolderService,
-                        configurationProvider,
-                        new ItemDefinitionConflictDetector(vscode.workspace.fs),
-                        new ItemDefinitionWriter(vscode.workspace.fs),
-                        activity
-                    );
-                }
-            );
-        },
-        context
-    );
-
-    registerCommand(
-        commandNames.changeLocalFolder,
-        async (...cmdArgs) => {
-            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode;
-            await doArtifactAction(
-                artifactTreeNode?.artifact,
-                'changeLocalFolder',
-                'item/localFolder/change',
-                logger,
-                telemetryService,
-                async (activity, item) => {
-                    addCommonArtifactTelemetryProps(activity, fabricEnvironmentProvider, item);
-                    await changeLocalFolderCommand(
-                        item,
-                        artifactManager,
-                        localFolderService,
-                        configurationProvider,
-                        new ItemDefinitionConflictDetector(vscode.workspace.fs),
-                        new ItemDefinitionWriter(vscode.workspace.fs),
-                        activity,
-                        { skipWarning: false, promptForSave: false }
-                    );
-                }
-            );
         },
         context
     );
@@ -302,74 +269,147 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
         context
     );
 
-    registerCommand(commandNames.refreshArtifactView, async (...cmdArgs) => {
-        dataProvider.refresh();
-        logger.log(vscode.l10n.t('RefreshArtifactView called {0}', Date()));
-    }, context);
+    registerCommand(
+        commandNames.openInPortal,
+        async (...cmdArgs) => {
+            await withErrorHandling('openInPortal', logger, telemetryService, async () => {
+                let portalUrl: string | undefined;
+                let selectedWorkspace: IWorkspace | undefined;
+                let artifact: IArtifact | undefined;
 
-    registerCommand(commandNames.openInPortal, async (...cmdArgs) => {
-        await withErrorHandling('openInPortal', logger, telemetryService, async () => {
-            let portalUrl: string | undefined;
-            let selectedWorkspace: IWorkspace | undefined;
-            let artifact: IArtifact | undefined;
-
-            // Check if the first argument is a WorkspaceTreeNode
-            const firstArg = cmdArgs[0];
-            if (firstArg instanceof WorkspaceTreeNode) {
-                // Called from a workspace context menu
-                selectedWorkspace = firstArg.workspace;
-                portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, selectedWorkspace.objectId);
-            }
-            else {
-                // Use the existing logic for artifact nodes or command palette
-                let isHandled = false;
-                await artifactManager.doContextMenuItem(cmdArgs, vscode.l10n.t('Open In Portal'), async (item) => {
-                    if (cmdArgs?.length > 1) { // if from tview context menu
-                        if (item) {
-                            // Safe to assume that if there is an ArtifactTreeNode then there is a current workspace
-                            artifact = item.artifact;
-                            selectedWorkspace = await workspaceManager.getWorkspaceById(artifact.workspaceId);
-                            portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, artifact.workspaceId, artifact);
+                // Check if the first argument is a WorkspaceTreeNode
+                const firstArg = cmdArgs[0];
+                if (firstArg instanceof WorkspaceTreeNode) {
+                    // Called from a workspace context menu
+                    selectedWorkspace = firstArg.workspace;
+                    portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, selectedWorkspace.objectId);
+                }
+                else {
+                    // Use the existing logic for artifact nodes or command palette
+                    let isHandled = false;
+                    await artifactManager.doContextMenuItem(cmdArgs, vscode.l10n.t('Open In Portal'), async (item) => {
+                        if (cmdArgs?.length > 1) { // if from tview context menu
+                            if (item) {
+                                // Safe to assume that if there is an ArtifactTreeNode then there is a current workspace
+                                artifact = item.artifact;
+                                selectedWorkspace = await workspaceManager.getWorkspaceById(artifact.workspaceId);
+                                portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, artifact.workspaceId, artifact);
+                                isHandled = true;
+                            }
+                        }
+                        else {
+                            selectedWorkspace = await showWorkspaceQuickPick(workspaceManager, workspaceFilterManager, capacityManager, telemetryService, logger);
+                            if (!selectedWorkspace) {
+                                return;
+                            }
+                            portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, selectedWorkspace.objectId);
                             isHandled = true;
                         }
-                    }
-                    else {
-                        selectedWorkspace = await showWorkspaceQuickPick(workspaceManager, workspaceFilterManager, capacityManager, telemetryService, logger);
-                        if (!selectedWorkspace) {
-                            return;
-                        }
-                        portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, selectedWorkspace.objectId);
-                        isHandled = true;
-                    }
-                });
-
-                // If doContextMenuItem didn't handle the operation, return early
-                if (!isHandled || !portalUrl) {
-                    return;
-                }
-            }
-
-            const activity = new TelemetryActivity<CoreTelemetryEventNames>('item/open/portal', telemetryService);
-            void activity.doTelemetryActivity(async () => {
-                activity.addOrUpdateProperties({
-                    'workspaceId': selectedWorkspace?.objectId,
-                    'fabricWorkspaceName': selectedWorkspace?.displayName,
-                });
-                if (artifact) {
-                    activity.addOrUpdateProperties({
-                        'artifactId': artifact.id,
-                        'itemType': artifact.type,
-                        'fabricArtifactName': artifact.displayName,
                     });
+
+                    // If doContextMenuItem didn't handle the operation, return early
+                    if (!isHandled || !portalUrl) {
+                        return;
+                    }
                 }
 
-                void vscode.env.openExternal(vscode.Uri.parse(portalUrl!));
-            });
-        })();
-    }, context);
+                const activity = new TelemetryActivity<CoreTelemetryEventNames>('item/open/portal', telemetryService);
+                void activity.doTelemetryActivity(async () => {
+                    activity.addOrUpdateProperties({
+                        'workspaceId': selectedWorkspace?.objectId,
+                        'fabricWorkspaceName': selectedWorkspace?.displayName,
+                    });
+                    if (artifact) {
+                        activity.addOrUpdateProperties({
+                            'artifactId': artifact.id,
+                            'itemType': artifact.type,
+                            'fabricArtifactName': artifact.displayName,
+                        });
+                    }
+
+                    void vscode.env.openExternal(vscode.Uri.parse(portalUrl!));
+                });
+            })();
+        },
+        context
+    );
+
+    registerCommand(
+        commandNames.openLocalFolder,
+        async (...cmdArgs) => {
+            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode;
+            await doArtifactAction(
+                artifactTreeNode?.artifact,
+                'openLocalFolder',
+                'item/localFolder/open',
+                logger,
+                telemetryService,
+                async (activity, item) => {
+                    addCommonArtifactTelemetryProps(activity, fabricEnvironmentProvider, item);
+                    await openLocalFolderCommand(
+                        item,
+                        artifactManager,
+                        localFolderService,
+                        configurationProvider,
+                        new ItemDefinitionConflictDetector(vscode.workspace.fs),
+                        new ItemDefinitionWriter(vscode.workspace.fs),
+                        activity
+                    );
+                }
+            );
+        },
+        context
+    );
+
+    registerCommand(
+        commandNames.readArtifact,
+        async (...cmdArgs) => {
+            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode | undefined;
+            await doArtifactAction(
+                artifactTreeNode?.artifact,
+                'readArtifact',
+                'item/read',
+                logger,
+                telemetryService,
+                async (activity, item) => {
+                    addCommonArtifactTelemetryProps(activity, fabricEnvironmentProvider, item);
+                    await readArtifactCommand(item, artifactManager, activity);
+                }
+            );
+        },
+        context
+    );
+
+    registerCommand(
+        commandNames.refreshArtifactView,
+        async (...cmdArgs) => {
+            dataProvider.refresh();
+            logger.log(vscode.l10n.t('RefreshArtifactView called {0}', Date()));
+        },
+        context
+    );
+
+    registerCommand(
+        commandNames.renameArtifact,
+        async (...cmdArgs) => {
+            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode | undefined;
+            await doArtifactAction(
+                artifactTreeNode?.artifact,
+                'renameArtifact',
+                'item/update',
+                logger,
+                telemetryService,
+                async (activity, item) => {
+                    addCommonArtifactTelemetryProps(activity, fabricEnvironmentProvider, item);
+                    await renameArtifactCommand(item, artifactManager, dataProvider, activity);
+                }
+            );
+        },
+        context
+    );
 }
 
-export function formatPortalUrl(portalUri: string, workspaceId: string, artifact?: IArtifact): string {
+function formatPortalUrl(portalUri: string, workspaceId: string, artifact?: IArtifact): string {
 
     if (artifact && artifact.type && artifact.id) {
         return `https://${portalUri}/groups/${workspaceId}/${getArtifactTypeFolder(artifact)}/${artifact.id}?experience=data-engineering`;
@@ -426,4 +466,26 @@ function addCommonArtifactTelemetryProps(
         fabricArtifactName: item.displayName,
         itemType: item.type,
     });
+}
+
+async function ensureSignedIn(accountProvider: IAccountProvider): Promise<boolean> {
+    if (!(await accountProvider.isSignedIn())) {
+        await accountProvider.awaitSignIn();
+    }
+
+    return accountProvider.isSignedIn();
+}
+
+function validateIdentifiers(artifactId: string, workspaceId: string): void {
+    if (!isValidGuid(artifactId)) {
+        throw new FabricError(vscode.l10n.t('Invalid item identifier: \'{0}\'', artifactId), 'Invalid item identifier');
+    }
+    if (!isValidGuid(workspaceId)) {
+        throw new FabricError(vscode.l10n.t('Invalid workspace identifier: \'{0}\'', workspaceId), 'Invalid workspace identifier');
+    }
+}
+
+function isValidGuid(guid: string): boolean { // returns false for empty string
+    const guidRegex = /^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i;
+    return guidRegex.test(guid);
 }
