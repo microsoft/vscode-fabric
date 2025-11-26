@@ -78,6 +78,7 @@ describe('WorkspaceManager', function () {
             mockLocalFolderManager.object(),
             mockApiClient.object(),
             mockLogger.object(),
+            null,
             mockGitOperator.object(),
             configurationProvider,
             mockLocalFolderService.object()

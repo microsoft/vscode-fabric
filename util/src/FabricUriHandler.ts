@@ -12,11 +12,11 @@ import { ILogger } from './logger/Logger';
 
 export class FabricUriHandler implements vscode.UriHandler {
     constructor(
-        private core: IFabricExtensionServiceCollection,
-        private telemetry: TelemetryService | null,
-        private logger: ILogger,
-        private fabricEnvironmentProvider: IFabricEnvironmentProvider,
-        private configProvider: IConfigurationProvider
+        protected core: IFabricExtensionServiceCollection,
+        protected telemetry: TelemetryService | null,
+        protected logger: ILogger,
+        protected fabricEnvironmentProvider: IFabricEnvironmentProvider,
+        protected configProvider: IConfigurationProvider
     ) {
         this.core = core;
         this.telemetry = telemetry;
@@ -24,9 +24,11 @@ export class FabricUriHandler implements vscode.UriHandler {
     }
 
     handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
-        const activity = new TelemetryActivity('handle-uri', this.telemetry);
+        const activity = new TelemetryActivity('fabric/handleUri', this.telemetry);
         return doFabricAction({ fabricLogger: this.logger, telemetryActivity: activity }, async () => {
             const searchParams = new URLSearchParams(uri.query);
+
+            // Handle standard artifact opening URI
             const workspaceId = searchParams.get('workspaceId') || '';
             const artifactId = searchParams.get('artifactId') || '';
             const environmentId = (searchParams.get('Environment') || '').toUpperCase();

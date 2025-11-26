@@ -21,6 +21,7 @@ export interface IAccountProvider {
     getDefaultTelemetryProperties(): Promise<{ [key: string]: string }>;
     onSignInChanged: vscode.Event<void>;
     awaitSignIn(): Promise<void>;
+    getSessionInfo(tenantId?: string): Promise<vscode.AuthenticationSession | null>;
 }
 
 export interface TokenRequestOptions extends vscode.AuthenticationGetSessionOptions {

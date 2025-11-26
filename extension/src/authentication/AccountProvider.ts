@@ -247,6 +247,13 @@ export class AccountProvider implements IAccountProvider, IDisposable {
         }
     }
 
+    async getSessionInfo(tenantId?: string): Promise<vscode.AuthenticationSession | null> {
+        return await this.tokenService.getSessionInfo({
+            ...this.tokenOptions,
+            createIfNone: false,
+        }, undefined, tenantId || this._mostRecentlyUsedTenantId);
+    }
+
     dispose(): void {
         this.onSuccessfulSignInEmitter.dispose();
         this.onSignInChangedEmitter.dispose();
