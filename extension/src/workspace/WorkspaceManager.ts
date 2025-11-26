@@ -13,6 +13,7 @@ import { isDirectory } from '../utilities';
 import { IFabricEnvironmentProvider, FabricError, ILogger, IConfigurationProvider, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider, ITenantSettings } from '../authentication/interfaces';
 import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
+import { ILocalFolderService, LocalFolderPromptMode } from '../LocalFolderService';
 
 export class UnlicensedUserError extends Error {
     constructor() {
@@ -72,8 +73,9 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         protected apiClient: IFabricApiClient,
         protected gitOperator: IGitOperator,
         protected logger: ILogger,
+        protected localFolderService: ILocalFolderService
+        protected configurationProvider: IConfigurationProvider,
         protected telemetryService: TelemetryService | null,
-        protected configurationProvider: IConfigurationProvider
     ) {
         this.disposables.push(this.account.onSignInChanged(async () => {
             await this.refreshConnectionToFabric();
@@ -243,6 +245,9 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         this.disposables = [];
     }
 
+    /**
+     * @deprecated
+     */
     public async getLocalFolderForFabricWorkspace(workspace: IWorkspace, options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined> {
         let localWorkspaceFolder: vscode.Uri | undefined = await this.localFolderManager.getLocalFolderForFabricWorkspace(workspace);
         if (!localWorkspaceFolder) {
@@ -271,35 +276,20 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         await this.localFolderManager.setLocalFolderForFabricWorkspace(this.ensureWorkspace(workspace), newLocalFolder);
     }
 
-    public async getLocalFolderForArtifact(artifact: IArtifact, options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined> {
-        if (options?.createIfNotExists) {
-            // Because the folder is getting created, the workspace folder must be set.
-            // Getting the workspace folder will verify it is already set or show UI to the user to set it.
-            const workspace = await this.getWorkspaceById(artifact.workspaceId);
-            if (!workspace) {
-                throw new FabricError(vscode.l10n.t('Workspace not found for artifact'), 'Workspace not found for artifact');
+    public async getLocalFolderForArtifact(artifact: IArtifact, options?: { createIfNotExists?: boolean }): Promise<vscode.Uri | undefined> {
+        // The expectation for this API is that if the folder is getting created, the artifact folder must be set
+        const result = await this.localFolderService.getLocalFolder(
+            artifact,
+            {
+                prompt: options?.createIfNotExists ? LocalFolderPromptMode.discretionary : LocalFolderPromptMode.never,
+                create: options?.createIfNotExists ?? false,
             }
-            const localWorkspaceFolder: vscode.Uri | undefined = await this.getLocalFolderForFabricWorkspace(workspace);
-            if (!localWorkspaceFolder) {
-                // Getting back undefined here indicates the user did not want to set the folder at this time.
-                // It is not possible to get the artifact folder without the workspace folder.
-                return undefined;
-            }
-        }
+        );
 
-        const localArtifactFolder: vscode.Uri | undefined = await this.localFolderManager.getLocalFolderForFabricArtifact(artifact);
-        if (localArtifactFolder && options?.createIfNotExists && !(await isDirectory(vscode.workspace.fs, localArtifactFolder))) {
-            // createDirectory will create all parent folders if they do not exist
-            await vscode.workspace.fs.createDirectory(localArtifactFolder);
-            if (!(await isDirectory(vscode.workspace.fs, localArtifactFolder))) {
-                throw new Error(`Unable to create folder '${localArtifactFolder.fsPath}'`);
-            }
-        }
-
-        return localArtifactFolder;
+        return result?.uri;
     }
 
-    public async promptForLocalFolder(workspace: IWorkspace): Promise<vscode.Uri | undefined> {
+    private async promptForLocalFolder(workspace: IWorkspace): Promise<vscode.Uri | undefined> {
         this.ensureWorkspace(workspace);
         let localWorkspaceFolder: vscode.Uri | undefined = await this.localFolderManager.getLocalFolderForFabricWorkspace(workspace);
         if (!localWorkspaceFolder) {
@@ -461,10 +451,11 @@ export class WorkspaceManager extends WorkspaceManagerBase {
         logger: ILogger,
         telemetryService: TelemetryService | null,
         gitOperator: IGitOperator,
-        configurationProvider: IConfigurationProvider
+        configurationProvider: IConfigurationProvider,
+        localFolderService: ILocalFolderService
     ) {
 
-        super(extensionSettingsStorage, localFolderManager, account, fabricEnvironmentProvider, apiClient, gitOperator, logger, telemetryService, configurationProvider);
+        super(extensionSettingsStorage, localFolderManager, account, fabricEnvironmentProvider, apiClient, gitOperator, logger, telemetryService, configurationProvider, localFolderService);
         /**
          * The context object can store workspaceState (for the current VSCode workspace) or globalState (stringifyable JSON)
          * When our extensions tries to open a VSCode Folder, our extension is deactivated

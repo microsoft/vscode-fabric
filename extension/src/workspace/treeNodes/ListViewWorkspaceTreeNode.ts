@@ -10,6 +10,7 @@ import { WorkspaceTreeNode } from './WorkspaceTreeNode';
 import { DisplayStyle } from '../definitions';
 import { createArtifactTreeNode } from './artifactTreeNodeFactory';
 import { getDisplayName } from '../../metadata/fabricItemUtilities';
+import { ILocalFolderService } from '../../LocalFolderService';
 import { FolderTreeNode } from './FolderTreeNode';
 
 export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
@@ -25,6 +26,7 @@ export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
         telemetryService: TelemetryService | null,
         workspaceManager: IWorkspaceManager,
         tenantId: string | null,
+        private localFolderService: ILocalFolderService,
         private shouldExpand?: (id?: string) => boolean
     ) {
         super(context, extensionManager, workspace, DisplayStyle.list, telemetryService, workspaceManager);
@@ -38,7 +40,7 @@ export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
 
     protected async addArtifact(artifact: IArtifact): Promise<void> {
         const treeNodeProvider = this.extensionManager.treeNodeProviders.get(artifact.type);
-        const artifactNode: ArtifactTreeNode = await createArtifactTreeNode(this.context, artifact, this.extensionManager, treeNodeProvider);
+        const artifactNode: ArtifactTreeNode = await createArtifactTreeNode(this.context, artifact, this.extensionManager, treeNodeProvider, this.localFolderService);
 
         let description = getDisplayName(artifact);
         if (typeof artifactNode.description === 'string' && artifactNode.description.length > 0) {

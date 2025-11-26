@@ -9,6 +9,7 @@ import { WorkspaceTreeNode } from './WorkspaceTreeNode';
 import { DisplayStyle } from '../definitions';
 import { ArtifactTypeTreeNode } from './ArtifactTypeTreeNode';
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
+import { ILocalFolderService } from '../../LocalFolderService';
 
 export class TreeViewWorkspaceTreeNode extends WorkspaceTreeNode {
     private _children: Map<string, ArtifactTypeTreeNode> | undefined;
@@ -19,6 +20,7 @@ export class TreeViewWorkspaceTreeNode extends WorkspaceTreeNode {
         telemetryService: TelemetryService | null,
         workspaceManager: IWorkspaceManager,
         private tenantId: string | undefined,
+        private localFolderService: ILocalFolderService,
         private shouldExpand?: (id: string | undefined) => boolean
     ) {
         super(context, extensionManager, workspace, DisplayStyle.tree, telemetryService, workspaceManager);
@@ -32,7 +34,7 @@ export class TreeViewWorkspaceTreeNode extends WorkspaceTreeNode {
 
     protected async addArtifact(artifact: IArtifact) {
         if (!this._children!.has(artifact.type)) {
-            this._children!.set(artifact.type, new ArtifactTypeTreeNode(this.context, this.extensionManager, artifact.type, this.workspace.objectId, this.tenantId, this.shouldExpand));
+            this._children!.set(artifact.type, new ArtifactTypeTreeNode(this.context, this.extensionManager, artifact.type, this.workspace.objectId, this.tenantId, this.localFolderService, this.shouldExpand));
         }
         this._children!.get(artifact.type)?.addArtifact(artifact);
     }

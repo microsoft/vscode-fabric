@@ -33,6 +33,7 @@ export class FabricExtensionsSettingStorage implements IFabricExtensionsSettingS
                 this.settings.artifacts = storedSettings.artifacts?.slice();
                 this.settings.workspaces = storedSettings.workspaces.slice();
                 this.settings.workspaceFilters = storedSettings.workspaceFilters;
+                this.settings.localFolders = storedSettings.localFolders?.slice();
                 return true;
             }
             else {

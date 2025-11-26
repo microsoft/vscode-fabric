@@ -10,17 +10,20 @@ import { commandNames } from '../../../src/constants';
 import { ArtifactTreeNode, IWorkspaceManager, IArtifact, IWorkspace } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from '../../../src/workspace/treeView';
 import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../../../src/apis/internal/fabricExtensionInternal';
-import { TelemetryService, TelemetryActivity, IFabricEnvironmentProvider, ILogger } from '@microsoft/vscode-fabric-util';
+import { TelemetryService, TelemetryActivity, IFabricEnvironmentProvider, ILogger, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { IItemDefinitionWriter } from '../../../src/itemDefinition/ItemDefinitionWriter';
 import { ICapacityManager } from '../../../src/CapacityManager';
 import { IWorkspaceFilterManager } from '../../../src/workspace/WorkspaceFilterManager';
+import { ILocalFolderService } from '../../../src/LocalFolderService';
 
 describe('registerArtifactCommands', () => {
     let contextMock: Mock<vscode.ExtensionContext>;
     let workspaceManagerMock: Mock<IWorkspaceManager>;
     let fabricEnvironmentProviderMock: Mock<IFabricEnvironmentProvider>;
     let artifactManagerMock: Mock<IArtifactManagerInternal>;
+    let localFolderServiceMock: Mock<ILocalFolderService>;
+    let configurationProviderMock: Mock<IConfigurationProvider>;
     let dataProviderMock: Mock<FabricWorkspaceDataProvider>;
     let extensionManagerMock: Mock<IFabricExtensionManagerInternal>;
     let capacityManagerMock: Mock<ICapacityManager>;
@@ -38,6 +41,8 @@ describe('registerArtifactCommands', () => {
         workspaceManagerMock = new Mock<IWorkspaceManager>();
         fabricEnvironmentProviderMock = new Mock<IFabricEnvironmentProvider>();
         artifactManagerMock = new Mock<IArtifactManagerInternal>();
+        localFolderServiceMock = new Mock<ILocalFolderService>();
+        configurationProviderMock = new Mock<IConfigurationProvider>();
         dataProviderMock = new Mock<FabricWorkspaceDataProvider>();
         extensionManagerMock = new Mock<IFabricExtensionManagerInternal>();
         capacityManagerMock = new Mock<ICapacityManager>();
@@ -117,7 +122,7 @@ describe('registerArtifactCommands', () => {
 
         // Should be called after second registration
         assert.strictEqual(disposeSpy.called, true, 'dispose should be called after second registration');
-        assert.strictEqual(disposeSpy.callCount, 8, 'dispose should be called for each registered command');
+        assert.strictEqual(disposeSpy.callCount, 10, 'dispose should be called for each registered command');
     });
 
     describe('Execute callbacks', () => {
@@ -327,6 +332,8 @@ describe('registerArtifactCommands', () => {
             workspaceManagerMock.object(),
             fabricEnvironmentProviderMock.object(),
             artifactManagerMock.object(),
+            localFolderServiceMock.object(),
+            configurationProviderMock.object(),
             dataProviderMock.object(),
             extensionManagerMock.object(),
             workspaceFilterManagerMock.object(),

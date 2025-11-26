@@ -2,82 +2,85 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { IArtifact, IWorkspaceManager, IArtifactManager } from '@microsoft/vscode-fabric-api';
-import { formatErrorResponse, succeeded } from '../utilities';
-import { FabricError, TelemetryActivity, UserCancelledError } from '@microsoft/vscode-fabric-util';
+import { IArtifact, IArtifactManager } from '@microsoft/vscode-fabric-api';
+import { FabricError, TelemetryActivity, UserCancelledError, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { IItemDefinitionConflictDetector } from '../itemDefinition/ItemDefinitionConflictDetector';
 import { IItemDefinitionWriter } from '../itemDefinition/ItemDefinitionWriter';
+import { ILocalFolderService, LocalFolderPromptMode } from '../LocalFolderService';
+import { downloadAndSaveArtifact, getFolderDisplayName, showFolderActionAndSavePreference, LocalFolderServices, FolderActionRequest } from './localFolderCommandHelpers';
+
+/**
+ * Shows completion message with integrated save preference handling.
+ */
+export async function showCompletionMessage(
+    artifact: IArtifact,
+    localFolderResults: { uri: vscode.Uri; prompted: boolean },
+    localFolderService: ILocalFolderService,
+    configurationProvider: IConfigurationProvider
+): Promise<void> {
+    // Get the folder name from the URI
+    const folderName = getFolderDisplayName(localFolderResults.uri);
+    const baseMessage = vscode.l10n.t('Item {0} has been downloaded to {1}', artifact.displayName, folderName);
+
+    // Show folder action dialog and perform the selected action
+    const services: LocalFolderServices = { localFolderService, configurationProvider };
+    const request: FolderActionRequest = { folderUri: localFolderResults.uri, artifact, prompted: localFolderResults.prompted };
+    await showFolderActionAndSavePreference(
+        vscode.l10n.t('{0}. What would you like to do?', baseMessage),
+        request,
+        services
+    );
+}
 
 export async function exportArtifactCommand(
     artifact: IArtifact,
-    workspaceManager: IWorkspaceManager,
     artifactManager: IArtifactManager,
+    localFolderService: ILocalFolderService,
+    configurationProvider: IConfigurationProvider,
     conflictDetector: IItemDefinitionConflictDetector,
     itemDefinitionWriter: IItemDefinitionWriter,
     telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>
 ): Promise<void> {
-    await vscode.window.withProgress(
+    // Get the folder to export to
+    const localFolderResults = await localFolderService.getLocalFolder(
+        artifact,
         {
-            location: vscode.ProgressLocation.Notification,
-            title: vscode.l10n.t('Opening {0}...', artifact.displayName),
-            cancellable: false,
-        },
-        async (progress) => {
-            // Get the folder to export to
-            const targetFolder = await workspaceManager.getLocalFolderForArtifact(artifact, { createIfNotExists: true });
-            if (!targetFolder) {
-                throw new UserCancelledError('localFolderSelection');
-            }
-
-            // Invoke API to export the artifact
-            const response = await artifactManager.getArtifactDefinition(artifact, { progress });
-            telemetryActivity.addOrUpdateProperties({
-                'statusCode': response?.status.toString(),
-            });
-
-            // Copy the exported files to disk
-            if (succeeded(response)) {
-                try {
-                    const conflicts = await conflictDetector.getConflictingFiles(response.parsedBody?.definition, targetFolder);
-                    if (conflicts.length > 0) {
-                        const confirm = await vscode.window.showWarningMessage(
-                            vscode.l10n.t('The following files already exist and will be overwritten:\n{0}\nDo you want to continue?', conflicts.join('\n')),
-                            { modal: true },
-                            vscode.l10n.t('Yes')
-                        );
-                        if (confirm !== vscode.l10n.t('Yes')) {
-                            throw new UserCancelledError('overwriteExportFiles');
-                        }
-                    }
-
-                    await itemDefinitionWriter.save(response.parsedBody?.definition, targetFolder);
-                    void vscode.window.showInformationMessage(vscode.l10n.t('Opened {0}', artifact.displayName));
-                    await vscode.commands.executeCommand('vscode.openFolder', targetFolder); // default to open in current window
-                }
-                catch (error: any) {
-                    if (error instanceof UserCancelledError) {
-                        throw error; // Let UserCancelledError propagate
-                    }
-                    throw new FabricError(
-                        vscode.l10n.t('Error opening {0}: {1}', artifact.displayName, error.message ?? 'Unknown error'),
-                        `Opening Artifact failed during save ${artifact.type}`,
-                        { showInUserNotification: 'Information' }
-                    );
-                }
-            }
-            else {
-                telemetryActivity.addOrUpdateProperties({
-                    'requestId': response.parsedBody?.requestId,
-                    'errorCode': response.parsedBody?.errorCode,
-                });
-
-                throw new FabricError(
-                    formatErrorResponse(vscode.l10n.t('Error opening {0}', artifact.displayName), response),
-                    response.parsedBody?.errorCode || `Opening Artifact failed ${artifact.type} ${response.status}`,
-                    { showInUserNotification: 'Information' }
-                );
-            }
+            prompt: LocalFolderPromptMode.discretionary,
+            create: true,
         }
     );
+    if (!localFolderResults) {
+        throw new UserCancelledError('localFolderSelection');
+    }
+
+    // Download and save the artifact
+    try {
+        await downloadAndSaveArtifact(
+            artifact,
+            localFolderResults.uri,
+            artifactManager,
+            conflictDetector,
+            itemDefinitionWriter,
+            telemetryActivity
+        );
+
+        // Show completion message with integrated save preference handling
+        await showCompletionMessage(
+            artifact,
+            localFolderResults,
+            localFolderService,
+            configurationProvider
+        );
+    }
+    catch (error: any) {
+        if (error instanceof UserCancelledError) {
+            throw error; // Let UserCancelledError propagate
+        }
+        throw new FabricError(
+            vscode.l10n.t('Error opening {0}: {1}', artifact.displayName, error.message ?? 'Unknown error'),
+            `Opening Artifact failed during save ${artifact.type}`,
+            { showInUserNotification: 'Information' }
+        );
+    }
 }

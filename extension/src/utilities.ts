@@ -248,7 +248,7 @@ export async function handleLongRunningOperation(apiClient: IFabricApiClient, re
             trace(`Iteration ${iteration}: Failure details errorCode='${failedErrorCode ?? 'n/a'}' message='${failedMessage ?? 'n/a'}'.`);
             trace(`Iteration ${iteration}: Terminal status 'Failed'. Throwing FabricError.`);
             throw new FabricError(
-                failedMessage ? `LRO failed: ${failedMessage}` : 'Long running operation failed',
+                failedMessage ?? vscode.l10n.t('Long running operation failed'),
                 failedErrorCode ? `lrofailed/${failedErrorCode}` : 'lrofailed/unknown',
                 { showInUserNotification: 'Error', showInFabricLog: true }
             );

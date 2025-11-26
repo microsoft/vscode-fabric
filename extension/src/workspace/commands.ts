@@ -50,10 +50,6 @@ export function registerWorkspaceCommands(
         return await createWorkspace(workspaceManager, workspaceFilterManager, capacityManager, telemetryService, logger);
     }, context);
 
-    registerCommand(commandNames.selectWorkspaceLocalFolder, async (treeNode?: WorkspaceTreeNode) => {
-        await selectLocalFolder(workspaceManager, treeNode);
-    }, context);
-
     registerCommand(commandNames.filterWorkspaces, async () => {
         await workspaceFilterManager.showWorkspaceFilterDialog();
     }, context);
