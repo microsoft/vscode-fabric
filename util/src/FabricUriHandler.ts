@@ -24,7 +24,7 @@ export class FabricUriHandler implements vscode.UriHandler {
     }
 
     handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
-        const activity = new TelemetryActivity('handle-uri', this.telemetry);
+        const activity = new TelemetryActivity('fabric/handleUri', this.telemetry);
         return doFabricAction({ fabricLogger: this.logger, telemetryActivity: activity }, async () => {
             const searchParams = new URLSearchParams(uri.query);
 

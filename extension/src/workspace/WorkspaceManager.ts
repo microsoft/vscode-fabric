@@ -10,7 +10,7 @@ import { LocalFolderManager } from '../LocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
 import { showLocalFolderQuickPick } from '../ui/showLocalFolderQuickPick';
 import { isDirectory } from '../utilities';
-import { IFabricEnvironmentProvider, FabricError, ILogger, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
+import { IFabricEnvironmentProvider, FabricError, ILogger, IConfigurationProvider, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider, ITenantSettings } from '../authentication/interfaces';
 import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
 
@@ -72,6 +72,7 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         protected apiClient: IFabricApiClient,
         protected gitOperator: IGitOperator,
         protected logger: ILogger,
+        protected telemetryService: TelemetryService | null,
         protected configurationProvider: IConfigurationProvider
     ) {
         this.disposables.push(this.account.onSignInChanged(async () => {
@@ -85,7 +86,7 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         }));
     }
 
-    public async refreshConnectionToFabric(): Promise<boolean> {
+    public async refreshConnectionToFabric(afterSignUp: boolean = false): Promise<boolean> {
         // not connected -> connected = new FabricClient
         // connected -> not connected = remove FabricClient
         // connected -> connected = new fabric client
@@ -97,6 +98,10 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
             try {
                 await this.listWorkspaces();
                 // Successfully listed workspaces, proceed with normal initialization
+                if (afterSignUp) {
+                    this.logger.info('User signed up for Fabric and is now connected');
+                    this.telemetryService?.sendTelemetryEvent('fabric/signUpSuccessful');
+                }
                 await this.initializePriorStateIfAny();
                 return true;
             }
@@ -454,11 +459,12 @@ export class WorkspaceManager extends WorkspaceManagerBase {
         localFolderManager: LocalFolderManager,
         apiClient: IFabricApiClient,
         logger: ILogger,
+        telemetryService: TelemetryService | null,
         gitOperator: IGitOperator,
         configurationProvider: IConfigurationProvider
     ) {
 
-        super(extensionSettingsStorage, localFolderManager, account, fabricEnvironmentProvider, apiClient, gitOperator, logger, configurationProvider);
+        super(extensionSettingsStorage, localFolderManager, account, fabricEnvironmentProvider, apiClient, gitOperator, logger, telemetryService, configurationProvider);
         /**
          * The context object can store workspaceState (for the current VSCode workspace) or globalState (stringifyable JSON)
          * When our extensions tries to open a VSCode Folder, our extension is deactivated
@@ -468,10 +474,10 @@ export class WorkspaceManager extends WorkspaceManagerBase {
          */
     }
 
-    public async refreshConnectionToFabric(): Promise<boolean> {
+    public async refreshConnectionToFabric(afterSignUp?: boolean): Promise<boolean> {
         await this.extensionSettingsStorage.load();
 
-        return super.refreshConnectionToFabric();
+        return super.refreshConnectionToFabric(afterSignUp);
     }
 
     /**

@@ -35,7 +35,7 @@ export class ExtensionUriHandler extends FabricUriHandler {
         // Check if this is a signup completion callback
         const signupComplete = searchParams.get('signedUp');
         if (signupComplete === '1') {
-            const activity = new TelemetryActivity('handle-uri', this.telemetry);
+            const activity = new TelemetryActivity('fabric/signUpCompleted', this.telemetry);
             return doFabricAction({ fabricLogger: this.logger, telemetryActivity: activity }, async () => {
                 await this.handleSignupCompletion(searchParams, activity);
             });
@@ -57,7 +57,7 @@ export class ExtensionUriHandler extends FabricUriHandler {
         // TODO: Expose a proper method in the interface
         const workspaceManager = this.core.workspaceManager as WorkspaceManager;
         if (typeof workspaceManager.refreshConnectionToFabric === 'function') {
-            await workspaceManager.refreshConnectionToFabric();
+            await workspaceManager.refreshConnectionToFabric(true);
         }
 
         // Show the Fabric remote view
