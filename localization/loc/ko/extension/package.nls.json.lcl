@@ -18,6 +18,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";extension.changeLocalFolder.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Change Local Folder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[로컬 폴더 변경]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";extension.clearWorkspaceFilter.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear Workspace Filter]]></Val>
@@ -45,20 +54,56 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";extension.configuration.DefaultWorkspaceFolder.description" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[The default folder for Fabric workspaces, defaults to c:\users\<username>>\Workspaces]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Fabric 작업 영역의 기본 폴더입니다. 기본값은 c:\users\<username>>\Workspaces입니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";extension.configuration.Environment.description" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The Fabric environment to use.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[사용할 Fabric환경입니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.configuration.LocalFolderSaveBehavior.always" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Automatically save local folder paths]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[로컬 폴더 경로를 자동으로 저장]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.configuration.LocalFolderSaveBehavior.description" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Controls when to save local folder paths for items]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[항목의 로컬 폴더 경로를 저장할 시기를 제어합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.configuration.LocalFolderSaveBehavior.never" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Never save local folder paths]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[로컬 폴더 경로를 저장하지 않음]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.configuration.LocalFolderSaveBehavior.prompt" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Prompt asks each time]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[프롬프트가 매번 묻습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.configuration.ShowFolders.description" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Display folders in the Fabric Workspace view]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fabric 작업 영역 보기에서 폴더 표시]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -101,10 +146,13 @@
       </Item>
       <Item ItemId=";extension.exportArtifact.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Open in Explorer]]></Val>
+          <Val><![CDATA[Download Item Definition...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[탐색기에서 열기]]></Val>
+            <Val><![CDATA[항목 정의 다운로드...]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Open in Explorer]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -113,6 +161,24 @@
           <Val><![CDATA[Filter Workspaces...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[작업 영역 필터링...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.importArtifact.inline.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Publish to current workspace]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[현재 작업 영역에 게시]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.importArtifact.promptWorkspace.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[To specific workspace...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[특정 작업 영역으로...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -126,15 +192,6 @@
           <Prev Cat="Text">
             <Val><![CDATA[Publish to Fabric...]]></Val>
           </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";extension.importArtifactPromptWorkspace.title" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[To specific workspace...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[특정 작업 영역으로...]]></Val>
-          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -161,6 +218,15 @@
           <Val><![CDATA[Open in Fabric...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Fabric에서 열기...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.openLocalFolder.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open Local Folder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[로컬 폴더 열기]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -224,15 +290,6 @@
           <Val><![CDATA[Report Issue...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[문제 보고...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";extension.selectWorkspaceLocalFolder.title" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select working directory...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[작업 디렉터리 선택...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -361,7 +418,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Go to the Fabric Portal to create a new workspace. If you already have a workspace then you can skip this step!]A;[Go to Fabric Portal]5D;(https://app.fabric.microsoft.com/)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Fabric 포털로 이동하여 새 작업 영역을 만드세요. 작업 영역이 이미 있는 경우 이 단계를 건너뛸 수 있습니다!]A;[Fabric 포털로 이동]5D;(https://app.fabric.microsoft.com/)]]></Val>
+            <Val><![CDATA[Fabric 포털로 이동하여 새 작업 영역을 만듭니다. 작업 영역이 이미 있는 경우 이 단계를 건너뛸 수 있습니다!]A;[Fabric 포털로 이동]5D;(https://app.fabric.microsoft.com/)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
