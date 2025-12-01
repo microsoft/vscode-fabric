@@ -12,6 +12,7 @@ import {
     ILogger,
     doFabricAction,
 } from '@microsoft/vscode-fabric-util';
+import { CoreTelemetryEventNames } from './TelemetryEventNames';
 import { WorkspaceManager } from './workspace/WorkspaceManager';
 
 /**
@@ -35,7 +36,7 @@ export class ExtensionUriHandler extends FabricUriHandler {
         // Check if this is a signup completion callback
         const signupComplete = searchParams.get('signedUp');
         if (signupComplete === '1') {
-            const activity = new TelemetryActivity('fabric/signUpCompleted', this.telemetry);
+            const activity = new TelemetryActivity<CoreTelemetryEventNames>('fabric/signUpCompleted', this.telemetry);
             return doFabricAction({ fabricLogger: this.logger, telemetryActivity: activity }, async () => {
                 await this.handleSignupCompletion(searchParams, activity);
             });
@@ -45,7 +46,7 @@ export class ExtensionUriHandler extends FabricUriHandler {
         return super.handleUri(uri);
     }
 
-    private async handleSignupCompletion(searchParams: URLSearchParams, activity: TelemetryActivity): Promise<void> {
+    private async handleSignupCompletion(searchParams: URLSearchParams, activity: TelemetryActivity<CoreTelemetryEventNames>): Promise<void> {
         this.logger.info('Signup completion callback received');
         activity.addOrUpdateProperties({
             'targetEnvironment': 'signupCallback',
@@ -66,7 +67,8 @@ export class ExtensionUriHandler extends FabricUriHandler {
         // Check if a license was auto-assigned
         const autoAssigned = searchParams.get('autoAssigned');
         if (autoAssigned === '1') {
-            const learnMoreMessage = vscode.l10n.t('We\'ve assigned you a Microsoft Fabric (Free) license for personal use. You\'re signed in and can create and explore Fabric items. [Learn More...](https://aka.ms/fabric-trial)');
+            // eslint-disable-next-line max-len
+            const learnMoreMessage = vscode.l10n.t('We\'ve assigned you a Microsoft Fabric (Free) license for personal use. You\'re signed in and can create and explore Fabric items. [Learn More...](https://aka.ms/fabric-trial)\n\n[Privacy Statement](https://go.microsoft.com/fwlink/?linkid=521839)');
             void vscode.window.showInformationMessage(learnMoreMessage);
         }
         else {
