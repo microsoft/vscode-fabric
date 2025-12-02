@@ -84,8 +84,5 @@ export class ExtensionUriHandler extends FabricUriHandler {
                 await vscode.env.openExternal(vscode.Uri.parse('https://go.microsoft.com/fwlink/?linkid=521839'));
             }
         }
-        else {
-            void vscode.window.showInformationMessage(vscode.l10n.t('Welcome to Microsoft Fabric! Your account setup is complete.'));
-        }
     }
 }
