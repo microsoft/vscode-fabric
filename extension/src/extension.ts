@@ -21,7 +21,7 @@ import {
     DisposableCollection,
     FakeConfigurationProvider,
     MockConsoleLogger,
-    VSCodeUIBypass
+    VSCodeUIBypass,
 } from '@microsoft/vscode-fabric-util';
 import { ITokenAcquisitionService, IAccountProvider } from './authentication/interfaces';
 import { AccountProvider } from './authentication/AccountProvider';
@@ -46,6 +46,7 @@ import TelemetryReporter from '@vscode/extension-telemetry';
 import { FabricExtensionManager } from './extensionManager/FabricExtensionManager';
 import { IArtifactManagerInternal } from './apis/internal/fabricExtensionInternal';
 import { ICapacityManager, CapacityManager } from './CapacityManager';
+import { ExtensionUriHandler } from './ExtensionUriHandler';
 
 // Information about the DI container can be found here: https://raw.githubusercontent.com/wessberg/DI/refs/heads/master/README.md
 import { DIContainer } from '@wessberg/di';
@@ -133,7 +134,7 @@ export class FabricVsCodeExtension {
             workspaceManager.tvProvider = dataProvider;
             workspaceManager.treeView = treeView;
 
-            registerWorkspaceCommands(context, account, workspaceManager, capacityManager, telemetryService, logger, workspaceFilterManager);
+            registerWorkspaceCommands(context, account, workspaceManager, capacityManager, telemetryService, logger, workspaceFilterManager, fabricEnvironmentProvider);
             registerTenantCommands(context, account, telemetryService, logger);
             await registerArtifactCommands(
                 context,
@@ -232,7 +233,7 @@ export class FabricVsCodeExtension {
             }
             // register the uri handler
             context.subscriptions.push(
-                vscode.window.registerUriHandler(this.container.get<FabricUriHandler>())
+                vscode.window.registerUriHandler(this.container.get<ExtensionUriHandler>())
             );
 
             const internalSatelliteManger = this.container.get<InternalSatelliteManager>();
@@ -367,7 +368,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
 
     container.registerSingleton<ICapacityManager, CapacityManager>();
 
-    container.registerSingleton<FabricUriHandler>();
+    container.registerSingleton<ExtensionUriHandler>();
     container.registerSingleton<InternalSatelliteManager>();
 
     if (process.env.VSCODE_FABRIC_USE_MOCKS === 'true' && context.extensionMode !== vscode.ExtensionMode.Production) {

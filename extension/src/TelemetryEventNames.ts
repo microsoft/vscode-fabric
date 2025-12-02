@@ -29,4 +29,10 @@ export type CoreTelemetryEventNames = {
 
 	// tree view
 	'tree/installExtension': { properties: 'extensionId' | 'alreadyInstalled' | 'installedAfterOneMinute'; measurements: never }
+
+	// sign up flow
+	'fabric/signUpCompleted': { properties: ResultPropertyNames | 'targetEnvironment' | 'uriQuery'; measurements: never }
+	'fabric/signUpSuccessful': { properties: ResultPropertyNames; measurements: never }
+	'fabric/signUpFailed': { properties: ResultPropertyNames; measurements: never }
+	'fabric/signUpError': { properties: ResultPropertyNames; measurements: never }
 };
