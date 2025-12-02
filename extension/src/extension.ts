@@ -21,7 +21,7 @@ import {
     DisposableCollection,
     FakeConfigurationProvider,
     MockConsoleLogger,
-    VSCodeUIBypass
+    VSCodeUIBypass,
 } from '@microsoft/vscode-fabric-util';
 import { ITokenAcquisitionService, IAccountProvider } from './authentication/interfaces';
 import { AccountProvider } from './authentication/AccountProvider';
