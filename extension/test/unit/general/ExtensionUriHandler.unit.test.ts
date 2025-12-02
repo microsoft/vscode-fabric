@@ -118,10 +118,11 @@ describe('ExtensionUriHandler', () => {
         assert.strictEqual(refreshStub.calledOnce, true, 'refreshConnectionToFabric should be invoked when signup completes');
         assert.strictEqual(executeCommandStub.calledOnce, true, 'workbench view should be shown');
         assert.deepStrictEqual(executeCommandStub.firstCall.args, ['workbench.view.extension.vscode-fabric_view_workspace']);
-
-        const expectedMessage = "We've assigned you a Microsoft Fabric (Free) license for personal use. You're signed in and can create and explore Fabric items. [Learn More...](https://aka.ms/fabric-trial)";
+        const expectedTitle = 'Microsoft Fabric (Free) license assigned';
+        const expectedButtons = ['Learn More', 'Privacy Statement'];
         assert.strictEqual(showInformationStub.calledOnce, true, 'informational message should be shown');
-        assert.strictEqual(showInformationStub.firstCall.args[0], expectedMessage, 'auto-assigned license message should be used');
+        assert.strictEqual(showInformationStub.firstCall.args[0], expectedTitle, 'auto-assigned license title should be used');
+        assert.deepStrictEqual(showInformationStub.firstCall.args.slice(1), expectedButtons, 'auto-assigned license buttons should be used');
         assert.strictEqual(infoSpy.calledWith('Signup completion callback received'), true, 'logger should record signup completion');
     });
 

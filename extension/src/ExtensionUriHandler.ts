@@ -67,9 +67,22 @@ export class ExtensionUriHandler extends FabricUriHandler {
         // Check if a license was auto-assigned
         const autoAssigned = searchParams.get('autoAssigned');
         if (autoAssigned === '1') {
-            // eslint-disable-next-line max-len
-            const learnMoreMessage = vscode.l10n.t('We\'ve assigned you a Microsoft Fabric (Free) license for personal use. You\'re signed in and can create and explore Fabric items. [Learn More...](https://aka.ms/fabric-trial)\n\n[Privacy Statement](https://go.microsoft.com/fwlink/?linkid=521839)');
-            void vscode.window.showInformationMessage(learnMoreMessage);
+            const title = vscode.l10n.t('Microsoft Fabric (Free) license assigned');
+            const learnMoreLabel = vscode.l10n.t('Learn More');
+            const privacyStatementLabel = vscode.l10n.t('Privacy Statement');
+
+            const selection = await vscode.window.showInformationMessage(
+                title,
+                learnMoreLabel,
+                privacyStatementLabel
+            );
+
+            if (selection === learnMoreLabel) {
+                await vscode.env.openExternal(vscode.Uri.parse('https://go.microsoft.com/fwlink/?linkid=2147433'));
+            }
+            else if (selection === privacyStatementLabel) {
+                await vscode.env.openExternal(vscode.Uri.parse('https://go.microsoft.com/fwlink/?linkid=521839'));
+            }
         }
         else {
             void vscode.window.showInformationMessage(vscode.l10n.t('Welcome to Microsoft Fabric! Your account setup is complete.'));
