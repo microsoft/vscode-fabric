@@ -67,7 +67,7 @@ export class ExtensionUriHandler extends FabricUriHandler {
         // Check if a license was auto-assigned
         const autoAssigned = searchParams.get('autoAssigned');
         if (autoAssigned === '1') {
-            const title = vscode.l10n.t('Microsoft Fabric (Free) license assigned');
+            const title = vscode.l10n.t('Microsoft Fabric (Free) license assigned. You\'re signed in and can now create and explore Fabric items.');
             const learnMoreLabel = vscode.l10n.t('Learn More');
             const privacyStatementLabel = vscode.l10n.t('Privacy Statement');
 
