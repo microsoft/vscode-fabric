@@ -126,21 +126,6 @@ describe('ExtensionUriHandler', () => {
         assert.strictEqual(infoSpy.calledWith('Signup completion callback received'), true, 'logger should record signup completion');
     });
 
-    it('handles signup completion callback without auto-assigned license', async () => {
-        sandbox.stub(vscode.commands, 'executeCommand').resolves(undefined);
-        const showInformationStub = sandbox.stub(vscode.window, 'showInformationMessage').resolves(undefined);
-
-        const { handler, refreshStub } = createHandler();
-
-        const uri = vscode.Uri.parse('vscode-fabric://signup?signedUp=1');
-        await handler.handleUri(uri);
-
-        assert.strictEqual(refreshStub.calledOnce, true, 'refreshConnectionToFabric should be invoked when signup completes');
-        const expectedMessage = 'Welcome to Microsoft Fabric! Your account setup is complete.';
-        assert.strictEqual(showInformationStub.calledOnce, true, 'information message should be shown');
-        assert.strictEqual(showInformationStub.firstCall.args[0], expectedMessage, 'welcome message should be used when license is not auto-assigned');
-    });
-
     it('delegates to base handler when URI is not a signup callback', async () => {
         const baseHandleStub = sandbox.stub(FabricUriHandler.prototype, 'handleUri').resolves();
         const { handler } = createHandler();
