@@ -21,16 +21,16 @@ import { WorkspaceManager } from './workspace/WorkspaceManager';
  */
 export class ExtensionUriHandler extends FabricUriHandler {
     constructor(
-        core: IFabricExtensionServiceCollection,
+        private core: IFabricExtensionServiceCollection,
         telemetry: TelemetryService | null,
         logger: ILogger,
-        fabricEnvironmentProvider: IFabricEnvironmentProvider,
-        configProvider: IConfigurationProvider
+        private fabricEnvironmentProvider: IFabricEnvironmentProvider,
+        private configProvider: IConfigurationProvider
     ) {
-        super(core, telemetry, logger, fabricEnvironmentProvider, configProvider);
+        super(telemetry, logger);
     }
 
-    override handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
+    override async handleUri(uri: vscode.Uri): Promise<void> {
         const searchParams = new URLSearchParams(uri.query);
 
         // Check if this is a signup completion callback
