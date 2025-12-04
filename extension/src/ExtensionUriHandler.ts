@@ -7,8 +7,6 @@ import {
     FabricUriHandler,
     TelemetryService,
     TelemetryActivity,
-    IFabricEnvironmentProvider,
-    IConfigurationProvider,
     ILogger,
     doFabricAction,
 } from '@microsoft/vscode-fabric-util';
@@ -23,9 +21,7 @@ export class ExtensionUriHandler extends FabricUriHandler {
     constructor(
         private core: IFabricExtensionServiceCollection,
         telemetry: TelemetryService | null,
-        logger: ILogger,
-        private fabricEnvironmentProvider: IFabricEnvironmentProvider,
-        private configProvider: IConfigurationProvider
+        logger: ILogger
     ) {
         super(telemetry, logger);
     }

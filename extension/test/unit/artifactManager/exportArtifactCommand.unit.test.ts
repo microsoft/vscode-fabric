@@ -84,6 +84,26 @@ describe('exportArtifactCommand', () => {
         ), 'downloadAndSaveArtifact should be called with correct arguments');
 
         assert.ok(showFolderActionAndSavePreferenceStub.calledOnce, 'showFolderActionAndSavePreference should be called once');
+        assert.strictEqual(showFolderActionAndSavePreferenceStub.lastCall.args.length, 4, 'Should be called with 4 arguments');
+        assert.strictEqual(showFolderActionAndSavePreferenceStub.lastCall.args[3], undefined, 'Fourth argument should be undefined when options not provided');    
+    });
+
+    it('calls showFolderActionAndSavePreference with options when provided', async () => {
+        showFolderActionAndSavePreferenceStub.resolves(artifactOperations.FolderAction.doNothing);
+        const options = { modal: true, includeDoNothing: false };
+        await exportArtifactCommand(
+            artifactMock.object(),
+            artifactManagerMock.object(),
+            localFolderServiceMock.object(),
+            configurationProviderMock.object(),
+            conflictDetectorMock.object(),
+            itemDefinitionWriterMock.object(),
+            telemetryActivityMock.object(),
+            options
+        );
+        assert.ok(showFolderActionAndSavePreferenceStub.calledOnce, 'showFolderActionAndSavePreference should be called once');
+        assert.strictEqual(showFolderActionAndSavePreferenceStub.lastCall.args.length, 4, 'Should be called with 4 arguments when options provided');
+        assert.deepStrictEqual(showFolderActionAndSavePreferenceStub.lastCall.args[3], options, 'Options should be passed as the fourth argument');
     });
 
     it('Cancel local folder selection', async () => {

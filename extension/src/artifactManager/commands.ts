@@ -11,7 +11,7 @@ import { IArtifact,  IWorkspace, IWorkspaceManager, ArtifactTreeNode } from '@mi
 import { OperationRequestType } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
 import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
-import { TelemetryActivity, TelemetryService, IFabricEnvironmentProvider, withErrorHandling, doFabricAction, ILogger, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
+import { TelemetryActivity, TelemetryService, IFabricEnvironmentProvider, withErrorHandling, doFabricAction, ILogger, IConfigurationProvider, FABRIC_ENVIRONMENT_PROD } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { fabricViewWorkspace } from '../constants';
 import { createArtifactCommand, createArtifactCommandDeprecated, promptForArtifactTypeAndName } from './createArtifactCommand';
@@ -181,6 +181,7 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
             await withErrorHandling('exportArtifact', logger, telemetryService, async () => {
                 const arg = cmdArgs[0];
                 let artifact: IArtifact | undefined;
+                let options: undefined | { modal: boolean; includeDoNothing: boolean };
 
                 // If called with an ArtifactTreeNode, use its artifact
                 if (arg && typeof arg === 'object' && 'artifact' in arg) {
@@ -200,8 +201,12 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                             throw new FabricError(vscode.l10n.t('Environment parameter not valid: {0}', arg.environment), 'Environment parameter not valid');
                         }
                     }
+                    else {
+                        await fabricEnvironmentProvider.switchToEnvironment(FABRIC_ENVIRONMENT_PROD);
+                    }
                     const artifacts = await workspaceManager.getItemsInWorkspace(arg.workspaceId);
                     artifact = artifacts.find(a => a.id === arg.artifactId);
+                    options = { modal: true, includeDoNothing: false };
                 }
 
                 if (!artifact) {
@@ -220,7 +225,8 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                             configurationProvider,
                             new ItemDefinitionConflictDetector(vscode.workspace.fs),
                             new ItemDefinitionWriter(vscode.workspace.fs),
-                            activity
+                            activity,
+                            options
                         );
                         activity.addOrUpdateProperties({ result: 'Succeeded' });
                     }

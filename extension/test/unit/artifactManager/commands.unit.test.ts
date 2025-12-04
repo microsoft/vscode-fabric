@@ -332,19 +332,6 @@ describe('registerArtifactCommands', () => {
                 commandCallback = registration.args[1];
             });
 
-            it('executes exportArtifact with artifactId/workspaceId', async () => {
-                // Act
-                await commandCallback({ artifactId, workspaceId });
-
-                // Assert
-                assert(exportArtifactCommandStub.calledOnce, 'exportArtifactCommand should be called');
-                fabricEnvironmentProviderMock.verify(x => x.switchToEnvironment(It.IsAny()), Times.Never());
-                const [calledArtifact] = exportArtifactCommandStub.firstCall.args;
-                assert.strictEqual(calledArtifact.id, artifactId, 'artifact id should match');
-                assert.strictEqual(calledArtifact.workspaceId, workspaceId, 'workspace id should match');
-                assert.strictEqual(calledArtifact.displayName, 'TestArtifact', 'artifact displayName should match');
-            });
-
             it('executes exportArtifact with artifactId/workspaceId/environment', async () => {
                 // Act
                 await commandCallback({ artifactId, workspaceId, environment });
@@ -356,6 +343,24 @@ describe('registerArtifactCommands', () => {
                 assert.strictEqual(calledArtifact.id, artifactId, 'artifact id should match');
                 assert.strictEqual(calledArtifact.workspaceId, workspaceId, 'workspace id should match');
                 assert.strictEqual(calledArtifact.displayName, 'TestArtifact', 'artifact displayName should match');
+            });
+
+            it('executes exportArtifact with artifactId/workspaceId and PROD environment', async () => {
+                // Act
+                await commandCallback({ artifactId, workspaceId });
+
+                // Assert
+                assert(exportArtifactCommandStub.calledOnce, 'exportArtifactCommand should be called');
+                fabricEnvironmentProviderMock.verify(x => x.switchToEnvironment('PROD'), Times.Once());
+                const args = exportArtifactCommandStub.firstCall.args;
+                assert.strictEqual(args.length, 8, 'Should pass 8 arguments to exportArtifactCommand');
+                const [calledArtifact] = args;
+                assert.strictEqual(calledArtifact.id, artifactId, 'artifact id should match');
+                assert.strictEqual(calledArtifact.workspaceId, workspaceId, 'workspace id should match');
+                assert.strictEqual(calledArtifact.displayName, 'TestArtifact', 'artifact displayName should match');
+                const lastArg = args[7];
+                assert.strictEqual(lastArg.modal, true, 'modal should be true');
+                assert.strictEqual(lastArg.includeDoNothing, false, 'includeDoNothing should be false');
             });
 
             it('logs error if artifactId is not a valid GUID', async () => {

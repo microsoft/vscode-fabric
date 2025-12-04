@@ -17,7 +17,8 @@ export async function showCompletionMessage(
     artifact: IArtifact,
     localFolderResults: { uri: vscode.Uri; prompted: boolean },
     localFolderService: ILocalFolderService,
-    configurationProvider: IConfigurationProvider
+    configurationProvider: IConfigurationProvider,
+    options?: { modal: boolean; includeDoNothing: boolean }
 ): Promise<void> {
     // Get the folder name from the URI
     const folderName = getFolderDisplayName(localFolderResults.uri);
@@ -29,7 +30,8 @@ export async function showCompletionMessage(
     await showFolderActionAndSavePreference(
         vscode.l10n.t('{0}. What would you like to do?', baseMessage),
         request,
-        services
+        services,
+        options
     );
 }
 
@@ -40,7 +42,8 @@ export async function exportArtifactCommand(
     configurationProvider: IConfigurationProvider,
     conflictDetector: IItemDefinitionConflictDetector,
     itemDefinitionWriter: IItemDefinitionWriter,
-    telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>
+    telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>,
+    options?: { modal: boolean; includeDoNothing: boolean }
 ): Promise<void> {
     // Get the folder to export to
     const localFolderResults = await localFolderService.getLocalFolder(
@@ -70,7 +73,8 @@ export async function exportArtifactCommand(
             artifact,
             localFolderResults,
             localFolderService,
-            configurationProvider
+            configurationProvider,
+            options
         );
     }
     catch (error: any) {
