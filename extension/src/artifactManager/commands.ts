@@ -178,42 +178,43 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
     registerCommand(
         commandNames.exportArtifact,
         async (...cmdArgs) => {
+            const arg = cmdArgs[0];
+            let artifact: IArtifact | undefined;
+            let options: undefined | { modal: boolean; includeDoNothing: boolean };
+
+            // If called with an ArtifactTreeNode, use its artifact
+            if (arg && typeof arg === 'object' && 'artifact' in arg) {
+                artifact = arg.artifact;
+            }
+            else if (arg && typeof arg === 'object' && 'artifactId' in arg && 'workspaceId' in arg) {
+                validateIdentifiers(arg.artifactId, arg.workspaceId);
+
+                const isSignedIn: boolean = await ensureSignedIn(accountProvider);
+                if (!isSignedIn) {
+                    throw new NotSignedInError();
+                }
+
+                // If called with an object from UriHandler, resolve environment and artifact
+                if (arg.environment) {
+                    if (!(await fabricEnvironmentProvider.switchToEnvironment(arg.environment))) {
+                        throw new FabricError(vscode.l10n.t('Environment parameter not valid: {0}', arg.environment), 'Environment parameter not valid');
+                    }
+                }
+                else {
+                    await fabricEnvironmentProvider.switchToEnvironment(FABRIC_ENVIRONMENT_PROD);
+                }
+                const artifacts = await workspaceManager.getItemsInWorkspace(arg.workspaceId);
+                artifact = artifacts.find(a => a.id === arg.artifactId);
+                options = { modal: true, includeDoNothing: false };
+            }
+
+            if (!artifact) {
+                throw new FabricError(vscode.l10n.t('Could not resolve item for Download Item Definition command.'), 'Item not found');
+            }
+            const activity = new TelemetryActivity<CoreTelemetryEventNames>('item/export', telemetryService);
+
+            // The error handling is deferred until the action is executed because the UriHandler may also be providing error handling
             await withErrorHandling('exportArtifact', logger, telemetryService, async () => {
-                const arg = cmdArgs[0];
-                let artifact: IArtifact | undefined;
-                let options: undefined | { modal: boolean; includeDoNothing: boolean };
-
-                // If called with an ArtifactTreeNode, use its artifact
-                if (arg && typeof arg === 'object' && 'artifact' in arg) {
-                    artifact = arg.artifact;
-                }
-                else if (arg && typeof arg === 'object' && 'artifactId' in arg && 'workspaceId' in arg) {
-                    validateIdentifiers(arg.artifactId, arg.workspaceId);
-
-                    const isSignedIn: boolean = await ensureSignedIn(accountProvider);
-                    if (!isSignedIn) {
-                        throw new NotSignedInError();
-                    }
-
-                    // If called with an object from UriHandler, resolve environment and artifact
-                    if (arg.environment) {
-                        if (!(await fabricEnvironmentProvider.switchToEnvironment(arg.environment))) {
-                            throw new FabricError(vscode.l10n.t('Environment parameter not valid: {0}', arg.environment), 'Environment parameter not valid');
-                        }
-                    }
-                    else {
-                        await fabricEnvironmentProvider.switchToEnvironment(FABRIC_ENVIRONMENT_PROD);
-                    }
-                    const artifacts = await workspaceManager.getItemsInWorkspace(arg.workspaceId);
-                    artifact = artifacts.find(a => a.id === arg.artifactId);
-                    options = { modal: true, includeDoNothing: false };
-                }
-
-                if (!artifact) {
-                    throw new FabricError(vscode.l10n.t('Could not resolve item for Download Item Definition command.'), 'Item not found');
-                }
-                const activity = new TelemetryActivity<CoreTelemetryEventNames>('item/export', telemetryService);
-
                 // Don't use doArtifactAction because exportArtifactCommand should be handling the progress
                 await doFabricAction({ fabricLogger: logger, telemetryActivity: activity }, async () => {
                     try {
