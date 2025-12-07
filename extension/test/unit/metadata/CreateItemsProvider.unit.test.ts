@@ -112,4 +112,101 @@ describe('CreateItemsProvider', () => {
         assert.ok(getArtifactDefaultIconPathStub.calledWith(baseUri), 'getArtifactDefaultIconPath should be called with baseUri');
     });
 
+    describe('with artifactTypeFilter', () => {
+        it('returns only the filtered type when it exists and is creatable', () => {
+            const metadata: Record<string, FabricItemMetadata> = {
+                notebook: {
+                    displayName: 'Notebook',
+                    creationCapability: CreationCapability.supported,
+                },
+                lakehouse: {
+                    displayName: 'Lakehouse',
+                    creationCapability: CreationCapability.supported,
+                },
+            };
+
+            const provider = new CreateItemsProvider(metadata, 'notebook');
+            const items = provider.getItemsForCreate(baseUri);
+
+            assert.strictEqual(items.length, 1, 'should return only one item');
+            assert.strictEqual(items[0].type, 'notebook');
+            assert.strictEqual(items[0].displayName, 'Notebook');
+        });
+
+        it('returns all items when filtered type does not exist in metadata', () => {
+            const metadata: Record<string, FabricItemMetadata> = {
+                notebook: {
+                    displayName: 'Notebook',
+                    creationCapability: CreationCapability.supported,
+                },
+                lakehouse: {
+                    displayName: 'Lakehouse',
+                    creationCapability: CreationCapability.supported,
+                },
+            };
+
+            const provider = new CreateItemsProvider(metadata, 'nonexistent');
+            const items = provider.getItemsForCreate(baseUri);
+
+            assert.strictEqual(items.length, 2, 'should return all creatable items');
+            assert.deepStrictEqual(
+                items.map(i => i.type).sort(),
+                ['lakehouse', 'notebook']
+            );
+        });
+
+        it('returns all items when filtered type exists but is not creatable', () => {
+            const metadata: Record<string, FabricItemMetadata> = {
+                notebook: {
+                    displayName: 'Notebook',
+                    creationCapability: CreationCapability.supported,
+                },
+                deprecated: {
+                    displayName: 'Deprecated',
+                    creationCapability: CreationCapability.unsupported,
+                },
+            };
+
+            const provider = new CreateItemsProvider(metadata, 'deprecated');
+            const items = provider.getItemsForCreate(baseUri);
+
+            assert.strictEqual(items.length, 1, 'should fall back to all creatable items');
+            assert.strictEqual(items[0].type, 'notebook');
+        });
+
+        it('returns empty array when filtered type is not creatable and no other creatable items exist', () => {
+            const metadata: Record<string, FabricItemMetadata> = {
+                deprecated: {
+                    displayName: 'Deprecated',
+                    creationCapability: CreationCapability.unsupported,
+                },
+            };
+
+            const provider = new CreateItemsProvider(metadata, 'deprecated');
+            const items = provider.getItemsForCreate(baseUri);
+
+            assert.deepStrictEqual(items, [], 'should return empty array');
+        });
+
+        it('works with preview items when filtered', () => {
+            const metadata: Record<string, FabricItemMetadata> = {
+                notebook: {
+                    displayName: 'Notebook',
+                    creationCapability: CreationCapability.supported,
+                },
+                experimental: {
+                    displayName: 'Experimental',
+                    creationCapability: CreationCapability.preview,
+                },
+            };
+
+            const provider = new CreateItemsProvider(metadata, 'experimental');
+            const items = provider.getItemsForCreate(baseUri);
+
+            assert.strictEqual(items.length, 1, 'should return filtered preview item');
+            assert.strictEqual(items[0].type, 'experimental');
+            assert.strictEqual(items[0].creationCapability, CreationCapability.preview);
+        });
+    });
+
 });
