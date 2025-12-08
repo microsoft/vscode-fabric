@@ -8,11 +8,14 @@ import { FabricUriHandler } from '../../src/FabricUriHandler';
 
 describe('FabricUriHandler', () => {
     let executeCommandStub: sinon.SinonStub;
-    let logger: { debug: sinon.SinonSpy; };
+    let logger: { debug: sinon.SinonSpy; reportExceptionTelemetryAndLog: sinon.SinonStub };
 
     beforeEach(() => {
         executeCommandStub = sinon.stub(vscode.commands, 'executeCommand').resolves();
-        logger = { debug: sinon.spy() };
+        logger = {
+            debug: sinon.spy(),
+            reportExceptionTelemetryAndLog: sinon.stub().returns(undefined),
+        };
     });
 
     afterEach(() => {
@@ -64,5 +67,21 @@ describe('FabricUriHandler', () => {
         assert(logger.debug.firstCall.args[0].includes(workspaceId), 'debug should include workspaceId');
         assert(logger.debug.firstCall.args[0].includes(artifactId), 'debug should include artifactId');
         assert(logger.debug.firstCall.args[0].includes(environmentId), 'debug should include environmentId');
+    });
+
+    it('should log error if exportArtifact command fails', async () => {
+        const handler = new FabricUriHandler(null, logger as any);
+        const workspaceId = '11111111-1111-1111-1111-111111111111';
+        const artifactId = '22222222-2222-2222-2222-222222222222';
+        const environmentId = 'PROD';
+        const uri = vscode.Uri.parse(`vscode://fabric.vscode-fabric/?workspaceId=${workspaceId}&&artifactId=${artifactId}&&Environment=${environmentId}`);
+        const errorMsg = 'Simulated export error';
+        executeCommandStub.rejects(new Error(errorMsg));
+
+        const showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage').returns(undefined as any);
+        await handler.handleUri(uri);
+        // Should not throw, but should log the error via reportExceptionTelemetryAndLog
+        assert(logger.reportExceptionTelemetryAndLog.called, 'reportExceptionTelemetryAndLog should be called');
+        assert(showErrorMessageStub.called, 'showErrorMessage should be called');
     });
 });

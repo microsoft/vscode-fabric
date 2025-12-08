@@ -363,75 +363,85 @@ describe('registerArtifactCommands', () => {
                 assert.strictEqual(lastArg.includeDoNothing, false, 'includeDoNothing should be false');
             });
 
-            it('logs error if artifactId is not a valid GUID', async () => {
-                // Arrange
+            it('throws if artifactId is not a valid GUID', async () => {
                 const invalidArtifactId = 'not-a-guid';
-
-                // Act
-                const result = await commandCallback({ artifactId: invalidArtifactId, workspaceId, environment });
-
-                // Assert
+                await assert.rejects(
+                    async () => {
+                        await commandCallback({ artifactId: invalidArtifactId, workspaceId, environment });
+                    },
+                    (err: Error) => {
+                        assert.ok(err instanceof Error, 'Should throw an error');
+                        assert.ok(err.message.includes('Invalid item identifier'), 'Error message should mention invalid item identifier');
+                        return true;
+                    }
+                );
                 assert(exportArtifactCommandStub.notCalled, 'exportArtifactCommand should not be called');
-                loggerMock.verify(l => l.reportExceptionTelemetryAndLog(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
-                assert.strictEqual(result, undefined, 'Should return undefined for invalid artifactId');
             });
 
-            it('logs error if workspaceId is not a valid GUID', async () => {
-                // Arrange
+            it('throws if workspaceId is not a valid GUID', async () => {
                 const invalidWorkspaceId = 'not-a-guid';
-
-                // Act
-                const result = await commandCallback({ artifactId, workspaceId: invalidWorkspaceId, environment });
-
-                // Assert
+                await assert.rejects(
+                    async () => {
+                        await commandCallback({ artifactId, workspaceId: invalidWorkspaceId, environment });
+                    },
+                    (err: Error) => {
+                        assert.ok(err instanceof Error, 'Should throw an error');
+                        assert.ok(err.message.includes('Invalid workspace identifier'), 'Error message should mention invalid workspace identifier');
+                        return true;
+                    }
+                );
                 assert(exportArtifactCommandStub.notCalled, 'exportArtifactCommand should not be called');
-                loggerMock.verify(l => l.reportExceptionTelemetryAndLog(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
-                assert.strictEqual(result, undefined, 'Should return undefined for invalid workspaceId');
             });
 
-            it('logs error if not signed in', async () => {
-                // Arrange
+            it('throws if not signed in', async () => {
                 accountProviderMock
                     .setup(x => x.isSignedIn())
                     .returns(Promise.resolve(false));
                 accountProviderMock
                     .setup(x => x.awaitSignIn())
                     .returns(Promise.resolve());
-
-                // Act
-                const result = await commandCallback({ artifactId, workspaceId, environment });
-
-                // Assert
+                await assert.rejects(
+                    async () => {
+                        await commandCallback({ artifactId, workspaceId, environment });
+                    },
+                    (err: Error) => {
+                        assert.ok(err instanceof Error, 'Should throw an error');
+                        assert.ok(err.message.includes('NotSignedInError') || err.constructor.name === 'NotSignedInError', 'Error message or type should mention NotSignedInError');
+                        return true;
+                    }
+                );
                 assert(exportArtifactCommandStub.notCalled, 'exportArtifactCommand should not be called');
-                loggerMock.verify(l => l.reportExceptionTelemetryAndLog(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
-                assert.strictEqual(result, undefined, 'Should return undefined when not signed in');
             });
 
-            it('logs error if environment switch fails', async () => {
-                // Arrange
+            it('throws if environment switch fails', async () => {
                 environment = 'INVALID';
                 fabricEnvironmentProviderMock.setup(x => x.switchToEnvironment(environment)).returns(Promise.resolve(false));
-
-                // Act
-                const result = await commandCallback({ artifactId, workspaceId, environment });
-
-                // Assert
+                await assert.rejects(
+                    async () => {
+                        await commandCallback({ artifactId, workspaceId, environment });
+                    },
+                    (err: Error) => {
+                        assert.ok(err instanceof Error, 'Should throw an error');
+                        assert.ok(err.message.includes('Environment parameter not valid'), 'Error message should mention environment parameter not valid');
+                        return true;
+                    }
+                );
                 assert(exportArtifactCommandStub.notCalled, 'exportArtifactCommand should not be called');
-                assert.strictEqual(result, undefined, 'Should return undefined when environment switch fails');
-                loggerMock.verify(l => l.reportExceptionTelemetryAndLog(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
             });
 
-            it('logs error if artifact cannot be found', async () => {
-                // Arrange
+            it('throws if artifact cannot be found', async () => {
                 workspaceManagerMock.setup(x => x.getItemsInWorkspace(workspaceId)).returns(Promise.resolve([]));
-
-                // Act
-                const result = await commandCallback({ artifactId, workspaceId, environment });
-
-                // Assert
+                await assert.rejects(
+                    async () => {
+                        await commandCallback({ artifactId, workspaceId, environment });
+                    },
+                    (err: Error) => {
+                        assert.ok(err instanceof Error, 'Should throw an error');
+                        assert.ok(err.message.includes('Could not resolve item'), 'Error message should mention could not resolve item');
+                        return true;
+                    }
+                );
                 assert(exportArtifactCommandStub.notCalled, 'exportArtifactCommand should not be called');
-                assert.strictEqual(result, undefined, 'Should return undefined when artifact cannot be found');
-                loggerMock.verify(l => l.reportExceptionTelemetryAndLog(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Once());
             });
         });
 

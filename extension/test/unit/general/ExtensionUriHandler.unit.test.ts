@@ -6,9 +6,8 @@ import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { ExtensionUriHandler } from '../../../src/ExtensionUriHandler';
 import { IFabricExtensionServiceCollection } from '@microsoft/vscode-fabric-api';
-import { FabricUriHandler, IConfigurationProvider, IFabricEnvironmentProvider, ILogger } from '@microsoft/vscode-fabric-util';
+import { FabricUriHandler, IConfigurationProvider, ILogger } from '@microsoft/vscode-fabric-util';
 import { WorkspaceManager } from '../../../src/workspace/WorkspaceManager';
-import { MockFabricEnvironmentProvider } from './serviceCollection';
 
 describe('ExtensionUriHandler', () => {
     let sandbox: sinon.SinonSandbox;
@@ -53,16 +52,6 @@ describe('ExtensionUriHandler', () => {
         sandbox.restore();
     });
 
-    function createConfigProvider(): IConfigurationProvider {
-        const emitter = new vscode.EventEmitter<string>();
-        configEmitters.push(emitter);
-        return {
-            get: <T>(_key: string, defaultValue: T) => defaultValue,
-            update: async () => { /* no-op */ },
-            onDidConfigurationChange: emitter.event,
-        };
-    }
-
     function createLogger(infoSpy?: sinon.SinonSpy): ILogger {
         const spy = infoSpy ?? sandbox.spy();
         return {
@@ -80,7 +69,6 @@ describe('ExtensionUriHandler', () => {
     function createHandler(overrides?: {
         refreshStub?: sinon.SinonStub<[], Promise<void>>;
         loggerInfoSpy?: sinon.SinonSpy;
-        fabricEnvironmentProvider?: IFabricEnvironmentProvider;
         configProvider?: IConfigurationProvider;
     }): {
             handler: ExtensionUriHandler;
@@ -99,9 +87,7 @@ describe('ExtensionUriHandler', () => {
         const handler = new ExtensionUriHandler(
             core,
             null,
-            createLogger(infoSpy),
-            overrides?.fabricEnvironmentProvider ?? new MockFabricEnvironmentProvider(),
-            overrides?.configProvider ?? createConfigProvider()
+            createLogger(infoSpy)
         );
         return { handler, refreshStub, infoSpy, core };
     }
