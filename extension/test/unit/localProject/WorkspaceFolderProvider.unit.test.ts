@@ -3,19 +3,11 @@
 
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { Mock, It } from 'moq.ts';
+import { Mock, It, Times } from 'moq.ts';
 import { WorkspaceFolderProvider } from '../../../src/localProject/WorkspaceFolderProvider';
 import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import * as utilities from '../../../src/utilities';
 
-/**
- * WorkspaceFolderProvider Unit Tests
- *
- * Note: Due to heavy reliance on VS Code APIs (vscode.workspace, vscode.workspace.fs, FileSystemWatcher),
- * comprehensive testing is done via integration tests in NestedLocalProjects.integration.test.ts.
- *
- * These unit tests validate basic behavior and document expected functionality.
- */
 describe('WorkspaceFolderProvider unit tests', () => {
     let loggerMock: Mock<ILogger>;
     let telemetryMock: Mock<TelemetryService>;
@@ -25,14 +17,6 @@ describe('WorkspaceFolderProvider unit tests', () => {
         loggerMock = new Mock<ILogger>();
         telemetryMock = new Mock<TelemetryService>();
         fileSystemMock = new Mock<vscode.FileSystem>();
-
-        // Set up logger mock to accept any calls
-        loggerMock.setup(l => l.log(It.IsAny(), It.IsAny(), It.IsAny())).returns(undefined);
-        loggerMock.setup(l => l.info(It.IsAny(), It.IsAny())).returns(undefined);
-        loggerMock.setup(l => l.error(It.IsAny(), It.IsAny())).returns(undefined);
-        loggerMock.setup(l => l.warn(It.IsAny(), It.IsAny())).returns(undefined);
-        loggerMock.setup(l => l.debug(It.IsAny(), It.IsAny())).returns(undefined);
-        loggerMock.setup(l => l.trace(It.IsAny(), It.IsAny())).returns(undefined);
     });
 
     describe('Basic functionality', () => {
@@ -44,14 +28,14 @@ describe('WorkspaceFolderProvider unit tests', () => {
             assert.ok(Array.isArray(provider.workspaceFolders.items), 'workspaceFolders.items should be an array');
         });
 
-        it('should initialize with empty collection when no workspace folders', async () => {
+        it('initializes with empty collection when no workspace folders', async () => {
             // When vscode.workspace.workspaceFolders is undefined or empty
             const provider = await createWorkspaceFolderProvider();
 
             assert.strictEqual(provider.workspaceFolders.items.length, 0, 'Should have no folders in empty workspace');
         });
 
-        it('should be disposable', async () => {
+        it('is disposable and can be disposed multiple times', async () => {
             const provider = await createWorkspaceFolderProvider();
 
             assert.ok(typeof provider.dispose === 'function', 'Should have dispose method');
@@ -74,10 +58,8 @@ describe('WorkspaceFolderProvider unit tests', () => {
         });
     });
 
-    describe('Single workspace, immediate subdirectories', () => {
+    describe('WorkspaceFolderProvider flat workspace scenarios', () => {
         const sinon = require('sinon');
-        let loggerMock: Mock<ILogger>;
-        let telemetryMock: Mock<TelemetryService>;
         let sandbox: any;
 
         const workspaceUri = vscode.Uri.file('/workspace');
@@ -87,12 +69,9 @@ describe('WorkspaceFolderProvider unit tests', () => {
         let isDirectoryStub: any;
 
         beforeEach(() => {
-            loggerMock = new Mock<ILogger>();
-            telemetryMock = new Mock<TelemetryService>();
             sandbox = sinon.createSandbox();
             isDirectoryStub = sandbox.stub(utilities, 'isDirectory').returns(Promise.resolve(true));
 
-            // Stub workspaceFolders
             sandbox.stub(vscode.workspace, 'workspaceFolders').value([
                 { uri: workspaceUri } as vscode.WorkspaceFolder
             ]);
@@ -103,22 +82,20 @@ describe('WorkspaceFolderProvider unit tests', () => {
                 onDidDelete: () => ({ dispose: () => { } }),
                 dispose: () => { }
             } as unknown as vscode.FileSystemWatcher);
-
-            fileSystemMock = new Mock<vscode.FileSystem>();
         });
 
         afterEach(() => {
-            sinon.restore();
+            sandbox.restore();
         });
 
-        it('should discover workspace root and immediate subdirectories', async () => {
+        it('discovers workspace root and immediate subdirectories', async () => {
             // Mock readDirectory to return two subdirectories
-            fileSystemMock.setup(fs => fs.readDirectory(workspaceUri)).returns(Promise.resolve([
-                ['project1.type1', vscode.FileType.Directory],
-                ['project2.type2', vscode.FileType.Directory]
-            ]));
-
-            //            isDirectoryStub.returns(Promise.resolve(true));
+            fileSystemMock
+                .setup(fs => fs.readDirectory(workspaceUri))
+                .returns(Promise.resolve([
+                    ['project1.type1', vscode.FileType.Directory],
+                    ['project2.type2', vscode.FileType.Directory]
+                ]));
 
             const provider = await createWorkspaceFolderProvider();
 
@@ -129,6 +106,75 @@ describe('WorkspaceFolderProvider unit tests', () => {
             assert.strictEqual(foundUris.length, 3, 'Should discover exactly 3 folders');
 
         });
+
+        it('ignores files and only adds directories from workspace root', async () => {
+            const workspaceUri = vscode.Uri.file('/workspace');
+            const subdir = vscode.Uri.file('/workspace/project.type1');
+            const file1 = vscode.Uri.file('/workspace/readme.md');
+            const file2 = vscode.Uri.file('/workspace/data.json');
+
+            fileSystemMock
+                .setup(fs => fs.readDirectory(It.IsAny()))
+                .returns(Promise.resolve([
+                    ['readme.md', vscode.FileType.File],
+                    ['project.type1', vscode.FileType.Directory],
+                    ['data.json', vscode.FileType.File]
+                ]));
+
+            const provider = await createWorkspaceFolderProvider();
+
+            const foundUris = provider.workspaceFolders.items.map(uri => uri.toString());
+            assert.ok(foundUris.includes(workspaceUri.toString()), 'Should include workspace root');
+            assert.ok(foundUris.includes(subdir.toString()), 'Should include project.type1');
+            assert.strictEqual(foundUris.length, 2, 'Should only discover workspace and directory');
+        });
+
+        it('discovers multiple workspace roots and their immediate subdirectories', async () => {
+            const workspaceUri1 = vscode.Uri.file('/workspace1');
+            const workspaceUri2 = vscode.Uri.file('/workspace2');
+            const subdir1 = vscode.Uri.file('/workspace1/project1.type1');
+            const subdir2 = vscode.Uri.file('/workspace2/project2.type2');
+
+            sandbox.stub(vscode.workspace, 'workspaceFolders').value([
+                { uri: workspaceUri1 } as vscode.WorkspaceFolder,
+                { uri: workspaceUri2 } as vscode.WorkspaceFolder
+            ]);
+
+            fileSystemMock
+                .setup(fs => fs.readDirectory(workspaceUri1))
+                .returns(Promise.resolve([
+                    ['project1.type1', vscode.FileType.Directory]
+                ]));
+            fileSystemMock
+                .setup(fs => fs.readDirectory(workspaceUri2))
+                .returns(Promise.resolve([
+                    ['project2.type2', vscode.FileType.Directory]
+                ]));
+
+            const provider = await createWorkspaceFolderProvider();
+
+            const foundUris = provider.workspaceFolders.items.map(uri => uri.toString());
+            assert.ok(foundUris.includes(workspaceUri1.toString()), 'Should include workspace1 root');
+            assert.ok(foundUris.includes(workspaceUri2.toString()), 'Should include workspace2 root');
+            assert.ok(foundUris.includes(subdir1.toString()), 'Should include project1.type1');
+            assert.ok(foundUris.includes(subdir2.toString()), 'Should include project2.type2');
+            assert.strictEqual(foundUris.length, 4, 'Should discover both roots and both projects');
+        });
+
+        it('does not add non-existent workspace folder', async () => {
+            isDirectoryStub.callsFake(async (fs: vscode.FileSystem, uri: vscode.Uri) => {
+                return false;
+            });
+
+            fileSystemMock.setup(fs => fs.readDirectory(workspaceUri)).returns(Promise.resolve([]));
+
+            const provider = await createWorkspaceFolderProvider();
+
+            const foundUris = provider.workspaceFolders.items.map(uri => uri.toString());
+            assert.strictEqual(foundUris.length, 0, 'Should not add non-existent workspace folder');
+            fileSystemMock.verify(fs => fs.readDirectory(workspaceUri), Times.Never());
+        });
+
     });
 
     async function createWorkspaceFolderProvider(): Promise<WorkspaceFolderProvider> {
