@@ -6,6 +6,7 @@ import * as vscode from 'vscode';
 import { Mock, It } from 'moq.ts';
 import { WorkspaceFolderProvider } from '../../../src/localProject/WorkspaceFolderProvider';
 import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
+import * as utilities from '../../../src/utilities';
 
 /**
  * WorkspaceFolderProvider Unit Tests
@@ -18,10 +19,12 @@ import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 describe('WorkspaceFolderProvider unit tests', () => {
     let loggerMock: Mock<ILogger>;
     let telemetryMock: Mock<TelemetryService>;
+    let fileSystemMock: Mock<vscode.FileSystem>;
 
     beforeEach(() => {
         loggerMock = new Mock<ILogger>();
         telemetryMock = new Mock<TelemetryService>();
+        fileSystemMock = new Mock<vscode.FileSystem>();
 
         // Set up logger mock to accept any calls
         loggerMock.setup(l => l.log(It.IsAny(), It.IsAny(), It.IsAny())).returns(undefined);
@@ -34,7 +37,7 @@ describe('WorkspaceFolderProvider unit tests', () => {
 
     describe('Basic functionality', () => {
         it('should create provider with empty workspace', async () => {
-            const provider = await WorkspaceFolderProvider.create(loggerMock.object(), telemetryMock.object());
+            const provider = await createWorkspaceFolderProvider();
 
             assert.ok(provider, 'Provider should be created');
             assert.ok(provider.workspaceFolders, 'Should have workspaceFolders collection');
@@ -43,13 +46,13 @@ describe('WorkspaceFolderProvider unit tests', () => {
 
         it('should initialize with empty collection when no workspace folders', async () => {
             // When vscode.workspace.workspaceFolders is undefined or empty
-            const provider = await WorkspaceFolderProvider.create(loggerMock.object(), telemetryMock.object());
+            const provider = await createWorkspaceFolderProvider();
 
             assert.strictEqual(provider.workspaceFolders.items.length, 0, 'Should have no folders in empty workspace');
         });
 
         it('should be disposable', async () => {
-            const provider = await WorkspaceFolderProvider.create(loggerMock.object(), telemetryMock.object());
+            const provider = await createWorkspaceFolderProvider();
 
             assert.ok(typeof provider.dispose === 'function', 'Should have dispose method');
 
@@ -61,7 +64,7 @@ describe('WorkspaceFolderProvider unit tests', () => {
         });
 
         it('should use ObservableSet for workspaceFolders', async () => {
-            const provider = await WorkspaceFolderProvider.create(loggerMock.object(), telemetryMock.object());
+            const provider = await createWorkspaceFolderProvider();
 
             // ObservableSet should have event methods
             assert.ok(typeof provider.workspaceFolders.onItemAdded === 'function', 'Should have onItemAdded');
@@ -70,6 +73,71 @@ describe('WorkspaceFolderProvider unit tests', () => {
             assert.ok(typeof provider.workspaceFolders.remove === 'function', 'Should have remove method');
         });
     });
+
+    describe('Single workspace, immediate subdirectories', () => {
+        const sinon = require('sinon');
+        let loggerMock: Mock<ILogger>;
+        let telemetryMock: Mock<TelemetryService>;
+        let sandbox: any;
+
+        const workspaceUri = vscode.Uri.file('/workspace');
+        const subdir1 = vscode.Uri.file('/workspace/project1.type1');
+        const subdir2 = vscode.Uri.file('/workspace/project2.type2');
+
+        let isDirectoryStub: any;
+
+        beforeEach(() => {
+            loggerMock = new Mock<ILogger>();
+            telemetryMock = new Mock<TelemetryService>();
+            sandbox = sinon.createSandbox();
+            isDirectoryStub = sandbox.stub(utilities, 'isDirectory').returns(Promise.resolve(true));
+
+            // Stub workspaceFolders
+            sandbox.stub(vscode.workspace, 'workspaceFolders').value([
+                { uri: workspaceUri } as vscode.WorkspaceFolder
+            ]);
+
+            // Stub createFileSystemWatcher to return a dummy watcher
+            sandbox.stub(vscode.workspace, 'createFileSystemWatcher').returns({
+                onDidCreate: () => ({ dispose: () => { } }),
+                onDidDelete: () => ({ dispose: () => { } }),
+                dispose: () => { }
+            } as unknown as vscode.FileSystemWatcher);
+
+            fileSystemMock = new Mock<vscode.FileSystem>();
+        });
+
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it('should discover workspace root and immediate subdirectories', async () => {
+            // Mock readDirectory to return two subdirectories
+            fileSystemMock.setup(fs => fs.readDirectory(workspaceUri)).returns(Promise.resolve([
+                ['project1.type1', vscode.FileType.Directory],
+                ['project2.type2', vscode.FileType.Directory]
+            ]));
+
+            //            isDirectoryStub.returns(Promise.resolve(true));
+
+            const provider = await createWorkspaceFolderProvider();
+
+            const foundUris = provider.workspaceFolders.items.map(uri => uri.toString());
+            assert.ok(foundUris.includes(workspaceUri.toString()), 'Should include workspace root');
+            assert.ok(foundUris.includes(subdir1.toString()), 'Should include project1.type1');
+            assert.ok(foundUris.includes(subdir2.toString()), 'Should include project2.type2');
+            assert.strictEqual(foundUris.length, 3, 'Should discover exactly 3 folders');
+
+        });
+    });
+
+    async function createWorkspaceFolderProvider(): Promise<WorkspaceFolderProvider> {
+        return WorkspaceFolderProvider.create(
+            fileSystemMock.object(),
+            loggerMock.object(),
+            telemetryMock.object()
+        );
+    }
 });
 
 /**

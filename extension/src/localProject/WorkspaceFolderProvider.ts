@@ -23,11 +23,11 @@ export class WorkspaceFolderProvider implements IWorkspaceFolderProvider, vscode
     public workspaceFolders: IObservableArray<vscode.Uri> = new ObservableSet<vscode.Uri>([], (a, b) => a.toString(true) === b.toString(true));
     private disposables: vscode.Disposable[] = [];
 
-    private constructor(private logger: ILogger, private telemetryService: TelemetryService) {
+    private constructor(private fileSystem: vscode.FileSystem, private logger: ILogger, private telemetryService: TelemetryService) {
     }
 
-    public static async create(logger: ILogger, telemetryService: TelemetryService): Promise<WorkspaceFolderProvider> {
-        const provider = new WorkspaceFolderProvider(logger, telemetryService);
+    public static async create(fileSystem: vscode.FileSystem, logger: ILogger, telemetryService: TelemetryService): Promise<WorkspaceFolderProvider> {
+        const provider = new WorkspaceFolderProvider(fileSystem, logger, telemetryService);
         await provider.scan();
         return provider;
     }
@@ -37,11 +37,11 @@ export class WorkspaceFolderProvider implements IWorkspaceFolderProvider, vscode
             for (const folder of vscode.workspace.workspaceFolders) {
                 await withErrorHandling('WorkspaceFolderProvider.scan', this.logger, this.telemetryService, async () => {
                     // The workspaceFolders should only contain directories, but the directory may not exist
-                    if (await isDirectory(vscode.workspace.fs, folder.uri)) {
+                    if (await isDirectory(this.fileSystem, folder.uri)) {
                         this.workspaceFolders.add(folder.uri);
 
                         // Read directory returns a tuple of the file name and the file type
-                        const directoryInformation = await vscode.workspace.fs.readDirectory(folder.uri);
+                        const directoryInformation = await this.fileSystem.readDirectory(folder.uri);
                         for (const current of directoryInformation) {
                             if (current[1] === vscode.FileType.Directory) {
                                 this.workspaceFolders.add(vscode.Uri.joinPath(folder.uri, current[0]));
@@ -49,7 +49,7 @@ export class WorkspaceFolderProvider implements IWorkspaceFolderProvider, vscode
                         }
 
                         // Add a listener FileSystemWatcher to detect when a directory is added or removed
-                        const watcher = new WorkspaceFolderWatcher(folder.uri, this.workspaceFolders);
+                        const watcher = new WorkspaceFolderWatcher(folder.uri, this.fileSystem, this.workspaceFolders);
                         this.disposables.push(watcher);
                     }
                 })();
@@ -66,17 +66,17 @@ export class WorkspaceFolderProvider implements IWorkspaceFolderProvider, vscode
 class WorkspaceFolderWatcher implements vscode.Disposable {
     private watcher: vscode.FileSystemWatcher | undefined;
 
-    constructor(folder: vscode.Uri, folderCollection: IObservableArray<vscode.Uri>) {
+    constructor(folder: vscode.Uri, private fileSystem: vscode.FileSystem, folderCollection: IObservableArray<vscode.Uri>) {
         // Only test top-level directories since ALM only supports this (for now)
         // That may change once Fabric folders are supported
         this.watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(folder, '*'));
         this.watcher.onDidDelete(async (uri: vscode.Uri) => {
-            if (await isDirectory(vscode.workspace.fs, uri, true)) { // The item no longer exists, so it might have been a directory. Let's assume it was to be safe.
+            if (await isDirectory(this.fileSystem, uri, true)) { // The item no longer exists, so it might have been a directory. Let's assume it was to be safe.
                 folderCollection.remove(uri);
             }
         });
         this.watcher.onDidCreate(async (uri: vscode.Uri) => {
-            if (await isDirectory(vscode.workspace.fs, uri)) {
+            if (await isDirectory(this.fileSystem, uri)) {
                 folderCollection.add(uri);
             }
         });

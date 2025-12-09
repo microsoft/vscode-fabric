@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import * as Mocha from 'mocha';
 import * as assert from 'assert';
 import { Uri } from 'vscode';
 import { IWorkspaceFolderProvider } from '../../../src/localProject/definitions';
