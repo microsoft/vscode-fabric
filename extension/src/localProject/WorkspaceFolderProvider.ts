@@ -39,21 +39,30 @@ export class WorkspaceFolderProvider implements IWorkspaceFolderProvider, vscode
                 await withErrorHandling('WorkspaceFolderProvider.scan', this.logger, this.telemetryService, async () => {
                     // The workspaceFolders should only contain directories, but the directory may not exist
                     if (await isDirectory(this.fileSystem, folder.uri)) {
-                        this.workspaceFolders.add(folder.uri);
-
-                        // Read directory returns a tuple of the file name and the file type
-                        const directoryInformation = await this.fileSystem.readDirectory(folder.uri);
-                        for (const current of directoryInformation) {
-                            if (current[1] === vscode.FileType.Directory) {
-                                this.workspaceFolders.add(vscode.Uri.joinPath(folder.uri, current[0]));
-                            }
-                        }
+                        // Recursively scan the workspace folder and all subdirectories
+                        await this.scanFolderRecursively(folder.uri);
 
                         // Add a listener FileSystemWatcher to detect when a directory is added or removed
                         const watcher = new WorkspaceFolderWatcher(folder.uri, this.fileSystem, this.workspaceFolders);
                         this.disposables.push(watcher);
                     }
                 })();
+            }
+        }
+    }
+
+    private async scanFolderRecursively(folderUri: vscode.Uri): Promise<void> {
+        // Add the current folder to the collection
+        this.workspaceFolders.add(folderUri);
+
+        // Read directory returns a tuple of the file name and the file type
+        const directoryInformation = await this.fileSystem.readDirectory(folderUri);
+        
+        // Process all subdirectories recursively
+        for (const current of directoryInformation) {
+            if (current[1] === vscode.FileType.Directory) {
+                const subdirUri = vscode.Uri.joinPath(folderUri, current[0]);
+                await this.scanFolderRecursively(subdirUri);
             }
         }
     }

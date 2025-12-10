@@ -59,7 +59,7 @@ describe('WorkspaceFolderWatcher', () => {
         new WorkspaceFolderWatcher(folderUri, fileSystemMock.object(), folderCollection);
         assert.ok(relativePatternArg instanceof vscode.RelativePattern, 'Should use RelativePattern');
         assert.strictEqual(relativePatternArg?.baseUri.fsPath, folderUri.fsPath, 'Pattern base should match folder');
-        assert.strictEqual(relativePatternArg?.pattern, '*', 'Pattern should be *');
+        assert.strictEqual(relativePatternArg?.pattern, '**', 'Pattern should be **');
     });
 
     it('adds folder to collection on directory creation', async () => {

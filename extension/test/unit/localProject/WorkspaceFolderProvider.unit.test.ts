@@ -3,20 +3,64 @@
 
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { Mock, It, Times } from 'moq.ts';
 import { WorkspaceFolderProvider } from '../../../src/localProject/WorkspaceFolderProvider';
 import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import * as utilities from '../../../src/utilities';
 
+/**
+ * Fake FileSystem for testing that maintains an in-memory directory structure
+ */
+class FakeFileSystem implements vscode.FileSystem {
+    private directories = new Map<string, [string, vscode.FileType][]>();
+
+    addDirectory(path: string, contents: [string, vscode.FileType][] = []): void {
+        this.directories.set(path, contents);
+    }
+
+    async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
+        const contents = this.directories.get(uri.toString());
+        if (contents === undefined) {
+            return [];
+        }
+        return contents;
+    }
+
+    // Unused methods required by interface
+    stat(uri: vscode.Uri): Thenable<vscode.FileStat> {
+        throw new Error('Not implemented');
+    }
+    readFile(uri: vscode.Uri): Thenable<Uint8Array> {
+        throw new Error('Not implemented');
+    }
+    writeFile(uri: vscode.Uri, content: Uint8Array): Thenable<void> {
+        throw new Error('Not implemented');
+    }
+    rename(oldUri: vscode.Uri, newUri: vscode.Uri): Thenable<void> {
+        throw new Error('Not implemented');
+    }
+    delete(uri: vscode.Uri): Thenable<void> {
+        throw new Error('Not implemented');
+    }
+    createDirectory(uri: vscode.Uri): Thenable<void> {
+        throw new Error('Not implemented');
+    }
+    copy(source: vscode.Uri, target: vscode.Uri): Thenable<void> {
+        throw new Error('Not implemented');
+    }
+    isWritableFileSystem(scheme: string): boolean {
+        return false;
+    }
+}
+
 describe('WorkspaceFolderProvider unit tests', () => {
-    let loggerMock: Mock<ILogger>;
-    let telemetryMock: Mock<TelemetryService>;
-    let fileSystemMock: Mock<vscode.FileSystem>;
+    let logger: ILogger;
+    let telemetry: TelemetryService;
+    let fileSystem: FakeFileSystem;
 
     beforeEach(() => {
-        loggerMock = new Mock<ILogger>();
-        telemetryMock = new Mock<TelemetryService>();
-        fileSystemMock = new Mock<vscode.FileSystem>();
+        logger = {} as ILogger;
+        telemetry = {} as TelemetryService;
+        fileSystem = new FakeFileSystem();
     });
 
     describe('Basic functionality', () => {
@@ -89,13 +133,13 @@ describe('WorkspaceFolderProvider unit tests', () => {
         });
 
         it('discovers workspace root and immediate subdirectories', async () => {
-            // Mock readDirectory to return two subdirectories
-            fileSystemMock
-                .setup(fs => fs.readDirectory(workspaceUri))
-                .returns(Promise.resolve([
-                    ['project1.type1', vscode.FileType.Directory],
-                    ['project2.type2', vscode.FileType.Directory]
-                ]));
+            // Set up filesystem
+            fileSystem.addDirectory(workspaceUri.toString(), [
+                ['project1.type1', vscode.FileType.Directory],
+                ['project2.type2', vscode.FileType.Directory]
+            ]);
+            fileSystem.addDirectory(subdir1.toString(), []);
+            fileSystem.addDirectory(subdir2.toString(), []);
 
             const provider = await createWorkspaceFolderProvider();
 
@@ -110,16 +154,13 @@ describe('WorkspaceFolderProvider unit tests', () => {
         it('ignores files and only adds directories from workspace root', async () => {
             const workspaceUri = vscode.Uri.file('/workspace');
             const subdir = vscode.Uri.file('/workspace/project.type1');
-            const file1 = vscode.Uri.file('/workspace/readme.md');
-            const file2 = vscode.Uri.file('/workspace/data.json');
 
-            fileSystemMock
-                .setup(fs => fs.readDirectory(It.IsAny()))
-                .returns(Promise.resolve([
-                    ['readme.md', vscode.FileType.File],
-                    ['project.type1', vscode.FileType.Directory],
-                    ['data.json', vscode.FileType.File]
-                ]));
+            fileSystem.addDirectory(workspaceUri.toString(), [
+                ['readme.md', vscode.FileType.File],
+                ['project.type1', vscode.FileType.Directory],
+                ['data.json', vscode.FileType.File]
+            ]);
+            fileSystem.addDirectory(subdir.toString(), []);
 
             const provider = await createWorkspaceFolderProvider();
 
@@ -140,16 +181,14 @@ describe('WorkspaceFolderProvider unit tests', () => {
                 { uri: workspaceUri2 } as vscode.WorkspaceFolder
             ]);
 
-            fileSystemMock
-                .setup(fs => fs.readDirectory(workspaceUri1))
-                .returns(Promise.resolve([
-                    ['project1.type1', vscode.FileType.Directory]
-                ]));
-            fileSystemMock
-                .setup(fs => fs.readDirectory(workspaceUri2))
-                .returns(Promise.resolve([
-                    ['project2.type2', vscode.FileType.Directory]
-                ]));
+            fileSystem.addDirectory(workspaceUri1.toString(), [
+                ['project1.type1', vscode.FileType.Directory]
+            ]);
+            fileSystem.addDirectory(subdir1.toString(), []);
+            fileSystem.addDirectory(workspaceUri2.toString(), [
+                ['project2.type2', vscode.FileType.Directory]
+            ]);
+            fileSystem.addDirectory(subdir2.toString(), []);
 
             const provider = await createWorkspaceFolderProvider();
 
@@ -166,163 +205,189 @@ describe('WorkspaceFolderProvider unit tests', () => {
                 return false;
             });
 
-            fileSystemMock.setup(fs => fs.readDirectory(workspaceUri)).returns(Promise.resolve([]));
+            // Don't add the directory to fileSystem - it doesn't exist
 
             const provider = await createWorkspaceFolderProvider();
 
             const foundUris = provider.workspaceFolders.items.map(uri => uri.toString());
             assert.strictEqual(foundUris.length, 0, 'Should not add non-existent workspace folder');
-            fileSystemMock.verify(fs => fs.readDirectory(workspaceUri), Times.Never());
         });
 
     });
 
-    async function createWorkspaceFolderProvider(): Promise<WorkspaceFolderProvider> {
+    describe('Recursive directory scanning', () => {
+        const sinon = require('sinon');
+        let sandbox: any;
+        let isDirectoryStub: any;
+
+        beforeEach(() => {
+            sandbox = sinon.createSandbox();
+            isDirectoryStub = sandbox.stub(utilities, 'isDirectory').returns(Promise.resolve(true));
+
+            sandbox.stub(vscode.workspace, 'createFileSystemWatcher').returns({
+                onDidCreate: () => ({ dispose: () => { } }),
+                onDidDelete: () => ({ dispose: () => { } }),
+                dispose: () => { }
+            } as unknown as vscode.FileSystemWatcher);
+        });
+
+        afterEach(() => {
+            sandbox.restore();
+        });
+
+        it('discovers deeply nested directories (3+ levels)', async () => {
+            const workspaceUri = vscode.Uri.file('/workspace');
+            const level1 = vscode.Uri.file('/workspace/level1');
+            const level2 = vscode.Uri.file('/workspace/level1/level2');
+            const level3 = vscode.Uri.file('/workspace/level1/level2/level3');
+            const project = vscode.Uri.file('/workspace/level1/level2/level3/project.type1');
+
+            sandbox.stub(vscode.workspace, 'workspaceFolders').value([
+                { uri: workspaceUri } as vscode.WorkspaceFolder
+            ]);
+
+            // Set up deeply nested directory structure
+            fileSystem.addDirectory(workspaceUri.toString(), [['level1', vscode.FileType.Directory]]);
+            fileSystem.addDirectory(level1.toString(), [['level2', vscode.FileType.Directory]]);
+            fileSystem.addDirectory(level2.toString(), [['level3', vscode.FileType.Directory]]);
+            fileSystem.addDirectory(level3.toString(), [['project.type1', vscode.FileType.Directory]]);
+            fileSystem.addDirectory(project.toString(), []);
+
+            const provider = await createWorkspaceFolderProvider();
+
+            const foundUris = provider.workspaceFolders.items.map(uri => uri.toString());
+            assert.ok(foundUris.includes(workspaceUri.toString()), 'Should include workspace root');
+            assert.ok(foundUris.includes(level1.toString()), 'Should include level1');
+            assert.ok(foundUris.includes(level2.toString()), 'Should include level2');
+            assert.ok(foundUris.includes(level3.toString()), 'Should include level3');
+            assert.ok(foundUris.includes(project.toString()), 'Should include project.type1');
+            assert.strictEqual(foundUris.length, 5, 'Should discover all 5 nested folders');
+        });
+
+        it('discovers multiple branches at different depths', async () => {
+            const workspaceUri = vscode.Uri.file('/workspace');
+            const branch1 = vscode.Uri.file('/workspace/branch1');
+            const project1 = vscode.Uri.file('/workspace/branch1/project1.type1');
+            const branch2 = vscode.Uri.file('/workspace/branch2');
+            const branch2Sub = vscode.Uri.file('/workspace/branch2/sub');
+            const project2 = vscode.Uri.file('/workspace/branch2/sub/project2.type2');
+            const branch3 = vscode.Uri.file('/workspace/branch3');
+            const branch3Sub = vscode.Uri.file('/workspace/branch3/sub');
+            const branch3Deep = vscode.Uri.file('/workspace/branch3/sub/deep');
+            const project3 = vscode.Uri.file('/workspace/branch3/sub/deep/project3.type3');
+
+            sandbox.stub(vscode.workspace, 'workspaceFolders').value([
+                { uri: workspaceUri } as vscode.WorkspaceFolder
+            ]);
+
+            // Set up multi-branch directory structure
+            fileSystem.addDirectory(workspaceUri.toString(), [
+                ['branch1', vscode.FileType.Directory],
+                ['branch2', vscode.FileType.Directory],
+                ['branch3', vscode.FileType.Directory]
+            ]);
+
+            // Branch 1: shallow nesting
+            fileSystem.addDirectory(branch1.toString(), [['project1.type1', vscode.FileType.Directory]]);
+            fileSystem.addDirectory(project1.toString(), []);
+
+            // Branch 2: medium nesting
+            fileSystem.addDirectory(branch2.toString(), [['sub', vscode.FileType.Directory]]);
+            fileSystem.addDirectory(branch2Sub.toString(), [['project2.type2', vscode.FileType.Directory]]);
+            fileSystem.addDirectory(project2.toString(), []);
+
+            // Branch 3: deep nesting
+            fileSystem.addDirectory(branch3.toString(), [['sub', vscode.FileType.Directory]]);
+            fileSystem.addDirectory(branch3Sub.toString(), [['deep', vscode.FileType.Directory]]);
+            fileSystem.addDirectory(branch3Deep.toString(), [['project3.type3', vscode.FileType.Directory]]);
+            fileSystem.addDirectory(project3.toString(), []);
+            const provider = await createWorkspaceFolderProvider();
+
+            const foundUris = provider.workspaceFolders.items.map(uri => uri.toString());
+            assert.ok(foundUris.includes(workspaceUri.toString()), 'Should include workspace root');
+            assert.ok(foundUris.includes(branch1.toString()), 'Should include branch1');
+            assert.ok(foundUris.includes(project1.toString()), 'Should include project1.type1');
+            assert.ok(foundUris.includes(branch2.toString()), 'Should include branch2');
+            assert.ok(foundUris.includes(branch2Sub.toString()), 'Should include branch2/sub');
+            assert.ok(foundUris.includes(project2.toString()), 'Should include project2.type2');
+            assert.ok(foundUris.includes(branch3.toString()), 'Should include branch3');
+            assert.ok(foundUris.includes(branch3Sub.toString()), 'Should include branch3/sub');
+            assert.ok(foundUris.includes(branch3Deep.toString()), 'Should include branch3/sub/deep');
+            assert.ok(foundUris.includes(project3.toString()), 'Should include project3.type3');
+            assert.strictEqual(foundUris.length, 10, 'Should discover all 10 folders across branches');
+        });
+
+        it('ignores files at all nesting levels', async () => {
+            const workspaceUri = vscode.Uri.file('/workspace');
+            const level1 = vscode.Uri.file('/workspace/level1');
+            const project = vscode.Uri.file('/workspace/level1/project.type1');
+
+            sandbox.stub(vscode.workspace, 'workspaceFolders').value([
+                { uri: workspaceUri } as vscode.WorkspaceFolder
+            ]);
+
+            fileSystem.addDirectory(workspaceUri.toString(), [
+                ['readme.md', vscode.FileType.File],
+                ['level1', vscode.FileType.Directory],
+                ['data.json', vscode.FileType.File]
+            ]);
+            fileSystem.addDirectory(level1.toString(), [
+                ['config.yaml', vscode.FileType.File],
+                ['project.type1', vscode.FileType.Directory],
+                ['notes.txt', vscode.FileType.File]
+            ]);
+            fileSystem.addDirectory(project.toString(), [
+                ['source.py', vscode.FileType.File]
+            ]);
+
+            const provider = await createWorkspaceFolderProvider();
+
+            const foundUris = provider.workspaceFolders.items.map(uri => uri.toString());
+            assert.ok(foundUris.includes(workspaceUri.toString()), 'Should include workspace root');
+            assert.ok(foundUris.includes(level1.toString()), 'Should include level1');
+            assert.ok(foundUris.includes(project.toString()), 'Should include project.type1');
+            assert.strictEqual(foundUris.length, 3, 'Should only discover directories, not files');
+        });
+
+        it('handles mixed depth across multiple workspace roots', async () => {
+            const workspace1Uri = vscode.Uri.file('/workspace1');
+            const workspace1Level1 = vscode.Uri.file('/workspace1/level1');
+            const workspace1Project = vscode.Uri.file('/workspace1/level1/project1.type1');
+
+            const workspace2Uri = vscode.Uri.file('/workspace2');
+            const workspace2Project = vscode.Uri.file('/workspace2/project2.type2');
+
+            sandbox.stub(vscode.workspace, 'workspaceFolders').value([
+                { uri: workspace1Uri } as vscode.WorkspaceFolder,
+                { uri: workspace2Uri } as vscode.WorkspaceFolder
+            ]);
+
+            // Workspace 1: nested structure
+            fileSystem.addDirectory(workspace1Uri.toString(), [['level1', vscode.FileType.Directory]]);
+            fileSystem.addDirectory(workspace1Level1.toString(), [['project1.type1', vscode.FileType.Directory]]);
+            fileSystem.addDirectory(workspace1Project.toString(), []);
+
+            // Workspace 2: flat structure
+            fileSystem.addDirectory(workspace2Uri.toString(), [['project2.type2', vscode.FileType.Directory]]);
+            fileSystem.addDirectory(workspace2Project.toString(), []);
+
+            const provider = await createWorkspaceFolderProvider();
+
+            const foundUris = provider.workspaceFolders.items.map(uri => uri.toString());
+            assert.ok(foundUris.includes(workspace1Uri.toString()), 'Should include workspace1 root');
+            assert.ok(foundUris.includes(workspace1Level1.toString()), 'Should include workspace1/level1');
+            assert.ok(foundUris.includes(workspace1Project.toString()), 'Should include workspace1 project');
+            assert.ok(foundUris.includes(workspace2Uri.toString()), 'Should include workspace2 root');
+            assert.ok(foundUris.includes(workspace2Project.toString()), 'Should include workspace2 project');
+            assert.strictEqual(foundUris.length, 5, 'Should discover all folders across both workspaces');
+        });
+    });
+
+    function createWorkspaceFolderProvider(): Promise<WorkspaceFolderProvider> {
         return WorkspaceFolderProvider.create(
-            fileSystemMock.object(),
-            loggerMock.object(),
-            telemetryMock.object()
+            fileSystem,
+            logger,
+            telemetry
         );
     }
 });
-
-/**
- * TEST SCENARIOS FOR INTEGRATION TESTS
- * ====================================
- *
- * The following test scenarios should be implemented in NestedLocalProjects.integration.test.ts
- * with real VS Code workspace and file system:
- *
- * CURRENT BEHAVIOR (1-level deep scanning):
- *
- * 1. Single workspace with immediate subdirectories
- *    Workspace: /workspace
- *    Structure:
- *      /workspace
- *      /workspace/project1.type1
- *      /workspace/project2.type2
- *    Expected: Discovers all 3 folders
- *
- * 2. Single workspace with nested subdirectories (current limitation)
- *    Workspace: /workspace
- *    Structure:
- *      /workspace
- *      /workspace/level1
- *      /workspace/level1/project.type1
- *    Expected (current): Discovers /workspace and /workspace/level1 only
- *    Expected (after recursive): Should discover all 3 folders
- *
- * 3. Mixed files and directories
- *    Workspace: /workspace
- *    Structure:
- *      /workspace/readme.md (file)
- *      /workspace/project.type1 (directory)
- *      /workspace/data.json (file)
- *    Expected: Discovers only /workspace and /workspace/project.type1
- *
- * 4. Multiple workspace folders
- *    Workspaces: /workspace1, /workspace2
- *    Structure:
- *      /workspace1/project1.type1
- *      /workspace2/project2.type2
- *    Expected: Discovers both workspace roots and both projects
- *
- * EXPECTED BEHAVIOR AFTER RECURSIVE IMPLEMENTATION:
- *
- * 5. Deep nesting (3+ levels)
- *    Workspace: /workspace
- *    Structure:
- *      /workspace/level1/level2/level3/project.type1
- *    Expected: Discovers all folders including the deeply nested project
- *
- * 6. Multiple branches at different depths
- *    Workspace: /workspace
- *    Structure:
- *      /workspace/branch1/project1.type1
- *      /workspace/branch2/sub/project2.type2
- *      /workspace/branch3/sub/deep/project3.type3
- *    Expected: Discovers all folders and all three projects
- *
- * 7. FileSystemWatcher with recursive pattern ('**')
- *    - Create /workspace/level1/level2/newproject.type1 after initialization
- *    Expected: Should detect and add the new nested directory
- *
- * 8. Recursive deletion handling
- *    - Delete /workspace/level1 which contains /workspace/level1/level2/project.type1
- *    Expected: Should remove /workspace/level1 AND all its descendants from collection
- *
- * 9. Performance with many nested directories
- *    - Create 5 branches, each 5 levels deep
- *    Expected: Should complete scan in reasonable time (< 5 seconds)
- *
- * 10. Special directories (should be discoverable)
- *     Workspace: /workspace
- *     Structure:
- *       /workspace/.vscode/project.type1
- *       /workspace/node_modules/project.type2 (might want to exclude)
- *       /workspace/.git (might want to exclude)
- *     Expected: Configurable ignore patterns for common directories
- *
- * 11. Symbolic links (should be ignored per isDirectory implementation)
- *     Workspace: /workspace
- *     Structure:
- *       /workspace/real-folder/project.type1
- *       /workspace/symlink -> /workspace/real-folder (symlink)
- *     Expected: Discovers real-folder but not symlink
- *
- * 12. Race condition: rapid directory creation/deletion
- *     - Create /workspace/temp/project.type1
- *     - Delete /workspace/temp before FileSystemWatcher fires
- *     Expected: Should handle gracefully without errors
- *
- * 13. Non-existent workspace folder
- *     Workspace: /non-existent
- *     Expected: Should handle gracefully via isDirectory check
- *
- * 14. Case sensitivity
- *     Workspace: /workspace
- *     Structure:
- *       /workspace/Project.Type1
- *       /workspace/project.type1 (on case-sensitive filesystems)
- *     Expected: Should handle according to filesystem case sensitivity
- *
- * 15. Very long paths (Windows MAX_PATH considerations)
- *     Workspace: /workspace
- *     Structure: 10+ levels with long folder names
- *     Expected: Should handle paths up to system limits
- *
- * IMPLEMENTATION CHECKLIST FOR RECURSIVE SUPPORT:
- * ===============================================
- *
- * To support nested folders at arbitrary depths:
- *
- * 1. Replace flat readDirectory loop with recursive function:
- *    - Add async addFolderRecursively(uri: vscode.Uri, depth?: number)
- *    - Consider max depth limit (e.g., 10) to prevent infinite loops
- *    - Consider ignore patterns (.git, node_modules, etc.)
- *
- * 2. Update FileSystemWatcher pattern from '*' to '**':
- *    - Change: new vscode.RelativePattern(folder, '*')
- *    - To: new vscode.RelativePattern(folder, '**')
- *
- * 3. Handle recursive deletion:
- *    - On onDidDelete, remove uri AND all descendants
- *    - Use: folderCollection.items.filter(item => item.path.startsWith(uri.path))
- *
- * 4. Handle recursive creation:
- *    - On onDidCreate, recursively scan new directory
- *    - Call: addFolderRecursively(uri)
- *
- * 5. Add configuration options:
- *    - workspace.maxDepth (default: unlimited or 10)
- *    - workspace.ignorePatterns (default: ['.git', 'node_modules'])
- *
- * 6. Performance optimizations:
- *    - Debounce FileSystemWatcher events
- *    - Use Promise.all for parallel directory scanning
- *    - Consider caching directory structure
- *
- * 7. Update comments:
- *    - Remove "Only test top-level directories since ALM only supports this"
- *    - Document recursive behavior and configuration options
- */
