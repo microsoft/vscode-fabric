@@ -90,6 +90,43 @@ describe('WorkspaceFolderWatcher', () => {
         events.assertStrictEquals([], [childDirUri], 0);
     });
 
+    it('removes folder and descendants from collection on directory deletion', async () => {
+        // Add deeply nested directories under /workspace/child
+        const childLevel1 = vscode.Uri.file('/workspace/child/level1');
+        const childLevel2 = vscode.Uri.file('/workspace/child/level1/level2');
+
+        // Add deeply nested directories under /workspace/child-keep
+        const childKeep = vscode.Uri.file('/workspace/child-keep');
+        const childKeepLevel1 = vscode.Uri.file('/workspace/child-keep/level1');
+        const childKeepLevel2 = vscode.Uri.file('/workspace/child-keep/level1/level2');
+
+        // Add all directories to collection
+        folderCollection.add(childLevel1);
+        folderCollection.add(childLevel2);
+        folderCollection.add(childKeep);
+        folderCollection.add(childKeepLevel1);
+        folderCollection.add(childKeepLevel2);
+
+        // Reset event tracker after setup
+        events = new ObservableArrayEventValidator(folderCollection);
+
+        isDirectoryStub.resolves(true);
+        new WorkspaceFolderWatcher(folderUri, fileSystemMock.object(), folderCollection);
+        assert.ok(onDidDeleteHandler, 'onDidDelete handler should be set');
+
+        // Delete /workspace/child - should remove child, child/level1, and child/level1/level2
+        await onDidDeleteHandler(childDirUri);
+
+        // Verify only child and its descendants were removed
+        events.assertStrictEquals([], [childDirUri, childLevel1, childLevel2], 0);
+
+        // Verify child-keep and its descendants remain in collection
+        const remainingUris = folderCollection.items.map(uri => uri.toString());
+        assert.ok(remainingUris.includes(childKeep.toString()), 'Should keep child-keep');
+        assert.ok(remainingUris.includes(childKeepLevel1.toString()), 'Should keep child-keep/level1');
+        assert.ok(remainingUris.includes(childKeepLevel2.toString()), 'Should keep child-keep/level1/level2');
+    });
+
     it('does not remove non-directory on deletion', async () => {
         isDirectoryStub.resolves(false);
         new WorkspaceFolderWatcher(folderUri, fileSystemMock.object(), folderCollection);

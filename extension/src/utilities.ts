@@ -23,6 +23,19 @@ export async function isDirectory(fs: vscode.FileSystem, uri: vscode.Uri, defaul
 }
 
 /**
+ * Checks if a URI is a parent (ancestor) of another URI.
+ * @param parent The potential parent URI
+ * @param child The potential child URI
+ * @returns True if parent is an ancestor of child, false otherwise
+ */
+export function isParentOf(parent: vscode.Uri, child: vscode.Uri): boolean {
+    if (parent.fsPath === child.fsPath) {
+        return false; // A URI is not its own parent
+    }
+    return child.fsPath.startsWith(parent.fsPath + vscode.Uri.file('/').fsPath);
+}
+
+/**
  * Checks if the specified URI is contained within the workspace folders.
  * The check is recursive
  * @param uri The URI to check
@@ -37,8 +50,7 @@ export function workspaceContainsDirectory(uri: vscode.Uri): boolean {
         if (folder.uri.fsPath === uri.fsPath) {
             return true;
         }
-        // Check if the folder is a parent of the URI
-        if (uri.fsPath.startsWith(folder.uri.fsPath + vscode.Uri.file('/').fsPath)) {
+        if (isParentOf(folder.uri, uri)) {
             return true;
         }
     }
