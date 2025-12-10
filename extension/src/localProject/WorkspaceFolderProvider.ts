@@ -3,6 +3,7 @@
 
 import * as vscode from 'vscode';
 import { IWorkspaceFolderProvider } from './definitions';
+import { WorkspaceFolderWatcher } from './WorkspaceFolderWatcher';
 import { IObservableArray } from '../collections/definitions';
 import { ObservableSet } from '../collections/ObservableSet';
 import { isDirectory } from '../utilities';
@@ -60,32 +61,5 @@ export class WorkspaceFolderProvider implements IWorkspaceFolderProvider, vscode
     dispose() {
         this.disposables.forEach(disposable => disposable.dispose());
         this.disposables = [];
-    }
-}
-
-class WorkspaceFolderWatcher implements vscode.Disposable {
-    private watcher: vscode.FileSystemWatcher | undefined;
-
-    constructor(folder: vscode.Uri, private fileSystem: vscode.FileSystem, folderCollection: IObservableArray<vscode.Uri>) {
-        // Only test top-level directories since ALM only supports this (for now)
-        // That may change once Fabric folders are supported
-        this.watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(folder, '*'));
-        this.watcher.onDidDelete(async (uri: vscode.Uri) => {
-            if (await isDirectory(this.fileSystem, uri, true)) { // The item no longer exists, so it might have been a directory. Let's assume it was to be safe.
-                folderCollection.remove(uri);
-            }
-        });
-        this.watcher.onDidCreate(async (uri: vscode.Uri) => {
-            if (await isDirectory(this.fileSystem, uri)) {
-                folderCollection.add(uri);
-            }
-        });
-    }
-
-    dispose() {
-        if (this.watcher) {
-            this.watcher.dispose();
-            this.watcher = undefined;
-        }
     }
 }
