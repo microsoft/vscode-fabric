@@ -41,9 +41,13 @@ describe('WorkspaceFolderWatcher', () => {
 
         // Stub createFileSystemWatcher to capture event handlers
         watcherStub = {
-            onDidCreate: (cb: Function) => { onDidCreateHandler = cb; return { dispose: () => {} }; },
-            onDidDelete: (cb: Function) => { onDidDeleteHandler = cb; return { dispose: () => {} }; },
-            dispose: sandbox.stub()
+            onDidCreate: (cb: Function) => {
+                onDidCreateHandler = cb; return { dispose: () => {} };
+            },
+            onDidDelete: (cb: Function) => {
+                onDidDeleteHandler = cb; return { dispose: () => {} };
+            },
+            dispose: sandbox.stub(),
         };
         sandbox.stub(vscode.workspace, 'createFileSystemWatcher').callsFake((pattern: vscode.RelativePattern) => {
             relativePatternArg = pattern;

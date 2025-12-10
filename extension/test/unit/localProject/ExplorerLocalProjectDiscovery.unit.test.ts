@@ -103,10 +103,10 @@ describe('ExplorerLocalProjectDiscovery unit tests', () => {
             Uri.file('/user/me/workspaces/another/deep/DeepProject.type3'),
         ];
         const discovery = await ExplorerLocalProjectDiscovery.create(new MockWorkspaceFolderProvider(folders));
-        
+
         // Should discover only the valid project folders (those with .typeX extensions)
         assert.equal(discovery.projects.items.length, 3, 'Discovered all nested projects');
-        
+
         const types = discovery.projects.items.map(p => p.artifactType).sort();
         assert.deepStrictEqual(types, ['type1', 'type2', 'type3'], 'All artifact types found');
     });
@@ -125,10 +125,10 @@ describe('ExplorerLocalProjectDiscovery unit tests', () => {
             Uri.file('/user/me/workspaces/subfolder/nested/stillnotvalid'),
         ];
         const discovery = await ExplorerLocalProjectDiscovery.create(new MockWorkspaceFolderProvider(folders));
-        
+
         // Should only discover folders with valid naming pattern (Name.type)
         assert.equal(discovery.projects.items.length, 2, 'Only valid projects discovered');
-        
+
         const types = discovery.projects.items.map(p => p.artifactType).sort();
         assert.deepStrictEqual(types, ['type1', 'type2'], 'Only valid artifact types found');
     });
@@ -145,20 +145,20 @@ describe('ExplorerLocalProjectDiscovery unit tests', () => {
         const discovery = await ExplorerLocalProjectDiscovery.create(folderProvider);
 
         const events = new ObservableArrayEventValidator(discovery.projects);
-        
+
         // Simulate WorkspaceFolderProvider discovering a new nested folder
         const nestedFolder = Uri.file('/user/me/workspaces/subfolder/nested/Project3.type3');
         folderProvider.workspaceFolders.add(nestedFolder);
         await new Promise(resolve => setTimeout(resolve, 10));
 
         assert.equal(discovery.projects.items.length, 3, 'Nested project added');
-        
+
         // Remove a nested project folder
         folderProvider.workspaceFolders.remove(initialFolders[3]); // Project2.type2
         await new Promise(resolve => setTimeout(resolve, 10));
 
         assert.equal(discovery.projects.items.length, 2, 'Nested project removed');
-        
+
         events.assertEventCounts(1, 1, 0);
     });
 
@@ -169,7 +169,7 @@ describe('ExplorerLocalProjectDiscovery unit tests', () => {
         const discovery = await ExplorerLocalProjectDiscovery.create(folderProvider);
 
         const events = new ObservableArrayEventValidator(discovery.projects);
-        
+
         // Simulate WorkspaceFolderProvider discovering folders at various depths
         const level1Project = Uri.file('/user/me/workspaces/Level1.type1');
         const level1Folder = Uri.file('/user/me/workspaces/level1');
@@ -187,19 +187,19 @@ describe('ExplorerLocalProjectDiscovery unit tests', () => {
         folderProvider.workspaceFolders.add(level3Project);
         folderProvider.workspaceFolders.add(level3Folder);
         folderProvider.workspaceFolders.add(level4Project);
-        
+
         await new Promise(resolve => setTimeout(resolve, 20));
 
         // Should only discover the 4 valid projects, not the intermediate folders
         assert.equal(discovery.projects.items.length, 4, 'All nested projects discovered');
-        
+
         // Verify paths are correct
         const paths = discovery.projects.items.map(p => p.path.path).sort();
         assert.ok(paths.includes(level1Project.path), 'Level 1 project included');
         assert.ok(paths.includes(level2Project.path), 'Level 2 project included');
         assert.ok(paths.includes(level3Project.path), 'Level 3 project included');
         assert.ok(paths.includes(level4Project.path), 'Level 4 project included');
-        
+
         events.assertEventCounts(4, 0, 0);
     });
 

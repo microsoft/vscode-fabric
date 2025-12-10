@@ -57,7 +57,7 @@ export class WorkspaceFolderProvider implements IWorkspaceFolderProvider, vscode
 
         // Read directory returns a tuple of the file name and the file type
         const directoryInformation = await this.fileSystem.readDirectory(folderUri);
-        
+
         // Process all subdirectories recursively
         for (const current of directoryInformation) {
             if (current[1] === vscode.FileType.Directory) {

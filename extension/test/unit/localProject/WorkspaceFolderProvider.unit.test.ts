@@ -3,8 +3,8 @@
 
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { WorkspaceFolderProvider } from '../../../src/localProject/WorkspaceFolderProvider';
 import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { WorkspaceFolderProvider } from '../../../src/localProject/WorkspaceFolderProvider';
 import * as utilities from '../../../src/utilities';
 
 /**
@@ -117,14 +117,14 @@ describe('WorkspaceFolderProvider unit tests', () => {
             isDirectoryStub = sandbox.stub(utilities, 'isDirectory').returns(Promise.resolve(true));
 
             sandbox.stub(vscode.workspace, 'workspaceFolders').value([
-                { uri: workspaceUri } as vscode.WorkspaceFolder
+                { uri: workspaceUri } as vscode.WorkspaceFolder,
             ]);
 
             // Stub createFileSystemWatcher to return a dummy watcher
             sandbox.stub(vscode.workspace, 'createFileSystemWatcher').returns({
                 onDidCreate: () => ({ dispose: () => { } }),
                 onDidDelete: () => ({ dispose: () => { } }),
-                dispose: () => { }
+                dispose: () => { },
             } as unknown as vscode.FileSystemWatcher);
         });
 
@@ -136,7 +136,7 @@ describe('WorkspaceFolderProvider unit tests', () => {
             // Set up filesystem
             fileSystem.addDirectory(workspaceUri.toString(), [
                 ['project1.type1', vscode.FileType.Directory],
-                ['project2.type2', vscode.FileType.Directory]
+                ['project2.type2', vscode.FileType.Directory],
             ]);
             fileSystem.addDirectory(subdir1.toString(), []);
             fileSystem.addDirectory(subdir2.toString(), []);
@@ -158,7 +158,7 @@ describe('WorkspaceFolderProvider unit tests', () => {
             fileSystem.addDirectory(workspaceUri.toString(), [
                 ['readme.md', vscode.FileType.File],
                 ['project.type1', vscode.FileType.Directory],
-                ['data.json', vscode.FileType.File]
+                ['data.json', vscode.FileType.File],
             ]);
             fileSystem.addDirectory(subdir.toString(), []);
 
@@ -178,15 +178,15 @@ describe('WorkspaceFolderProvider unit tests', () => {
 
             sandbox.stub(vscode.workspace, 'workspaceFolders').value([
                 { uri: workspaceUri1 } as vscode.WorkspaceFolder,
-                { uri: workspaceUri2 } as vscode.WorkspaceFolder
+                { uri: workspaceUri2 } as vscode.WorkspaceFolder,
             ]);
 
             fileSystem.addDirectory(workspaceUri1.toString(), [
-                ['project1.type1', vscode.FileType.Directory]
+                ['project1.type1', vscode.FileType.Directory],
             ]);
             fileSystem.addDirectory(subdir1.toString(), []);
             fileSystem.addDirectory(workspaceUri2.toString(), [
-                ['project2.type2', vscode.FileType.Directory]
+                ['project2.type2', vscode.FileType.Directory],
             ]);
             fileSystem.addDirectory(subdir2.toString(), []);
 
@@ -227,7 +227,7 @@ describe('WorkspaceFolderProvider unit tests', () => {
             sandbox.stub(vscode.workspace, 'createFileSystemWatcher').returns({
                 onDidCreate: () => ({ dispose: () => { } }),
                 onDidDelete: () => ({ dispose: () => { } }),
-                dispose: () => { }
+                dispose: () => { },
             } as unknown as vscode.FileSystemWatcher);
         });
 
@@ -243,7 +243,7 @@ describe('WorkspaceFolderProvider unit tests', () => {
             const project = vscode.Uri.file('/workspace/level1/level2/level3/project.type1');
 
             sandbox.stub(vscode.workspace, 'workspaceFolders').value([
-                { uri: workspaceUri } as vscode.WorkspaceFolder
+                { uri: workspaceUri } as vscode.WorkspaceFolder,
             ]);
 
             // Set up deeply nested directory structure
@@ -277,14 +277,14 @@ describe('WorkspaceFolderProvider unit tests', () => {
             const project3 = vscode.Uri.file('/workspace/branch3/sub/deep/project3.type3');
 
             sandbox.stub(vscode.workspace, 'workspaceFolders').value([
-                { uri: workspaceUri } as vscode.WorkspaceFolder
+                { uri: workspaceUri } as vscode.WorkspaceFolder,
             ]);
 
             // Set up multi-branch directory structure
             fileSystem.addDirectory(workspaceUri.toString(), [
                 ['branch1', vscode.FileType.Directory],
                 ['branch2', vscode.FileType.Directory],
-                ['branch3', vscode.FileType.Directory]
+                ['branch3', vscode.FileType.Directory],
             ]);
 
             // Branch 1: shallow nesting
@@ -323,21 +323,21 @@ describe('WorkspaceFolderProvider unit tests', () => {
             const project = vscode.Uri.file('/workspace/level1/project.type1');
 
             sandbox.stub(vscode.workspace, 'workspaceFolders').value([
-                { uri: workspaceUri } as vscode.WorkspaceFolder
+                { uri: workspaceUri } as vscode.WorkspaceFolder,
             ]);
 
             fileSystem.addDirectory(workspaceUri.toString(), [
                 ['readme.md', vscode.FileType.File],
                 ['level1', vscode.FileType.Directory],
-                ['data.json', vscode.FileType.File]
+                ['data.json', vscode.FileType.File],
             ]);
             fileSystem.addDirectory(level1.toString(), [
                 ['config.yaml', vscode.FileType.File],
                 ['project.type1', vscode.FileType.Directory],
-                ['notes.txt', vscode.FileType.File]
+                ['notes.txt', vscode.FileType.File],
             ]);
             fileSystem.addDirectory(project.toString(), [
-                ['source.py', vscode.FileType.File]
+                ['source.py', vscode.FileType.File],
             ]);
 
             const provider = await createWorkspaceFolderProvider();
@@ -359,7 +359,7 @@ describe('WorkspaceFolderProvider unit tests', () => {
 
             sandbox.stub(vscode.workspace, 'workspaceFolders').value([
                 { uri: workspace1Uri } as vscode.WorkspaceFolder,
-                { uri: workspace2Uri } as vscode.WorkspaceFolder
+                { uri: workspace2Uri } as vscode.WorkspaceFolder,
             ]);
 
             // Workspace 1: nested structure
