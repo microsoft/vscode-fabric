@@ -9,7 +9,7 @@ import { formatErrorResponse, succeeded } from '../utilities';
 import { FabricError, TelemetryActivity, TelemetryService, IFabricEnvironmentProvider, UserCancelledError, ILogger } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { IItemDefinitionReader } from '../itemDefinition/ItemDefinitionReader';
-import { tryParseLocalProjectData } from './utilities';
+import { tryParseLocalProjectData } from '@microsoft/vscode-fabric-util';
 import { showWorkspaceQuickPick } from '../ui/showWorkspaceQuickPick';
 import { showSignInPrompt } from '../ui/prompts';
 import { ICapacityManager } from '../CapacityManager';

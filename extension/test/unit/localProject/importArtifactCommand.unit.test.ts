@@ -529,7 +529,7 @@ describe('importArtifactCommand', () => {
             .returns(Promise.resolve(fakeWorkspace));
 
         // Act
-        await executeCommand(true); // forcePromptForWorkspace = true
+        await executeCommand({ forcePromptForWorkspace: true });
 
         // Assert
         // Should NOT use inferred workspace, should always prompt
@@ -544,7 +544,7 @@ describe('importArtifactCommand', () => {
     it('Does NOT call setLocalFolderForFabricWorkspace when forcePromptForWorkspace is true', async () => {
         // Arrange
         // Act
-        await executeCommand(true); // forcePromptForWorkspace = true
+        await executeCommand({ forcePromptForWorkspace: true });
 
         // Assert
         // localFolderServiceMock.verify(
@@ -642,28 +642,24 @@ describe('importArtifactCommand', () => {
 
     it('Error: unable to parse source folder name', async () => {
         // Arrange
-        // Patch tryParseLocalProjectData to return undefined
-        const importArtifactModule = await import('../../../src/localProject/utilities');
-        const origTryParse = importArtifactModule.tryParseLocalProjectData;
-        importArtifactModule.tryParseLocalProjectData = async () => undefined;
+        // Create a folder URI that will cause tryParseLocalProjectData to return undefined
+        // by not having a valid .platform file
+        const invalidFolderUri = vscode.Uri.file('/path/to/invalid/folder');
 
         // Act
         let error: FabricError | undefined = undefined;
         await assert.rejects(
             async () => {
-                await executeCommand();
+                await executeCommand({ uri: invalidFolderUri });
             },
             (err: Error) => {
                 assert.ok(err instanceof FabricError, 'Should throw a FabricError');
                 error = err;
-                assert.ok(error!.message.includes('No valid Fabric project data found'), 'Error message should include display name');
+                assert.ok(error!.message.includes('No valid Fabric project data found'), 'Error message should include expected text');
                 assert.strictEqual(error.options?.showInUserNotification, 'Information', 'Error options should show in user notification');
                 return true;
             }
         );
-
-        // Assert
-        importArtifactModule.tryParseLocalProjectData = origTryParse;
     });
 
     it('Error: API Error', async () => {
@@ -771,9 +767,9 @@ describe('importArtifactCommand', () => {
         assert.strictEqual(typeof capturedOptions.progress.report, 'function', 'Progress should have a report method');
     });
 
-    async function executeCommand(forcePromptForWorkspace: boolean = false): Promise<void> {
+    async function executeCommand(options?: { uri?: vscode.Uri; forcePromptForWorkspace?: boolean }): Promise<void> {
         await importArtifactCommand(
-            folderUri,
+            options?.uri ?? folderUri,
             workspaceManagerMock.object(),
             artifactManagerMock.object(),
             extensionManagerMock.object(),
@@ -786,7 +782,7 @@ describe('importArtifactCommand', () => {
             telemetryActivityMock.object(),
             telemetryService,
             logger,
-            forcePromptForWorkspace
+            options?.forcePromptForWorkspace ?? false
         );
     }
 });

@@ -4,7 +4,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { Mock, It, Times } from 'moq.ts';
-import { tryParseLocalProjectData } from '../../../src/localProject/utilities';
+import { tryParseLocalProjectData } from '../../src/fabricUtilities';
 
 describe('tryParseLocalProjectData', () => {
     let fileSystemMock: Mock<vscode.FileSystem>;
