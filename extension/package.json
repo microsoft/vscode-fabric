@@ -381,7 +381,17 @@
         },
         {
           "command": "vscode-fabric.createArtifact",
+          "when": "view == vscode-fabric.view.workspace && viewItem == ItemType",
+          "group": "1@1"
+        },
+        {
+          "command": "vscode-fabric.createArtifact",
           "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceTreeNode",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-fabric.createArtifact",
+          "when": "view == vscode-fabric.view.workspace && viewItem == ItemType",
           "group": "inline"
         },
         {

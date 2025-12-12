@@ -20,7 +20,7 @@ export class ArtifactTypeTreeNode extends FabricTreeNode {
         context: vscode.ExtensionContext,
         protected extensionManager: IFabricExtensionManagerInternal,
         public artifactType: string,
-        private workspaceId: string,
+        public readonly workspaceId: string,
         private tenantId: string | undefined,
         private localFolderService: ILocalFolderService,
         private shouldExpand?: (id: string | undefined) => boolean

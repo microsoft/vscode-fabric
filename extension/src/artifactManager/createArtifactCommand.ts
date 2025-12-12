@@ -76,10 +76,19 @@ export async function promptForArtifactTypeAndName(
     creatableItems.sort((a, b) => a.displayName.localeCompare(b.displayName));
     creatableItems.forEach(details => quickPickTypeItems.push(new CreateItemTypeQuickPickItem(details)));
 
-    const selectedArtifactType = await vscode.window.showQuickPick(
-        quickPickTypeItems,
-        { title: vscode.l10n.t('Choose Item type...'), canPickMany: false }
-    );
+    let selectedArtifactType: CreateItemTypeQuickPickItem | undefined;
+
+    if (quickPickTypeItems.length === 1) {
+        // If only one type is available, skip the picker and use it directly
+        selectedArtifactType = quickPickTypeItems[0];
+    }
+    else {
+        // Show the artifact type picker
+        selectedArtifactType = await vscode.window.showQuickPick(
+            quickPickTypeItems,
+            { title: vscode.l10n.t('Choose Item type...'), canPickMany: false }
+        );
+    }
 
     if (!selectedArtifactType) {
         return undefined;

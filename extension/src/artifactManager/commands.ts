@@ -27,6 +27,7 @@ import { showSignInPrompt } from '../ui/prompts';
 import { ICapacityManager } from '../CapacityManager';
 import { showWorkspaceQuickPick } from '../ui/showWorkspaceQuickPick';
 import { WorkspaceTreeNode } from '../workspace/treeNodes/WorkspaceTreeNode';
+import { ArtifactTypeTreeNode } from '../workspace/treeNodes/ArtifactTypeTreeNode';
 import { ItemDefinitionConflictDetector } from '../itemDefinition/ItemDefinitionConflictDetector';
 import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 import { ILocalFolderService } from '../LocalFolderService';
@@ -101,13 +102,22 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                 return;
             }
 
-            // Check if called from workspace context menu
-            const workspaceTreeNode = cmdArgs[0] as WorkspaceTreeNode | undefined;
-            const preselectedWorkspaceId = workspaceTreeNode?.workspace.objectId;
+            // Check if called from workspace or artifact type context menu
+            let preselectedWorkspaceId: string | undefined;
+            let preselectedArtifactType: string | undefined;
+
+            const contextNode = cmdArgs[0];
+            if (contextNode instanceof WorkspaceTreeNode) {
+                preselectedWorkspaceId = contextNode.workspace.objectId;
+            }
+            else if (contextNode instanceof ArtifactTypeTreeNode) {
+                preselectedWorkspaceId = contextNode.workspaceId;
+                preselectedArtifactType = contextNode.artifactType;
+            }
 
             const promptResult: { type: string, name: string, workspaceId: string } | undefined = await promptForArtifactTypeAndName(
                 context,
-                new CreateItemsProvider(fabricItemMetadata),
+                new CreateItemsProvider(fabricItemMetadata, preselectedArtifactType),
                 workspaceManager,
                 capacityManager,
                 workspaceFilterManager,
