@@ -60,6 +60,8 @@ import { MockWorkspaceManager } from './workspace/mockWorkspaceManager';
 import { InternalSatelliteManager } from './internalSatellites/InternalSatelliteManager';
 import { WorkspaceFilterManager, IWorkspaceFilterManager } from './workspace/WorkspaceFilterManager';
 import { FakeTokenAcquisitionService } from './authentication';
+import { FabricCommandManager } from './commands/FabricCommandManager';
+import { IFabricCommandManager } from './commands/IFabricCommandManager';
 
 let app: FabricVsCodeExtension;
 
@@ -134,6 +136,9 @@ export class FabricVsCodeExtension {
             workspaceManager.tvProvider = dataProvider;
             workspaceManager.treeView = treeView;
 
+            const commandManager = this.container.get<IFabricCommandManager>();
+            await commandManager.initialize();
+            
             registerWorkspaceCommands(context, account, workspaceManager, capacityManager, telemetryService, logger, workspaceFilterManager, fabricEnvironmentProvider);
             registerTenantCommands(context, account, telemetryService, logger);
             await registerArtifactCommands(
@@ -371,6 +376,8 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
 
     container.registerSingleton<ExtensionUriHandler>();
     container.registerSingleton<InternalSatelliteManager>();
+
+    container.registerSingleton<IFabricCommandManager, FabricCommandManager>();
 
     if (process.env.VSCODE_FABRIC_USE_MOCKS === 'true' && context.extensionMode !== vscode.ExtensionMode.Production) {
         // if mocks are requested, override with mock implementations
