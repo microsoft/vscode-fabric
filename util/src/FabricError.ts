@@ -74,6 +74,12 @@ export interface FabricActionOptions {
     // Consumers should ensure their telemetry activities include or can accept a 'nonLocalizedMessage' property,
     // which is added to telemetry when FabricErrors are caught.
     telemetryActivity?: TelemetryActivity<TelemetryEventRecord, keyof TelemetryEventRecord>,
+
+    /**
+     * Controls how the error is shown to the user.
+     * Default is 'None'.
+     */
+    showInUserNotification?: NotificationLevel,
 }
 
 /**
@@ -150,21 +156,28 @@ async function doFabricActionInternal<R>(
                             break;
                     }
                 }
-                switch (fabricError.options?.showInUserNotification ?? 'Error') {
-                    case 'None':
-                        break;
-                    case 'Information':
-                        void vscode.window.showInformationMessage(fabricError.message); // don't await
-                        break;
-                    case 'Error':
-                        void vscode.window.showErrorMessage(fabricError.message); // don't await
-                        break;
-                }
+                showErrorMessage(fabricError.message, fabricError.options?.showInUserNotification ?? 'Error');
             }
+        }
+        else {
+            showErrorMessage(error.message, options?.showInUserNotification ?? 'None');
         }
 
         // if this doFabricAction is wrapped in a withErrorHandling, this Throw will be swallowed there.
         throw error;
+    }
+}
+
+function showErrorMessage(message: string, level: NotificationLevel): void {
+    switch (level) {
+        case 'None':
+            break;
+        case 'Information':
+            void vscode.window.showInformationMessage(message); // don't await
+            break;
+        case 'Error':
+            void vscode.window.showErrorMessage(message); // don't await
+            break;
     }
 }
 

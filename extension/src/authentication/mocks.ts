@@ -86,6 +86,18 @@ export class MockAccountProvider implements IAccountProvider {
         return 'mock token';
     }
 
+    async getSessionInfo(): Promise<vscode.AuthenticationSession | null> {
+        return Promise.resolve({
+            id: 'mock-session-id',
+            accessToken: 'mock-access-token',
+            account: {
+                id: 'mock-account-id',
+                label: 'mock@example.com',
+            },
+            scopes: [],
+        });
+    }
+
     awaitSignIn(): Promise<void> {
         return Promise.resolve();
     }

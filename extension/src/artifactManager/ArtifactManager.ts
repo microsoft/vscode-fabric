@@ -326,6 +326,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
 
     public async getArtifactDefinition(
         artifact: IArtifact,
+        folder?: vscode.Uri,
         options?: { progress?: vscode.Progress<{ message?: string; increment?: number }> }
     ): Promise<IApiClientResponse> {
         let apiRequestOptions: IApiClientRequestOptions =
@@ -335,16 +336,15 @@ export class ArtifactManager implements IArtifactManagerInternal {
         };
 
         const artifactHandler = this.getArtifactHandler(artifact);
-        const targetFolder = await this.workspaceManager.getLocalFolderForArtifact(artifact, { createIfNotExists: false });
-        if (artifactHandler?.getDefinitionWorkflow?.onBeforeGetDefinition && targetFolder) {
-            apiRequestOptions = await artifactHandler.getDefinitionWorkflow.onBeforeGetDefinition(artifact, targetFolder, apiRequestOptions);
+        if (artifactHandler?.getDefinitionWorkflow?.onBeforeGetDefinition && folder) {
+            apiRequestOptions = await artifactHandler.getDefinitionWorkflow.onBeforeGetDefinition(artifact, folder, apiRequestOptions);
         }
 
         const response = await this.apiClient.sendRequest(apiRequestOptions);
         const finalResponse = await handleLongRunningOperation(this.apiClient, response, this.logger, options?.progress);
 
-        if (artifactHandler?.getDefinitionWorkflow?.onAfterGetDefinition && targetFolder) {
-            await artifactHandler.getDefinitionWorkflow.onAfterGetDefinition(artifact, targetFolder, finalResponse);
+        if (artifactHandler?.getDefinitionWorkflow?.onAfterGetDefinition && folder) {
+            await artifactHandler.getDefinitionWorkflow.onAfterGetDefinition(artifact, folder, finalResponse);
         }
         return finalResponse;
     }
@@ -513,6 +513,9 @@ export class ArtifactManager implements IArtifactManagerInternal {
         });
     }
 
+    /**
+     * @deprecated
+     */
     public async openArtifact(artifact: IArtifact): Promise<void> {
         const artifactHandler = this.getArtifactHandler(artifact);
         if (!artifactHandler?.onOpen) {

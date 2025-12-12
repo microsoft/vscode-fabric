@@ -42,7 +42,7 @@ describe('LocalProjectTreeDataProvider unit tests', () => {
         const discovery: ILocalProjectDiscovery = {
             projects: new ObservableSet<ILocalProjectInformationTesting>(),
         };
-        const manager = MockFabricExtensionManager.create(satelliteExtensionIds);
+        const manager = MockFabricExtensionManager.create(mockContext.object(), satelliteExtensionIds);
 
         const provider = new LocalProjectTreeDataProvider(mockContext.object(), discovery, manager, logger, null);
         const result = await provider.getChildren(undefined);
@@ -59,7 +59,7 @@ describe('LocalProjectTreeDataProvider unit tests', () => {
             projects: new ObservableSet<ILocalProjectInformationTesting>(projects),
         };
 
-        const manager = MockFabricExtensionManager.create(satelliteExtensionIds);
+        const manager = MockFabricExtensionManager.create(mockContext.object(), satelliteExtensionIds);
         manager.addExtension(TestExtension.create(satelliteExtensionIds[0], ['type1'], true));
         manager.addExtension(TestExtension.create(satelliteExtensionIds[1], ['type2'], true));
         manager.addExtension(TestExtension.create(satelliteExtensionIds[2], ['type3'], true));
@@ -89,7 +89,7 @@ describe('LocalProjectTreeDataProvider unit tests', () => {
             projects: new ObservableSet<ILocalProjectInformationTesting>(projects),
         };
 
-        const manager = MockFabricExtensionManager.create(satelliteExtensionIds);
+        const manager = MockFabricExtensionManager.create(mockContext.object(), satelliteExtensionIds);
         manager.addExtension(TestExtension.create(satelliteExtensionIds[0], ['type1'], true));
 
         const provider = new LocalProjectTreeDataProvider(mockContext.object(), discovery, manager, logger, null);
@@ -104,7 +104,7 @@ describe('LocalProjectTreeDataProvider unit tests', () => {
             projects: new ObservableSet<ILocalProjectInformationTesting>([node1]),
         };
 
-        const manager = MockFabricExtensionManager.create(satelliteExtensionIds);
+        const manager = MockFabricExtensionManager.create(mockContext.object(), satelliteExtensionIds);
         manager.addExtension(TestExtension.create(satelliteExtensionIds[0], ['type1'], true));
 
         const provider = new LocalProjectTreeDataProvider(mockContext.object(), discovery, manager, logger, null);

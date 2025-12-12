@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 /* eslint-disable @typescript-eslint/naming-convention */
+import * as vscode from 'vscode';
 import * as assert from 'assert';
 import { FabricExtensionManager } from './FabricExtensionManager';
 import { initializeServiceCollection } from '../../test/unit/general/serviceCollection';
@@ -9,8 +10,8 @@ import { initializeServiceCollection } from '../../test/unit/general/serviceColl
 export const testApiVersion = '1.6'; // different from apiVersion in api/src/index.ts: run API version validation test
 
 export class MockFabricExtensionManager extends FabricExtensionManager {
-    public static create(allowedExtensions: string[] = [], available: boolean = true): MockFabricExtensionManager {
-        const manager = new MockFabricExtensionManager(allowedExtensions, available);
+    public static create(context: vscode.ExtensionContext, allowedExtensions: string[] = [], available: boolean = true): MockFabricExtensionManager {
+        const manager = new MockFabricExtensionManager(context, allowedExtensions, available);
         manager.serviceCollection = initializeServiceCollection(undefined, undefined, undefined, undefined);
         return manager;
     }
@@ -26,8 +27,8 @@ export class MockFabricExtensionManager extends FabricExtensionManager {
         'fabric-test.vscode-fabric-test-extension3',
     ];
 
-    private constructor(allowedExtensions: string[], private available: boolean) {
-        super(null, null!);
+    private constructor(context: vscode.ExtensionContext, allowedExtensions: string[], private available: boolean) {
+        super(context, null, null!);
         this.allowedExtensions = this.satelliteExtensionIds.concat(this.testExtensionIds).concat(allowedExtensions);
         this.apiVersion = testApiVersion;
     }

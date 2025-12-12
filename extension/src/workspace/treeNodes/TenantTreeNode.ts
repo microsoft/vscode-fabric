@@ -10,6 +10,7 @@ import { ListViewWorkspaceTreeNode } from './ListViewWorkspaceTreeNode';
 import { TreeViewWorkspaceTreeNode } from './TreeViewWorkspaceTreeNode';
 import { DisplayStyle } from '../definitions';
 import { ITenantSettings } from '../../authentication';
+import { ILocalFolderService } from '../../LocalFolderService';
 
 export class TenantTreeNode extends FabricTreeNode {
     constructor(
@@ -19,6 +20,7 @@ export class TenantTreeNode extends FabricTreeNode {
         protected workspaceManager: IWorkspaceManager,
         private tenant: ITenantSettings,
         private displayStyle: DisplayStyle,
+        private localFolderService: ILocalFolderService,
         private shouldExpand?: (id: string | undefined) => boolean,
         private filteredWorkspaces?: IWorkspace[]
     ) {
@@ -40,8 +42,8 @@ export class TenantTreeNode extends FabricTreeNode {
 
             return workspaces.map(workspace =>
                 this.displayStyle === DisplayStyle.list
-                    ? new ListViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager, this.tenant.tenantId, this.shouldExpand)
-                    : new TreeViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager, this.tenant.tenantId, this.shouldExpand)
+                    ? new ListViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager, this.tenant.tenantId, this.localFolderService, this.shouldExpand)
+                    : new TreeViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager, this.tenant.tenantId, this.localFolderService, this.shouldExpand)
             );
         }
         catch (error) {

@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import { Mock, It, Times } from 'moq.ts';
 import * as sinon from 'sinon';
-import { isDirectory, workspaceContainsDirectory, succeeded, formatErrorResponse, handleLongRunningOperation, __setLroSleep } from '../../../src/utilities';
+import { isDirectory, isParentOf, workspaceContainsDirectory, succeeded, formatErrorResponse, handleLongRunningOperation, __setLroSleep } from '../../../src/utilities';
 import { IApiClientRequestOptions, IApiClientResponse, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 
 describe('isDirectory', () => {
@@ -58,6 +58,63 @@ describe('isDirectory', () => {
         assert.strictEqual(result, expected);
     };
 
+});
+
+describe('isParentOf', () => {
+    it('returns false when URIs are identical', () => {
+        const uri = vscode.Uri.file('/path/to/folder');
+        const result = isParentOf(uri, uri);
+        assert.strictEqual(result, false, 'A URI should not be considered its own parent');
+    });
+
+    it('returns true when parent is direct parent', () => {
+        const parent = vscode.Uri.file('/path/to/folder');
+        const child = vscode.Uri.file('/path/to/folder/child');
+        const result = isParentOf(parent, child);
+        assert.strictEqual(result, true, 'Should recognize direct parent relationship');
+    });
+
+    it('returns true when parent is ancestor (multiple levels)', () => {
+        const parent = vscode.Uri.file('/path/to/folder');
+        const child = vscode.Uri.file('/path/to/folder/level1/level2/level3');
+        const result = isParentOf(parent, child);
+        assert.strictEqual(result, true, 'Should recognize ancestor relationship');
+    });
+
+    it('returns false when URIs are siblings', () => {
+        const folder1 = vscode.Uri.file('/path/to/folder1');
+        const folder2 = vscode.Uri.file('/path/to/folder2');
+        const result = isParentOf(folder1, folder2);
+        assert.strictEqual(result, false, 'Sibling folders should not be considered parent/child');
+    });
+
+    it('returns false when child is actually parent', () => {
+        const parent = vscode.Uri.file('/path/to/folder');
+        const child = vscode.Uri.file('/path/to/folder/child');
+        const result = isParentOf(child, parent);
+        assert.strictEqual(result, false, 'Should not confuse parent and child order');
+    });
+
+    it('returns false when paths share prefix but are not parent/child', () => {
+        const folder1 = vscode.Uri.file('/path/to/folder');
+        const folder2 = vscode.Uri.file('/path/to/folder-different');
+        const result = isParentOf(folder1, folder2);
+        assert.strictEqual(result, false, 'Should not match on prefix alone (folder vs folder-different)');
+    });
+
+    it('returns true for deeply nested child', () => {
+        const parent = vscode.Uri.file('/workspace');
+        const child = vscode.Uri.file('/workspace/a/b/c/d/e/f/project');
+        const result = isParentOf(parent, child);
+        assert.strictEqual(result, true, 'Should handle deeply nested paths');
+    });
+
+    it('returns false for completely unrelated paths', () => {
+        const folder1 = vscode.Uri.file('/workspace1');
+        const folder2 = vscode.Uri.file('/workspace2');
+        const result = isParentOf(folder1, folder2);
+        assert.strictEqual(result, false, 'Should return false for unrelated paths');
+    });
 });
 
 describe('workspaceContainsDirectory', () => {
