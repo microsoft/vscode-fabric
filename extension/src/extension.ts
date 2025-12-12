@@ -156,7 +156,7 @@ export class FabricVsCodeExtension {
             const coreServiceCollection: IFabricExtensionServiceCollection = this.container.get<IFabricExtensionServiceCollection>();
             extensionManager.serviceCollection = coreServiceCollection;
 
-            const workspaceFolderProvider = await WorkspaceFolderProvider.create(logger, telemetryService);
+            const workspaceFolderProvider = await WorkspaceFolderProvider.create(vscode.workspace.fs, logger, telemetryService);
             context.subscriptions.push(workspaceFolderProvider);
 
             // Create/register the local project tree view
