@@ -13,21 +13,22 @@ import { IFabricEnvironmentProvider, FabricError, TelemetryActivity, UserCancell
 import { CoreTelemetryEventNames } from '../../../src/TelemetryEventNames';
 import { verifyAddOrUpdateProperties, verifyAddOrUpdatePropertiesNever } from '../../utilities/moqUtilities';
 import { FabricWorkspaceDataProvider } from '../../../src/workspace/treeView';
+import { ILocalFolderService } from '../../../src/LocalFolderService';
 
 // Import the modules to stub
 import * as quickPick from '../../../src/ui/showWorkspaceQuickPick';
 import * as prompts from '../../../src/ui/prompts';
 import { ICapacityManager } from '../../../src/CapacityManager';
-import { ILocalFolderManager } from '../../../src/LocalFolderManager';
 import { IWorkspaceFilterManager } from '../../../src/workspace/WorkspaceFilterManager';
 
+const artifactId = 'test-artifact-id';
 const artifactDisplayName = 'Test Artifact DisplayName';
 const artifactType = 'Test Artifact Type';
 
 describe('importArtifactCommand', () => {
     let workspaceManagerMock: Mock<IWorkspaceManager>;
     let artifactManagerMock: Mock<IArtifactManager>;
-    let localFolderManagerMock: Mock<ILocalFolderManager>;
+    let localFolderServiceMock: Mock<ILocalFolderService>;
     let extensionManagerMock: Mock<IFabricExtensionManagerInternal>;
     let capacityManagerMock: Mock<ICapacityManager>;
     let workspaceFilterManagerMock: Mock<IWorkspaceFilterManager>;
@@ -44,14 +45,14 @@ describe('importArtifactCommand', () => {
 
     const folderUri = vscode.Uri.file(`/path/to/local/folder/${artifactDisplayName}.${artifactType}`);
     const fakeWorkspace: IWorkspace = { displayName: 'ws', type: 'test', objectId: 'id' } as IWorkspace;
-    const fakeArtifact: IArtifact = { type: artifactType, displayName: artifactDisplayName } as IArtifact;
+    const fakeArtifact: IArtifact = { id: artifactId, type: artifactType, displayName: artifactDisplayName } as IArtifact;
     const fakeDefinition = { parts: [] };
 
     beforeEach(() => {
         workspaceManagerMock = new Mock<IWorkspaceManager>();
         artifactManagerMock = new Mock<IArtifactManager>();
         extensionManagerMock = new Mock<IFabricExtensionManagerInternal>(); 
-        localFolderManagerMock = new Mock<ILocalFolderManager>();
+        localFolderServiceMock = new Mock<ILocalFolderService>();
         capacityManagerMock = new Mock<ICapacityManager>();
         workspaceFilterManagerMock = new Mock<IWorkspaceFilterManager>();
         readerMock = new Mock<IItemDefinitionReader>();
@@ -78,8 +79,8 @@ describe('importArtifactCommand', () => {
             .setup(m => m.getArtifactHandler(artifactType))
             .returns(undefined);
 
-        localFolderManagerMock
-            .setup(m => m.getWorkspaceIdForLocalFolder(It.IsAny()))
+        localFolderServiceMock
+            .setup(m => m.getArtifactInformation(It.IsAny()))
             .returns(undefined);
 
         readerMock
@@ -149,10 +150,10 @@ describe('importArtifactCommand', () => {
     it('Uses inferred workspace', async () => {
         // Arrange
         const inferredWorkspaceId = 'id';
-        const expectedParent = vscode.Uri.file('/path/to/local/folder');
-        localFolderManagerMock
-            .setup(m => m.getWorkspaceIdForLocalFolder(It.Is<vscode.Uri>((uri) => uri.fsPath === expectedParent.fsPath)))
-            .returns(inferredWorkspaceId);
+        const expectedPath = vscode.Uri.joinPath(vscode.Uri.file('/path/to/local/folder'), `${artifactDisplayName}.${artifactType}`);
+        localFolderServiceMock
+            .setup(m => m.getArtifactInformation(It.Is<vscode.Uri>((uri) => uri.fsPath === expectedPath.fsPath)))
+            .returns( { artifactId: artifactId, workspaceId: inferredWorkspaceId } );
         workspaceManagerMock
             .setup(m => m.getWorkspaceById(inferredWorkspaceId))
             .returns(Promise.resolve(fakeWorkspace));
@@ -161,12 +162,129 @@ describe('importArtifactCommand', () => {
         await executeCommand();
 
         // Assert
-        localFolderManagerMock.verify(m => m.getWorkspaceIdForLocalFolder(It.Is<vscode.Uri>((uri) => uri.fsPath === expectedParent.fsPath)), Times.Exactly(1));
+        localFolderServiceMock.verify(m => m.getArtifactInformation(It.Is<vscode.Uri>((uri) => uri.fsPath === expectedPath.fsPath)), Times.Exactly(1));
         assert.ok(showWorkspaceQuickPickStub.notCalled, 'showWorkspaceQuickPick should NOT be called');
         artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri, It.IsAny()));
         verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', fakeWorkspace.objectId);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'fabricWorkspaceName', fakeWorkspace.displayName);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'targetDetermination', 'inferred');
+    });
+
+    it('Uses inferred workspace and artifact ID', async () => {
+        // Arrange
+        const inferredWorkspaceId = 'id';
+        const inferredArtifactId = 'artifact-999';
+        const inferredArtifact: IArtifact = { id: inferredArtifactId, type: artifactType, displayName: 'Different Name' } as IArtifact;
+
+        localFolderServiceMock
+            .setup(m => m.getArtifactInformation(folderUri))
+            .returns({ artifactId: inferredArtifactId, workspaceId: inferredWorkspaceId });
+        workspaceManagerMock
+            .setup(m => m.getWorkspaceById(inferredWorkspaceId))
+            .returns(Promise.resolve(fakeWorkspace));
+        artifactManagerMock
+            .setup(m => m.listArtifacts(fakeWorkspace))
+            .returnsAsync([fakeArtifact, inferredArtifact]);
+
+        // Act
+        await executeCommand();
+
+        // Assert
+        localFolderServiceMock.verify(m => m.getArtifactInformation(folderUri), Times.Exactly(1));
+        assert.ok(showWorkspaceQuickPickStub.notCalled, 'showWorkspaceQuickPick should NOT be called');
+        // Should update the inferred artifact (by ID), not the one matching by name
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(inferredArtifact, fakeDefinition, folderUri, It.IsAny()), Times.Once());
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', fakeWorkspace.objectId);
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'targetDetermination', 'inferred');
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'artifactId', inferredArtifactId);
+    });
+
+    it('Inferred artifact ID not found, falls back to name search', async () => {
+        // Arrange
+        const inferredWorkspaceId = 'id';
+        const inferredArtifactId = 'artifact-deleted';
+
+        localFolderServiceMock
+            .setup(m => m.getArtifactInformation(folderUri))
+            .returns({ artifactId: inferredArtifactId, workspaceId: inferredWorkspaceId });
+        workspaceManagerMock
+            .setup(m => m.getWorkspaceById(inferredWorkspaceId))
+            .returns(Promise.resolve(fakeWorkspace));
+        // listArtifacts returns artifacts but none match the inferred ID
+        artifactManagerMock
+            .setup(m => m.listArtifacts(fakeWorkspace))
+            .returnsAsync([fakeArtifact]); // fakeArtifact matches by name/type, not by ID
+
+        // Act
+        await executeCommand();
+
+        // Assert
+        localFolderServiceMock.verify(m => m.getArtifactInformation(folderUri), Times.Exactly(1));
+        // Should fall back to name/type search and find fakeArtifact
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri, It.IsAny()), Times.Once());
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'artifactId', fakeArtifact.id);
+    });
+
+    it('Inferred workspace but no artifact ID, uses name search', async () => {
+        // Arrange
+        const inferredWorkspaceId = 'id';
+
+        localFolderServiceMock
+            .setup(m => m.getArtifactInformation(folderUri))
+            .returns({ artifactId: undefined as any, workspaceId: inferredWorkspaceId }); // No artifact ID
+        workspaceManagerMock
+            .setup(m => m.getWorkspaceById(inferredWorkspaceId))
+            .returns(Promise.resolve(fakeWorkspace));
+        artifactManagerMock
+            .setup(m => m.listArtifacts(fakeWorkspace))
+            .returnsAsync([fakeArtifact]);
+
+        // Act
+        await executeCommand();
+
+        // Assert
+        localFolderServiceMock.verify(m => m.getArtifactInformation(folderUri), Times.Exactly(1));
+        // Should use name/type search
+        artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri, It.IsAny()), Times.Once());
+        verifyAddOrUpdateProperties(telemetryActivityMock, 'targetDetermination', 'inferred');
+    });
+
+    it('Inferred artifact ID creates new artifact when not found and name does not match', async () => {
+        // Arrange
+        const inferredWorkspaceId = 'id';
+        const inferredArtifactId = 'artifact-deleted';
+        const differentArtifact: IArtifact = { id: 'other-id', type: 'DifferentType', displayName: 'Different' } as IArtifact;
+
+        localFolderServiceMock
+            .setup(m => m.getArtifactInformation(folderUri))
+            .returns({ artifactId: inferredArtifactId, workspaceId: inferredWorkspaceId });
+        workspaceManagerMock
+            .setup(m => m.getWorkspaceById(inferredWorkspaceId))
+            .returns(Promise.resolve(fakeWorkspace));
+        // No artifacts match by ID or by name/type
+        artifactManagerMock
+            .setup(m => m.listArtifacts(fakeWorkspace))
+            .returnsAsync([differentArtifact]);
+
+        // Act
+        await executeCommand();
+
+        // Assert
+        // Should create new artifact since neither ID nor name/type matched
+        artifactManagerMock.verify(
+            a => a.createArtifactWithDefinition(
+                It.Is<IArtifact>(obj =>
+                    obj.workspaceId === fakeWorkspace.objectId &&
+                    obj.type === artifactType &&
+                    obj.displayName === artifactDisplayName
+                ),
+                fakeDefinition,
+                folderUri,
+                It.IsAny()
+            ),
+            Times.Once()
+        );
+        dataProviderMock.verify(x => x.refresh(), Times.Once());
     });
 
     it('Import creates artifact', async () => {
@@ -402,10 +520,10 @@ describe('importArtifactCommand', () => {
     it('Always prompts for workspace when forcePromptForWorkspace is true', async () => {
         // Arrange
         const inferredWorkspaceId = 'id';
-        const expectedParent = vscode.Uri.file('/path/to/local/folder');
-        localFolderManagerMock
-            .setup(m => m.getWorkspaceIdForLocalFolder(It.Is<vscode.Uri>((uri) => uri.fsPath === expectedParent.fsPath)))
-            .returns(inferredWorkspaceId);
+        const expectedPath = vscode.Uri.joinPath(vscode.Uri.file('/path/to/local/folder'), `${artifactDisplayName}.${artifactType}`);
+        localFolderServiceMock
+            .setup(m => m.getArtifactInformation(It.Is<vscode.Uri>((uri) => uri.fsPath === expectedPath.fsPath)))
+            .returns( { artifactId: artifactId, workspaceId: inferredWorkspaceId } );
         workspaceManagerMock
             .setup(m => m.getWorkspaceById(inferredWorkspaceId))
             .returns(Promise.resolve(fakeWorkspace));
@@ -416,7 +534,7 @@ describe('importArtifactCommand', () => {
         // Assert
         // Should NOT use inferred workspace, should always prompt
         assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called when forcePromptForWorkspace is true');
-        localFolderManagerMock.verify(m => m.getWorkspaceIdForLocalFolder(It.IsAny()), Times.Never());
+        localFolderServiceMock.verify(m => m.getArtifactInformation(It.IsAny()), Times.Never());
         artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri, It.IsAny()));
         verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', fakeWorkspace.objectId);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'fabricWorkspaceName', fakeWorkspace.displayName);
@@ -429,10 +547,10 @@ describe('importArtifactCommand', () => {
         await executeCommand(true); // forcePromptForWorkspace = true
 
         // Assert
-        localFolderManagerMock.verify(
-            m => m.setLocalFolderForFabricWorkspace(It.IsAny(), It.IsAny()),
-            Times.Never()
-        );
+        // localFolderServiceMock.verify(
+        //     m => m.setLocalFolderForFabricWorkspace(It.IsAny(), It.IsAny()),
+        //     Times.Never()
+        // );
     });
 
     it('User is not signed in', async () => {
@@ -659,7 +777,7 @@ describe('importArtifactCommand', () => {
             workspaceManagerMock.object(),
             artifactManagerMock.object(),
             extensionManagerMock.object(),
-            localFolderManagerMock.object(),
+            localFolderServiceMock.object(),
             workspaceFilterManagerMock.object(),
             capacityManagerMock.object(),
             readerMock.object(),

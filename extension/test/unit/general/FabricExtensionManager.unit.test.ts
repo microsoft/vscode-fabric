@@ -1,20 +1,24 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+import * as vscode from 'vscode';
 import * as assert from 'assert';
 import { IFabricExtension } from '@microsoft/vscode-fabric-api';
+import { Mock } from 'moq.ts';
 import { initializeServiceCollection } from './serviceCollection';
 import { MockFabricExtensionManager, testApiVersion } from '../../../src/extensionManager/MockFabricExtensionManager';
 import { satelliteExtensionIds, TestExtension } from '../shared/TestExtension';
 
 describe('FabricExtensionManager unit tests', () => {
+    const mockContext = new Mock<vscode.ExtensionContext>();
+
     it('Satellite contributions are initially empty', async () => {
-        const manager = MockFabricExtensionManager.create();
+        const manager = createFabricExtensionManager();
         manager.assertNoContributions();
     });
 
     it('addExtension: Service manager is returned', async () => {
-        const manager = MockFabricExtensionManager.create();
+        const manager = createFabricExtensionManager();
         const extension: IFabricExtension = TestExtension.create();
         const expectedServiceManager = initializeServiceCollection(undefined, undefined, undefined, undefined);
         manager.serviceCollection = expectedServiceManager;
@@ -24,7 +28,7 @@ describe('FabricExtensionManager unit tests', () => {
     });
 
     it('addExtension: Update event is fired', async () => {
-        const manager = MockFabricExtensionManager.create();
+        const manager = createFabricExtensionManager();
         const extension: IFabricExtension = TestExtension.create();
 
         let updateEventFired = false;
@@ -34,7 +38,7 @@ describe('FabricExtensionManager unit tests', () => {
     });
 
     it('addExtension: Satellite contributions are added', async () => {
-        const manager = MockFabricExtensionManager.create();
+        const manager = createFabricExtensionManager();
         const extension1: IFabricExtension = TestExtension.create(satelliteExtensionIds[0], ['artifact-type-1'], true);
         const extension2: IFabricExtension = TestExtension.create(satelliteExtensionIds[1], ['artifact-type-2'], true);
         const extension3: IFabricExtension = TestExtension.create(satelliteExtensionIds[2], ['artifact-type-3'], false);
@@ -54,7 +58,7 @@ describe('FabricExtensionManager unit tests', () => {
     });
 
     it('Error: extension is not in allowed list', async () => {
-        const manager = MockFabricExtensionManager.create();
+        const manager = createFabricExtensionManager();
         const extension: IFabricExtension = TestExtension.create('invalid.identity');
 
         // Verify there is an error if the extension is not in the allowed list
@@ -62,7 +66,7 @@ describe('FabricExtensionManager unit tests', () => {
     });
 
     it('Error: extension is not installed', async () => {
-        const manager = MockFabricExtensionManager.create(undefined, false);
+        const manager = MockFabricExtensionManager.create(mockContext.object(), undefined, false);
         const extension: IFabricExtension = TestExtension.create();
 
         // Verify there is an error if the extension is not installed
@@ -70,7 +74,7 @@ describe('FabricExtensionManager unit tests', () => {
     });
 
     it('Error: extension has already been added', async () => {
-        const manager = MockFabricExtensionManager.create();
+        const manager = createFabricExtensionManager();
         const extension: IFabricExtension = TestExtension.create();
         const extension2: IFabricExtension = TestExtension.create(undefined, ['test2']);
 
@@ -89,7 +93,7 @@ describe('FabricExtensionManager unit tests', () => {
     });
 
     it('API version validation', async () => {
-        const manager = MockFabricExtensionManager.create();
+        const manager = createFabricExtensionManager();
 
         // Error: major version higher
         let extension: IFabricExtension = TestExtension.create(undefined, undefined, undefined, '2.6');
@@ -118,7 +122,7 @@ describe('FabricExtensionManager unit tests', () => {
 
     it('addExtension: Satellite contributions for valid extensions remain', async () => {
         // Create an extension manager with allowed extensions
-        const manager = MockFabricExtensionManager.create();
+        const manager = createFabricExtensionManager();
         const originalExtension: IFabricExtension = TestExtension.create();
         const validExtension: IFabricExtension = TestExtension.create(satelliteExtensionIds[1], ['valid'], true);
         const duplicatedExtension: IFabricExtension = TestExtension.create(undefined, ['duplicated']);
@@ -134,4 +138,8 @@ describe('FabricExtensionManager unit tests', () => {
         assert.strictEqual(manager.artifactHandlersSize, 1, 'artifactHandlersSize should have 1 item');
         assert.strictEqual(manager.getArtifactHandler(validExtension.artifactTypes[0]), validExtension.artifactHandlers![0], 'getArtifactHandler should return the expected handler');
     });
+
+    function createFabricExtensionManager(): MockFabricExtensionManager {
+        return MockFabricExtensionManager.create(mockContext.object());
+    }
 });

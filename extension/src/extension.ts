@@ -8,7 +8,21 @@ import * as querystring from 'querystring';
 import { FeedbackTreeDataProvider } from './feedback/FeedbackTreeDataProvider';
 import { WorkspaceManager, WorkspaceManagerBase } from './workspace/WorkspaceManager';
 import { IFabricExtensionManager, Schema, IArtifactManager, IFabricApiClient, IFabricExtensionServiceCollection, IWorkspaceManager, FabricTreeNode } from '@microsoft/vscode-fabric-api';
-import { TelemetryService, TelemetryActivity, FabricUriHandler, FabricEnvironmentProvider, ConfigurationProvider, IConfigurationProvider, IFabricEnvironmentProvider, ILogger, IDisposableCollection, DisposableCollection, FakeConfigurationProvider, MockConsoleLogger, VSCodeUIBypass } from '@microsoft/vscode-fabric-util';
+import {
+    TelemetryService,
+    TelemetryActivity,
+    FabricUriHandler,
+    FabricEnvironmentProvider,
+    ConfigurationProvider,
+    IConfigurationProvider,
+    IFabricEnvironmentProvider,
+    ILogger,
+    IDisposableCollection,
+    DisposableCollection,
+    FakeConfigurationProvider,
+    MockConsoleLogger,
+    VSCodeUIBypass,
+} from '@microsoft/vscode-fabric-util';
 import { ITokenAcquisitionService, IAccountProvider } from './authentication/interfaces';
 import { AccountProvider } from './authentication/AccountProvider';
 import { TokenAcquisitionService, VsCodeAuthentication, DefaultVsCodeAuthentication } from './authentication/TokenAcquisitionService';
@@ -32,12 +46,14 @@ import TelemetryReporter from '@vscode/extension-telemetry';
 import { FabricExtensionManager } from './extensionManager/FabricExtensionManager';
 import { IArtifactManagerInternal } from './apis/internal/fabricExtensionInternal';
 import { ICapacityManager, CapacityManager } from './CapacityManager';
+import { ExtensionUriHandler } from './ExtensionUriHandler';
 
 // Information about the DI container can be found here: https://raw.githubusercontent.com/wessberg/DI/refs/heads/master/README.md
 import { DIContainer } from '@wessberg/di';
 import { GitOperator } from './git/GitOperator';
 import { FabricExtensionsSettingStorage } from './settings/FabricExtensionsSettingStorage';
 import { LocalFolderManager } from './LocalFolderManager';
+import { ILocalFolderService, LocalFolderService } from './LocalFolderService';
 import { ArtifactManager } from './artifactManager/ArtifactManager';
 import { MockArtifactManager } from './artifactManager/MockArtifactManager';
 import { MockWorkspaceManager } from './workspace/mockWorkspaceManager';
@@ -86,6 +102,7 @@ export class FabricVsCodeExtension {
             const dataProvider = this.container.get<FabricWorkspaceDataProvider>();
             const artifactManager = this.container.get<IArtifactManagerInternal>();
             const localFolderManager = this.container.get<LocalFolderManager>();
+            const localFolderService = this.container.get<ILocalFolderService>();
             const apiClient = this.container.get<IFabricApiClient>();
             const fabricEnvironmentProvider = this.container.get<IFabricEnvironmentProvider>();
             const capacityManager = this.container.get<ICapacityManager>();
@@ -121,16 +138,30 @@ export class FabricVsCodeExtension {
 
             const commandManager = this.container.get<IFabricCommandManager>();
             await commandManager.initialize();
-
-            registerWorkspaceCommands(context, account, workspaceManager, capacityManager, telemetryService, logger, workspaceFilterManager);
+            
+            registerWorkspaceCommands(context, account, workspaceManager, capacityManager, telemetryService, logger, workspaceFilterManager, fabricEnvironmentProvider);
             registerTenantCommands(context, account, telemetryService, logger);
-            await registerArtifactCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, dataProvider, extensionManager, workspaceFilterManager, capacityManager, telemetryService, logger);
-            registerLocalProjectCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, extensionManager, localFolderManager, workspaceFilterManager, capacityManager, dataProvider, telemetryService, logger);
+            await registerArtifactCommands(
+                context,
+                workspaceManager,
+                fabricEnvironmentProvider,
+                artifactManager,
+                localFolderService,
+                this.container.get<IConfigurationProvider>(),
+                dataProvider,
+                extensionManager,
+                workspaceFilterManager,
+                capacityManager,
+                account,
+                telemetryService,
+                logger
+            );
+            registerLocalProjectCommands(context, workspaceManager, fabricEnvironmentProvider, artifactManager, extensionManager, localFolderService, workspaceFilterManager, capacityManager, dataProvider, telemetryService, logger);
 
             const coreServiceCollection: IFabricExtensionServiceCollection = this.container.get<IFabricExtensionServiceCollection>();
             extensionManager.serviceCollection = coreServiceCollection;
 
-            const workspaceFolderProvider = await WorkspaceFolderProvider.create(logger, telemetryService);
+            const workspaceFolderProvider = await WorkspaceFolderProvider.create(vscode.workspace.fs, logger, telemetryService);
             context.subscriptions.push(workspaceFolderProvider);
 
             // Create/register the local project tree view
@@ -208,7 +239,7 @@ export class FabricVsCodeExtension {
             }
             // register the uri handler
             context.subscriptions.push(
-                vscode.window.registerUriHandler(this.container.get<FabricUriHandler>())
+                vscode.window.registerUriHandler(this.container.get<ExtensionUriHandler>())
             );
 
             const internalSatelliteManger = this.container.get<InternalSatelliteManager>();
@@ -329,7 +360,9 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
 
     container.registerSingleton<vscode.Memento>(() => container.get<ExtensionContext>().globalState);
     container.registerSingleton<IFabricExtensionsSettingStorage, FabricExtensionsSettingStorage>();
+    container.registerSingleton<vscode.FileSystem>(() => vscode.workspace.fs);
     container.registerSingleton<LocalFolderManager>();
+    container.registerSingleton<ILocalFolderService, LocalFolderService>();
     container.registerSingleton<IWorkspaceManager, WorkspaceManager>();
     container.registerSingleton<IRootTreeNodeProvider, RootTreeNodeProvider>();
     container.registerSingleton<IWorkspaceFilterManager, WorkspaceFilterManager>();
@@ -341,7 +374,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
 
     container.registerSingleton<ICapacityManager, CapacityManager>();
 
-    container.registerSingleton<FabricUriHandler>();
+    container.registerSingleton<ExtensionUriHandler>();
     container.registerSingleton<InternalSatelliteManager>();
 
     container.registerSingleton<IFabricCommandManager, FabricCommandManager>();

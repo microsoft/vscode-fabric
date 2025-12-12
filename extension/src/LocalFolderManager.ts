@@ -9,8 +9,10 @@ import * as path from 'path';
 import { LocalFolderSettingsAdapter } from './settings/LocalFolderSettingsAdapter';
 import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 
+// Deprecation: IWorkspaceManager.getLocalFolderForFabricWorkspace
 /**
  * Manages local folder associations for Fabric workspaces and artifacts.
+ * @deprecated
  */
 export interface ILocalFolderManager {
     /**
@@ -45,6 +47,10 @@ export interface ILocalFolderManager {
     getWorkspaceIdForLocalFolder(folder: vscode.Uri): string | undefined;
 }
 
+// Deprecation: IWorkspaceManager.getLocalFolderForFabricWorkspace
+/**
+ * @deprecated
+ */
 export class LocalFolderManager implements ILocalFolderManager {
     private adapter: ILocalFolderSettingsAdapter;
 

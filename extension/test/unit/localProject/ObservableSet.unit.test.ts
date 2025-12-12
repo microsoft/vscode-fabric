@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import * as Mocha from 'mocha';
 import * as assert from 'assert';
 import { ObservableSet } from '../../../src/collections/ObservableSet';
 import { IObservableArray } from '../../../src/collections/definitions';

@@ -13,9 +13,6 @@
   "engines": {
     "vscode": "^1.77.0"
   },
-  "enabledApiProposals": [
-    "telemetry"
-  ],
   "categories": [
     "Data Science"
   ],
@@ -55,12 +52,6 @@
         "icon": "$(add)"
       },
       {
-        "command": "vscode-fabric.selectWorkspaceLocalFolder",
-        "title": "%extension.selectWorkspaceLocalFolder.title%",
-        "category": "Fabric",
-        "icon": "$(arrow-swap)"
-      },
-      {
         "command": "vscode-fabric.createArtifact",
         "title": "%extension.createArtifact.title%",
         "category": "Fabric",
@@ -78,10 +69,22 @@
         "icon": "$(open-preview)"
       },
       {
+        "command": "vscode-fabric.openLocalFolder",
+        "title": "%extension.openLocalFolder.title%",
+        "category": "Fabric",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "vscode-fabric.changeLocalFolder",
+        "title": "%extension.changeLocalFolder.title%",
+        "category": "Fabric",
+        "icon": "$(folder-opened)"
+      },
+      {
         "command": "vscode-fabric.exportArtifact",
         "title": "%extension.exportArtifact.title%",
         "category": "Fabric",
-        "icon": "$(open-preview)"
+        "icon": "$(cloud-download)"
       },
       {
         "command": "vscode-fabric.importArtifact",
@@ -90,8 +93,14 @@
         "icon": "$(cloud-upload)"
       },
       {
-        "command": "vscode-fabric.importArtifactPromptWorkspace",
-        "title": "%extension.importArtifactPromptWorkspace.title%",
+        "command": "vscode-fabric.importArtifact.inline",
+        "title": "%extension.importArtifact.inline.title%",
+        "category": "Fabric",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "vscode-fabric.importArtifact.promptWorkspace",
+        "title": "%extension.importArtifact.promptWorkspace.title%",
         "category": "Fabric",
         "icon": "$(cloud-upload)"
       },
@@ -255,6 +264,14 @@
           "when": "false"
         },
         {
+          "command": "vscode-fabric.openLocalFolder",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.changeLocalFolder",
+          "when": "false"
+        },
+        {
           "command": "vscode-fabric.exportArtifact",
           "when": "false"
         },
@@ -263,7 +280,11 @@
           "when": "false"
         },
         {
-          "command": "vscode-fabric.importArtifactPromptWorkspace",
+          "command": "vscode-fabric.importArtifact.inline",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.importArtifact.promptWorkspace",
           "when": "false"
         },
         {
@@ -291,10 +312,6 @@
           "when": "false"
         },
         {
-          "command": "vscode-fabric.selectWorkspaceLocalFolder",
-          "when": "false"
-        },
-        {
           "command": "vscode-fabric.installExtension",
           "when": "false"
         }
@@ -305,7 +322,7 @@
           "group": "1@1"
         },
         {
-          "command": "vscode-fabric.importArtifactPromptWorkspace",
+          "command": "vscode-fabric.importArtifact.promptWorkspace",
           "group": "1@2"
         }
       ],
@@ -364,13 +381,18 @@
         },
         {
           "command": "vscode-fabric.createArtifact",
+          "when": "view == vscode-fabric.view.workspace && viewItem == ItemType",
+          "group": "1@1"
+        },
+        {
+          "command": "vscode-fabric.createArtifact",
           "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceTreeNode",
           "group": "inline"
         },
         {
-          "command": "vscode-fabric.selectWorkspaceLocalFolder",
-          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceTreeNode",
-          "group": "1@1"
+          "command": "vscode-fabric.createArtifact",
+          "when": "view == vscode-fabric.view.workspace && viewItem == ItemType",
+          "group": "inline"
         },
         {
           "command": "vscode-fabric.refreshArtifactView",
@@ -423,12 +445,22 @@
           "group": "inline"
         },
         {
+          "command": "vscode-fabric.openLocalFolder",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-open-local-folder/",
+          "group": "5@2"
+        },
+        {
+          "command": "vscode-fabric.changeLocalFolder",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-open-local-folder/",
+          "group": "5@3"
+        },
+        {
           "submenu": "vscode-fabric.submenu.importArtifact",
           "when": "view == vscode-fabric.view.local && viewItem =~ /item-import/",
           "group": "6@1"
         },
         {
-          "command": "vscode-fabric.importArtifact",
+          "command": "vscode-fabric.importArtifact.inline",
           "when": "view == vscode-fabric.view.local && viewItem =~ /item-import/",
           "group": "inline"
         },
@@ -440,22 +472,27 @@
         {
           "command": "vscode-fabric.openNotebook",
           "when": "view == vscode-fabric.view.workspace && viewItem =~ /Notebook/",
-          "group": "5@1"
-        },
-        {
-          "command": "vscode-fabric.openInPortal",
-          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-view-in-portal/",
-          "group": "5@2"
+          "group": "5@10"
         },
         {
           "command": "vscode-fabric.openSqlExtension",
           "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-open-in-sql/",
-          "group": "5@3"
+          "group": "5@11"
         },
         {
           "command": "vscode-fabric.copyConnectionString",
           "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-copy-connection-string/",
-          "group": "5@4"
+          "group": "5@12"
+        },
+        {
+          "command": "vscode-fabric.openInPortal",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-view-in-portal/",
+          "group": "5@99"
+        },
+        {
+          "command": "vscode-fabric.refreshLocalFolderView",
+          "when": "view == vscode-fabric.view.local && (viewItem =~ /Item.*/ || viewItem =~ /.*LocalProjectTreeNode/ || viewItem == ConnectionsTreeNode || viewItem == LibrariesTreeNode || viewItem == FunctionsTreeNode)",
+          "group": "9@1"
         },
         {
           "command": "vscode-fabric.renameArtifact",
@@ -466,11 +503,6 @@
           "command": "vscode-fabric.deleteArtifact",
           "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-delete/",
           "group": "9@3"
-        },
-        {
-          "command": "vscode-fabric.refreshLocalFolderView",
-          "when": "view == vscode-fabric.view.local && (viewItem =~ /Item.*/ || viewItem =~ /.*LocalProjectTreeNode/ || viewItem == ConnectionsTreeNode || viewItem == LibrariesTreeNode || viewItem == FunctionsTreeNode)",
-          "group": "9@1"
         }
       ]
     },
@@ -482,10 +514,16 @@
           "default": 60000,
           "description": "%extension.configuration.ApiTimeout.description%"
         },
-        "Fabric.DefaultWorkspaceFolder": {
+        "Fabric.LocalFolderSaveBehavior": {
           "type": "string",
-          "default": "",
-          "description": "%extension.configuration.DefaultWorkspaceFolder.description%"
+          "enum": ["prompt", "always", "never"],
+          "enumDescriptions": [
+            "%extension.configuration.LocalFolderSaveBehavior.prompt%",
+            "%extension.configuration.LocalFolderSaveBehavior.always%",
+            "%extension.configuration.LocalFolderSaveBehavior.never%"
+          ],
+          "default": "prompt",
+          "description": "%extension.configuration.LocalFolderSaveBehavior.description%"
         },
         "Fabric.DebugLogging": {
           "type": "boolean",

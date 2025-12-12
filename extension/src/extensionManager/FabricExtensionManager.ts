@@ -21,7 +21,7 @@ const internalSatelliteIds = [
 
 export class FabricExtensionManager implements IFabricExtensionManagerInternal {
 
-    constructor(private telemetryService: TelemetryService | null, private logger: ILogger) {
+    constructor(private context: vscode.ExtensionContext, private telemetryService: TelemetryService | null, private logger: ILogger) {
     }
 
     protected extensions: IFabricExtension[] = [];
@@ -38,16 +38,6 @@ export class FabricExtensionManager implements IFabricExtensionManagerInternal {
     protected _serviceCollection: IFabricExtensionServiceCollection | undefined;
 
     public addExtension(extension: IFabricExtension): IFabricExtensionServiceCollection {
-        // Validation: Ensure the extension is compatible with the current API version
-        if (extension.apiVersion !== this.apiVersion) {
-            // Convert version to major.minor
-            const currentVersion = this.apiVersion.split('.').slice(0, 2).join('.');
-            const extensionVersion = extension.apiVersion.split('.').slice(0, 2).join('.');
-            if (currentVersion !== extensionVersion) {
-                throw new Error(`Extension ${extension.identity} is not compatible with API version ${this.apiVersion}`);
-            }
-        }
-
         // Validation: Ensure the extension is allowed and installed
         if (!this.allowedExtensions.includes(extension.identity)) {
             throw new Error(`Extension ${extension.identity} is not allowed`);
@@ -64,6 +54,17 @@ export class FabricExtensionManager implements IFabricExtensionManagerInternal {
             duplicatedExtension.artifactHandlers?.forEach(h => this.artifactHandlers.delete(h.artifactType));
             duplicatedExtension.treeNodeProviders?.forEach(p => this.treeNodeProviders.delete(p.artifactType));
             throw new Error(`Extension ${extension.identity} is already registered`);
+        }
+
+        // Validation: Ensure the extension is compatible with the current API version
+        if (extension.apiVersion !== this.apiVersion) {
+            // Convert version to major.minor
+            const currentVersion = this.apiVersion.split('.').slice(0, 2).join('.');
+            const extensionVersion = extension.apiVersion.split('.').slice(0, 2).join('.');
+            if (currentVersion !== extensionVersion) {
+                const errorMessage = this.buildVersionMismatchMessage(extension.identity);
+                throw new Error(errorMessage);
+            }
         }
 
         extension.artifactHandlers?.forEach(h => this.artifactHandlers.set(h.artifactType, h));
@@ -114,4 +115,28 @@ export class FabricExtensionManager implements IFabricExtensionManagerInternal {
         // So let's settle for making sure that the extension is installed
         return !!vscode.extensions.getExtension(extensionId);
     }
+
+    private buildVersionMismatchMessage(satelliteId: string): string {
+        const satelliteExtension = vscode.extensions.getExtension(satelliteId);
+        const satelliteVersion = formatVersion(satelliteExtension);
+        const coreVersion = formatVersion(this.context.extension);
+
+        return vscode.l10n.t(
+            'Extension {0} (version {1}) is not compatible with Microsoft Fabric extension (version {2}). Use the latest release versions for both extensions',
+            satelliteId,
+            satelliteVersion,
+            coreVersion
+        );
+    }
+}
+
+function formatVersion(extension: vscode.Extension<any> | undefined): string {
+    if (!extension) {
+        return 'unknown';
+    }
+
+    const version = extension.packageJSON.version ?? 'unknown';
+    const isPreRelease = extension.packageJSON.preRelease ?? false;
+
+    return `${version}${isPreRelease ? '-pre' : ''}`;
 }

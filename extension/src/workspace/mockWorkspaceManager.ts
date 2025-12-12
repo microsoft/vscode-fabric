@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 /* eslint-disable security/detect-object-injection */
-import { IFabricEnvironmentProvider, ILogger, IConfigurationProvider, FakeConfigurationProvider } from '@microsoft/vscode-fabric-util';
+import { IFabricEnvironmentProvider, ILogger, IConfigurationProvider, FakeConfigurationProvider, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../authentication/interfaces';
 import { IArtifact, IWorkspace, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { WorkspaceManagerBase } from './WorkspaceManager';
@@ -11,6 +11,7 @@ import { IFabricExtensionsSettingStorage } from '../settings/definitions';
 import { Memento } from 'vscode';
 import { MockHierarchicalArtifact } from './mockTreeView';
 import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
+import { ILocalFolderService } from '../LocalFolderService';
 
 export const mockGuidWorkspaceId: string = 'A1b2C3d4-E5f6-a7B8-9c0D-0e1F2A3b4C5d';
 export const mockGuidArtifactId: string =  '4D3c2B1a-6F5e-8b7A-d0C9-D5c4B3a2f1E0';
@@ -31,9 +32,11 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
         apiClient: IFabricApiClient,
         gitOperator: IGitOperator,
         logger: ILogger,
+        localFolderService: ILocalFolderService,
+        telemetryService: TelemetryService | null = null,
         configurationProvider: IConfigurationProvider = new FakeConfigurationProvider()
     ) {
-        super(storage, new LocalFolderManager(storage, fabricEnvironmentProvider), account, fabricEnvironmentProvider, apiClient, gitOperator, logger, configurationProvider);
+        super(storage, new LocalFolderManager(storage, fabricEnvironmentProvider), account, fabricEnvironmentProvider, apiClient, gitOperator, logger, telemetryService, configurationProvider, localFolderService);
 
         const workspaceIds: string[] = Array.from({ length: 4 }, (e, i) => `wspaceId${i}`);
         workspaceIds.push(mockGuidWorkspaceId);

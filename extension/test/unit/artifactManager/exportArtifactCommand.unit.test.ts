@@ -5,175 +5,110 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
-import { IApiClientResponse, IArtifactManager, IWorkspaceManager, IArtifact, IItemDefinition } from '@microsoft/vscode-fabric-api';
-import { FabricError, TelemetryActivity, UserCancelledError } from '@microsoft/vscode-fabric-util';
-import { exportArtifactCommand } from '../../../src/artifactManager/exportArtifactCommand';
+import { IArtifactManager, IArtifact } from '@microsoft/vscode-fabric-api';
+import { FabricError, TelemetryActivity, UserCancelledError, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
+import { exportArtifactCommand, showCompletionMessage } from '../../../src/artifactManager/exportArtifactCommand';
+import * as artifactOperations from '../../../src/artifactManager/localFolderCommandHelpers';
 import { CoreTelemetryEventNames } from '../../../src/TelemetryEventNames';
-import { verifyAddOrUpdateProperties, verifyAddOrUpdatePropertiesNever } from '../../utilities/moqUtilities';
 import { IItemDefinitionConflictDetector } from '../../../src/itemDefinition/ItemDefinitionConflictDetector';
 import { IItemDefinitionWriter } from '../../../src/itemDefinition/ItemDefinitionWriter';
+import { ILocalFolderService } from '../../../src/LocalFolderService';
 
 const artifactDisplayName = 'Test Artifact';
 const artifactId = 'Test Artifact Id';
 
 describe('exportArtifactCommand', () => {
     const localFolder = vscode.Uri.file('/path/to/local/folder');
-    const successDefinition = {
-        definition: {
-            parts: [
-                {
-                    path: 'notebook-content.py',
-                    payload: 'IyBGYWJyaW',
-                    payloadType: 'InlineBase64',
-                },
-                {
-                    path: '.platform',
-                    payload: 'ewogICIkc2N',
-                    payloadType: 'InlineBase64',
-                },
-            ],
-        },
-    };
-
-    const successResponse = {
-        status: 200,
-        parsedBody: successDefinition,
-    };
 
     let artifactManagerMock: Mock<IArtifactManager>;
-    let workspaceManagerMock: Mock<IWorkspaceManager>;
     let artifactMock: Mock<IArtifact>;
+    let localFolderServiceMock: Mock<ILocalFolderService>;
+    let configurationProviderMock: Mock<IConfigurationProvider>;
     let telemetryActivityMock: Mock<TelemetryActivity<CoreTelemetryEventNames>>;
     let conflictDetectorMock: Mock<IItemDefinitionConflictDetector>;
     let itemDefinitionWriterMock: Mock<IItemDefinitionWriter>;
 
-    let showInformationMessageStub: sinon.SinonStub;
-    let showWarningMessageStub: sinon.SinonStub;
-    let executeCommandStub: sinon.SinonStub;
+    let downloadAndSaveArtifactStub: sinon.SinonStub;
+    let showFolderActionAndSavePreferenceStub: sinon.SinonStub;
 
     beforeEach(() => {
         artifactManagerMock = new Mock<IArtifactManager>();
-        workspaceManagerMock = new Mock<IWorkspaceManager>();
         artifactMock = new Mock<IArtifact>();
+        localFolderServiceMock = new Mock<ILocalFolderService>();
+        configurationProviderMock = new Mock<IConfigurationProvider>();
         conflictDetectorMock = new Mock<IItemDefinitionConflictDetector>();
         itemDefinitionWriterMock = new Mock<IItemDefinitionWriter>();
 
         artifactMock.setup(a => a.id).returns(artifactId);
         artifactMock.setup(a => a.displayName).returns(artifactDisplayName);
 
-        artifactManagerMock.setup(am => am.getArtifactDefinition(It.IsAny(), It.IsAny()))
-            .returns(Promise.resolve(successResponse));
-
-        workspaceManagerMock.setup(wm => wm.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
-            .returns(Promise.resolve(localFolder));
-
-        conflictDetectorMock.setup(det => det.getConflictingFiles(It.IsAny(), It.IsAny()))
-            .returnsAsync([]);
-
-        itemDefinitionWriterMock.setup(writer => writer.save(It.IsAny(), It.IsAny()))
-            .returns(Promise.resolve());
+        localFolderServiceMock
+            .setup(l => l.getLocalFolder(It.IsAny(), It.IsAny()))
+            .returns(Promise.resolve({ uri: localFolder, prompted: false, created: true }));
 
         telemetryActivityMock = new Mock<TelemetryActivity<CoreTelemetryEventNames>>();
         telemetryActivityMock.setup(instance => instance.addOrUpdateProperties(It.IsAny()))
             .returns(undefined);
 
-        showInformationMessageStub = sinon.stub(vscode.window, 'showInformationMessage');
-        showWarningMessageStub = sinon.stub(vscode.window, 'showWarningMessage');
-        executeCommandStub = sinon.stub(vscode.commands, 'executeCommand').resolves();
+        // Stub artifactOperations methods
+        downloadAndSaveArtifactStub = sinon.stub(artifactOperations, 'downloadAndSaveArtifact').resolves();
+        showFolderActionAndSavePreferenceStub = sinon.stub(artifactOperations, 'showFolderActionAndSavePreference').resolves(undefined);
     });
 
     afterEach(() => {
         sinon.restore();
     });
 
-    it('Export artifact successfully (no conflicts)', async () => {
+    it('Export artifact successfully', async () => {
         // Arrange
-        showInformationMessageStub.callsFake(async (msg, opts, ...items) => {
-            assert.strictEqual(opts.modal, false, 'showInformationMessage modal');
-            assert.strictEqual(msg, `Opened ${artifactDisplayName}`, 'showInformationMessage message');
-        });
+        showFolderActionAndSavePreferenceStub.resolves(artifactOperations.FolderAction.doNothing);
 
         // Act
         await executeCommand();
 
         // Assert
-        workspaceManagerMock.verify(
-            wm => wm.getLocalFolderForArtifact(
+        localFolderServiceMock.verify(
+            l => l.getLocalFolder(
                 It.Is(artifact => artifact === artifactMock.object()),
                 It.IsAny()),
             Times.Once());
-        artifactManagerMock.verify(
-            am => am.getArtifactDefinition(
-                It.Is(artifact => artifact === artifactMock.object()),      
-                It.IsAny()),
-            Times.Once());
-        itemDefinitionWriterMock.verify(
-            writer => writer.save(
-                It.Is<IItemDefinition>(definition => JSON.stringify(definition) === JSON.stringify(successDefinition.definition)),
-                It.Is<vscode.Uri>(uri => uri === localFolder)
-            ),
-            Times.Once()
-        );
 
-        assert.strictEqual(showInformationMessageStub.callCount, 1, 'showInformationMessage call count');
+        assert.ok(downloadAndSaveArtifactStub.calledOnce, 'downloadAndSaveArtifact should be called once');
+        assert.ok(downloadAndSaveArtifactStub.calledWith(
+            artifactMock.object(),
+            localFolder,
+            artifactManagerMock.object(),
+            conflictDetectorMock.object(),
+            itemDefinitionWriterMock.object(),
+            telemetryActivityMock.object()
+        ), 'downloadAndSaveArtifact should be called with correct arguments');
 
-        assert.ok(showWarningMessageStub.notCalled, 'No prompt should be shown');
-
-        assert.ok(executeCommandStub.called, 'executeCommand should be called');
-        assert.ok(executeCommandStub.calledWith('vscode.openFolder', localFolder));
-
-        verifyAddOrUpdateProperties(telemetryActivityMock, 'statusCode', '200');
-        verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'requestId');
-        verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'errorCode');
+        assert.ok(showFolderActionAndSavePreferenceStub.calledOnce, 'showFolderActionAndSavePreference should be called once');
+        assert.strictEqual(showFolderActionAndSavePreferenceStub.lastCall.args.length, 4, 'Should be called with 4 arguments');
+        assert.strictEqual(showFolderActionAndSavePreferenceStub.lastCall.args[3], undefined, 'Fourth argument should be undefined when options not provided');    
     });
 
-    it('Export artifact with conflicts, user confirms overwrite', async () => {
-        // Arrange
-        showInformationMessageStub.callsFake(async (msg, opts, ...items) => {
-            assert.strictEqual(opts.modal, false, 'showInformationMessage modal');
-            assert.strictEqual(msg, `Opened ${artifactDisplayName}`, 'showInformationMessage message');
-        });
-        conflictDetectorMock.setup(det => det.getConflictingFiles(It.IsAny(), It.IsAny()))
-            .returnsAsync(['file1.txt', 'file2.txt']);
-        showWarningMessageStub.resolves('Yes');
-
-        // Act
-        await executeCommand();
-
-        // Assert
-        workspaceManagerMock.verify(
-            wm => wm.getLocalFolderForArtifact(
-                It.Is(artifact => artifact === artifactMock.object()),
-                It.IsAny()),
-            Times.Once());
-        artifactManagerMock.verify(
-            am => am.getArtifactDefinition(
-                It.Is(artifact => artifact === artifactMock.object()),
-                It.IsAny()),
-            Times.Once());
-        itemDefinitionWriterMock.verify(
-            writer => writer.save(
-                It.Is<IItemDefinition>(definition => JSON.stringify(definition) === JSON.stringify(successDefinition.definition)),
-                It.Is<vscode.Uri>(uri => uri === localFolder)
-            ),
-            Times.Once()
+    it('calls showFolderActionAndSavePreference with options when provided', async () => {
+        showFolderActionAndSavePreferenceStub.resolves(artifactOperations.FolderAction.doNothing);
+        const options = { modal: true, includeDoNothing: false };
+        await exportArtifactCommand(
+            artifactMock.object(),
+            artifactManagerMock.object(),
+            localFolderServiceMock.object(),
+            configurationProviderMock.object(),
+            conflictDetectorMock.object(),
+            itemDefinitionWriterMock.object(),
+            telemetryActivityMock.object(),
+            options
         );
-
-        assert.strictEqual(showInformationMessageStub.callCount, 1, 'showInformationMessage call count');
-
-        assert.ok(showWarningMessageStub.calledOnce, 'Prompt should be shown');
-        const [message, options, yesButton] = showWarningMessageStub.firstCall.args;
-        assert.ok(message.includes('file1.txt') && message.includes('file2.txt'), 'Prompt should list conflicting files');
-        assert.deepStrictEqual(options, { modal: true });
-        assert.strictEqual(yesButton, 'Yes');
-
-        assert.ok(executeCommandStub.called, 'executeCommand should be called');
-        assert.ok(executeCommandStub.calledWith('vscode.openFolder', localFolder));
+        assert.ok(showFolderActionAndSavePreferenceStub.calledOnce, 'showFolderActionAndSavePreference should be called once');
+        assert.strictEqual(showFolderActionAndSavePreferenceStub.lastCall.args.length, 4, 'Should be called with 4 arguments when options provided');
+        assert.deepStrictEqual(showFolderActionAndSavePreferenceStub.lastCall.args[3], options, 'Options should be passed as the fourth argument');
     });
 
     it('Cancel local folder selection', async () => {
         // Arrange
-        workspaceManagerMock.setup(wm => wm.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
+        localFolderServiceMock.setup(l => l.getLocalFolder(It.IsAny(), It.IsAny()))
             .returns(Promise.resolve(undefined));
 
         // Act & Assert
@@ -190,16 +125,19 @@ describe('exportArtifactCommand', () => {
         );
 
         // Assert
-        workspaceManagerMock.verify(wm => wm.getLocalFolderForArtifact(It.Is(artifact => artifact === artifactMock.object()), It.IsAny()), Times.Once());
-        artifactManagerMock.verify(am => am.getArtifactDefinition(It.Is(artifact => artifact === artifactMock.object()), It.IsAny()), Times.Never());
-        telemetryActivityMock.verify(instance => instance.addOrUpdateProperties(It.IsAny()), Times.Never());
+        localFolderServiceMock.verify(
+            l => l.getLocalFolder(
+                It.Is(artifact => artifact === artifactMock.object()),
+                It.IsAny()),
+            Times.Once());
+        assert.ok(downloadAndSaveArtifactStub.notCalled, 'downloadAndSaveArtifact should not be called');
+        assert.ok(showFolderActionAndSavePreferenceStub.notCalled, 'showFolderActionAndSavePreference should not be called');
     });
 
-    it('Cancel overwriting files', async () => {
+    it('Error: downloadAndSaveArtifact throws UserCancelledError', async () => {
         // Arrange
-        conflictDetectorMock.setup(det => det.getConflictingFiles(It.IsAny(), It.IsAny()))
-            .returnsAsync(['file1.txt']);
-        showWarningMessageStub.resolves(undefined);
+        const cancelError = new UserCancelledError('overwriteExportFiles');
+        downloadAndSaveArtifactStub.rejects(cancelError);
 
         // Act & Assert
         await assert.rejects(
@@ -212,49 +150,15 @@ describe('exportArtifactCommand', () => {
                 return true;
             }
         );
-        assert.ok(showWarningMessageStub.calledOnce, 'Prompt should be shown');
-        artifactManagerMock.verify(am => am.getArtifactDefinition(It.Is(artifact => artifact === artifactMock.object()), It.IsAny()), Times.Once());
-        itemDefinitionWriterMock.verify(writer => writer.save(It.IsAny(), It.IsAny()), Times.Never());
+
+        assert.ok(downloadAndSaveArtifactStub.calledOnce, 'downloadAndSaveArtifact should be called');
+        assert.ok(showFolderActionAndSavePreferenceStub.notCalled, 'showFolderActionAndSavePreference should not be called');
     });
 
-    it('Error: API Error', async () => {
+    it('Error: downloadAndSaveArtifact throws generic error', async () => {
         // Arrange
-        const apiClientResponseMock = new Mock<IApiClientResponse>();
-        const errorResponseBody = {
-            errorCode: 'InvalidInput',
-            message: 'The input was invalid',
-            requestId: 'req-12345',
-        };
-        apiClientResponseMock.setup(instance => instance.status).returns(400);
-        apiClientResponseMock.setup(instance => instance.parsedBody).returns(errorResponseBody);
-        artifactManagerMock.setup(instance => instance.getArtifactDefinition(It.IsAny(), It.IsAny()))
-            .returns(Promise.resolve(apiClientResponseMock.object()));
-
-        // Act & Assert
-        let error: Error | undefined = undefined;
-        await assert.rejects(
-            async () => {
-                await executeCommand();
-            },
-            (err: Error) => {
-                assert.ok(err instanceof FabricError, 'Should throw a FabricError');
-                error = err;
-                return true;
-            }
-        );
-
-        assert.ok(error!.message.includes('Error opening'), 'Error message should include "Error opening"');
-
-        verifyAddOrUpdateProperties(telemetryActivityMock, 'statusCode', '400');
-        verifyAddOrUpdateProperties(telemetryActivityMock, 'requestId', 'req-12345');
-        verifyAddOrUpdateProperties(telemetryActivityMock, 'errorCode', 'InvalidInput');
-    });
-
-    it('Error: Writer Error', async () => {
-        // Arrange
-        const errorText = 'Test - Failed to delete local folder - Test';
-        itemDefinitionWriterMock.setup(writer => writer.save(It.IsAny(), It.IsAny()))
-            .throws(new Error(errorText));
+        const errorText = 'Test - Failed to save artifact - Test';
+        downloadAndSaveArtifactStub.rejects(new Error(errorText));
 
         // Act & Assert
         let error: FabricError | undefined = undefined;
@@ -271,61 +175,86 @@ describe('exportArtifactCommand', () => {
             }
         );
 
-        workspaceManagerMock.verify(
-            wm => wm.getLocalFolderForArtifact(
-                It.Is(artifact => artifact === artifactMock.object()),
-                It.IsAny()),
-            Times.Once());
-        artifactManagerMock.verify(
-            am => am.getArtifactDefinition(
-                It.Is(artifact => artifact === artifactMock.object()),
-                It.IsAny()),
-            Times.Once());
-        itemDefinitionWriterMock.verify(
-            writer => writer.save(
-                It.Is<IItemDefinition>(definition => JSON.stringify(definition) === JSON.stringify(successDefinition.definition)),
-                It.Is<vscode.Uri>(uri => uri === localFolder)
-            ),
-            Times.Once()
-        );
-
-        assert.ok(showInformationMessageStub.notCalled,'showInformationMessage should not be called');
-
+        assert.ok(downloadAndSaveArtifactStub.calledOnce, 'downloadAndSaveArtifact should be called');
+        assert.ok(showFolderActionAndSavePreferenceStub.notCalled, 'showFolderActionAndSavePreference should not be called');
         assert.ok(error!.message.includes(errorText), 'message should include errorText');
-
-        verifyAddOrUpdateProperties(telemetryActivityMock, 'statusCode', '200');
-        verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'requestId');
-        verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'errorCode');
-    });
-
-    it('Passes progress reporter to getArtifactDefinition', async () => {
-        // Arrange
-        let capturedOptions: any;
-        artifactManagerMock
-            .setup(am => am.getArtifactDefinition(It.IsAny(), It.IsAny()))
-            .callback(({ args }) => {
-                const [_artifact, options] = args;
-                capturedOptions = options;
-                return Promise.resolve(successResponse);
-            });
-
-        // Act
-        await executeCommand();
-
-        // Assert
-        assert.ok(capturedOptions, 'Options should be passed to getArtifactDefinition');
-        assert.ok(capturedOptions.progress, 'Progress should be provided in options');
-        assert.strictEqual(typeof capturedOptions.progress.report, 'function', 'Progress should have a report method');
     });
 
     async function executeCommand(): Promise<void> {
         await exportArtifactCommand(
             artifactMock.object(),
-            workspaceManagerMock.object(),
             artifactManagerMock.object(),
+            localFolderServiceMock.object(),
+            configurationProviderMock.object(),
             conflictDetectorMock.object(),
             itemDefinitionWriterMock.object(),
             telemetryActivityMock.object()
         );
     }
+});
+
+describe('showCompletionMessage', () => {
+    let artifactMock: Mock<IArtifact>;
+    let localFolderServiceMock: Mock<ILocalFolderService>;
+    let configurationProviderMock: Mock<IConfigurationProvider>;
+
+    let showFolderActionAndSavePreferenceStub: sinon.SinonStub;
+    let performFolderActionStub: sinon.SinonStub;
+    let handleLocalFolderSavePreferenceStub: sinon.SinonStub;
+
+    const testArtifact = {
+        id: 'test-artifact-id',
+        displayName: 'Test Notebook',
+        type: 'Notebook',
+        workspaceId: 'test-workspace',
+        description: 'Test artifact',
+        fabricEnvironment: 'Test'
+    };
+
+    const testFolderUri = vscode.Uri.file('/path/to/TestNotebook.Notebook');
+
+    beforeEach(() => {
+        artifactMock = new Mock<IArtifact>();
+        localFolderServiceMock = new Mock<ILocalFolderService>();
+        configurationProviderMock = new Mock<IConfigurationProvider>();
+
+        artifactMock.setup(a => a.displayName).returns(testArtifact.displayName);
+        artifactMock.setup(a => a.id).returns(testArtifact.id);
+
+        showFolderActionAndSavePreferenceStub = sinon.stub(artifactOperations, 'showFolderActionAndSavePreference').resolves(undefined);
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    it('should call showFolderActionDialog with correct message', async () => {
+        const localFolderResults = { uri: testFolderUri, prompted: false };
+
+        await showCompletionMessage(
+            artifactMock.object(),
+            localFolderResults,
+            localFolderServiceMock.object(),
+            configurationProviderMock.object()
+        );
+
+        assert.ok(showFolderActionAndSavePreferenceStub.calledOnce, 'showFolderActionDialog should be called once');
+        const [message] = showFolderActionAndSavePreferenceStub.firstCall.args;
+        assert.ok(message.includes('Test Notebook'), 'Message should include artifact name');
+        assert.ok(message.includes('TestNotebook.Notebook'), 'Message should include folder name');
+    });
+
+    it('should not call performFolderAction when user dismisses dialog', async () => {
+        const localFolderResults = { uri: testFolderUri, prompted: true };
+        showFolderActionAndSavePreferenceStub.resolves(undefined);
+
+        await showCompletionMessage(
+            artifactMock.object(),
+            localFolderResults,
+            localFolderServiceMock.object(),
+            configurationProviderMock.object()
+        );
+
+        assert.ok(showFolderActionAndSavePreferenceStub.called, 'showFolderActionAndSavePreference should be called');
+    });
 });
