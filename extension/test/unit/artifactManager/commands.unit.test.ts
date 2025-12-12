@@ -16,6 +16,7 @@ import { IItemDefinitionWriter } from '../../../src/itemDefinition/ItemDefinitio
 import { ICapacityManager } from '../../../src/CapacityManager';
 import { IWorkspaceFilterManager } from '../../../src/workspace/WorkspaceFilterManager';
 import { ILocalFolderService } from '../../../src/LocalFolderService';
+import { IAccountProvider } from '../../../src/authentication';
 
 describe('registerArtifactCommands', () => {
     let contextMock: Mock<vscode.ExtensionContext>;
@@ -28,6 +29,7 @@ describe('registerArtifactCommands', () => {
     let extensionManagerMock: Mock<IFabricExtensionManagerInternal>;
     let capacityManagerMock: Mock<ICapacityManager>;
     let workspaceFilterManagerMock: Mock<IWorkspaceFilterManager>;
+    let accountProviderMock: Mock<IAccountProvider>;
     let telemetryServiceMock: Mock<TelemetryService>;
     let loggerMock: Mock<ILogger>;
     let itemDefinitionWriterMock: Mock<IItemDefinitionWriter>;
@@ -35,6 +37,19 @@ describe('registerArtifactCommands', () => {
     let registerCommandStub: sinon.SinonStub;
     let originalRegisterCommand: typeof vscode.commands.registerCommand;
     let disposeSpy: sinon.SinonSpy;
+
+    const expectedCommands: string[] = [
+        'vscode-fabric.changeLocalFolder',
+        'vscode-fabric.createArtifact',
+        'vscode-fabric.deleteArtifact',
+        'vscode-fabric.exportArtifact',
+        'vscode-fabric.openArtifact',
+        'vscode-fabric.openInPortal',
+        'vscode-fabric.openLocalFolder',
+        'vscode-fabric.readArtifact',
+        'vscode-fabric.refreshArtifactView',
+        'vscode-fabric.renameArtifact',
+    ];
 
     beforeEach(() => {
         contextMock = new Mock<vscode.ExtensionContext>();
@@ -47,6 +62,7 @@ describe('registerArtifactCommands', () => {
         extensionManagerMock = new Mock<IFabricExtensionManagerInternal>();
         capacityManagerMock = new Mock<ICapacityManager>();
         workspaceFilterManagerMock = new Mock<IWorkspaceFilterManager>();
+        accountProviderMock = new Mock<IAccountProvider>();
         telemetryServiceMock = new Mock<TelemetryService>();
         loggerMock = new Mock<ILogger>();
         itemDefinitionWriterMock = new Mock<IItemDefinitionWriter>();
@@ -66,41 +82,10 @@ describe('registerArtifactCommands', () => {
         sinon.restore();
     });
 
-    [
-        { name: 'vscode-fabric.createArtifact' },
-        { name: 'vscode-fabric.readArtifact' },
-        { name: 'vscode-fabric.renameArtifact' },
-        { name: 'vscode-fabric.deleteArtifact' },
-        { name: 'vscode-fabric.openArtifact' },
-        { name: 'vscode-fabric.exportArtifact' },
-        { name: 'vscode-fabric.refreshArtifactView' },
-        { name: 'vscode-fabric.openInPortal' },
-    ].forEach(command => {
-        it(`registers ${command.name} command`, async () => {
-            await act();
-
-            // Find the registration for the command
-            const commandRegistration = registerCommandStub.getCalls().find(call =>
-                call.args[0] === command.name
-            );
-            assert.ok(commandRegistration, `${command.name} command should be registered`);
-            assert.strictEqual(typeof commandRegistration.args[1], 'function', 'Callback should be a function');
-        });
-    });
-
     it('commands are registered', async () => {
         await act();
 
-        const expectedCommands: string[] = [
-            'vscode-fabric.createArtifact',
-            'vscode-fabric.readArtifact',
-            'vscode-fabric.renameArtifact',
-            'vscode-fabric.deleteArtifact',
-            'vscode-fabric.exportArtifact',
-            'vscode-fabric.openArtifact',
-            'vscode-fabric.refreshArtifactView',
-            'vscode-fabric.openInPortal',
-        ];
+        assert.strictEqual(registerCommandStub.callCount, expectedCommands.length, 'total command registrations');
         expectedCommands.forEach(command => {
             const commandRegistration = registerCommandStub.getCalls().find(call =>
                 call.args[0] === command
@@ -122,7 +107,7 @@ describe('registerArtifactCommands', () => {
 
         // Should be called after second registration
         assert.strictEqual(disposeSpy.called, true, 'dispose should be called after second registration');
-        assert.strictEqual(disposeSpy.callCount, 10, 'dispose should be called for each registered command');
+        assert.strictEqual(disposeSpy.callCount, expectedCommands.length, 'dispose should be called for each registered command');
     });
 
     describe('Execute callbacks', () => {
@@ -308,6 +293,158 @@ describe('registerArtifactCommands', () => {
             });
         });
 
+        describe('exportArtifact command (UriHandler scenario)', () => {
+            let artifactId = 'A1B2C3D4-E5F6-7890-1234-56789ABCDEF0';
+            let workspaceId = 'B1C2D3E4-F5A6-7890-1234-56789ABCDEF1';
+            let environment = 'DEV';
+
+            let commandCallback: any;
+            let exportArtifactCommandStub: sinon.SinonStub;
+
+            beforeEach(async () => {
+                loggerMock
+                    .setup(l => l.reportExceptionTelemetryAndLog(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()))
+                    .returns();
+                loggerMock
+                    .setup(l => l.reportExceptionTelemetryAndLog(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()))
+                    .returns();
+
+                const artifact = { id: artifactId, type: 'test-type', displayName: 'TestArtifact', workspaceId } as IArtifact;
+                workspaceManagerMock
+                    .setup(x => x.getItemsInWorkspace(workspaceId))
+                    .returns(Promise.resolve([artifact]));
+                accountProviderMock
+                    .setup(x => x.isSignedIn())
+                    .returns(Promise.resolve(true));
+                fabricEnvironmentProviderMock
+                    .setup(x => x.switchToEnvironment(environment))
+                    .returns(Promise.resolve(true));
+
+                // Create a stub for the exportArtifactCommand function
+                exportArtifactCommandStub = sinon.stub().resolves();
+                const exportArtifactCommandModule = require('../../../src/artifactManager/exportArtifactCommand');
+                sinon.replace(exportArtifactCommandModule, 'exportArtifactCommand', exportArtifactCommandStub);
+
+                // Get the command handler for the vscode-fabric.exportArtifact command
+                await act();
+                const registration = registerCommandStub.getCalls().find(call => call.args[0] === 'vscode-fabric.exportArtifact');
+                assert.ok(registration, 'exportArtifact command should be registered');
+                commandCallback = registration.args[1];
+            });
+
+            it('executes exportArtifact with artifactId/workspaceId/environment', async () => {
+                // Act
+                await commandCallback({ artifactId, workspaceId, environment });
+
+                // Assert
+                assert(exportArtifactCommandStub.calledOnce, 'exportArtifactCommand should be called');
+                fabricEnvironmentProviderMock.verify(x => x.switchToEnvironment(It.IsAny()), Times.Once());
+                const [calledArtifact] = exportArtifactCommandStub.firstCall.args;
+                assert.strictEqual(calledArtifact.id, artifactId, 'artifact id should match');
+                assert.strictEqual(calledArtifact.workspaceId, workspaceId, 'workspace id should match');
+                assert.strictEqual(calledArtifact.displayName, 'TestArtifact', 'artifact displayName should match');
+            });
+
+            it('executes exportArtifact with artifactId/workspaceId and PROD environment', async () => {
+                // Act
+                await commandCallback({ artifactId, workspaceId });
+
+                // Assert
+                assert(exportArtifactCommandStub.calledOnce, 'exportArtifactCommand should be called');
+                fabricEnvironmentProviderMock.verify(x => x.switchToEnvironment('PROD'), Times.Once());
+                const args = exportArtifactCommandStub.firstCall.args;
+                assert.strictEqual(args.length, 8, 'Should pass 8 arguments to exportArtifactCommand');
+                const [calledArtifact] = args;
+                assert.strictEqual(calledArtifact.id, artifactId, 'artifact id should match');
+                assert.strictEqual(calledArtifact.workspaceId, workspaceId, 'workspace id should match');
+                assert.strictEqual(calledArtifact.displayName, 'TestArtifact', 'artifact displayName should match');
+                const lastArg = args[7];
+                assert.strictEqual(lastArg.modal, true, 'modal should be true');
+                assert.strictEqual(lastArg.includeDoNothing, false, 'includeDoNothing should be false');
+            });
+
+            it('throws if artifactId is not a valid GUID', async () => {
+                const invalidArtifactId = 'not-a-guid';
+                await assert.rejects(
+                    async () => {
+                        await commandCallback({ artifactId: invalidArtifactId, workspaceId, environment });
+                    },
+                    (err: Error) => {
+                        assert.ok(err instanceof Error, 'Should throw an error');
+                        assert.ok(err.message.includes('Invalid item identifier'), 'Error message should mention invalid item identifier');
+                        return true;
+                    }
+                );
+                assert(exportArtifactCommandStub.notCalled, 'exportArtifactCommand should not be called');
+            });
+
+            it('throws if workspaceId is not a valid GUID', async () => {
+                const invalidWorkspaceId = 'not-a-guid';
+                await assert.rejects(
+                    async () => {
+                        await commandCallback({ artifactId, workspaceId: invalidWorkspaceId, environment });
+                    },
+                    (err: Error) => {
+                        assert.ok(err instanceof Error, 'Should throw an error');
+                        assert.ok(err.message.includes('Invalid workspace identifier'), 'Error message should mention invalid workspace identifier');
+                        return true;
+                    }
+                );
+                assert(exportArtifactCommandStub.notCalled, 'exportArtifactCommand should not be called');
+            });
+
+            it('throws if not signed in', async () => {
+                accountProviderMock
+                    .setup(x => x.isSignedIn())
+                    .returns(Promise.resolve(false));
+                accountProviderMock
+                    .setup(x => x.awaitSignIn())
+                    .returns(Promise.resolve());
+                await assert.rejects(
+                    async () => {
+                        await commandCallback({ artifactId, workspaceId, environment });
+                    },
+                    (err: Error) => {
+                        assert.ok(err instanceof Error, 'Should throw an error');
+                        assert.ok(err.message.includes('NotSignedInError') || err.constructor.name === 'NotSignedInError', 'Error message or type should mention NotSignedInError');
+                        return true;
+                    }
+                );
+                assert(exportArtifactCommandStub.notCalled, 'exportArtifactCommand should not be called');
+            });
+
+            it('throws if environment switch fails', async () => {
+                environment = 'INVALID';
+                fabricEnvironmentProviderMock.setup(x => x.switchToEnvironment(environment)).returns(Promise.resolve(false));
+                await assert.rejects(
+                    async () => {
+                        await commandCallback({ artifactId, workspaceId, environment });
+                    },
+                    (err: Error) => {
+                        assert.ok(err instanceof Error, 'Should throw an error');
+                        assert.ok(err.message.includes('Environment parameter not valid'), 'Error message should mention environment parameter not valid');
+                        return true;
+                    }
+                );
+                assert(exportArtifactCommandStub.notCalled, 'exportArtifactCommand should not be called');
+            });
+
+            it('throws if artifact cannot be found', async () => {
+                workspaceManagerMock.setup(x => x.getItemsInWorkspace(workspaceId)).returns(Promise.resolve([]));
+                await assert.rejects(
+                    async () => {
+                        await commandCallback({ artifactId, workspaceId, environment });
+                    },
+                    (err: Error) => {
+                        assert.ok(err instanceof Error, 'Should throw an error');
+                        assert.ok(err.message.includes('Could not resolve item'), 'Error message should mention could not resolve item');
+                        return true;
+                    }
+                );
+                assert(exportArtifactCommandStub.notCalled, 'exportArtifactCommand should not be called');
+            });
+        });
+
         function verifyTelemetry(telemetryServiceMock: Mock<TelemetryService>, eventName: string, specialCase: boolean): void {
             telemetryServiceMock.verify(
                 x => x.sendTelemetryEvent(eventName, It.IsAny(), It.IsAny()),
@@ -338,6 +475,7 @@ describe('registerArtifactCommands', () => {
             extensionManagerMock.object(),
             workspaceFilterManagerMock.object(),
             capacityManagerMock.object(),
+            accountProviderMock.object(),
             telemetryServiceMock.object(),
             loggerMock.object()
         );
