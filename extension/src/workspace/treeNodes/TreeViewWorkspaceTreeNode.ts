@@ -4,7 +4,7 @@
 import * as vscode from 'vscode';
 
 import { TelemetryService } from '@microsoft/vscode-fabric-util';
-import { IWorkspaceManager, IArtifact, IWorkspace, FabricTreeNode } from '@microsoft/vscode-fabric-api';
+import { IWorkspaceManager, IArtifact, IWorkspace, FabricTreeNode, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { WorkspaceTreeNode } from './WorkspaceTreeNode';
 import { DisplayStyle } from '../definitions';
 import { ArtifactTypeTreeNode } from './ArtifactTypeTreeNode';
@@ -21,6 +21,7 @@ export class TreeViewWorkspaceTreeNode extends WorkspaceTreeNode {
         workspaceManager: IWorkspaceManager,
         private tenantId: string | undefined,
         private localFolderService: ILocalFolderService,
+        private artifactManager: IArtifactManager,
         private shouldExpand?: (id: string | undefined) => boolean
     ) {
         super(context, extensionManager, workspace, DisplayStyle.tree, telemetryService, workspaceManager);
@@ -34,7 +35,7 @@ export class TreeViewWorkspaceTreeNode extends WorkspaceTreeNode {
 
     protected async addArtifact(artifact: IArtifact) {
         if (!this._children!.has(artifact.type)) {
-            this._children!.set(artifact.type, new ArtifactTypeTreeNode(this.context, this.extensionManager, artifact.type, this.workspace.objectId, this.tenantId, this.localFolderService, this.shouldExpand));
+            this._children!.set(artifact.type, new ArtifactTypeTreeNode(this.context, this.extensionManager, artifact.type, this.workspace.objectId, this.tenantId, this.localFolderService, this.artifactManager, this.shouldExpand));
         }
         this._children!.get(artifact.type)?.addArtifact(artifact);
     }

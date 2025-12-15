@@ -3,7 +3,7 @@
 
 import * as vscode from 'vscode';
 
-import { IWorkspace, IWorkspaceManager, ArtifactTreeNode, IArtifact, FabricTreeNode, IWorkspaceFolder } from '@microsoft/vscode-fabric-api';
+import { IWorkspace, IWorkspaceManager, ArtifactTreeNode, IArtifact, FabricTreeNode, IWorkspaceFolder, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
 import { TelemetryService } from '@microsoft/vscode-fabric-util';
 import { WorkspaceTreeNode } from './WorkspaceTreeNode';
@@ -27,6 +27,7 @@ export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
         workspaceManager: IWorkspaceManager,
         tenantId: string | null,
         private localFolderService: ILocalFolderService,
+        private artifactManager: IArtifactManager,
         private shouldExpand?: (id?: string) => boolean
     ) {
         super(context, extensionManager, workspace, DisplayStyle.list, telemetryService, workspaceManager);
@@ -40,7 +41,7 @@ export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
 
     protected async addArtifact(artifact: IArtifact): Promise<void> {
         const treeNodeProvider = this.extensionManager.treeNodeProviders.get(artifact.type);
-        const artifactNode: ArtifactTreeNode = await createArtifactTreeNode(this.context, artifact, this.extensionManager, treeNodeProvider, this.localFolderService);
+        const artifactNode: ArtifactTreeNode = await createArtifactTreeNode(this.context, artifact, this.extensionManager, treeNodeProvider, this.localFolderService, this.artifactManager);
 
         let description = getDisplayName(artifact);
         if (typeof artifactNode.description === 'string' && artifactNode.description.length > 0) {

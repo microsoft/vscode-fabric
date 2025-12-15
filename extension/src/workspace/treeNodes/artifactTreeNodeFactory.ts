@@ -3,7 +3,7 @@
 
 import * as vscode from 'vscode';
 import { getArtifactIconPath, getArtifactDefaultIconPath, getArtifactExtensionId, getSupportsArtifactWithDefinition } from '../../metadata/fabricItemUtilities';
-import { IArtifact, ArtifactDesignerActions, ArtifactTreeNode, IFabricTreeNodeProvider } from '@microsoft/vscode-fabric-api';
+import { IArtifact, ArtifactDesignerActions, ArtifactTreeNode, IFabricTreeNodeProvider, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
 import { MissingExtensionArtifactTreeNode } from './MissingExtensionArtifactTreeNode';
 import { ItemDefinitionTreeNode } from './ItemDefinitionTreeNode';
@@ -17,7 +17,8 @@ export async function createArtifactTreeNode(
     artifact: IArtifact,
     extensionManager: IFabricExtensionManagerInternal,
     treeNodeProvider?: IFabricTreeNodeProvider,
-    localFolderService?: ILocalFolderService
+    localFolderService?: ILocalFolderService,
+    artifactManager?: IArtifactManager
 ): Promise<ArtifactTreeNode> {
     let artifactNode: ArtifactTreeNode;
     if (treeNodeProvider) {
@@ -29,10 +30,11 @@ export async function createArtifactTreeNode(
             artifactNode = new MissingExtensionArtifactTreeNode(context, artifact, extensionId);
         }
         else {
-            // Create ItemDefinitionTreeNode if artifact supports definition and localFolderService is available
-            if (getSupportsArtifactWithDefinition(artifact) && localFolderService) {
-                artifactNode = new ItemDefinitionTreeNode(context, artifact, localFolderService);
-            } else {
+            // Create ItemDefinitionTreeNode if artifact supports definition and artifactManager is available
+            if (getSupportsArtifactWithDefinition(artifact) && artifactManager) {
+                artifactNode = new ItemDefinitionTreeNode(context, artifact, artifactManager);
+            }
+            else {
                 artifactNode = new ArtifactTreeNode(context, artifact);
             }
         }
