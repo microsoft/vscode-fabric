@@ -2,21 +2,19 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { IArtifact, ArtifactTreeNode, FabricTreeNode } from '@microsoft/vscode-fabric-api';
-import { ILocalFolderService } from '../../LocalFolderService';
+import { IArtifact, ArtifactTreeNode, FabricTreeNode, IArtifactManager, IItemDefinition } from '@microsoft/vscode-fabric-api';
 import { DefinitionFileTreeNode } from './DefinitionFileTreeNode';
-import * as path from 'path';
 
 /**
  * An artifact tree node that displays definition files as children.
  * This node is collapsible and shows the individual definition parts/files
- * when the artifact has a local folder with definition files.
+ * from the artifact's item definition.
  */
 export class ItemDefinitionTreeNode extends ArtifactTreeNode {
     constructor(
         context: vscode.ExtensionContext,
         artifact: IArtifact,
-        private localFolderService: ILocalFolderService
+        private artifactManager: IArtifactManager
     ) {
         super(context, artifact);
         
@@ -31,30 +29,24 @@ export class ItemDefinitionTreeNode extends ArtifactTreeNode {
         const children: FabricTreeNode[] = [];
 
         try {
-            // Get the local folder for this artifact
-            const localFolderResult = await this.localFolderService.getLocalFolder(
-                this.artifact,
-                { prompt: 'never' as any }
-            );
-
-            if (localFolderResult) {
-                const folderUri = localFolderResult.uri;
+            // Get the item definition from the artifact manager
+            const response = await this.artifactManager.getArtifactDefinition(this.artifact);
+            
+            if (response.parsedBody?.definition) {
+                const definition: IItemDefinition = response.parsedBody.definition;
                 
-                // Check if the folder exists and read its contents
-                try {
-                    const entries = await vscode.workspace.fs.readDirectory(folderUri);
-                    
-                    // Filter for definition files and create tree nodes
-                    for (const [name, type] of entries) {
-                        // Only show files (not directories)
-                        if (type === vscode.FileType.File) {
-                            const fileUri = vscode.Uri.joinPath(folderUri, name);
-                            children.push(new DefinitionFileTreeNode(
-                                this.context,
-                                name,
-                                fileUri
-                            ));
+                // Create tree nodes from definition parts
+                if (definition.parts && Array.isArray(definition.parts)) {
+                    for (const part of definition.parts) {
+                        // Skip .platform file
+                        if (part.path === '.platform') {
+                            continue;
                         }
+                        
+                        children.push(new DefinitionFileTreeNode(
+                            this.context,
+                            part.path
+                        ));
                     }
 
                     // Sort files alphabetically
@@ -64,14 +56,10 @@ export class ItemDefinitionTreeNode extends ArtifactTreeNode {
                         return nodeA.fileName.localeCompare(nodeB.fileName);
                     });
                 }
-                catch (fsError) {
-                    // Folder doesn't exist or can't be read - return empty children
-                    // This is expected if the definition hasn't been downloaded yet
-                }
             }
         }
         catch (error) {
-            // If there's any error getting the local folder, return empty children
+            // If there's any error getting the definition, return empty children
             // This allows the node to still be displayed, just without children
         }
 

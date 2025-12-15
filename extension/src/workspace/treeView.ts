@@ -3,7 +3,7 @@
 
 import * as vscode from 'vscode';
 
-import { IWorkspaceManager, IWorkspace, FabricTreeNode, ArtifactTreeNode } from '@microsoft/vscode-fabric-api';
+import { IWorkspaceManager, IWorkspace, FabricTreeNode, ArtifactTreeNode, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { ILogger, TelemetryActivity, TelemetryService, withErrorHandling } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
@@ -38,7 +38,8 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
         private readonly workspaceFilterManager: IWorkspaceFilterManager,
         private readonly storage: IFabricExtensionsSettingStorage,
         private readonly fabricEnvironmentProvider: IFabricEnvironmentProvider,
-        private readonly localFolderService: ILocalFolderService) {
+        private readonly localFolderService: ILocalFolderService,
+        private readonly artifactManager: IArtifactManager) {
 
         extensionManager.onExtensionsUpdated(() => this.refresh());
 
@@ -129,6 +130,7 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
                                 this.accountProvider,
                                 currentDisplayStyle,
                                 this.localFolderService,
+                                this.artifactManager,
                                 shouldExpand,
                                 filteredWorkspaces // Pass filtered workspaces to root node
                             );
@@ -232,7 +234,8 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
         private workspaceManager: IWorkspaceManager,
         private accountProvider: IAccountProvider,
         private telemetryService: TelemetryService | null = null,
-        private localFolderService: ILocalFolderService
+        private localFolderService: ILocalFolderService,
+        private artifactManager: IArtifactManager
     ) {
         this.dispose();
         RootTreeNodeProvider.disposables.push(
@@ -295,7 +298,7 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
 
     public create(tenant: ITenantSettings): FabricTreeNode {
         const displayStyle = this.storage.settings.displayStyle as DisplayStyle;
-        return new TenantTreeNode(this.context, this.extensionManager, this.telemetryService, this.workspaceManager, tenant, displayStyle, this.localFolderService, undefined);
+        return new TenantTreeNode(this.context, this.extensionManager, this.telemetryService, this.workspaceManager, tenant, displayStyle, this.localFolderService, this.artifactManager, undefined);
     }
 
     public getCurrentDisplayStyle(): DisplayStyle {
