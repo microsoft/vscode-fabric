@@ -6,6 +6,7 @@ import { getArtifactIconPath, getArtifactDefaultIconPath, getArtifactExtensionId
 import { IArtifact, ArtifactDesignerActions, ArtifactTreeNode, IFabricTreeNodeProvider } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
 import { MissingExtensionArtifactTreeNode } from './MissingExtensionArtifactTreeNode';
+import { ItemDefinitionTreeNode } from './ItemDefinitionTreeNode';
 import { ILocalFolderService } from '../../LocalFolderService';
 
 /**
@@ -28,7 +29,12 @@ export async function createArtifactTreeNode(
             artifactNode = new MissingExtensionArtifactTreeNode(context, artifact, extensionId);
         }
         else {
-            artifactNode = new ArtifactTreeNode(context, artifact);
+            // Create ItemDefinitionTreeNode if artifact supports definition and localFolderService is available
+            if (getSupportsArtifactWithDefinition(artifact) && localFolderService) {
+                artifactNode = new ItemDefinitionTreeNode(context, artifact, localFolderService);
+            } else {
+                artifactNode = new ArtifactTreeNode(context, artifact);
+            }
         }
     }
 
