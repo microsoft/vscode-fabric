@@ -517,15 +517,10 @@ describe('registerArtifactCommands', () => {
             it('opens artifact in portal when called from artifact tree node context menu', async () => {
                 // Arrange
                 const artifact = { id: 'artifact-456', type: 'Notebook', displayName: 'TestNotebook', workspaceId: 'workspace-123' } as IArtifact;
-                const workspace = { objectId: 'workspace-123', displayName: 'TestWorkspace' } as IWorkspace;
 
                 // Create a mock instance that behaves like ArtifactTreeNode
                 const artifactTreeNode = Object.create(artifactTreeNodeClass.prototype);
                 artifactTreeNode.artifact = artifact;
-
-                workspaceManagerMock
-                    .setup(x => x.getWorkspaceById('workspace-123'))
-                    .returns(Promise.resolve(workspace));
 
                 getArtifactTypeFolderStub.returns('notebooks');
 
@@ -547,10 +542,80 @@ describe('registerArtifactCommands', () => {
                     Times.Once()
                 );
                 assert.strictEqual(capturedTelemetryProps.workspaceId, 'workspace-123');
-                assert.strictEqual(capturedTelemetryProps.fabricWorkspaceName, 'TestWorkspace');
+                assert.strictEqual(capturedTelemetryProps.fabricWorkspaceName, undefined);
                 assert.strictEqual(capturedTelemetryProps.artifactId, 'artifact-456');
                 assert.strictEqual(capturedTelemetryProps.itemType, 'Notebook');
                 assert.strictEqual(capturedTelemetryProps.fabricArtifactName, 'TestNotebook');
+
+                // Verify workspace lookup is not performed
+                workspaceManagerMock.verify(x => x.getWorkspaceById(It.IsAny()), Times.Never());
+            });
+
+            it('opens artifact in portal when called with IArtifact directly', async () => {
+                // Arrange
+                const artifact = { id: 'artifact-789', type: 'Lakehouse', displayName: 'TestLakehouse', workspaceId: 'workspace-456' };
+
+                getArtifactTypeFolderStub.returns('lakehouses');
+
+                // Act
+                await commandCallback(artifact);
+
+                // Assert
+                assert.ok(openExternalStub.calledOnce, 'openExternal should be called once');
+                assert.ok(showWorkspaceQuickPickStub.notCalled, 'showWorkspaceQuickPick should be NOT called');
+                const calledUri = openExternalStub.firstCall.args[0];
+                assert.strictEqual(
+                    calledUri.toString(true),
+                    `https://${portalUri}/groups/workspace-456/lakehouses/artifact-789?experience=data-engineering`,
+                    'URL should be for artifact'
+                );
+
+                // Verify telemetry
+                telemetryServiceMock.verify(
+                    x => x.sendTelemetryEvent('item/open/portal', It.IsAny(), It.IsAny()),
+                    Times.Once()
+                );
+                assert.strictEqual(capturedTelemetryProps.workspaceId, 'workspace-456');
+                assert.strictEqual(capturedTelemetryProps.fabricWorkspaceName, undefined);
+                assert.strictEqual(capturedTelemetryProps.artifactId, 'artifact-789');
+                assert.strictEqual(capturedTelemetryProps.itemType, 'Lakehouse');
+                assert.strictEqual(capturedTelemetryProps.fabricArtifactName, 'TestLakehouse');
+
+                // Verify workspace lookup is not performed
+                workspaceManagerMock.verify(x => x.getWorkspaceById(It.IsAny()), Times.Never());
+            });
+
+            it('handles artifact with missing displayName when called with IArtifact directly', async () => {
+                // Arrange
+                const artifact = { id: 'artifact-999', type: 'Notebook', workspaceId: 'workspace-777' };
+
+                getArtifactTypeFolderStub.returns('notebooks');
+
+                // Act
+                await commandCallback(artifact);
+
+                // Assert
+                assert.ok(openExternalStub.calledOnce, 'openExternal should be called once');
+                const calledUri = openExternalStub.firstCall.args[0];
+                assert.strictEqual(
+                    calledUri.toString(true),
+                    `https://${portalUri}/groups/workspace-777/notebooks/artifact-999?experience=data-engineering`,
+                    'URL should be for artifact'
+                );
+
+                // Verify telemetry
+                telemetryServiceMock.verify(
+                    x => x.sendTelemetryEvent('item/open/portal', It.IsAny(), It.IsAny()),
+                    Times.Once()
+                );
+                assert.strictEqual(capturedTelemetryProps.workspaceId, 'workspace-777');
+                assert.strictEqual(capturedTelemetryProps.fabricWorkspaceName, undefined);
+                assert.strictEqual(capturedTelemetryProps.artifactId, 'artifact-999');
+                assert.strictEqual(capturedTelemetryProps.itemType, 'Notebook');
+                assert.strictEqual(capturedTelemetryProps.fabricArtifactName, undefined, 'fabricArtifactName should be undefined when displayName is missing');
+
+                // Verify workspace lookup is not performed
+                workspaceManagerMock.verify(x => x.getWorkspaceById(It.IsAny()), Times.Never());
             });
 
             it('opens workspace in portal when called from command palette', async () => {
@@ -607,10 +672,6 @@ describe('registerArtifactCommands', () => {
                     // Create a mock instance that behaves like ArtifactTreeNode
                     const artifactTreeNode = Object.create(artifactTreeNodeClass.prototype);
                     artifactTreeNode.artifact = artifact;
-
-                    workspaceManagerMock
-                        .setup(x => x.getWorkspaceById('workspace-456'))
-                        .returns(Promise.resolve(workspace));
 
                     // Act
                     await commandCallback(artifactTreeNode);

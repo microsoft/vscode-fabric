@@ -294,16 +294,20 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                 let selectedWorkspace: IWorkspace | undefined;
                 let artifact: IArtifact | undefined;
 
-                const firstArg = cmdArgs[0];
-                if (firstArg instanceof WorkspaceTreeNode) {
+                const arg = cmdArgs[0];
+                if (arg instanceof WorkspaceTreeNode) {
                     // Called from a workspace context menu
-                    selectedWorkspace = firstArg.workspace;
+                    selectedWorkspace = arg.workspace;
                     portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, selectedWorkspace.objectId);
                 }
-                else if (firstArg instanceof ArtifactTreeNode) {
+                else if (arg instanceof ArtifactTreeNode) {
                     // Called from an artifact tree node context menu
-                    artifact = firstArg.artifact;
-                    selectedWorkspace = await workspaceManager.getWorkspaceById(artifact.workspaceId);
+                    artifact = arg.artifact;
+                    portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, artifact.workspaceId, artifact);
+                }
+                else if (arg && typeof arg === 'object' && 'id' in arg && 'workspaceId' in arg && 'type' in arg) {
+                    // Called with an IArtifact directly
+                    artifact = arg as IArtifact;
                     portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, artifact.workspaceId, artifact);
                 }
                 else {
@@ -317,12 +321,15 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
 
                 const activity = new TelemetryActivity<CoreTelemetryEventNames>('item/open/portal', telemetryService);
                 void activity.doTelemetryActivity(async () => {
-                    activity.addOrUpdateProperties({
-                        'workspaceId': selectedWorkspace?.objectId,
-                        'fabricWorkspaceName': selectedWorkspace?.displayName,
-                    });
+                    if (selectedWorkspace) {
+                        activity.addOrUpdateProperties({
+                            'workspaceId': selectedWorkspace?.objectId,
+                            'fabricWorkspaceName': selectedWorkspace?.displayName,
+                        });
+                    }
                     if (artifact) {
                         activity.addOrUpdateProperties({
+                            'workspaceId': artifact?.workspaceId,
                             'artifactId': artifact.id,
                             'itemType': artifact.type,
                             'fabricArtifactName': artifact.displayName,
