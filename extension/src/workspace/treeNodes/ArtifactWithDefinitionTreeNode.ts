@@ -11,7 +11,7 @@ import { DefinitionFileSystemProvider } from '../DefinitionFileSystemProvider';
  * This node is collapsible and shows the individual definition parts/files
  * from the artifact's item definition.
  */
-export class ItemDefinitionTreeNode extends ArtifactTreeNode {
+export class ArtifactWithDefinitionTreeNode extends ArtifactTreeNode {
     constructor(
         context: vscode.ExtensionContext,
         artifact: IArtifact,
@@ -19,7 +19,7 @@ export class ItemDefinitionTreeNode extends ArtifactTreeNode {
         protected fileSystemProvider: DefinitionFileSystemProvider
     ) {
         super(context, artifact);
-        
+
         // Make this node collapsible to show definition files
         this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
     }

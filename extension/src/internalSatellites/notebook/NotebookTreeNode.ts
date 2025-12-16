@@ -3,10 +3,10 @@
 
 import * as vscode from 'vscode';
 import { IArtifact, IArtifactManager } from '@microsoft/vscode-fabric-api';
-import { ItemDefinitionTreeNode } from '../../workspace/treeNodes/ItemDefinitionTreeNode';
+import { ArtifactWithDefinitionTreeNode } from '../../workspace/treeNodes/ArtifactWithDefinitionTreeNode';
 import { DefinitionFileSystemProvider } from '../../workspace/DefinitionFileSystemProvider';
 
-export class NotebookTreeNode extends ItemDefinitionTreeNode {
+export class NotebookTreeNode extends ArtifactWithDefinitionTreeNode {
     constructor(
         context: vscode.ExtensionContext,
         public readonly artifact: IArtifact,
