@@ -8,6 +8,7 @@ import * as sinon from 'sinon';
 import { NotebookExtension } from '../../../../src/internalSatellites/notebook/NotebookExtension';
 import { IFabricExtensionManager, IWorkspaceManager, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { TelemetryService } from '@microsoft/vscode-fabric-util';
+import { DefinitionFileSystemProvider } from '../../../../src/workspace/DefinitionFileSystemProvider';
 
 describe('NotebookExtension', function () {
     let contextMock: Mock<vscode.ExtensionContext>;
@@ -15,6 +16,7 @@ describe('NotebookExtension', function () {
     let artifactManagerMock: Mock<IArtifactManager>;
     let telemetryServiceMock: Mock<TelemetryService>;
     let extensionManagerMock: Mock<IFabricExtensionManager>;
+    let fileSystemProviderMock: Mock<DefinitionFileSystemProvider>;
     let serviceCollection: any;
     let registerCommandStub: sinon.SinonStub;
 
@@ -28,6 +30,7 @@ describe('NotebookExtension', function () {
         artifactManagerMock = new Mock<IArtifactManager>();
         telemetryServiceMock = new Mock<TelemetryService>();
         extensionManagerMock = new Mock<IFabricExtensionManager>();
+        fileSystemProviderMock = new Mock<DefinitionFileSystemProvider>();
         serviceCollection = {
             workspaceManager: workspaceManagerMock.object(),
             artifactManager: artifactManagerMock.object(),
@@ -56,7 +59,8 @@ describe('NotebookExtension', function () {
         const notebookExtension = new NotebookExtension(
             context,
             telemetryServiceMock.object(),
-            extensionManagerMock.object()
+            extensionManagerMock.object(),
+            fileSystemProviderMock.object()
         );
         // Assert
         assert.equal(notebookExtension.identity, 'fabric.internal-satellite-notebook', 'Identity should be set');
@@ -71,7 +75,8 @@ describe('NotebookExtension', function () {
         const notebookExtension = new NotebookExtension(
             context,
             telemetryServiceMock.object(),
-            extensionManagerMock.object()
+            extensionManagerMock.object(),
+            fileSystemProviderMock.object()
         );
         // Act & Assert
         assert.doesNotThrow(() => notebookExtension.dispose(), 'Dispose should not throw');

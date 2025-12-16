@@ -20,6 +20,7 @@ import { IAccountProvider, ITenantSettings } from '../authentication';
 import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { makeShouldExpand } from './viewExpansionState';
 import { ILocalFolderService } from '../LocalFolderService';
+import { DefinitionFileSystemProvider } from './DefinitionFileSystemProvider';
 
 /**
  * Provides tree data for a Fabric workspace
@@ -39,7 +40,8 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
         private readonly storage: IFabricExtensionsSettingStorage,
         private readonly fabricEnvironmentProvider: IFabricEnvironmentProvider,
         private readonly localFolderService: ILocalFolderService,
-        private readonly artifactManager: IArtifactManager) {
+        private readonly artifactManager: IArtifactManager,
+        private readonly fileSystemProvider: DefinitionFileSystemProvider) {
 
         extensionManager.onExtensionsUpdated(() => this.refresh());
 
@@ -131,6 +133,7 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
                                 currentDisplayStyle,
                                 this.localFolderService,
                                 this.artifactManager,
+                                this.fileSystemProvider,
                                 shouldExpand,
                                 filteredWorkspaces // Pass filtered workspaces to root node
                             );
@@ -219,6 +222,13 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
             this.workspaceManager.treeView.title = vscode.l10n.t('Fabric Workspaces (remote)');
         }
     }
+
+    /**
+     * Gets the file system provider for registering with VS Code
+     */
+    public getFileSystemProvider(): DefinitionFileSystemProvider {
+        return this.fileSystemProvider;
+    }
 }
 
 const fabricViewDisplayStyleContext = 'vscode-fabric.workspaceViewDisplayStyle';
@@ -235,7 +245,8 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
         private accountProvider: IAccountProvider,
         private telemetryService: TelemetryService | null = null,
         private localFolderService: ILocalFolderService,
-        private artifactManager: IArtifactManager
+        private artifactManager: IArtifactManager,
+        private fileSystemProvider: DefinitionFileSystemProvider
     ) {
         this.dispose();
         RootTreeNodeProvider.disposables.push(
@@ -298,7 +309,7 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
 
     public create(tenant: ITenantSettings): FabricTreeNode {
         const displayStyle = this.storage.settings.displayStyle as DisplayStyle;
-        return new TenantTreeNode(this.context, this.extensionManager, this.telemetryService, this.workspaceManager, tenant, displayStyle, this.localFolderService, this.artifactManager, undefined);
+        return new TenantTreeNode(this.context, this.extensionManager, this.telemetryService, this.workspaceManager, tenant, displayStyle, this.localFolderService, this.artifactManager, this.fileSystemProvider, undefined);
     }
 
     public getCurrentDisplayStyle(): DisplayStyle {

@@ -8,6 +8,7 @@ import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExten
 import { MissingExtensionArtifactTreeNode } from './MissingExtensionArtifactTreeNode';
 import { ItemDefinitionTreeNode } from './ItemDefinitionTreeNode';
 import { ILocalFolderService } from '../../LocalFolderService';
+import { DefinitionFileSystemProvider } from '../DefinitionFileSystemProvider';
 
 /**
  * Creates an artifact tree node with proper icon and context
@@ -18,7 +19,8 @@ export async function createArtifactTreeNode(
     extensionManager: IFabricExtensionManagerInternal,
     treeNodeProvider?: IFabricTreeNodeProvider,
     localFolderService?: ILocalFolderService,
-    artifactManager?: IArtifactManager
+    artifactManager?: IArtifactManager,
+    fileSystemProvider?: DefinitionFileSystemProvider
 ): Promise<ArtifactTreeNode> {
     let artifactNode: ArtifactTreeNode;
     if (treeNodeProvider) {
@@ -31,8 +33,8 @@ export async function createArtifactTreeNode(
         }
         else {
             // Create ItemDefinitionTreeNode if artifact supports definition and artifactManager is available
-            if (getSupportsArtifactWithDefinition(artifact) && artifactManager) {
-                artifactNode = new ItemDefinitionTreeNode(context, artifact, artifactManager);
+            if (getSupportsArtifactWithDefinition(artifact) && artifactManager && fileSystemProvider) {
+                artifactNode = new ItemDefinitionTreeNode(context, artifact, artifactManager, fileSystemProvider);
             }
             else {
                 artifactNode = new ArtifactTreeNode(context, artifact);
