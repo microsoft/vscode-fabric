@@ -497,6 +497,61 @@
       "layout": { "x": 10, "y": 5, "width": 4, "height": 5 },
       "markdownText": "This page tracks the reliability and usage of the 'Open in VS Code' feature.",
       "visualOptions": {}
+    },
+    {
+      "id": "554947d5-aa85-42f2-8a85-ffc178457545",
+      "title": "Sign-up Attempts",
+      "visualType": "line",
+      "pageId": "0ab4b8a4-48dc-4f26-b537-c4a66fba601b",
+      "layout": { "x": 0, "y": 0, "width": 14, "height": 6 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "6e372112-a8b4-45ca-b0bb-7793bb8b4558"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "legendLocation": "bottom",
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "c03d3a0f-67f1-4046-b308-7eb0393aced1",
+      "title": "Sign-up Success Rate",
+      "visualType": "card",
+      "pageId": "0ab4b8a4-48dc-4f26-b537-c4a66fba601b",
+      "layout": { "x": 14, "y": 0, "width": 6, "height": 3 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "061e79aa-a817-43a5-a374-4418504090d9"
+      },
+      "visualOptions": {
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
     }
   ],
   "baseQueries": [
@@ -573,7 +628,8 @@
     { "name": "Errors", "id": "f1a2b3c4-d5e6-4789-f0ab-333333333333" },
     { "name": "Operations", "id": "a1b2c3d4-e5f6-4789-a0bc-444444444444" },
     { "name": "Performance", "id": "e1f2a3b4-c5d6-4789-e0fa-555555555555" },
-    { "name": "Open in VS Code", "id": "11111111-2222-3333-4444-555555555555" }
+    { "name": "Open in VS Code", "id": "11111111-2222-3333-4444-555555555555" },
+    { "name": "Sign Ups", "id": "0ab4b8a4-48dc-4f26-b537-c4a66fba601b" }
   ],
   "queries": [
     {
@@ -790,6 +846,24 @@
       },
       "text": "_events\n| where EventName has \"item/\"\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isnotempty(ItemType)\n| distinct ItemType\n| order by ItemType asc",
       "id": "d1e2f3a4-b5c6-4789-d5ef-cccccccccccc",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName in (\"fabric/signUpSuccessful\", \"fabric/signUpFailed\")\n| summarize Attempts = count() by Day = startofday(ClientTimestamp)\n| order by Day asc",
+      "id": "6e372112-a8b4-45ca-b0bb-7793bb8b4558",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName in (\"fabric/signUpSuccessful\", \"fabric/signUpFailed\")\n| summarize Success = countif(EventName == \"fabric/signUpSuccessful\"), Failed = countif(EventName == \"fabric/signUpFailed\")\n| extend Total = Success + Failed\n| extend SuccessRateString = iff(Total == 0, \"N/A\", strcat(tostring(round((Success * 1.0 / Total) * 100, 1)), \"%\"))\n| project SuccessRateString",
+      "id": "061e79aa-a817-43a5-a374-4418504090d9",
       "usedVariables": ["_events"]
     }
   ]

@@ -196,6 +196,67 @@ This dashboard provides actionable health metrics for the Core VS Code Fabric ex
 - **Filters**: Only includes workspaces with ≤200 items
 - **Use Case**: Identify performance scaling issues, understand when pagination or optimization is needed
 
+## Page 5: Open in VS Code
+
+### Open in VS Code events
+
+- **Visual Type**: Timechart
+- **Purpose**: Track the volume of 'Open in VS Code' requests over time
+- **Metric**: Count of `handle-uri` events per day
+- **Event**: `fabric.vscode-fabric/handle-uri`
+
+### Open in VS Code reliability (Timechart)
+
+- **Visual Type**: Timechart
+- **Purpose**: Track the success rate of 'Open in VS Code' requests over time
+- **Metric**: Percentage of successful operations per day
+- **Filters Applied**:
+  - Excludes 'Not signed in' errors
+- **Event**: `fabric.vscode-fabric/handle-uri`
+
+### Open in VS Code reliability (Card)
+
+- **Visual Type**: Card
+- **Purpose**: Overall success rate of 'Open in VS Code' requests
+- **Metric**: Percentage of successful operations
+- **Filters Applied**:
+  - Excludes 'Not signed in' errors
+  - Excludes user cancellations
+- **Event**: `fabric.vscode-fabric/handle-uri`
+
+### Open in VS Code errors
+
+- **Visual Type**: Table
+- **Purpose**: List failed 'Open in VS Code' requests for debugging
+- **Filters Applied**:
+  - Shows only failed operations (`succeeded == false`)
+
+### Open URL Errors
+
+- **Visual Type**: Table
+- **Purpose**: Aggregate top error messages for 'Open in VS Code'
+- **Metric**: Count and percentage of each error message
+- **Filters Applied**:
+  - Excludes user cancellations
+  - Shows only failed operations
+
+## Page 6: Sign Ups
+
+### Sign-up Attempts
+
+- **Visual Type**: Line chart
+- **Purpose**: Track sign-up attempts over time (success + failure outcomes)
+- **Metric**: Count of `fabric/signUpSuccessful` and `fabric/signUpFailed` events per day
+
+### Sign-up Success Rate
+
+- **Visual Type**: Card
+- **Purpose**: Overall success rate of sign-up attempts in the selected time range
+- **Metric**: `Success / (Success + Failed)` as a percentage (or `N/A` if there were no attempts)
+- **Events**:
+  - `fabric/signUpSuccessful`
+  - `fabric/signUpFailed`
+
 ## Data Filtering Philosophy
 
 ### What's Included
