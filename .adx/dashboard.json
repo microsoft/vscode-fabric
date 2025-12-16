@@ -1,0 +1,796 @@
+{
+  "$schema": "https://dataexplorer.azure.com/static/d/schema/67/dashboard.json",
+  "id": "defdafcd-d0f0-460f-a037-c3c4ab91c362",
+  "eTag": "05f80ecc-b2ee-4b63-8be8-dfbfd35db6b3",
+  "title": "Core Fabric Extension",
+  "schema_version": 67,
+  "pagesNavWidth": 297.7777404785156,
+  "tiles": [
+    {
+      "id": "a1b2c3d4-e5f6-4789-a0bc-111111111111",
+      "title": "Daily Active Sessions",
+      "visualType": "line",
+      "pageId": "b1c2d3e4-f5a6-4789-b0cd-222222222222",
+      "layout": { "x": 0, "y": 0, "width": 12, "height": 6 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "c1d2e3f4-a5b6-4789-c0de-444444444444"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "xColumnTitle": "",
+        "xColumn": null,
+        "yColumns": null,
+        "seriesColumns": null,
+        "xAxisScale": "linear",
+        "verticalLine": "",
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "legendLocation": "bottom",
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "d1e2f3a4-b5c6-4789-d1ef-111111111112",
+      "title": "Item Create Success Rate",
+      "visualType": "card",
+      "pageId": "b1c2d3e4-f5a6-4789-b0cd-222222222222",
+      "layout": { "x": 12, "y": 0, "width": 4, "height": 3 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "e1f2a3b4-c5d6-4789-e1fa-111111111113"
+      },
+      "visualOptions": {
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "e1f2a3b4-c5d6-4789-e2fa-111111111114",
+      "title": "Workspace Create Success Rate",
+      "visualType": "card",
+      "pageId": "b1c2d3e4-f5a6-4789-b0cd-222222222222",
+      "layout": { "x": 12, "y": 3, "width": 4, "height": 3 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "f1a2b3c4-d5e6-4789-f2ab-111111111115"
+      },
+      "visualOptions": {
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "a1b2c3d4-e5f6-4789-a3bc-111111111116",
+      "title": "Item Open Success Rate",
+      "visualType": "card",
+      "pageId": "b1c2d3e4-f5a6-4789-b0cd-222222222222",
+      "layout": { "x": 16, "y": 0, "width": 4, "height": 3 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "b1c2d3e4-f5a6-4789-b3cd-111111111117"
+      },
+      "visualOptions": {
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "c1d2e3f4-a5b6-4789-c4de-111111111118",
+      "title": "Sessions by OS",
+      "visualType": "pie",
+      "pageId": "b1c2d3e4-f5a6-4789-b0cd-222222222222",
+      "layout": { "x": 16, "y": 3, "width": 4, "height": 4 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "d1e2f3a4-b5c6-4789-d4ef-111111111119"
+      },
+      "visualOptions": {
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "pie__orderBy": "size",
+        "pie__kind": "pie",
+        "pie__topNSlices": null,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "e1f2a3b4-c5d6-4789-e5fa-111111111120",
+      "title": "Error Trend (Excluding Cancellations)",
+      "visualType": "column",
+      "pageId": "f1a2b3c4-d5e6-4789-f0ab-333333333333",
+      "layout": { "x": 0, "y": 0, "width": 12, "height": 7 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "f1a2b3c4-d5e6-4789-f5ab-111111111121"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "a1b2c3d4-e5f6-4789-a6bc-111111111122",
+      "title": "Top Errors by Fault",
+      "visualType": "table",
+      "pageId": "f1a2b3c4-d5e6-4789-f0ab-333333333333",
+      "layout": { "x": 0, "y": 7, "width": 20, "height": 10 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "b1c2d3e4-f5a6-4789-b6cd-111111111123"
+      },
+      "visualOptions": {
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "f1a2b3c4-d5e6-4789-f6ab-111111111124",
+      "title": "Item Update Success Rate",
+      "visualType": "card",
+      "pageId": "a1b2c3d4-e5f6-4789-a0bc-444444444444",
+      "layout": { "x": 0, "y": 0, "width": 4, "height": 3 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "e1f2a3b4-c5d6-4789-e6fa-111111111125"
+      },
+      "visualOptions": {
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "b1c2d3e4-f5a6-4789-b7cd-111111111126",
+      "title": "Item Delete Success Rate",
+      "visualType": "card",
+      "pageId": "a1b2c3d4-e5f6-4789-a0bc-444444444444",
+      "layout": { "x": 4, "y": 0, "width": 4, "height": 3 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "c1d2e3f4-a5b6-4789-c7de-111111111127"
+      },
+      "visualOptions": {
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "d1e2f3a4-b5c6-4789-d8ef-111111111128",
+      "title": "Item Export Success Rate",
+      "visualType": "card",
+      "pageId": "a1b2c3d4-e5f6-4789-a0bc-444444444444",
+      "layout": { "x": 8, "y": 0, "width": 4, "height": 3 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "e1f2a3b4-c5d6-4789-e8fa-111111111129"
+      },
+      "visualOptions": {
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "f1a2b3c4-d5e6-4789-f9ab-111111111130",
+      "title": "Load Items Success Rate",
+      "visualType": "card",
+      "pageId": "a1b2c3d4-e5f6-4789-a0bc-444444444444",
+      "layout": { "x": 12, "y": 0, "width": 4, "height": 3 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "a1b2c3d4-e5f6-4789-a9bc-111111111131"
+      },
+      "visualOptions": {
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "b1c2d3e4-f5a6-4789-b0cd-111111111132",
+      "title": "Item Create by Type",
+      "visualType": "column",
+      "pageId": "a1b2c3d4-e5f6-4789-a0bc-444444444444",
+      "layout": { "x": 0, "y": 3, "width": 8, "height": 6 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "c1d2e3f4-a5b6-4789-c0de-111111111133"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "d1e2f3a4-b5c6-4789-d1ef-111111111134",
+      "title": "Item Open by Type",
+      "visualType": "column",
+      "pageId": "a1b2c3d4-e5f6-4789-a0bc-444444444444",
+      "layout": { "x": 8, "y": 3, "width": 8, "height": 6 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "e1f2a3b4-c5d6-4789-e1fa-111111111135"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "f1a2b3c4-d5e6-4789-f2ab-111111111136",
+      "title": "Operation Duration P90 (seconds)",
+      "visualType": "table",
+      "pageId": "e1f2a3b4-c5d6-4789-e0fa-555555555555",
+      "layout": { "x": 0, "y": 0, "width": 10, "height": 8 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "a1b2c3d4-e5f6-4789-a0bc-111111111137"
+      },
+      "visualOptions": {
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "b1c2d3e4-f5a6-4789-b3cd-111111111138",
+      "title": "Item Create Duration Trend (P90)",
+      "visualType": "line",
+      "pageId": "e1f2a3b4-c5d6-4789-e0fa-555555555555",
+      "layout": { "x": 10, "y": 0, "width": 10, "height": 8 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "c1d2e3f4-a5b6-4789-c3de-111111111139"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "d1e2f3a4-b5c6-4789-d4ef-111111111140",
+      "title": "Load Items Duration by Item Count",
+      "visualType": "line",
+      "pageId": "e1f2a3b4-c5d6-4789-e0fa-555555555555",
+      "layout": { "x": 0, "y": 8, "width": 20, "height": 7 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "e1f2a3b4-c5d6-4789-e4fa-111111111141"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+      "title": "Open in VS Code events",
+      "visualType": "timechart",
+      "pageId": "11111111-2222-3333-4444-555555555555",
+      "layout": { "x": 0, "y": 0, "width": 10, "height": 5 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "11111111-aaaa-bbbb-cccc-dddddddddddd"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
+      "title": "Open in VS Code reliability",
+      "visualType": "timechart",
+      "pageId": "11111111-2222-3333-4444-555555555555",
+      "layout": { "x": 10, "y": 0, "width": 10, "height": 5 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "22222222-aaaa-bbbb-cccc-dddddddddddd"
+      },
+      "visualOptions": {
+        "multipleYAxes": {
+          "base": {
+            "id": "-1",
+            "label": "",
+            "columns": [],
+            "yAxisMaximumValue": null,
+            "yAxisMinimumValue": null,
+            "yAxisScale": "linear",
+            "horizontalLines": []
+          },
+          "additional": [],
+          "showMultiplePanels": false
+        },
+        "hideLegend": false,
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "cccccccc-dddd-eeee-ffff-000000000000",
+      "title": "Open in VS Code errors",
+      "visualType": "table",
+      "pageId": "11111111-2222-3333-4444-555555555555",
+      "layout": { "x": 0, "y": 5, "width": 10, "height": 5 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "33333333-aaaa-bbbb-cccc-dddddddddddd"
+      },
+      "visualOptions": {
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "dddddddd-eeee-ffff-0000-111111111111",
+      "title": "Open in VS Code reliability",
+      "visualType": "card",
+      "pageId": "11111111-2222-3333-4444-555555555555",
+      "layout": { "x": 14, "y": 5, "width": 4, "height": 5 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "44444444-aaaa-bbbb-cccc-dddddddddddd"
+      },
+      "visualOptions": {
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "multiStat__textSize": "auto",
+        "multiStat__valueColumn": "SuccessRateString",
+        "colorRulesDisabled": false,
+        "crossFilter": [],
+        "drillthrough": [],
+        "colorRules": []
+      }
+    },
+    {
+      "id": "eeeeeeee-ffff-0000-1111-222222222222",
+      "title": "Open URL Errors",
+      "visualType": "table",
+      "pageId": "11111111-2222-3333-4444-555555555555",
+      "layout": { "x": 0, "y": 10, "width": 10, "height": 5 },
+      "queryRef": {
+        "kind": "query",
+        "queryId": "55555555-aaaa-bbbb-cccc-dddddddddddd"
+      },
+      "visualOptions": {
+        "crossFilterDisabled": false,
+        "drillthroughDisabled": false,
+        "crossFilter": [],
+        "drillthrough": []
+      }
+    },
+    {
+      "id": "ffffffff-0000-1111-2222-333333333333",
+      "title": "README.md",
+      "visualType": "markdownCard",
+      "pageId": "11111111-2222-3333-4444-555555555555",
+      "layout": { "x": 10, "y": 5, "width": 4, "height": 5 },
+      "markdownText": "This page tracks the reliability and usage of the 'Open in VS Code' feature.",
+      "visualOptions": {}
+    }
+  ],
+  "baseQueries": [
+    {
+      "id": "d1e2f3a4-b5c6-4789-d0ef-555555555555",
+      "queryId": "e1f2a3b4-c5d6-4789-e0fa-666666666666",
+      "variableName": "_events"
+    }
+  ],
+  "parameters": [
+    {
+      "kind": "duration",
+      "id": "f1a2b3c4-d5e6-4789-f0ab-777777777777",
+      "displayName": "Time range",
+      "description": "",
+      "beginVariableName": "_startTime",
+      "endVariableName": "_endTime",
+      "defaultValue": { "kind": "dynamic", "count": 30, "unit": "days" },
+      "showOnPages": { "kind": "all" }
+    },
+    {
+      "kind": "string",
+      "id": "a1b2c3d4-e5f6-4789-a1bc-888888888888",
+      "displayName": "Core Extension Version",
+      "description": "",
+      "variableName": "_CoreVersion",
+      "selectionType": "array",
+      "includeAllOption": true,
+      "defaultValue": { "kind": "all" },
+      "dataSource": {
+        "kind": "query",
+        "columns": { "value": "ExtensionVersion" },
+        "queryRef": {
+          "kind": "query",
+          "queryId": "b1c2d3e4-f5a6-4789-b1cd-999999999999"
+        },
+        "autoReset": true
+      },
+      "showOnPages": { "kind": "all" }
+    },
+    {
+      "kind": "string",
+      "id": "c1d2e3f4-a5b6-4789-c2de-bbbbbbbbbbbb",
+      "displayName": "Item Type",
+      "description": "",
+      "variableName": "_ItemType",
+      "selectionType": "scalar",
+      "includeAllOption": true,
+      "defaultValue": { "kind": "all" },
+      "dataSource": {
+        "kind": "query",
+        "columns": { "value": "ItemType" },
+        "queryRef": {
+          "kind": "query",
+          "queryId": "d1e2f3a4-b5c6-4789-d5ef-cccccccccccc"
+        },
+        "autoReset": true
+      },
+      "showOnPages": { "kind": "all" }
+    }
+  ],
+  "dataSources": [
+    {
+      "id": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa",
+      "name": "ddtelvscode",
+      "clusterUri": "https://ddtelvscode.kusto.windows.net/",
+      "database": "VSCodeExt",
+      "kind": "manual-kusto",
+      "scopeId": "kusto"
+    }
+  ],
+  "pages": [
+    { "name": "Overview", "id": "b1c2d3e4-f5a6-4789-b0cd-222222222222" },
+    { "name": "Errors", "id": "f1a2b3c4-d5e6-4789-f0ab-333333333333" },
+    { "name": "Operations", "id": "a1b2c3d4-e5f6-4789-a0bc-444444444444" },
+    { "name": "Performance", "id": "e1f2a3b4-c5d6-4789-e0fa-555555555555" },
+    { "name": "Open in VS Code", "id": "11111111-2222-3333-4444-555555555555" }
+  ],
+  "queries": [
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| summarize Sessions = dcount(VSCodeSessionId) by Day = startofday(ClientTimestamp)\n| order by Day asc",
+      "id": "c1d2e3f4-a5b6-4789-c0de-444444444444",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/create\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isempty(['_ItemType']) or ItemType == ['_ItemType']\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
+      "id": "e1f2a3b4-c5d6-4789-e1fa-111111111113",
+      "usedVariables": ["_ItemType", "_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName == \"fabric.vscode-fabric/workspace/create\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| where not(Message contains 'Workspace creation is not enabled for the user')\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
+      "id": "f1a2b3c4-d5e6-4789-f2ab-111111111115",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/open\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isempty(['_ItemType']) or ItemType == ['_ItemType']\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
+      "id": "b1c2d3e4-f5a6-4789-b3cd-111111111117",
+      "usedVariables": ["_ItemType", "_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| summarize Sessions = dcount(VSCodeSessionId) by Platform\n| order by Sessions desc",
+      "id": "d1e2f3a4-b5c6-4789-d4ef-111111111119",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName endswith \"extension/error\"\n| extend ErrorMessage = tostring(Properties['errormessage'])\n| where ErrorMessage != \"auth-error\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| summarize Errors = count() by Day = startofday(ClientTimestamp)\n| order by Day asc",
+      "id": "f1a2b3c4-d5e6-4789-f5ab-111111111121",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName endswith \"extension/error\"\n| extend ErrorMessage = tostring(Properties['errormessage'])\n| where ErrorMessage != \"auth-error\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| extend Fault = tostring(Properties['fault'])\n| extend NonLocalizedMessage = tostring(Properties['nonlocalizedmessage'])\n| summarize ErrorCount = count() by Fault = coalesce(NonLocalizedMessage, Fault, \"Unknown\")\n| order by ErrorCount desc\n| take 50",
+      "id": "b1c2d3e4-f5a6-4789-b6cd-111111111123",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/update\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isempty(['_ItemType']) or ItemType == ['_ItemType']\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
+      "id": "e1f2a3b4-c5d6-4789-e6fa-111111111125",
+      "usedVariables": ["_ItemType", "_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/delete\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isempty(['_ItemType']) or ItemType == ['_ItemType']\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
+      "id": "c1d2e3f4-a5b6-4789-c7de-111111111127",
+      "usedVariables": ["_ItemType", "_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/export\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
+      "id": "e1f2a3b4-c5d6-4789-e8fa-111111111129",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName == \"fabric.vscode-fabric/workspace/load-items\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'FeatureNotAvailable')\n| extend State = tobool(Properties[\"succeeded\"])\n| summarize Success = countif(State == true), Failed = countif(State == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")\n| project SuccessRateString",
+      "id": "a1b2c3d4-e5f6-4789-a9bc-111111111131",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/create\"\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isnotempty(ItemType)\n| summarize Count = count() by ItemType\n| order by Count desc",
+      "id": "c1d2e3f4-a5b6-4789-c0de-111111111133",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/open\"\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isnotempty(ItemType)\n| summarize Count = count() by ItemType\n| order by Count desc",
+      "id": "e1f2a3b4-c5d6-4789-e1fa-111111111135",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName in (\"fabric.vscode-fabric/item/create\", \"fabric.vscode-fabric/item/open\", \"fabric.vscode-fabric/item/update\", \"fabric.vscode-fabric/workspace/create\", \"fabric.vscode-fabric/workspace/open\", \"fabric.vscode-fabric/workspace/load-items\")\n| extend Duration_ms = todouble(Measures['activitydurationinmilliseconds'])\n| where isnotempty(Duration_ms)\n| summarize P50 = round(percentile(Duration_ms, 50) / 1000, 2), P90 = round(percentile(Duration_ms, 90) / 1000, 2), P95 = round(percentile(Duration_ms, 95) / 1000, 2), Count = count() by Operation = EventName\n| order by P90 desc",
+      "id": "a1b2c3d4-e5f6-4789-a0bc-111111111137",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName == \"fabric.vscode-fabric/item/create\"\n| extend Duration_ms = todouble(Measures['activitydurationinmilliseconds'])\n| where isnotempty(Duration_ms)\n| summarize P90_seconds = round(percentile(Duration_ms, 90) / 1000, 2) by Day = startofday(ClientTimestamp)\n| order by Day asc",
+      "id": "c1d2e3f4-a5b6-4789-c3de-111111111139",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName == \"fabric.vscode-fabric/workspace/load-items\"\n| extend Duration_ms = todouble(Measures['activitydurationinmilliseconds'])\n| extend ItemCount = toint(Properties['itemcount'])\n| where isnotempty(Duration_ms) and isnotempty(ItemCount)\n| where ItemCount <= 200\n| summarize P50 = round(percentile(Duration_ms, 50) / 1000, 2), P90 = round(percentile(Duration_ms, 90) / 1000, 2) by ItemCountBucket = bin(ItemCount, 10)\n| order by ItemCountBucket asc",
+      "id": "e1f2a3b4-c5d6-4789-e4fa-111111111141",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName endswith \"handle-uri\"\n| extend TargetEnvironment = tostring(Properties[\"targetenvironment\"])\n| extend UriQuery = tostring(Properties[\"query\"])\n| extend Duration_seconds = toreal(Measures[\"activitydurationinmilliseconds\"])/1000\n| project EventName, ClientTimestamp, TargetEnvironment, UriQuery, Duration_seconds, Properties, Measures\n| summarize eventCount=count() by bin(ClientTimestamp, 1d)",
+      "id": "11111111-aaaa-bbbb-cccc-dddddddddddd",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName endswith \"handle-uri\"\n| extend TargetEnvironment = tostring(Properties[\"targetenvironment\"])\n| extend UriQuery = tostring(Properties[\"query\"])\n| extend Duration_seconds = toreal(Measures[\"activitydurationinmilliseconds\"])/1000\n| extend Error = tostring(Properties[\"message\"])\n| extend Callstack = tostring(Properties[\"callstack\"])\n| where not(Error contains 'Not signed in')\n| extend Result = (Error == \"\")\n| summarize Success = countif(Result == true), Failed = countif(Result == false) by ClientTimestamp=endofday(ClientTimestamp)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| make-series SuccessRate=max(SuccessRate) default=double(null) on ClientTimestamp step 1d\n| extend SuccessRate = series_fill_forward(SuccessRate)",
+      "id": "22222222-aaaa-bbbb-cccc-dddddddddddd",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName endswith \"handle-uri\"\n| extend TargetEnvironment = tostring(Properties[\"targetenvironment\"])\n| extend UriQuery = tostring(Properties[\"uriquery\"])\n| extend Duration_seconds = toreal(Measures[\"activitydurationinmilliseconds\"])/1000\n| extend Message = tostring(Properties[\"message\"])\n| extend Callstack = tostring(Properties[\"callstack\"])\n| where tostring(Properties['succeeded']) == 'false'\n| project ClientTimestamp, TargetEnvironment, Message, Callstack,  UriQuery,VSCodeSessionId, Duration_seconds, Properties, Measures",
+      "id": "33333333-aaaa-bbbb-cccc-dddddddddddd",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName endswith \"handle-uri\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| where not(Message contains 'Not signed in')\n| extend TargetEnvironment = tostring(Properties[\"targetenvironment\"])\n| extend UriQuery = tostring(Properties[\"query\"])\n| extend Duration_seconds = toreal(Measures[\"activitydurationinmilliseconds\"])/1000\n| extend Error = tostring(Properties[\"message\"])\n| extend Callstack = tostring(Properties[\"callstack\"])\n| extend Result = (Error == \"\")\n| summarize Success = countif(Result == true), Failed = countif(Result == false)\n| extend SuccessRate = round((Success * 1.0 / (Success + Failed))*100, 1)\n| extend SuccessRateString = strcat(tostring(SuccessRate), \"%\")",
+      "id": "44444444-aaaa-bbbb-cccc-dddddddddddd",
+      "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName endswith \"handle-uri\"\n| extend Message = tostring(Properties[\"message\"])\n| where not(Message contains 'Cancel')\n| extend TargetEnvironment = tostring(Properties[\"targetenvironment\"])\n| extend UriQuery = tostring(Properties[\"uriquery\"])\n| extend Duration_seconds = toreal(Measures[\"activitydurationinmilliseconds\"])/1000\n| extend Message = tostring(Properties[\"message\"])\n| extend Callstack = tostring(Properties[\"callstack\"])\n| where tostring(Properties['succeeded']) == 'false'\n| summarize count() by Message\n| as Result\n| extend Percent = round(100.0 * count_ / toscalar(Result | summarize sum(count_)), 0)\n| order by Percent desc",
+      "id": "55555555-aaaa-bbbb-cccc-dddddddddddd",
+      "usedVariables": ["_events"]
+    },
+    {
+      "id": "e1f2a3b4-c5d6-4789-e0fa-666666666666",
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "RawEventsVSCodeExt\n| where ExtensionName == \"fabric.vscode-fabric\"\n| where ServerTimestamp between (['_startTime'] .. ['_endTime'])\n| where isempty(['_CoreVersion']) or ExtensionVersion in (_CoreVersion)\n| extend ExtensionMode = toint(Properties['common.extensionmode'])\n| where ExtensionMode == 1 or ExtensionMode == 2",
+      "usedVariables": ["_CoreVersion", "_endTime", "_startTime"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "RawEventsVSCodeExt\n| where ExtensionName == \"fabric.vscode-fabric\"\n| where ServerTimestamp between (['_startTime'] .. ['_endTime'])\n| distinct ExtensionVersion\n| order by parse_version(ExtensionVersion) desc",
+      "id": "b1c2d3e4-f5a6-4789-b1cd-999999999999",
+      "usedVariables": ["_endTime", "_startTime"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "_events\n| where EventName has \"item/\"\n| extend ItemType = tostring(Properties[\"itemtype\"])\n| where isnotempty(ItemType)\n| distinct ItemType\n| order by ItemType asc",
+      "id": "d1e2f3a4-b5c6-4789-d5ef-cccccccccccc",
+      "usedVariables": ["_events"]
+    }
+  ]
+}

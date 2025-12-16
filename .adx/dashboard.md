@@ -55,7 +55,7 @@ This dashboard provides actionable health metrics for the Core VS Code Fabric ex
   - 🟢 Green (>95%): Healthy
   - 🟡 Yellow (90-95%): Warning
   - 🔴 Red (<90%): Critical
-- **Filters Applied**: Excludes operations where user cancelled (message contains 'Cancel'), FeatureNotAvailable errors
+- **Filters Applied**: Excludes operations where user cancelled (message contains 'Cancel'), FeatureNotAvailable errors, and 'Workspace creation is not enabled for the user' errors
 - **Event**: `fabric.vscode-fabric/workspace/create`
 
 ### Item Open Success Rate

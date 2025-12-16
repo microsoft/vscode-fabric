@@ -197,6 +197,51 @@ This dashboard provides actionable health metrics for the Core VS Code Fabric ex
 
 ## Data Filtering Philosophy
 
+## Page 5: Open in VS Code
+
+### Open in VS Code events
+
+- **Visual Type**: Timechart
+- **Purpose**: Track the volume of 'Open in VS Code' requests over time
+- **Metric**: Count of `handle-uri` events per day
+- **Event**: `fabric.vscode-fabric/handle-uri`
+
+### Open in VS Code reliability (Timechart)
+
+- **Visual Type**: Timechart
+- **Purpose**: Track the success rate of 'Open in VS Code' requests over time
+- **Metric**: Percentage of successful operations per day
+- **Filters Applied**:
+  - Excludes 'Not signed in' errors
+- **Event**: `fabric.vscode-fabric/handle-uri`
+
+### Open in VS Code reliability (Card)
+
+- **Visual Type**: Card
+- **Purpose**: Overall success rate of 'Open in VS Code' requests
+- **Metric**: Percentage of successful operations
+- **Filters Applied**:
+  - Excludes 'Not signed in' errors
+  - Excludes user cancellations
+- **Event**: `fabric.vscode-fabric/handle-uri`
+
+### Open in VS Code errors
+
+- **Visual Type**: Table
+- **Purpose**: List failed 'Open in VS Code' requests for debugging
+- **Columns**: ClientTimestamp, TargetEnvironment, Message, Callstack, UriQuery, VSCodeSessionId, Duration_seconds
+- **Filters Applied**:
+  - Shows only failed operations (`succeeded == false`)
+
+### Open URL Errors
+
+- **Visual Type**: Table
+- **Purpose**: Aggregate top error messages for 'Open in VS Code'
+- **Metric**: Count and percentage of each error message
+- **Filters Applied**:
+  - Excludes user cancellations
+  - Shows only failed operations
+
 ### What's Included
 
 - Production and development extension modes (excludes test mode)
