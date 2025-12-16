@@ -20,12 +20,14 @@ export class DefinitionFileTreeNode extends FabricTreeNode {
         public readonly fileName: string,
         public readonly fileUri: vscode.Uri
     ) {
-        super(context, fileName, vscode.TreeItemCollapsibleState.None);
+        // Extract just the filename from the path for display
+        const displayName = fileName.split('/').pop() || fileName;
+        super(context, displayName, vscode.TreeItemCollapsibleState.None);
         
         // Set icon based on file type
         this.iconPath = this.getIconForFile(fileName);
         
-        // Set tooltip
+        // Set tooltip with full path
         this.tooltip = vscode.l10n.t('Definition file: {0}', fileName);
 
         // Add command to open the file when clicked

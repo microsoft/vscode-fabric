@@ -27,14 +27,14 @@ export async function createArtifactTreeNode(
         artifactNode = await treeNodeProvider.createArtifactTreeNode(artifact);
     }
     else {
-        const extensionId: string | undefined = getArtifactExtensionId(artifact);
-        if (extensionId && !extensionManager.isAvailable(extensionId)) {
-            artifactNode = new MissingExtensionArtifactTreeNode(context, artifact, extensionId);
+        // Create ArtifactWithDefinitionTreeNode if artifact supports definition and artifactManager is available
+        if (getSupportsArtifactWithDefinition(artifact) && artifactManager && fileSystemProvider) {
+            artifactNode = new ArtifactWithDefinitionTreeNode(context, artifact, artifactManager, fileSystemProvider, extensionManager);
         }
         else {
-            // Create ArtifactWithDefinitionTreeNode if artifact supports definition and artifactManager is available
-            if (getSupportsArtifactWithDefinition(artifact) && artifactManager && fileSystemProvider) {
-                artifactNode = new ArtifactWithDefinitionTreeNode(context, artifact, artifactManager, fileSystemProvider);
+            const extensionId: string | undefined = getArtifactExtensionId(artifact);
+            if (extensionId && !extensionManager.isAvailable(extensionId)) {
+                artifactNode = new MissingExtensionArtifactTreeNode(context, artifact, extensionId);
             }
             else {
                 artifactNode = new ArtifactTreeNode(context, artifact);
