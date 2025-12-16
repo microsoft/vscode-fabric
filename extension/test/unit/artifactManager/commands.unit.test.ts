@@ -445,6 +445,187 @@ describe('registerArtifactCommands', () => {
             });
         });
 
+        describe('openInPortal command', () => {
+            let commandCallback: any;
+            let openExternalStub: sinon.SinonStub;
+            let getArtifactTypeFolderStub: sinon.SinonStub;
+            let showWorkspaceQuickPickStub: sinon.SinonStub;
+            let workspaceTreeNodeClass: any;
+            let artifactTreeNodeClass: any;
+            const portalUri = 'test.fabric.microsoft.com';
+
+            beforeEach(async () => {
+                fabricEnvironmentProviderMock
+                    .setup(x => x.getCurrent())
+                    .returns({ portalUri, env: 'TEST' } as any);
+
+                // Load modules once for reuse
+                workspaceTreeNodeClass = require('../../../src/workspace/treeNodes/WorkspaceTreeNode').WorkspaceTreeNode;
+                artifactTreeNodeClass = require('@microsoft/vscode-fabric-api').ArtifactTreeNode;
+                const fabricItemUtilitiesModule = require('../../../src/metadata/fabricItemUtilities');
+                const showWorkspaceQuickPickModule = require('../../../src/ui/showWorkspaceQuickPick');
+
+                // Create stubs
+                openExternalStub = sinon.stub(vscode.env, 'openExternal').resolves(true);
+                getArtifactTypeFolderStub = sinon.stub(fabricItemUtilitiesModule, 'getArtifactTypeFolder');
+                showWorkspaceQuickPickStub = sinon.stub(showWorkspaceQuickPickModule, 'showWorkspaceQuickPick');
+
+                // Get the command handler for the vscode-fabric.openInPortal command
+                await act();
+                const registration = registerCommandStub.getCalls().find(call => call.args[0] === 'vscode-fabric.openInPortal');
+                assert.ok(registration, 'openInPortal command should be registered');
+                commandCallback = registration.args[1];
+            });
+
+            afterEach(() => {
+                openExternalStub.restore();
+                getArtifactTypeFolderStub.restore();
+                showWorkspaceQuickPickStub.restore();
+            });
+
+            it('opens workspace in portal when called from workspace tree node', async () => {
+                // Arrange
+                const workspace = { objectId: 'workspace-123', displayName: 'TestWorkspace' } as IWorkspace;
+
+                // Create a mock instance that behaves like WorkspaceTreeNode
+                const workspaceTreeNode = Object.create(workspaceTreeNodeClass.prototype);
+                workspaceTreeNode.workspace = workspace;
+
+                // Act
+                await commandCallback(workspaceTreeNode);
+
+                // Assert
+                assert.ok(openExternalStub.calledOnce, 'openExternal should be called once');
+                const calledUri = openExternalStub.firstCall.args[0];
+                assert.strictEqual(
+                    calledUri.toString(true),
+                    `https://${portalUri}/groups/workspace-123?experience=data-engineering`,
+                    'URL should be for workspace'
+                );
+                fabricEnvironmentProviderMock.verify(x => x.getCurrent(), Times.Once());
+
+                // Verify telemetry
+                telemetryServiceMock.verify(
+                    x => x.sendTelemetryEvent('item/open/portal', It.IsAny(), It.IsAny()),
+                    Times.Once()
+                );
+                assert.strictEqual(capturedTelemetryProps.workspaceId, 'workspace-123');
+                assert.strictEqual(capturedTelemetryProps.fabricWorkspaceName, 'TestWorkspace');
+                assert.strictEqual(capturedTelemetryProps.artifactId, undefined);
+            });
+
+            it('opens artifact in portal when called from artifact tree node context menu', async () => {
+                // Arrange
+                const artifact = { id: 'artifact-456', type: 'Notebook', displayName: 'TestNotebook', workspaceId: 'workspace-123' } as IArtifact;
+                const workspace = { objectId: 'workspace-123', displayName: 'TestWorkspace' } as IWorkspace;
+
+                // Create a mock instance that behaves like ArtifactTreeNode
+                const artifactTreeNode = Object.create(artifactTreeNodeClass.prototype);
+                artifactTreeNode.artifact = artifact;
+
+                workspaceManagerMock
+                    .setup(x => x.getWorkspaceById('workspace-123'))
+                    .returns(Promise.resolve(workspace));
+
+                getArtifactTypeFolderStub.returns('notebooks');
+
+                // Act
+                await commandCallback(artifactTreeNode);
+
+                // Assert
+                assert.ok(openExternalStub.calledOnce, 'openExternal should be called once');
+                const calledUri = openExternalStub.firstCall.args[0];
+                assert.strictEqual(
+                    calledUri.toString(true),
+                    `https://${portalUri}/groups/workspace-123/notebooks/artifact-456?experience=data-engineering`,
+                    'URL should be for artifact'
+                );
+
+                // Verify telemetry
+                telemetryServiceMock.verify(
+                    x => x.sendTelemetryEvent('item/open/portal', It.IsAny(), It.IsAny()),
+                    Times.Once()
+                );
+                assert.strictEqual(capturedTelemetryProps.workspaceId, 'workspace-123');
+                assert.strictEqual(capturedTelemetryProps.fabricWorkspaceName, 'TestWorkspace');
+                assert.strictEqual(capturedTelemetryProps.artifactId, 'artifact-456');
+                assert.strictEqual(capturedTelemetryProps.itemType, 'Notebook');
+                assert.strictEqual(capturedTelemetryProps.fabricArtifactName, 'TestNotebook');
+            });
+
+            it('opens workspace in portal when called from command palette', async () => {
+                // Arrange
+                const workspace = { objectId: 'workspace-789', displayName: 'SelectedWorkspace' } as IWorkspace;
+                showWorkspaceQuickPickStub.resolves(workspace);
+
+                // Act
+                await commandCallback();
+
+                // Assert
+                assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called');
+                assert.ok(openExternalStub.calledOnce, 'openExternal should be called once');
+                const calledUri = openExternalStub.firstCall.args[0];
+                assert.strictEqual(
+                    calledUri.toString(true),
+                    `https://${portalUri}/groups/workspace-789?experience=data-engineering`,
+                    'URL should be for selected workspace'
+                );
+
+                // Verify telemetry
+                telemetryServiceMock.verify(
+                    x => x.sendTelemetryEvent('item/open/portal', It.IsAny(), It.IsAny()),
+                    Times.Once()
+                );
+                assert.strictEqual(capturedTelemetryProps.workspaceId, 'workspace-789');
+                assert.strictEqual(capturedTelemetryProps.fabricWorkspaceName, 'SelectedWorkspace');
+            });
+
+            it('does not open portal when user cancels workspace selection', async () => {
+                // Arrange
+                showWorkspaceQuickPickStub.resolves(undefined);
+
+                // Act
+                await commandCallback();
+
+                // Assert
+                assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called');
+                assert.ok(openExternalStub.notCalled, 'openExternal should not be called when user cancels');
+            });
+
+            [
+                { type: 'Notebook', expectedFolder: 'notebooks' },
+                { type: 'Lakehouse', expectedFolder: 'lakehouses' },
+                { type: 'DataPipeline', expectedFolder: 'datapipelines' },
+            ].forEach(({ type, expectedFolder }) => {
+                it(`formats portal URL correctly for ${type}`, async () => {
+                    // Arrange
+                    getArtifactTypeFolderStub.returns(expectedFolder);
+
+                    const artifact = { id: 'artifact-123', type: type, displayName: 'TestItem', workspaceId: 'workspace-456' } as IArtifact;
+                    const workspace = { objectId: 'workspace-456', displayName: 'TestWorkspace' } as IWorkspace;
+
+                    // Create a mock instance that behaves like ArtifactTreeNode
+                    const artifactTreeNode = Object.create(artifactTreeNodeClass.prototype);
+                    artifactTreeNode.artifact = artifact;
+
+                    workspaceManagerMock
+                        .setup(x => x.getWorkspaceById('workspace-456'))
+                        .returns(Promise.resolve(workspace));
+
+                    // Act
+                    await commandCallback(artifactTreeNode);
+
+                    // Assert
+                    const calledUri = openExternalStub.firstCall.args[0];
+                    assert.strictEqual(
+                        calledUri.toString(true),
+                        `https://${portalUri}/groups/workspace-456/${expectedFolder}/artifact-123?experience=data-engineering`,
+                        `URL should be correct for ${type}`
+                    );
+                });
+            });
+        });
+
         function verifyTelemetry(telemetryServiceMock: Mock<TelemetryService>, eventName: string, specialCase: boolean): void {
             telemetryServiceMock.verify(
                 x => x.sendTelemetryEvent(eventName, It.IsAny(), It.IsAny()),

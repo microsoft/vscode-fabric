@@ -294,40 +294,25 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                 let selectedWorkspace: IWorkspace | undefined;
                 let artifact: IArtifact | undefined;
 
-                // Check if the first argument is a WorkspaceTreeNode
                 const firstArg = cmdArgs[0];
                 if (firstArg instanceof WorkspaceTreeNode) {
                     // Called from a workspace context menu
                     selectedWorkspace = firstArg.workspace;
                     portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, selectedWorkspace.objectId);
                 }
+                else if (firstArg instanceof ArtifactTreeNode) {
+                    // Called from an artifact tree node context menu
+                    artifact = firstArg.artifact;
+                    selectedWorkspace = await workspaceManager.getWorkspaceById(artifact.workspaceId);
+                    portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, artifact.workspaceId, artifact);
+                }
                 else {
-                    // Use the existing logic for artifact nodes or command palette
-                    let isHandled = false;
-                    await artifactManager.doContextMenuItem(cmdArgs, vscode.l10n.t('Open In Portal'), async (item) => {
-                        if (cmdArgs?.length > 1) { // if from tview context menu
-                            if (item) {
-                                // Safe to assume that if there is an ArtifactTreeNode then there is a current workspace
-                                artifact = item.artifact;
-                                selectedWorkspace = await workspaceManager.getWorkspaceById(artifact.workspaceId);
-                                portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, artifact.workspaceId, artifact);
-                                isHandled = true;
-                            }
-                        }
-                        else {
-                            selectedWorkspace = await showWorkspaceQuickPick(workspaceManager, workspaceFilterManager, capacityManager, telemetryService, logger);
-                            if (!selectedWorkspace) {
-                                return;
-                            }
-                            portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, selectedWorkspace.objectId);
-                            isHandled = true;
-                        }
-                    });
-
-                    // If doContextMenuItem didn't handle the operation, return early
-                    if (!isHandled || !portalUrl) {
+                    // Called from command palette - show workspace picker
+                    selectedWorkspace = await showWorkspaceQuickPick(workspaceManager, workspaceFilterManager, capacityManager, telemetryService, logger);
+                    if (!selectedWorkspace) {
                         return;
                     }
+                    portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, selectedWorkspace.objectId);
                 }
 
                 const activity = new TelemetryActivity<CoreTelemetryEventNames>('item/open/portal', telemetryService);
