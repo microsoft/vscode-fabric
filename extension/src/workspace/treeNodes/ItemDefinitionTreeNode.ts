@@ -45,7 +45,9 @@ export class ItemDefinitionTreeNode extends ArtifactTreeNode {
                         
                         children.push(new DefinitionFileTreeNode(
                             this.context,
-                            part.path
+                            part.path,
+                            part.payload,
+                            part.payloadType
                         ));
                     }
 
