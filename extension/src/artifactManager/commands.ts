@@ -291,24 +291,21 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
         async (...cmdArgs) => {
             await withErrorHandling('openInPortal', logger, telemetryService, async () => {
                 let portalUrl: string | undefined;
-                let selectedWorkspace: IWorkspace | undefined;
                 let artifact: IArtifact | undefined;
+                let selectedWorkspace: IWorkspace | undefined;
 
                 const arg = cmdArgs[0];
-                if (arg instanceof WorkspaceTreeNode) {
-                    // Called from a workspace context menu
-                    selectedWorkspace = arg.workspace;
-                    portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, selectedWorkspace.objectId);
+                if (arg && typeof arg === 'object' && 'id' in arg && 'workspaceId' in arg && 'type' in arg) {
+                    // Called with an IArtifact directly
+                    artifact = arg as IArtifact;
                 }
                 else if (arg instanceof ArtifactTreeNode) {
                     // Called from an artifact tree node context menu
                     artifact = arg.artifact;
-                    portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, artifact.workspaceId, artifact);
                 }
-                else if (arg && typeof arg === 'object' && 'id' in arg && 'workspaceId' in arg && 'type' in arg) {
-                    // Called with an IArtifact directly
-                    artifact = arg as IArtifact;
-                    portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, artifact.workspaceId, artifact);
+                else if (arg instanceof WorkspaceTreeNode) {
+                    // Called from a workspace context menu
+                    selectedWorkspace = arg.workspace;
                 }
                 else {
                     // Called from command palette - show workspace picker
@@ -316,28 +313,36 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                     if (!selectedWorkspace) {
                         return;
                     }
+                }
+
+                if (artifact) {
+                    portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, artifact.workspaceId, artifact);
+                }
+                else if (selectedWorkspace) {
                     portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, selectedWorkspace.objectId);
                 }
 
-                const activity = new TelemetryActivity<CoreTelemetryEventNames>('item/open/portal', telemetryService);
-                void activity.doTelemetryActivity(async () => {
-                    if (selectedWorkspace) {
-                        activity.addOrUpdateProperties({
-                            'workspaceId': selectedWorkspace?.objectId,
-                            'fabricWorkspaceName': selectedWorkspace?.displayName,
-                        });
-                    }
-                    if (artifact) {
-                        activity.addOrUpdateProperties({
-                            'workspaceId': artifact?.workspaceId,
-                            'artifactId': artifact.id,
-                            'itemType': artifact.type,
-                            'fabricArtifactName': artifact.displayName,
-                        });
-                    }
+                if (portalUrl) {
+                    const activity = new TelemetryActivity<CoreTelemetryEventNames>('item/open/portal', telemetryService);
+                    void activity.doTelemetryActivity(async () => {
+                        if (selectedWorkspace) {
+                            activity.addOrUpdateProperties({
+                                'workspaceId': selectedWorkspace?.objectId,
+                                'fabricWorkspaceName': selectedWorkspace?.displayName,
+                            });
+                        }
+                        if (artifact) {
+                            activity.addOrUpdateProperties({
+                                'workspaceId': artifact?.workspaceId,
+                                'artifactId': artifact.id,
+                                'itemType': artifact.type,
+                                'fabricArtifactName': artifact.displayName,
+                            });
+                        }
 
-                    void vscode.env.openExternal(vscode.Uri.parse(portalUrl!));
-                });
+                        void vscode.env.openExternal(vscode.Uri.parse(portalUrl));
+                    });
+                }
             })();
         },
         context
