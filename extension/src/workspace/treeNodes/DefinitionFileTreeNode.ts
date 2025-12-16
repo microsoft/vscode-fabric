@@ -13,14 +13,12 @@ export class DefinitionFileTreeNode extends FabricTreeNode {
      * Creates a new instance of the DefinitionFileTreeNode class
      * @param context - The VS Code extension context
      * @param fileName - The name/path of the definition file
-     * @param payload - The content of the definition file (base64 encoded)
-     * @param payloadType - The type of payload encoding
+     * @param fileUri - The virtual file system URI for this file
      */
     constructor(
         context: vscode.ExtensionContext,
         public readonly fileName: string,
-        public readonly payload: string,
-        public readonly payloadType: string
+        public readonly fileUri: vscode.Uri
     ) {
         super(context, fileName, vscode.TreeItemCollapsibleState.None);
         
@@ -30,14 +28,17 @@ export class DefinitionFileTreeNode extends FabricTreeNode {
         // Set tooltip
         this.tooltip = vscode.l10n.t('Definition file: {0}', fileName);
 
-        // Add command to open the content when clicked
+        // Add command to open the file when clicked
         this.command = {
-            command: 'vscode-fabric.openDefinitionFile',
+            command: 'vscode.open',
             title: 'Open Definition File',
-            arguments: [this],
+            arguments: [fileUri],
         };
 
         this.contextValue = 'definition-file';
+        
+        // Set the resource URI for the tree item
+        this.resourceUri = fileUri;
     }
 
     /**

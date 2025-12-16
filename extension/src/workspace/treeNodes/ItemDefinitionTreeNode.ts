@@ -2,8 +2,9 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { IArtifact, ArtifactTreeNode, FabricTreeNode, IArtifactManager, IItemDefinition } from '@microsoft/vscode-fabric-api';
+import { IArtifact, ArtifactTreeNode, FabricTreeNode, IArtifactManager, IItemDefinition, PayloadType } from '@microsoft/vscode-fabric-api';
 import { DefinitionFileTreeNode } from './DefinitionFileTreeNode';
+import { DefinitionFileSystemProvider } from '../DefinitionFileSystemProvider';
 
 /**
  * An artifact tree node that displays definition files as children.
@@ -14,7 +15,8 @@ export class ItemDefinitionTreeNode extends ArtifactTreeNode {
     constructor(
         context: vscode.ExtensionContext,
         artifact: IArtifact,
-        private artifactManager: IArtifactManager
+        protected artifactManager: IArtifactManager,
+        protected fileSystemProvider: DefinitionFileSystemProvider
     ) {
         super(context, artifact);
         
@@ -36,28 +38,43 @@ export class ItemDefinitionTreeNode extends ArtifactTreeNode {
                 const definition: IItemDefinition = response.parsedBody.definition;
                 
                 // Create tree nodes from definition parts
-                if (definition.parts && Array.isArray(definition.parts)) {
-                    for (const part of definition.parts) {
-                        // Skip .platform file
-                        if (part.path === '.platform') {
-                            continue;
-                        }
-                        
-                        children.push(new DefinitionFileTreeNode(
-                            this.context,
-                            part.path,
-                            part.payload,
-                            part.payloadType
-                        ));
+                for (const part of definition.parts) {
+                    // Skip .platform file
+                    if (part.path === '.platform') {
+                        continue;
+                    }
+                    
+                    // Decode the payload content
+                    let content: Uint8Array;
+                    if (part.payloadType === PayloadType.InlineBase64) {
+                        // Decode base64 content
+                        content = Buffer.from(part.payload, 'base64');
+                    }
+                    else {
+                        // For other payload types, convert to bytes
+                        content = Buffer.from(part.payload, 'utf-8');
                     }
 
-                    // Sort files alphabetically
-                    children.sort((a, b) => {
-                        const nodeA = a as DefinitionFileTreeNode;
-                        const nodeB = b as DefinitionFileTreeNode;
-                        return nodeA.fileName.localeCompare(nodeB.fileName);
-                    });
+                    // Register the file in the file system provider and get the URI
+                    const uri = this.fileSystemProvider.registerFile(
+                        this.artifact,
+                        part.path,
+                        content
+                    );
+                    
+                    children.push(new DefinitionFileTreeNode(
+                        this.context,
+                        part.path,
+                        uri
+                    ));
                 }
+
+                // Sort files alphabetically
+                children.sort((a, b) => {
+                    const nodeA = a as DefinitionFileTreeNode;
+                    const nodeB = b as DefinitionFileTreeNode;
+                    return nodeA.fileName.localeCompare(nodeB.fileName);
+                });
             }
         }
         catch (error) {

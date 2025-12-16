@@ -7,6 +7,7 @@ import { IArtifact, FabricTreeNode, IFabricTreeNodeProvider, ArtifactTreeNode, I
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
 import { createArtifactTreeNode } from './artifactTreeNodeFactory';
 import { ILocalFolderService } from '../../LocalFolderService';
+import { DefinitionFileSystemProvider } from '../DefinitionFileSystemProvider';
 
 export class ArtifactTypeTreeNode extends FabricTreeNode {
     private _children = new Map<string, IArtifact>();
@@ -24,6 +25,7 @@ export class ArtifactTypeTreeNode extends FabricTreeNode {
         private tenantId: string | undefined,
         private localFolderService: ILocalFolderService,
         private artifactManager: IArtifactManager,
+        private fileSystemProvider: DefinitionFileSystemProvider,
         private shouldExpand?: (id: string | undefined) => boolean
     ) {
         super(context, getDisplayNamePlural(artifactType) ?? artifactType, vscode.TreeItemCollapsibleState.Collapsed);
@@ -49,7 +51,7 @@ export class ArtifactTypeTreeNode extends FabricTreeNode {
 
         const sortedArtifacts = [...this._children.values()].sort((a, b) => a.displayName.localeCompare(b.displayName));
         for (const artifact of sortedArtifacts) {
-            const artifactNode: ArtifactTreeNode = await createArtifactTreeNode(this.context, artifact, this.extensionManager, this.treeNodeProvider, this.localFolderService, this.artifactManager);
+            const artifactNode: ArtifactTreeNode = await createArtifactTreeNode(this.context, artifact, this.extensionManager, this.treeNodeProvider, this.localFolderService, this.artifactManager, this.fileSystemProvider);
             childNodes.push(artifactNode);
         }
 

@@ -62,6 +62,7 @@ import { WorkspaceFilterManager, IWorkspaceFilterManager } from './workspace/Wor
 import { FakeTokenAcquisitionService } from './authentication';
 import { FabricCommandManager } from './commands/FabricCommandManager';
 import { IFabricCommandManager } from './commands/IFabricCommandManager';
+import { DefinitionFileSystemProvider } from './workspace/DefinitionFileSystemProvider';
 
 let app: FabricVsCodeExtension;
 
@@ -112,6 +113,14 @@ export class FabricVsCodeExtension {
 
             const treeView: vscode.TreeView<FabricTreeNode> = vscode.window.createTreeView('vscode-fabric.view.workspace',
                 { treeDataProvider: dataProvider, showCollapseAll: true });
+
+            // Register the definition file system provider
+            context.subscriptions.push(
+                vscode.workspace.registerFileSystemProvider('fabric-definition', dataProvider.getFileSystemProvider(), {
+                    isCaseSensitive: true,
+                    isReadonly: false
+                })
+            );
 
             // Persist top-level expansion state (Option C)
             const updateExpansionState = async (element: FabricTreeNode | undefined, expand: boolean) => {
@@ -466,6 +475,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<LocalFolderManager>();
     container.registerSingleton<ILocalFolderService, LocalFolderService>();
     container.registerSingleton<IWorkspaceManager, WorkspaceManager>();
+    container.registerSingleton<DefinitionFileSystemProvider>();
     container.registerSingleton<IRootTreeNodeProvider, RootTreeNodeProvider>();
     container.registerSingleton<IWorkspaceFilterManager, WorkspaceFilterManager>();
     container.registerSingleton<FabricWorkspaceDataProvider>();

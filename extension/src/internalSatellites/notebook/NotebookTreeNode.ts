@@ -2,11 +2,18 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { IArtifact, ArtifactTreeNode } from '@microsoft/vscode-fabric-api';
+import { IArtifact, IArtifactManager } from '@microsoft/vscode-fabric-api';
+import { ItemDefinitionTreeNode } from '../../workspace/treeNodes/ItemDefinitionTreeNode';
+import { DefinitionFileSystemProvider } from '../../workspace/DefinitionFileSystemProvider';
 
-export class NotebookTreeNode extends ArtifactTreeNode {
-    constructor(context: vscode.ExtensionContext, public readonly artifact: IArtifact) {
-        super(context, artifact);
+export class NotebookTreeNode extends ItemDefinitionTreeNode {
+    constructor(
+        context: vscode.ExtensionContext,
+        public readonly artifact: IArtifact,
+        artifactManager: IArtifactManager,
+        fileSystemProvider: DefinitionFileSystemProvider
+    ) {
+        super(context, artifact, artifactManager, fileSystemProvider);
         this.contextValue += '|item-open-in-notebook';
     }
 

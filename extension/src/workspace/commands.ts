@@ -188,74 +188,12 @@ async function signUpForFabric(
 }
 
 /**
- * Opens a definition file in a read-only text editor
+ * Opens a definition file in an editable text editor using the virtual file system
  * @param node The definition file tree node containing the file content
  * @param logger The logger for error reporting
  */
 async function openDefinitionFile(node: DefinitionFileTreeNode, logger: ILogger): Promise<void> {
-    try {
-        // Decode the payload content
-        let content: string;
-        if (node.payloadType === PayloadType.InlineBase64) {
-            // Decode base64 content
-            const buffer = Buffer.from(node.payload, 'base64');
-            content = buffer.toString('utf-8');
-        }
-        else {
-            // For other payload types, use as-is
-            content = node.payload;
-        }
-
-        // Determine language based on file extension
-        const fileName = node.fileName;
-        const extension = fileName.toLowerCase().split('.').pop();
-        let language = 'plaintext';
-        
-        switch (extension) {
-            case 'json':
-                language = 'json';
-                break;
-            case 'yml':
-            case 'yaml':
-                language = 'yaml';
-                break;
-            case 'md':
-                language = 'markdown';
-                break;
-            case 'sql':
-                language = 'sql';
-                break;
-            case 'py':
-                language = 'python';
-                break;
-            case 'pbir':
-            case 'pbip':
-                language = 'json';
-                break;
-        }
-
-        // Create a virtual document URI
-        const uri = vscode.Uri.parse(`untitled:${fileName}`);
-        
-        // Open a new text document with the content
-        const doc = await vscode.workspace.openTextDocument({
-            content,
-            language,
-        });
-
-        // Show the document in the editor
-        const editor = await vscode.window.showTextDocument(doc, {
-            preview: false,
-            preserveFocus: false,
-        });
-
-        // Make it read-only by setting the editor to read-only mode
-        // Note: There's no direct API to make a document read-only, but we can
-        // listen for changes and revert them, or just rely on the untitled status
-    }
-    catch (error: any) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        logger.error(`Error opening definition file: ${errorMessage}`);
-        void vscode.window.showErrorMessage(vscode.l10n.t('Failed to open definition file: {0}', errorMessage));
-    }
+    // This function is now just a placeholder - the actual opening is handled
+    // by the DefinitionFileTreeNode which stores the URI and uses it in the command
+    // The file system provider handles the actual file operations
 }
