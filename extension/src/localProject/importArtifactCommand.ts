@@ -135,7 +135,10 @@ export async function importArtifactCommand(
                         progress: progress,
                     }
                 );
-                await dataProvider.refresh();
+                if (succeeded(response)) {
+                    artifact = response.parsedBody;
+                    await dataProvider.refresh();
+                }
             }
             else {
                 telemetryActivity.addOrUpdateProperties({
@@ -174,7 +177,15 @@ export async function importArtifactCommand(
             });
 
             if (succeeded(response)) {
-                void vscode.window.showInformationMessage(vscode.l10n.t('Published {0}', displayName));
+                const openAction = vscode.l10n.t('Open in Fabric');
+                void vscode.window.showInformationMessage(
+                    vscode.l10n.t('Published {0}', displayName),
+                    openAction
+                ).then(action => {
+                    if (action === openAction) {
+                        void vscode.commands.executeCommand('vscode-fabric.openInPortal', artifact);
+                    }
+                });
             }
             else {
                 telemetryActivity.addOrUpdateProperties({
