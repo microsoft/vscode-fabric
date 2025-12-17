@@ -291,61 +291,58 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
         async (...cmdArgs) => {
             await withErrorHandling('openInPortal', logger, telemetryService, async () => {
                 let portalUrl: string | undefined;
-                let selectedWorkspace: IWorkspace | undefined;
                 let artifact: IArtifact | undefined;
+                let selectedWorkspace: IWorkspace | undefined;
 
-                // Check if the first argument is a WorkspaceTreeNode
-                const firstArg = cmdArgs[0];
-                if (firstArg instanceof WorkspaceTreeNode) {
+                const arg = cmdArgs[0];
+                if (arg && typeof arg === 'object' && 'id' in arg && 'workspaceId' in arg && 'type' in arg) {
+                    // Called with an IArtifact directly
+                    artifact = arg as IArtifact;
+                }
+                else if (arg instanceof ArtifactTreeNode) {
+                    // Called from an artifact tree node context menu
+                    artifact = arg.artifact;
+                }
+                else if (arg instanceof WorkspaceTreeNode) {
                     // Called from a workspace context menu
-                    selectedWorkspace = firstArg.workspace;
-                    portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, selectedWorkspace.objectId);
+                    selectedWorkspace = arg.workspace;
                 }
                 else {
-                    // Use the existing logic for artifact nodes or command palette
-                    let isHandled = false;
-                    await artifactManager.doContextMenuItem(cmdArgs, vscode.l10n.t('Open In Portal'), async (item) => {
-                        if (cmdArgs?.length > 1) { // if from tview context menu
-                            if (item) {
-                                // Safe to assume that if there is an ArtifactTreeNode then there is a current workspace
-                                artifact = item.artifact;
-                                selectedWorkspace = await workspaceManager.getWorkspaceById(artifact.workspaceId);
-                                portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, artifact.workspaceId, artifact);
-                                isHandled = true;
-                            }
-                        }
-                        else {
-                            selectedWorkspace = await showWorkspaceQuickPick(workspaceManager, workspaceFilterManager, capacityManager, telemetryService, logger);
-                            if (!selectedWorkspace) {
-                                return;
-                            }
-                            portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, selectedWorkspace.objectId);
-                            isHandled = true;
-                        }
-                    });
-
-                    // If doContextMenuItem didn't handle the operation, return early
-                    if (!isHandled || !portalUrl) {
+                    // Called from command palette - show workspace picker
+                    selectedWorkspace = await showWorkspaceQuickPick(workspaceManager, workspaceFilterManager, capacityManager, telemetryService, logger);
+                    if (!selectedWorkspace) {
                         return;
                     }
                 }
 
-                const activity = new TelemetryActivity<CoreTelemetryEventNames>('item/open/portal', telemetryService);
-                void activity.doTelemetryActivity(async () => {
-                    activity.addOrUpdateProperties({
-                        'workspaceId': selectedWorkspace?.objectId,
-                        'fabricWorkspaceName': selectedWorkspace?.displayName,
-                    });
-                    if (artifact) {
-                        activity.addOrUpdateProperties({
-                            'artifactId': artifact.id,
-                            'itemType': artifact.type,
-                            'fabricArtifactName': artifact.displayName,
-                        });
-                    }
+                if (artifact) {
+                    portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, artifact.workspaceId, artifact);
+                }
+                else if (selectedWorkspace) {
+                    portalUrl = formatPortalUrl(fabricEnvironmentProvider.getCurrent().portalUri, selectedWorkspace.objectId);
+                }
 
-                    void vscode.env.openExternal(vscode.Uri.parse(portalUrl!));
-                });
+                if (portalUrl) {
+                    const activity = new TelemetryActivity<CoreTelemetryEventNames>('item/open/portal', telemetryService);
+                    void activity.doTelemetryActivity(async () => {
+                        if (selectedWorkspace) {
+                            activity.addOrUpdateProperties({
+                                'workspaceId': selectedWorkspace?.objectId,
+                                'fabricWorkspaceName': selectedWorkspace?.displayName,
+                            });
+                        }
+                        if (artifact) {
+                            activity.addOrUpdateProperties({
+                                'workspaceId': artifact?.workspaceId,
+                                'artifactId': artifact.id,
+                                'itemType': artifact.type,
+                                'fabricArtifactName': artifact.displayName,
+                            });
+                        }
+
+                        void vscode.env.openExternal(vscode.Uri.parse(portalUrl));
+                    });
+                }
             })();
         },
         context
