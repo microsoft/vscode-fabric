@@ -13,23 +13,29 @@ The new command architecture consists of three main components:
 ## Benefits
 
 ### 🔧 **Centralized Dependency Management**
+
 Commands get all their dependencies through the command manager instead of parameter passing, making them easier to test and maintain.
 
 ### 📊 **Consistent Error Handling & Telemetry**
+
 All commands automatically get proper error handling, telemetry tracking, and progress indication through the base class.
 
 ### 🎯 **Type Safety**
+
 Each command is strongly typed with its specific telemetry event name, ensuring compile-time safety.
 
 ### 🧪 **Enhanced Testability**
+
 Commands can be easily unit tested by mocking the command manager interface.
 
 ### 🔄 **Progressive Migration**
+
 Existing commands can be migrated one at a time without breaking existing functionality.
 
 ## How It Works
 
 ### Dependency Injection
+
 The `FabricCommandManager` is registered as a singleton in the DI container and receives all necessary dependencies through constructor injection:
 
 ```typescript
@@ -46,20 +52,20 @@ constructor(
 ```
 
 ### Command Registration
+
 Commands are registered automatically during the command manager initialization:
 
 ```typescript
 private async createAndRegisterCommands(): Promise<void> {
-    const refreshArtifactViewCommand = new RefreshArtifactViewCommand(this);
-    this.registerCommand(refreshArtifactViewCommand);
-    
     const createArtifactCommand = new CreateArtifactCommand(this);
     this.registerCommand(createArtifactCommand);
 }
 ```
 
 ### Error Handling & Telemetry
+
 The base `FabricCommand` class automatically wraps command execution with:
+
 - `withErrorHandling` for top-level error management
 - `doFabricAction` for FabricError processing and telemetry
 - `TelemetryActivity` for tracking success/failure/cancellation
@@ -70,37 +76,37 @@ The base `FabricCommand` class automatically wraps command execution with:
 ### 1. Create the Command Class
 
 ```typescript
-import { TelemetryActivity } from '@microsoft/vscode-fabric-util';
-import { CoreTelemetryEventNames } from '../TelemetryEventNames';
-import { FabricCommand } from './FabricCommand';
-import { IFabricCommandManager } from './IFabricCommandManager';
-import { commandNames } from '../constants';
+import { TelemetryActivity } from "@microsoft/vscode-fabric-util";
+import { CoreTelemetryEventNames } from "../TelemetryEventNames";
+import { FabricCommand } from "./FabricCommand";
+import { IFabricCommandManager } from "./IFabricCommandManager";
+import { commandNames } from "../constants";
 
-export class MyNewCommand extends FabricCommand<'item/create'> {
-    public readonly commandName = commandNames.myNewCommand;
-    public readonly telemetryEventName = 'item/create' as const;
+export class MyNewCommand extends FabricCommand<"item/create"> {
+  public readonly commandName = commandNames.myNewCommand;
+  public readonly telemetryEventName = "item/create" as const;
 
-    constructor(commandManager: IFabricCommandManager) {
-        super(commandManager);
-    }
+  constructor(commandManager: IFabricCommandManager) {
+    super(commandManager);
+  }
 
-    protected async executeInternal(
-        telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>,
-        ...args: any[]
-    ): Promise<any> {
-        // Your command logic here
-        
-        // Access dependencies through this.commandManager
-        const logger = this.commandManager.logger;
-        const workspaceManager = this.commandManager.workspaceManager;
-        
-        // Add telemetry properties
-        telemetryActivity.addOrUpdateProperties({
-            customProperty: 'value',
-        });
-        
-        // Your implementation...
-    }
+  protected async executeInternal(
+    telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>,
+    ...args: any[]
+  ): Promise<any> {
+    // Your command logic here
+
+    // Access dependencies through this.commandManager
+    const logger = this.commandManager.logger;
+    const workspaceManager = this.commandManager.workspaceManager;
+
+    // Add telemetry properties
+    telemetryActivity.addOrUpdateProperties({
+      customProperty: "value",
+    });
+
+    // Your implementation...
+  }
 }
 ```
 
@@ -110,8 +116,6 @@ Add the command to the `createAndRegisterCommands` method in `FabricCommandManag
 
 ```typescript
 private async createAndRegisterCommands(): Promise<void> {
-    // ... existing commands
-    
     const myNewCommand = new MyNewCommand(this);
     this.registerCommand(myNewCommand);
 }
@@ -123,8 +127,8 @@ Add the command name to `constants.ts`:
 
 ```typescript
 export namespace commandNames {
-    // ... existing commands
-    export const myNewCommand = 'vscode-fabric.myNewCommand';
+  // ... existing commands
+  export const myNewCommand = "vscode-fabric.myNewCommand";
 }
 ```
 
@@ -148,6 +152,7 @@ Through `this.commandManager`, commands have access to:
 The base `FabricCommand` class provides several helper methods:
 
 ### `addArtifactTelemetryProperties`
+
 Automatically adds common artifact telemetry properties:
 
 ```typescript
@@ -166,6 +171,7 @@ protected addArtifactTelemetryProperties(
 ```
 
 ### `getProgressLocation`
+
 Override to customize where progress is shown:
 
 ```typescript
@@ -176,47 +182,38 @@ protected getProgressLocation(): vscode.ProgressLocation | { viewId: string } {
 }
 ```
 
-### `canExecute`
-Override to add command validation:
-
-```typescript
-public canExecute(...args: any[]): boolean {
-    // Add validation logic
-    return someCondition;
-}
-```
-
 ## Examples
 
-### Simple Command (No Progress)
+### Simple Command
+
 ```typescript
-export class RefreshArtifactViewCommand extends FabricCommand<'workspace/load-items'> {
-    protected async executeInternal(telemetryActivity, ...args): Promise<void> {
-        this.commandManager.dataProvider.refresh();
-        this.commandManager.logger.log(`RefreshArtifactView called ${Date()}`);
-    }
-    
-    protected getProgressLocation(): any {
-        return undefined; // No progress for simple refresh
-    }
+export class MySimpleCommand extends FabricCommand<"workspace/load-items"> {
+  public readonly commandName = commandNames.mySimpleCommand;
+  public readonly telemetryEventName = "workspace/load-items" as const;
+
+  protected async executeInternal(telemetryActivity, ...args): Promise<void> {
+    this.commandManager.logger.log("Command executed");
+    // Command logic here
+  }
 }
 ```
 
 ### Complex Command (With Authentication Check)
+
 ```typescript
-export class CreateArtifactCommand extends FabricCommand<'item/create'> {
-    protected async executeInternal(telemetryActivity, ...args): Promise<any> {
-        // Check authentication
-        if (!(await this.commandManager.workspaceManager.isConnected())) {
-            void showSignInPrompt();
-            return;
-        }
-        
-        // Add telemetry
-        this.addArtifactTelemetryProperties(telemetryActivity, artifact);
-        
-        // Implementation...
+export class CreateArtifactCommand extends FabricCommand<"item/create"> {
+  protected async executeInternal(telemetryActivity, ...args): Promise<any> {
+    // Check authentication
+    if (!(await this.commandManager.workspaceManager.isConnected())) {
+      void showSignInPrompt();
+      return;
     }
+
+    // Add telemetry
+    this.addArtifactTelemetryProperties(telemetryActivity, artifact);
+
+    // Implementation...
+  }
 }
 ```
 
@@ -238,9 +235,9 @@ Commands can be easily unit tested by mocking the `IFabricCommandManager`:
 
 ```typescript
 const mockCommandManager = {
-    logger: mockLogger,
-    workspaceManager: mockWorkspaceManager,
-    // ... other mocked dependencies
+  logger: mockLogger,
+  workspaceManager: mockWorkspaceManager,
+  // ... other mocked dependencies
 } as IFabricCommandManager;
 
 const command = new MyCommand(mockCommandManager);
@@ -252,5 +249,4 @@ await command.execute();
 - **`IFabricCommandManager.ts`** - Interface definitions
 - **`FabricCommandManager.ts`** - Command manager implementation
 - **`FabricCommand.ts`** - Abstract base class for commands
-- **`RefreshArtifactViewCommand.ts`** - Simple command example
-- **`CreateArtifactCommand.ts`** - Complex command example (placeholder)
+- **`README.md`** - This architecture documentation

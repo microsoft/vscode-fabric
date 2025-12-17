@@ -7,12 +7,6 @@ import { ICapacityManager } from '../CapacityManager';
 import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 import { IFabricCommandManager, IFabricCommand } from './IFabricCommandManager';
 
-// Import command implementations as they get created
-import { RefreshArtifactViewCommand } from './RefreshArtifactViewCommand';
-// import { CreateArtifactCommand } from './CreateArtifactCommand';
-// import { ReadArtifactCommand } from './ReadArtifactCommand';
-// ... other commands
-
 /**
  * Implementation of the Fabric command manager that handles command registration,
  * dependency injection, and lifecycle management using constructor-based DI
@@ -35,11 +29,8 @@ export class FabricCommandManager implements IFabricCommandManager {
         public readonly extensionManager: IFabricExtensionManagerInternal
     ) {}
 
-    // Command management methods
-    public registerCommand(command: IFabricCommand): vscode.Disposable {
-        // Unregister any existing command with the same name
-        this.unregisterCommand(command.commandName);
-
+    // Private command management methods
+    private registerCommand(command: IFabricCommand): vscode.Disposable {
         // Register the command with VS Code
         const disposable = vscode.commands.registerCommand(
             command.commandName,
@@ -53,21 +44,6 @@ export class FabricCommandManager implements IFabricCommandManager {
 
         this.logger.log(`Registered command: ${command.commandName}`);
         return disposable;
-    }
-
-    public unregisterCommand(commandName: string): void {
-        const command = this.commands.get(commandName);
-        if (command) {
-            // Find and dispose the associated VS Code disposable
-            // Since we can't easily identify which disposable corresponds to which command,
-            // we'll handle this during bulk re-registration
-            this.commands.delete(commandName);
-            this.logger.log(`Unregistered command: ${commandName}`);
-        }
-    }
-
-    public getCommand(commandName: string): IFabricCommand | undefined {
-        return this.commands.get(commandName);
     }
 
     // Lifecycle methods
@@ -97,11 +73,7 @@ export class FabricCommandManager implements IFabricCommandManager {
         // This is where we'll instantiate all our command classes
         // Commands will be created as we migrate them
 
-        // Register the RefreshArtifactView command as an example
-        // const refreshArtifactViewCommand = new RefreshArtifactViewCommand(this);
-        // this.registerCommand(refreshArtifactViewCommand);
-
-        // Example of how other commands will be registered:
+        // Example of how commands will be registered:
         // const createArtifactCommand = new CreateArtifactCommand(this);
         // this.registerCommand(createArtifactCommand);
 

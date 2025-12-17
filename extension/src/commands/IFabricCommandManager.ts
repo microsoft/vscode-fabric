@@ -13,7 +13,6 @@ export interface IFabricCommand<TEventName extends string = string> {
     readonly commandName: string;
     readonly telemetryEventName: TEventName;
     execute(...args: any[]): Promise<any>;
-    canExecute?(...args: any[]): boolean;
 }
 
 /**
@@ -31,11 +30,6 @@ export interface IFabricCommandManager {
     readonly dataProvider: FabricWorkspaceDataProvider;
     readonly workspaceFilterManager: IWorkspaceFilterManager;
     readonly extensionManager: IFabricExtensionManagerInternal;
-
-    // Command management methods
-    registerCommand(command: IFabricCommand): vscode.Disposable;
-    unregisterCommand(commandName: string): void;
-    getCommand(commandName: string): IFabricCommand | undefined;
 
     // Lifecycle methods
     initialize(): Promise<void>;

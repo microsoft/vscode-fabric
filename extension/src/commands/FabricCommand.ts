@@ -82,13 +82,6 @@ implements IFabricCommand<TEventName> {
     }
 
     /**
-     * Optional validation method that can be overridden to check if command can execute
-     */
-    public canExecute(...args: any[]): boolean {
-        return true;
-    }
-
-    /**
      * Helper method to add common telemetry properties for artifact operations
      */
     protected addArtifactTelemetryProperties(
