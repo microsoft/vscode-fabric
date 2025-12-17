@@ -28,7 +28,7 @@ export class OpenSqlExtensionCommand extends FabricCommand<'item/open/sql-ext'> 
             args,
             vscode.l10n.t('Open in SQL Extension'),
             async (item) => {
-                if (!args || args.length === 0 || !item) {
+                if (!item) {
                     return;
                 }
 

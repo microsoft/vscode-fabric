@@ -28,7 +28,7 @@ export class CopyConnectionStringCommand extends FabricCommand<'item/copy/connec
             args,
             vscode.l10n.t('Copy Connection String'),
             async (item) => {
-                if (!args || args.length === 0 || !item) {
+                if (!item) {
                     return;
                 }
 
