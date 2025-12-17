@@ -21,6 +21,8 @@ export type CoreTelemetryEventNames = {
 	'item/import': { properties: ArtifactManagerResultPropertyNames | 'targetDetermination'; measurements: never },
 	'item/open': { properties: ResultPropertyNames | ArtifactPropertyNames; measurements: never },
 	'item/open/portal': { properties: ArtifactPropertyNames; measurements: never },
+	'item/open/sql-ext': { properties: ArtifactPropertyNames; measurements: never },
+	'item/copy/connection-string': { properties: ArtifactPropertyNames; measurements: never },
 	'item/localFolder/open': { properties: ArtifactPropertyNames | 'actionTaken'; measurements: never },
 	'item/localFolder/change': { properties: ArtifactPropertyNames | 'actionTaken'; measurements: never },
 

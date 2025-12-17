@@ -7,7 +7,6 @@ import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { SqlDatabaseTreeNodeProvider } from './SqlDatabaseTreeNodeProvider';
 import { SqlEndpointTreeNodeProvider } from './SqlEndpointTreeNodeProvider';
 import { WarehouseTreeNodeProvider } from './WarehouseTreeNodeProvider';
-import { registerDatabaseCommands, disposeCommands } from './commands';
 
 export class SqlExtension implements IFabricExtension, vscode.Disposable {
     private workspaceManager: IWorkspaceManager;
@@ -35,17 +34,9 @@ export class SqlExtension implements IFabricExtension, vscode.Disposable {
         this.workspaceManager = serviceCollection.workspaceManager;
         this.artifactManager = serviceCollection.artifactManager;
         this.apiClient = serviceCollection.apiClient;
-
-        registerDatabaseCommands(
-            this.context,
-            this.workspaceManager,
-            this.artifactManager,
-            this.apiClient,
-            this.telemetryService
-        );
     }
 
     dispose() {
-        disposeCommands();
+        // Commands are now managed by FabricCommandManager
     }
 }
