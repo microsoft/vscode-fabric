@@ -108,7 +108,7 @@ export class DefinitionFileSystemProvider implements vscode.FileSystemProvider {
 
             // Encode the new content as base64
             const base64Content = Buffer.from(content).toString('base64');
-            
+
             // Update the part (using splice to avoid object injection warning)
             const updatedPart: IItemDefinitionPart = {
                 path: artifactInfo.fileName,

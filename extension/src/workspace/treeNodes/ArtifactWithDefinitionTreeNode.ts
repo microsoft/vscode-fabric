@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { IArtifact, ArtifactTreeNode, FabricTreeNode, IArtifactManager, IItemDefinition, PayloadType } from '@microsoft/vscode-fabric-api';
 import { DefinitionFileTreeNode } from './DefinitionFileTreeNode';
 import { DefinitionFolderTreeNode } from './DefinitionFolderTreeNode';
+import { DefinitionRootTreeNode } from './DefinitionRootTreeNode';
 import { DefinitionFileSystemProvider } from '../DefinitionFileSystemProvider';
 import { InstallExtensionTreeNode } from './InstallExtensionTreeNode';
 import { getArtifactExtensionId } from '../../metadata/fabricItemUtilities';
@@ -51,7 +52,12 @@ export class ArtifactWithDefinitionTreeNode extends ArtifactTreeNode {
                 // Build a hierarchical tree structure from the flat list of parts
                 const rootNodes = this.buildTreeStructure(definition.parts);
                 
-                children.push(...rootNodes);
+                // Wrap all definition files/folders under a single root node
+                if (rootNodes.length > 0) {
+                    const definitionRoot = new DefinitionRootTreeNode(this.context);
+                    definitionRoot.addChildren(rootNodes);
+                    children.push(definitionRoot);
+                }
             }
         }
         catch (error) {
