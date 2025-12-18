@@ -2,14 +2,16 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { getArtifactIconPath, getArtifactDefaultIconPath, getArtifactExtensionId, getSupportsArtifactWithDefinition } from '../../metadata/fabricItemUtilities';
+import { getArtifactIconPath, getArtifactDefaultIconPath, getSupportsArtifactWithDefinition } from '../../metadata/fabricItemUtilities';
 import { IArtifact, ArtifactDesignerActions, ArtifactTreeNode, IFabricTreeNodeProvider, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
-import { MissingExtensionArtifactTreeNode } from './MissingExtensionArtifactTreeNode';
-import { ArtifactWithDefinitionTreeNode } from './ArtifactWithDefinitionTreeNode';
 import { ILocalFolderService } from '../../LocalFolderService';
 import { DefinitionFileSystemProvider } from '../DefinitionFileSystemProvider';
 import { IFabricFeatureConfiguration } from '../../settings/FabricFeatureConfiguration';
+import { ComposableArtifactTreeNode } from './ComposableArtifactTreeNode';
+import { MissingExtensionChildNodeProvider } from './MissingExtensionChildNodeProvider';
+import { DefinitionFilesChildNodeProvider } from './DefinitionFilesChildNodeProvider';
+import { TreeNodeProviderChildNodeAdapter } from './TreeNodeProviderChildNodeAdapter';
 
 /**
  * Creates an artifact tree node with proper icon and context
@@ -25,21 +27,45 @@ export async function createArtifactTreeNode(
     featureConfiguration?: IFabricFeatureConfiguration
 ): Promise<ArtifactTreeNode> {
     let artifactNode: ArtifactTreeNode;
-    if (treeNodeProvider) {
-        artifactNode = await treeNodeProvider.createArtifactTreeNode(artifact);
+    const childNodeProviders = [];
+
+    // Add missing extension provider (shows install prompt if extension not available)
+    childNodeProviders.push(new MissingExtensionChildNodeProvider(context, extensionManager));
+
+    // Add definition files provider if services are available
+    if (artifactManager && fileSystemProvider && featureConfiguration) {
+        childNodeProviders.push(new DefinitionFilesChildNodeProvider(
+            context,
+            artifactManager,
+            fileSystemProvider,
+            featureConfiguration
+        ));
     }
-    else {
-        // Create ArtifactWithDefinitionTreeNode if feature is enabled, artifact supports definition, and required services are available
-        if (featureConfiguration?.isItemDefinitionsEnabled() && getSupportsArtifactWithDefinition(artifact) && artifactManager && fileSystemProvider) {
-            artifactNode = new ArtifactWithDefinitionTreeNode(context, artifact, artifactManager, fileSystemProvider, extensionManager);
-        }
-        else {
-            const extensionId: string | undefined = getArtifactExtensionId(artifact);
-            if (extensionId && !extensionManager.isAvailable(extensionId)) {
-                artifactNode = new MissingExtensionArtifactTreeNode(context, artifact, extensionId);
+
+    let satelliteAdapter: TreeNodeProviderChildNodeAdapter | undefined;
+    if (treeNodeProvider) {
+        // If a satellite provides a tree node provider, wrap it as a child node provider
+        satelliteAdapter = new TreeNodeProviderChildNodeAdapter(context, treeNodeProvider);
+        childNodeProviders.push(satelliteAdapter);
+    }
+    // Create the composable artifact tree node
+    artifactNode = new ComposableArtifactTreeNode(context, artifact, childNodeProviders);
+
+    // If a satellite provided a tree node, apply its customizations (icon, context values, etc.)
+    if (satelliteAdapter) {
+        const satelliteNode = satelliteAdapter.getCreatedNode();
+        if (satelliteNode) {
+            // Apply icon from satellite if it provided one
+            if (satelliteNode.iconPath) {
+                artifactNode.iconPath = satelliteNode.iconPath;
             }
-            else {
-                artifactNode = new ArtifactTreeNode(context, artifact);
+            // Apply context value customizations from satellite
+            if (satelliteNode.contextValue && satelliteNode.contextValue !== artifactNode.contextValue) {
+                artifactNode.contextValue = satelliteNode.contextValue;
+            }
+            // Apply allowed design actions from satellite
+            if ('allowedDesignActions' in satelliteNode) {
+                artifactNode.allowedDesignActions = (satelliteNode as any).allowedDesignActions;
             }
         }
     }

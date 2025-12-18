@@ -2,76 +2,62 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { IArtifact, ArtifactTreeNode, FabricTreeNode, IArtifactManager, IItemDefinition, PayloadType } from '@microsoft/vscode-fabric-api';
+import { FabricTreeNode, IArtifact, IArtifactManager, IItemDefinition, PayloadType } from '@microsoft/vscode-fabric-api';
+import { IArtifactChildNodeProvider } from './IArtifactChildNodeProvider';
 import { DefinitionFileTreeNode } from './DefinitionFileTreeNode';
 import { DefinitionFolderTreeNode } from './DefinitionFolderTreeNode';
 import { DefinitionRootTreeNode } from './DefinitionRootTreeNode';
 import { DefinitionFileSystemProvider } from '../DefinitionFileSystemProvider';
-import { InstallExtensionTreeNode } from './InstallExtensionTreeNode';
-import { getArtifactExtensionId } from '../../metadata/fabricItemUtilities';
-import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
+import { getSupportsArtifactWithDefinition } from '../../metadata/fabricItemUtilities';
+import { IFabricFeatureConfiguration } from '../../settings/FabricFeatureConfiguration';
 
 /**
- * An artifact tree node that displays definition files as children.
- * This node is collapsible and shows the individual definition parts/files
- * from the artifact's item definition.
+ * Provides definition file nodes as children when the artifact supports definitions
+ * and the feature is enabled.
  */
-export class ArtifactWithDefinitionTreeNode extends ArtifactTreeNode {
+export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvider {
     constructor(
-        context: vscode.ExtensionContext,
-        artifact: IArtifact,
-        protected artifactManager: IArtifactManager,
-        protected fileSystemProvider: DefinitionFileSystemProvider,
-        protected extensionManager?: IFabricExtensionManagerInternal
-    ) {
-        super(context, artifact);
+        private readonly context: vscode.ExtensionContext,
+        private readonly artifactManager: IArtifactManager,
+        private readonly fileSystemProvider: DefinitionFileSystemProvider,
+        private readonly featureConfiguration: IFabricFeatureConfiguration
+    ) {}
 
-        // Make this node collapsible to show definition files
-        this.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+    canProvideChildren(artifact: IArtifact): boolean {
+        return this.featureConfiguration.isItemDefinitionsEnabled() &&
+               getSupportsArtifactWithDefinition(artifact);
     }
 
-    /**
-     * Returns the definition files as child nodes
-     */
-    async getChildNodes(): Promise<FabricTreeNode[]> {
-        const children: FabricTreeNode[] = [];
-
-        // Check if extension is missing and should show install prompt as first node
-        const extensionId = getArtifactExtensionId(this.artifact);
-        if (extensionId && this.extensionManager && !this.extensionManager.isAvailable(extensionId)) {
-            children.push(new InstallExtensionTreeNode(this.context, extensionId));
-        }
-
+    async getChildNodes(artifact: IArtifact): Promise<FabricTreeNode[]> {
         try {
             // Get the item definition from the artifact manager
-            const response = await this.artifactManager.getArtifactDefinition(this.artifact);
+            const response = await this.artifactManager.getArtifactDefinition(artifact);
             
             if (response.parsedBody?.definition) {
                 const definition: IItemDefinition = response.parsedBody.definition;
                 
                 // Build a hierarchical tree structure from the flat list of parts
-                const rootNodes = this.buildTreeStructure(definition.parts);
+                const rootNodes = this.buildTreeStructure(artifact, definition.parts);
                 
                 // Wrap all definition files/folders under a single root node
                 if (rootNodes.length > 0) {
                     const definitionRoot = new DefinitionRootTreeNode(this.context);
                     definitionRoot.addChildren(rootNodes);
-                    children.push(definitionRoot);
+                    return [definitionRoot];
                 }
             }
         }
         catch (error) {
-            // If there's any error getting the definition, return existing children
-            // This allows the node to still be displayed, potentially with install prompt
+            // If there's any error getting the definition, return empty array
         }
 
-        return children;
+        return [];
     }
 
     /**
      * Builds a hierarchical tree structure from a flat list of definition parts
      */
-    private buildTreeStructure(parts: IItemDefinition['parts']): FabricTreeNode[] {
+    private buildTreeStructure(artifact: IArtifact, parts: IItemDefinition['parts']): FabricTreeNode[] {
         const rootNodes: FabricTreeNode[] = [];
         const folderMap = new Map<string, DefinitionFolderTreeNode>();
 
@@ -102,7 +88,7 @@ export class ArtifactWithDefinitionTreeNode extends ArtifactTreeNode {
 
             // Register the file in the file system provider and get the URI
             const uri = this.fileSystemProvider.registerFile(
-                this.artifact,
+                artifact,
                 normalizedPath,
                 content
             );
@@ -125,6 +111,7 @@ export class ArtifactWithDefinitionTreeNode extends ArtifactTreeNode {
 
                 // Process all folder segments (all but the last segment which is the file)
                 for (let i = 0; i < pathSegments.length - 1; i++) {
+                    // eslint-disable-next-line security/detect-object-injection
                     const segment = pathSegments[i];
                     currentPath = currentPath ? `${currentPath}/${segment}` : segment;
 

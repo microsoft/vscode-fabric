@@ -3,25 +3,30 @@
 
 import * as vscode from 'vscode';
 
-import { NotebookTreeNode } from './NotebookTreeNode';
 import { ArtifactPropertyNames, TelemetryEvent, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { IArtifact } from '@microsoft/vscode-fabric-api';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 type TelemetryEventNames = {
     'item/open/synapse': { properties: ArtifactPropertyNames; measurements: never }
 };
 
+function getExternalUri(artifact: IArtifact): string {
+    const targetUrl = `${vscode.env.uriScheme}://SynapseVSCode.synapse?workspaceId=${artifact.workspaceId}&artifactId=${artifact.id}`;
+    return targetUrl;
+}
+
 export async function openNotebookInSynapse(
     telemetryService: TelemetryService,
-    treeNode: NotebookTreeNode): Promise<void> {
-    const targetUrl = await treeNode.getExternalUri();
+    artifact: IArtifact): Promise<void> {
+    const targetUrl = getExternalUri(artifact);
 
     const event = new TelemetryEvent<TelemetryEventNames>('item/open/synapse', telemetryService);
     event.addOrUpdateProperties({
-        'workspaceId': treeNode.artifact.workspaceId,
-        'artifactId': treeNode.artifact.id,
-        'itemType': treeNode.artifact.type,
-        'fabricArtifactName': treeNode.artifact.displayName,
+        'workspaceId': artifact.workspaceId,
+        'artifactId': artifact.id,
+        'itemType': artifact.type,
+        'fabricArtifactName': artifact.displayName,
     });
     event.sendTelemetry();
 
