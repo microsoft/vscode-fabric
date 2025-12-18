@@ -38,7 +38,8 @@ export class ArtifactTreeNode extends FabricTreeNode {
      *  - collapseState (None)
      *  - tooltip (artifact.description)
      * Extenders providing child nodes should set the collapse state is set to Collapsed
-     * The node also implements a "Selected" command, which performs the `OperationRequestType.select` action on the artifact
+     * The node also implements a "Selected" command, which performs the `vscode-fabric.readArtifact` command on the node
+     * Sets misguided contextValue ('currentlyopen ' | 'notopen'). These values are deprecated
      */
     constructor(context: vscode.ExtensionContext, public readonly artifact: IArtifact) {
         super(context, artifact.displayName, vscode.TreeItemCollapsibleState.None);
@@ -62,6 +63,7 @@ export class ArtifactTreeNode extends FabricTreeNode {
         const envPart = artifact.fabricEnvironment || 'unknown';
         this.id = `art:${envPart}:${artifact.workspaceId}:${artifact.type}:${artifact.id}`;
 
+        // This block is deprecated and will be disappearing later
         const wspaceFolders = vscode.workspace.workspaceFolders;
         const expectedFolderName = `${artifact.displayName}.${artifact.type}`;
         if (wspaceFolders && // already a VSCFolder open
@@ -148,6 +150,8 @@ export class LocalProjectTreeNode extends FabricTreeNode {
 
 /**
  * A default implementation for the ILocalProjectTreeNodeProvider
+ *
+ * @deprecated - Use the LocalProjectTreeNodeProvider class defined in the @microsoft/vscode-fabric-util package instead
  */
 export class LocalProjectTreeNodeProvider implements ILocalProjectTreeNodeProvider {
     /**
