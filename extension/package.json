@@ -548,6 +548,12 @@
           "type": "boolean",
           "default": true,
           "description": "%extension.configuration.McpServer.PromptInstall.description%"
+        },
+        "Fabric.ShowItemDefinitions": {
+          "type": "boolean",
+          "default": false,
+          "description": "%extension.configuration.ShowItemDefinitions.description%",
+          "tags": ["preview"]
         }
       }
     },
