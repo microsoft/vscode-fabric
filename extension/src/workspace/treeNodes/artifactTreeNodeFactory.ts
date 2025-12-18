@@ -27,8 +27,11 @@ export async function createArtifactTreeNode(
         artifactNode = await treeNodeProvider.createArtifactTreeNode(artifact);
     }
     else {
-        // Create ArtifactWithDefinitionTreeNode if artifact supports definition and artifactManager is available
-        if (getSupportsArtifactWithDefinition(artifact) && artifactManager && fileSystemProvider) {
+        // Check if ShowItemDefinitions feature is enabled
+        const showItemDefinitions = vscode.workspace.getConfiguration('Fabric').get<boolean>('ShowItemDefinitions', false);
+        
+        // Create ArtifactWithDefinitionTreeNode if feature is enabled, artifact supports definition, and required services are available
+        if (showItemDefinitions && getSupportsArtifactWithDefinition(artifact) && artifactManager && fileSystemProvider) {
             artifactNode = new ArtifactWithDefinitionTreeNode(context, artifact, artifactManager, fileSystemProvider, extensionManager);
         }
         else {
