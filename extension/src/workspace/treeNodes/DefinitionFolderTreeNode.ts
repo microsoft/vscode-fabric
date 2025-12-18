@@ -23,10 +23,7 @@ export class DefinitionFolderTreeNode extends FabricTreeNode {
         public readonly folderPath: string
     ) {
         super(context, folderName, vscode.TreeItemCollapsibleState.Collapsed);
-        
-        // Set folder icon
-        this.iconPath = new vscode.ThemeIcon('folder');
-        
+
         // Set tooltip
         this.tooltip = vscode.l10n.t('Folder: {0}', folderPath);
 
