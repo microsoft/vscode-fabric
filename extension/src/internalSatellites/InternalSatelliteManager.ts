@@ -9,7 +9,6 @@ import { IFabricExtension } from '@microsoft/vscode-fabric-api';
 import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
-import { DefinitionFileSystemProvider } from '../workspace/DefinitionFileSystemProvider';
 
 export interface IInternalSatelliteExtension extends IFabricExtension, vscode.Disposable {
     dispose: () => void;
@@ -21,8 +20,7 @@ export class InternalSatelliteManager {
         private telemetryService: TelemetryService,
         private logger: ILogger,
         private extensionManager: IFabricExtensionManagerInternal,
-        private workspaceFilterManager: IWorkspaceFilterManager,
-        private fileSystemProvider: DefinitionFileSystemProvider
+        private workspaceFilterManager: IWorkspaceFilterManager
     ) {
     }
 
@@ -51,8 +49,7 @@ export class InternalSatelliteManager {
             new NotebookExtension(
                 this.context,
                 this.telemetryService,
-                this.extensionManager,
-                this.fileSystemProvider
+                this.extensionManager
             )
         );
 
