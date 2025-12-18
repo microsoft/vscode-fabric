@@ -7,6 +7,7 @@ import { FabricTreeNode, IWorkspaceManager, IWorkspace, IArtifactManager } from 
 import { TelemetryService } from '@microsoft/vscode-fabric-util';
 import { ITenantSettings, IAccountProvider } from '../../authentication';
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
+import { IFabricFeatureConfiguration } from '../../settings/FabricFeatureConfiguration';
 import { ListViewWorkspaceTreeNode } from './ListViewWorkspaceTreeNode';
 import { TreeViewWorkspaceTreeNode } from './TreeViewWorkspaceTreeNode';
 import { TenantTreeNode } from './TenantTreeNode';
@@ -26,6 +27,7 @@ export class RootTreeNode extends FabricTreeNode {
         private localFolderService: ILocalFolderService,
         private artifactManager: IArtifactManager,
         private fileSystemProvider: DefinitionFileSystemProvider,
+        private featureConfiguration: IFabricFeatureConfiguration,
         private shouldExpand?: (id: string | undefined) => boolean,
         private filteredWorkspaces?: IWorkspace[]
     ) {
@@ -51,6 +53,7 @@ export class RootTreeNode extends FabricTreeNode {
                 this.localFolderService,
                 this.artifactManager,
                 this.fileSystemProvider,
+                this.featureConfiguration,
                 this.shouldExpand,
                 this.filteredWorkspaces
             )];
@@ -63,8 +66,8 @@ export class RootTreeNode extends FabricTreeNode {
 
             return workspaces.map(workspace =>
                 this.displayStyle === DisplayStyle.list
-                    ? new ListViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager, /*tenantId*/ null, this.localFolderService, this.artifactManager, this.fileSystemProvider, this.shouldExpand)
-                    : new TreeViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager, /*tenantId*/ undefined, this.localFolderService, this.artifactManager, this.fileSystemProvider, this.shouldExpand)
+                    ? new ListViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager, /*tenantId*/ null, this.localFolderService, this.artifactManager, this.fileSystemProvider, this.featureConfiguration, this.shouldExpand)
+                    : new TreeViewWorkspaceTreeNode(this.context, this.extensionManager, workspace, this.telemetryService, this.workspaceManager, /*tenantId*/ undefined, this.localFolderService, this.artifactManager, this.fileSystemProvider, this.featureConfiguration, this.shouldExpand)
             );
         }
         catch (error) {

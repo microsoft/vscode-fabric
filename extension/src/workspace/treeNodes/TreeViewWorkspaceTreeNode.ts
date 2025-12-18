@@ -11,6 +11,7 @@ import { ArtifactTypeTreeNode } from './ArtifactTypeTreeNode';
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
 import { ILocalFolderService } from '../../LocalFolderService';
 import { DefinitionFileSystemProvider } from '../DefinitionFileSystemProvider';
+import { IFabricFeatureConfiguration } from '../../settings/FabricFeatureConfiguration';
 
 export class TreeViewWorkspaceTreeNode extends WorkspaceTreeNode {
     private _children: Map<string, ArtifactTypeTreeNode> | undefined;
@@ -24,6 +25,7 @@ export class TreeViewWorkspaceTreeNode extends WorkspaceTreeNode {
         private localFolderService: ILocalFolderService,
         private artifactManager: IArtifactManager,
         private fileSystemProvider: DefinitionFileSystemProvider,
+        private featureConfiguration: IFabricFeatureConfiguration,
         private shouldExpand?: (id: string | undefined) => boolean
     ) {
         super(context, extensionManager, workspace, DisplayStyle.tree, telemetryService, workspaceManager);
@@ -48,6 +50,7 @@ export class TreeViewWorkspaceTreeNode extends WorkspaceTreeNode {
                     this.localFolderService,
                     this.artifactManager,
                     this.fileSystemProvider,
+                    this.featureConfiguration,
                     this.shouldExpand
                 )
             );

@@ -10,6 +10,7 @@ import { IFabricExtensionsSettingStorage } from '../../../src/settings/definitio
 import { LocalFolderManager } from '../../../src/LocalFolderManager';
 import { IFabricEnvironmentProvider, ILogger, FabricError, FakeConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../../../src/authentication/interfaces';
+import { IFabricFeatureConfiguration, FabricFeatureConfiguration } from '../../../src/settings/FabricFeatureConfiguration';
 import {
     IApiClientResponse,
     IApiClientRequestOptions,
@@ -29,7 +30,7 @@ describe('WorkspaceManager', function () {
     let mockGitOperator: Mock<IGitOperator>;
     let mockLogger: Mock<ILogger>;
     let mockLocalFolderService: Mock<ILocalFolderService>;
-    let configurationProvider: FakeConfigurationProvider;
+    let mockFeatureConfiguration: Mock<IFabricFeatureConfiguration>;
     let workspaceManager: WorkspaceManager;
 
     // Event emitter mocks
@@ -50,8 +51,7 @@ describe('WorkspaceManager', function () {
         mockGitOperator = new Mock<IGitOperator>();
         mockLogger = new Mock<ILogger>();
         mockLocalFolderService = new Mock<ILocalFolderService>();
-        configurationProvider = new FakeConfigurationProvider();
-        void configurationProvider.update('ShowFolders', true);
+        mockFeatureConfiguration = new Mock<IFabricFeatureConfiguration>();
 
         // Create event emitters
         onSignInChangedEmitter = new vscode.EventEmitter<void>();
@@ -70,6 +70,8 @@ describe('WorkspaceManager', function () {
         // Mock the extensionSettingsStorage.load method since it's called in refreshConnectionToFabric
         mockExtensionSettingsStorage.setup(instance => instance.load()).returns(Promise.resolve(true));
 
+        mockFeatureConfiguration.setup(instance => instance.isFolderGroupingEnabled()).returns(true);
+
         // Initialize workspace manager with mocks
         workspaceManager = new WorkspaceManager(
             mockAccountProvider.object(),
@@ -80,7 +82,7 @@ describe('WorkspaceManager', function () {
             mockLogger.object(),
             null,
             mockGitOperator.object(),
-            configurationProvider,
+            mockFeatureConfiguration.object(),
             mockLocalFolderService.object()
         );
     });
@@ -386,8 +388,7 @@ describe('WorkspaceManager', function () {
     });
 
     it('getFoldersInWorkspace should short-circuit when experimental setting disabled', async function () {
-        configurationProvider.clear();
-        void configurationProvider.update('ShowFolders', false);
+        mockFeatureConfiguration.setup(instance => instance.isFolderGroupingEnabled()).returns(false);
 
         const result = await workspaceManager.getFoldersInWorkspace('workspace-disabled');
 

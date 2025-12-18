@@ -9,6 +9,7 @@ import { MissingExtensionArtifactTreeNode } from './MissingExtensionArtifactTree
 import { ArtifactWithDefinitionTreeNode } from './ArtifactWithDefinitionTreeNode';
 import { ILocalFolderService } from '../../LocalFolderService';
 import { DefinitionFileSystemProvider } from '../DefinitionFileSystemProvider';
+import { IFabricFeatureConfiguration } from '../../settings/FabricFeatureConfiguration';
 
 /**
  * Creates an artifact tree node with proper icon and context
@@ -20,18 +21,16 @@ export async function createArtifactTreeNode(
     treeNodeProvider?: IFabricTreeNodeProvider,
     localFolderService?: ILocalFolderService,
     artifactManager?: IArtifactManager,
-    fileSystemProvider?: DefinitionFileSystemProvider
+    fileSystemProvider?: DefinitionFileSystemProvider,
+    featureConfiguration?: IFabricFeatureConfiguration
 ): Promise<ArtifactTreeNode> {
     let artifactNode: ArtifactTreeNode;
     if (treeNodeProvider) {
         artifactNode = await treeNodeProvider.createArtifactTreeNode(artifact);
     }
     else {
-        // Check if ShowItemDefinitions feature is enabled
-        const showItemDefinitions = vscode.workspace.getConfiguration('Fabric').get<boolean>('ShowItemDefinitions', false);
-        
         // Create ArtifactWithDefinitionTreeNode if feature is enabled, artifact supports definition, and required services are available
-        if (showItemDefinitions && getSupportsArtifactWithDefinition(artifact) && artifactManager && fileSystemProvider) {
+        if (featureConfiguration?.isItemDefinitionsEnabled() && getSupportsArtifactWithDefinition(artifact) && artifactManager && fileSystemProvider) {
             artifactNode = new ArtifactWithDefinitionTreeNode(context, artifact, artifactManager, fileSystemProvider, extensionManager);
         }
         else {
