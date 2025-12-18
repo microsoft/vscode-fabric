@@ -6,6 +6,7 @@ import * as vscode from 'vscode';
 import { FabricTreeNode, IWorkspaceManager, IWorkspace, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
+import { IFabricFeatureConfiguration } from '../../settings/FabricFeatureConfiguration';
 import { ListViewWorkspaceTreeNode } from './ListViewWorkspaceTreeNode';
 import { TreeViewWorkspaceTreeNode } from './TreeViewWorkspaceTreeNode';
 import { DisplayStyle } from '../definitions';
@@ -24,6 +25,7 @@ export class TenantTreeNode extends FabricTreeNode {
         private localFolderService: ILocalFolderService,
         private artifactManager: IArtifactManager,
         private fileSystemProvider: DefinitionFileSystemProvider,
+        private featureConfiguration: IFabricFeatureConfiguration,
         private shouldExpand?: (id: string | undefined) => boolean,
         private filteredWorkspaces?: IWorkspace[]
     ) {
@@ -55,6 +57,7 @@ export class TenantTreeNode extends FabricTreeNode {
                         this.localFolderService,
                         this.artifactManager,
                         this.fileSystemProvider,
+                        this.featureConfiguration,
                         this.shouldExpand
                     )
                     : new TreeViewWorkspaceTreeNode(
@@ -67,6 +70,7 @@ export class TenantTreeNode extends FabricTreeNode {
                         this.localFolderService,
                         this.artifactManager,
                         this.fileSystemProvider,
+                        this.featureConfiguration,
                         this.shouldExpand
                     )
             );

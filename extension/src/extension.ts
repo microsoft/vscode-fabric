@@ -47,6 +47,7 @@ import { FabricExtensionManager } from './extensionManager/FabricExtensionManage
 import { IArtifactManagerInternal } from './apis/internal/fabricExtensionInternal';
 import { ICapacityManager, CapacityManager } from './CapacityManager';
 import { ExtensionUriHandler } from './ExtensionUriHandler';
+import { IFabricFeatureConfiguration, FabricFeatureConfiguration } from './settings/FabricFeatureConfiguration';
 
 // Information about the DI container can be found here: https://raw.githubusercontent.com/wessberg/DI/refs/heads/master/README.md
 import { DIContainer } from '@wessberg/di';
@@ -454,6 +455,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<IFabricExtensionManagerInternal, FabricExtensionManager>();
     container.registerTransient<IDisposableCollection, DisposableCollection>();
     container.registerSingleton<IConfigurationProvider, ConfigurationProvider>();
+    container.registerSingleton<IFabricFeatureConfiguration, FabricFeatureConfiguration>();
 
     container.registerSingleton<IFabricEnvironmentProvider, FabricEnvironmentProvider>();
     container.registerSingleton<VsCodeAuthentication, DefaultVsCodeAuthentication>();

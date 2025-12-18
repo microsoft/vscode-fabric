@@ -7,6 +7,7 @@ import { IWorkspaceManager, IWorkspace, FabricTreeNode, ArtifactTreeNode, IArtif
 import { ILogger, TelemetryActivity, TelemetryService, withErrorHandling } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
+import { IFabricFeatureConfiguration } from '../settings/FabricFeatureConfiguration';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { ListViewWorkspaceTreeNode } from './treeNodes/ListViewWorkspaceTreeNode';
 import { WorkspaceTreeNode } from './treeNodes/WorkspaceTreeNode';
@@ -41,9 +42,18 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
         private readonly fabricEnvironmentProvider: IFabricEnvironmentProvider,
         private readonly localFolderService: ILocalFolderService,
         private readonly artifactManager: IArtifactManager,
-        private readonly fileSystemProvider: DefinitionFileSystemProvider) {
+        private readonly fileSystemProvider: DefinitionFileSystemProvider,
+        private readonly featureConfiguration: IFabricFeatureConfiguration) {
 
         extensionManager.onExtensionsUpdated(() => this.refresh());
+
+        // Refresh tree when feature configurations change
+        this.disposables.push(featureConfiguration.onDidFolderGroupingChange(() => {
+            this.refresh();
+        }));
+        this.disposables.push(featureConfiguration.onDidItemDefinitionsChange(() => {
+            this.refresh();
+        }));
 
         let disposable = workspaceManager.onDidChangePropertyValue((propertyName: string) => {
             if (propertyName === 'allWorkspaces') {
@@ -134,6 +144,7 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
                                 this.localFolderService,
                                 this.artifactManager,
                                 this.fileSystemProvider,
+                                this.featureConfiguration,
                                 shouldExpand,
                                 filteredWorkspaces // Pass filtered workspaces to root node
                             );
@@ -246,7 +257,8 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
         private telemetryService: TelemetryService | null = null,
         private localFolderService: ILocalFolderService,
         private artifactManager: IArtifactManager,
-        private fileSystemProvider: DefinitionFileSystemProvider
+        private fileSystemProvider: DefinitionFileSystemProvider,
+        private featureConfiguration: IFabricFeatureConfiguration
     ) {
         this.dispose();
         RootTreeNodeProvider.disposables.push(
@@ -309,7 +321,17 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
 
     public create(tenant: ITenantSettings): FabricTreeNode {
         const displayStyle = this.storage.settings.displayStyle as DisplayStyle;
-        return new TenantTreeNode(this.context, this.extensionManager, this.telemetryService, this.workspaceManager, tenant, displayStyle, this.localFolderService, this.artifactManager, this.fileSystemProvider, undefined);
+        return new TenantTreeNode(
+            this.context,
+            this.extensionManager,
+            this.telemetryService,
+            this.workspaceManager,
+            tenant,
+            displayStyle,
+            this.localFolderService,
+            this.artifactManager,
+            this.fileSystemProvider,
+            this.featureConfiguration);
     }
 
     public getCurrentDisplayStyle(): DisplayStyle {
