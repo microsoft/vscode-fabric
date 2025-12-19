@@ -176,13 +176,7 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
 
                 // If this is an ArtifactTreeNode, inject additional children from providers
                 if (isArtifactTreeNode(element)) {
-                    const additionalChildren: FabricTreeNode[] = [];
-                    for (const provider of this.childNodeProviders.getProviders()) {
-                        if (provider.canProvideChildren(element.artifact)) {
-                            const providerChildren = await provider.getChildNodes(element.artifact);
-                            additionalChildren.push(...providerChildren);
-                        }
-                    }
+                    const additionalChildren = await this.childNodeProviders.getChildrenForArtifact(element.artifact);
                     nodes = [...additionalChildren, ...nodes];
                 }
             }
@@ -274,12 +268,8 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
         private context: vscode.ExtensionContext,
         private extensionManager: IFabricExtensionManagerInternal,
         private workspaceManager: IWorkspaceManager,
-        private accountProvider: IAccountProvider,
         private telemetryService: TelemetryService | null = null,
-        private localFolderService: ILocalFolderService,
-        private artifactManager: IArtifactManager,
-        private fileSystemProvider: DefinitionFileSystemProvider,
-        private featureConfiguration: IFabricFeatureConfiguration
+        private localFolderService: ILocalFolderService
     ) {
         this.dispose();
         RootTreeNodeProvider.disposables.push(

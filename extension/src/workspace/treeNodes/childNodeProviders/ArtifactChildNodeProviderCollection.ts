@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { IArtifact, IArtifactManager } from '@microsoft/vscode-fabric-api';
+import { IArtifact, IArtifactManager, FabricTreeNode } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
 import { IFabricFeatureConfiguration } from '../../../settings/FabricFeatureConfiguration';
 import { DefinitionFileSystemProvider } from '../../DefinitionFileSystemProvider';
@@ -25,6 +25,11 @@ export interface IArtifactChildNodeProviderCollection {
      * Gets all providers in the collection.
      */
     getProviders(): ReadonlyArray<IArtifactChildNodeProvider>;
+
+    /**
+     * Gets all children from providers that can provide children for the given artifact.
+     */
+    getChildrenForArtifact(artifact: IArtifact): Promise<FabricTreeNode[]>;
 }
 
 export class ArtifactChildNodeProviderCollection implements IArtifactChildNodeProviderCollection {
@@ -49,5 +54,16 @@ export class ArtifactChildNodeProviderCollection implements IArtifactChildNodePr
 
     getProviders(): ReadonlyArray<IArtifactChildNodeProvider> {
         return this.providers;
+    }
+
+    async getChildrenForArtifact(artifact: IArtifact): Promise<FabricTreeNode[]> {
+        const additionalChildren: FabricTreeNode[] = [];
+        for (const provider of this.providers) {
+            if (provider.canProvideChildren(artifact)) {
+                const providerChildren = await provider.getChildNodes(artifact);
+                additionalChildren.push(...providerChildren);
+            }
+        }
+        return additionalChildren;
     }
 }

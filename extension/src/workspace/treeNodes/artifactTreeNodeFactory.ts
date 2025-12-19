@@ -8,17 +8,6 @@ import { ILocalFolderService } from '../../LocalFolderService';
 import { IArtifactChildNodeProviderCollection } from './childNodeProviders/ArtifactChildNodeProviderCollection';
 
 /**
- * Checks if any child node providers will provide children for this artifact.
- * This is used to determine if the node should be collapsible.
- */
-function willHaveChildNodes(
-    artifact: IArtifact,
-    childNodeProviders?: IArtifactChildNodeProviderCollection
-): boolean {
-    return childNodeProviders?.canProvideChildren(artifact) ?? false;
-}
-
-/**
  * Creates an artifact tree node with proper icon and context
  */
 export async function createArtifactTreeNode(
@@ -45,8 +34,7 @@ export async function createArtifactTreeNode(
     setContextValue(artifactNode, artifactNode.allowedDesignActions);
 
     // Check if child node providers will add children, and update collapsible state if needed
-    const willHaveInjectedChildren = willHaveChildNodes(artifact, childNodeProviders);
-    if (willHaveInjectedChildren) {
+    if (childNodeProviders?.canProvideChildren(artifact)) {
         // If we're injecting children, ensure the node is collapsible
         // Override None or undefined, but respect Expanded if satellite set it
         if (artifactNode.collapsibleState !== vscode.TreeItemCollapsibleState.Expanded) {

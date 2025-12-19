@@ -15,7 +15,6 @@ import {
     ArtifactTreeNode,
     FabricTreeNode,
     IArtifact,
-    IArtifactManager,
     IFabricTreeNodeProvider,
     IWorkspaceManager,
     IWorkspace,
@@ -25,8 +24,6 @@ import { TelemetryService } from '@microsoft/vscode-fabric-util';
 import { ITenantSettings, IAccountProvider } from '../../../src/authentication';
 import { ObservableMap } from '../../../src/collections/ObservableMap';
 import { ILocalFolderService } from '../../../src/LocalFolderService';
-import { IFabricFeatureConfiguration } from '../../../src/settings/FabricFeatureConfiguration';
-import { DefinitionFileSystemProvider } from '../../../src/workspace/DefinitionFileSystemProvider';
 import { IArtifactChildNodeProviderCollection } from '../../../src/workspace/treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
 
 describe('RootTreeNodeProvider', () => {
@@ -40,9 +37,6 @@ describe('RootTreeNodeProvider', () => {
     let settingsMock: Mock<IFabricExtensionSettings>;
     let contextMock: Mock<vscode.ExtensionContext>;
     let localFolderServiceMock: Mock<ILocalFolderService>;
-    let artifactManagerMock: Mock<IArtifactManager>;
-    let fileSystemProviderMock: Mock<DefinitionFileSystemProvider>;
-    let featureConfigurationMock: Mock<IFabricFeatureConfiguration>;
     let childNodeProvidersMock: Mock<IArtifactChildNodeProviderCollection>;
 
     beforeEach(() => {
@@ -56,9 +50,6 @@ describe('RootTreeNodeProvider', () => {
         localFolderServiceMock = new Mock<ILocalFolderService>();
         settingsMock = new Mock<IFabricExtensionSettings>();
         contextMock = new Mock<vscode.ExtensionContext>();
-        artifactManagerMock = new Mock<IArtifactManager>();
-        fileSystemProviderMock = new Mock<DefinitionFileSystemProvider>();
-        featureConfigurationMock = new Mock<IFabricFeatureConfiguration>();
         childNodeProvidersMock = new Mock<IArtifactChildNodeProviderCollection>();
 
         // Set up workspace mock with objectId
@@ -73,7 +64,6 @@ describe('RootTreeNodeProvider', () => {
         workspaceManagerMock.setup(instance => instance.fabricWorkspaceContext).returns('fabricWorkspaceContext');
         workspaceManagerMock.setup(instance => instance.getFoldersInWorkspace(It.IsAny())).returns(Promise.resolve([]));
 
-        featureConfigurationMock.setup(instance => instance.isItemDefinitionsEnabled()).returns(true);
         childNodeProvidersMock.setup(instance => instance.canProvideChildren(It.IsAny())).returns(false);
     });
 
@@ -306,12 +296,8 @@ describe('RootTreeNodeProvider', () => {
             contextMock.object(),
             extensionManagerMock.object(),
             workspaceManagerMock.object(),
-            accountProviderMock.object(),
             telemetryServiceMock.object(),
-            localFolderServiceMock.object(),
-            artifactManagerMock.object(),
-            fileSystemProviderMock.object(),
-            featureConfigurationMock.object()
+            localFolderServiceMock.object()
         );
         await instance.enableCommands();
         return instance;

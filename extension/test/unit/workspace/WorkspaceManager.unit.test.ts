@@ -8,9 +8,9 @@ import * as sinon from 'sinon';
 import { WorkspaceManager } from '../../../src/workspace/WorkspaceManager';
 import { IFabricExtensionsSettingStorage } from '../../../src/settings/definitions';
 import { LocalFolderManager } from '../../../src/LocalFolderManager';
-import { IFabricEnvironmentProvider, ILogger, FabricError, FakeConfigurationProvider } from '@microsoft/vscode-fabric-util';
+import { IFabricEnvironmentProvider, ILogger, FabricError } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../../../src/authentication/interfaces';
-import { IFabricFeatureConfiguration, FabricFeatureConfiguration } from '../../../src/settings/FabricFeatureConfiguration';
+import { IFabricFeatureConfiguration } from '../../../src/settings/FabricFeatureConfiguration';
 import {
     IApiClientResponse,
     IApiClientRequestOptions,
