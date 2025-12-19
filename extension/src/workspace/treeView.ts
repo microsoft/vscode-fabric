@@ -3,10 +3,11 @@
 
 import * as vscode from 'vscode';
 
-import { IWorkspaceManager, IWorkspace, FabricTreeNode, ArtifactTreeNode } from '@microsoft/vscode-fabric-api';
+import { IWorkspaceManager, IWorkspace, FabricTreeNode, ArtifactTreeNode, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { ILogger, TelemetryActivity, TelemetryService, withErrorHandling } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
+import { IFabricFeatureConfiguration } from '../settings/FabricFeatureConfiguration';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { ListViewWorkspaceTreeNode } from './treeNodes/ListViewWorkspaceTreeNode';
 import { WorkspaceTreeNode } from './treeNodes/WorkspaceTreeNode';
@@ -20,6 +21,16 @@ import { IAccountProvider, ITenantSettings } from '../authentication';
 import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { makeShouldExpand } from './viewExpansionState';
 import { ILocalFolderService } from '../LocalFolderService';
+import { DefinitionFileSystemProvider } from './DefinitionFileSystemProvider';
+import { IArtifactChildNodeProviderCollection } from './treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
+
+/**
+ * Type guard to check if a FabricTreeNode is an ArtifactTreeNode.
+ * Uses duck typing to avoid instanceof issues across module boundaries.
+ */
+function isArtifactTreeNode(element: FabricTreeNode): element is ArtifactTreeNode {
+    return 'artifact' in element && typeof (element as any).artifact === 'object';
+}
 
 /**
  * Provides tree data for a Fabric workspace
@@ -38,9 +49,21 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
         private readonly workspaceFilterManager: IWorkspaceFilterManager,
         private readonly storage: IFabricExtensionsSettingStorage,
         private readonly fabricEnvironmentProvider: IFabricEnvironmentProvider,
-        private readonly localFolderService: ILocalFolderService) {
+        private readonly localFolderService: ILocalFolderService,
+        private readonly artifactManager: IArtifactManager,
+        private readonly fileSystemProvider: DefinitionFileSystemProvider,
+        private readonly featureConfiguration: IFabricFeatureConfiguration,
+        private readonly childNodeProviders: IArtifactChildNodeProviderCollection) {
 
         extensionManager.onExtensionsUpdated(() => this.refresh());
+
+        // Refresh tree when feature configurations change
+        this.disposables.push(featureConfiguration.onDidFolderGroupingChange(() => {
+            this.refresh();
+        }));
+        this.disposables.push(featureConfiguration.onDidItemDefinitionsChange(() => {
+            this.refresh();
+        }));
 
         let disposable = workspaceManager.onDidChangePropertyValue((propertyName: string) => {
             if (propertyName === 'allWorkspaces') {
@@ -129,6 +152,7 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
                                 this.accountProvider,
                                 currentDisplayStyle,
                                 this.localFolderService,
+                                this.childNodeProviders,
                                 shouldExpand,
                                 filteredWorkspaces // Pass filtered workspaces to root node
                             );
@@ -147,7 +171,20 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
                 }
             }
             else {
+                // Get children from the element
                 nodes = await element.getChildNodes();
+
+                // If this is an ArtifactTreeNode, inject additional children from providers
+                if (isArtifactTreeNode(element)) {
+                    const additionalChildren: FabricTreeNode[] = [];
+                    for (const provider of this.childNodeProviders.getProviders()) {
+                        if (provider.canProvideChildren(element.artifact)) {
+                            const providerChildren = await provider.getChildNodes(element.artifact);
+                            additionalChildren.push(...providerChildren);
+                        }
+                    }
+                    nodes = [...additionalChildren, ...nodes];
+                }
             }
         }))();
         return nodes;
@@ -217,6 +254,13 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
             this.workspaceManager.treeView.title = vscode.l10n.t('Fabric Workspaces (remote)');
         }
     }
+
+    /**
+     * Gets the file system provider for registering with VS Code
+     */
+    public getFileSystemProvider(): DefinitionFileSystemProvider {
+        return this.fileSystemProvider;
+    }
 }
 
 const fabricViewDisplayStyleContext = 'vscode-fabric.workspaceViewDisplayStyle';
@@ -232,7 +276,10 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
         private workspaceManager: IWorkspaceManager,
         private accountProvider: IAccountProvider,
         private telemetryService: TelemetryService | null = null,
-        private localFolderService: ILocalFolderService
+        private localFolderService: ILocalFolderService,
+        private artifactManager: IArtifactManager,
+        private fileSystemProvider: DefinitionFileSystemProvider,
+        private featureConfiguration: IFabricFeatureConfiguration
     ) {
         this.dispose();
         RootTreeNodeProvider.disposables.push(
@@ -293,9 +340,17 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
         RootTreeNodeProvider.disposables.push(this.onDisplayStyleChangedEmitter);
     }
 
-    public create(tenant: ITenantSettings): FabricTreeNode {
+    public create(tenant: ITenantSettings, childNodeProviders: IArtifactChildNodeProviderCollection): FabricTreeNode {
         const displayStyle = this.storage.settings.displayStyle as DisplayStyle;
-        return new TenantTreeNode(this.context, this.extensionManager, this.telemetryService, this.workspaceManager, tenant, displayStyle, this.localFolderService, undefined);
+        return new TenantTreeNode(
+            this.context,
+            this.extensionManager,
+            this.telemetryService,
+            this.workspaceManager,
+            tenant,
+            displayStyle,
+            this.localFolderService,
+            childNodeProviders);
     }
 
     public getCurrentDisplayStyle(): DisplayStyle {

@@ -3,10 +3,11 @@
 
 import * as vscode from 'vscode';
 import { getDisplayNamePlural, getArtifactDefaultIconPath, getArtifactIconPath } from '../../metadata/fabricItemUtilities';
-import { IArtifact, FabricTreeNode, IFabricTreeNodeProvider, ArtifactTreeNode  } from '@microsoft/vscode-fabric-api';
+import { IArtifact, FabricTreeNode, IFabricTreeNodeProvider, ArtifactTreeNode, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
 import { createArtifactTreeNode } from './artifactTreeNodeFactory';
 import { ILocalFolderService } from '../../LocalFolderService';
+import { IArtifactChildNodeProviderCollection } from './childNodeProviders/ArtifactChildNodeProviderCollection';
 
 export class ArtifactTypeTreeNode extends FabricTreeNode {
     private _children = new Map<string, IArtifact>();
@@ -23,6 +24,7 @@ export class ArtifactTypeTreeNode extends FabricTreeNode {
         public readonly workspaceId: string,
         private tenantId: string | undefined,
         private localFolderService: ILocalFolderService,
+        private childNodeProviders: IArtifactChildNodeProviderCollection,
         private shouldExpand?: (id: string | undefined) => boolean
     ) {
         super(context, getDisplayNamePlural(artifactType) ?? artifactType, vscode.TreeItemCollapsibleState.Collapsed);
@@ -48,7 +50,7 @@ export class ArtifactTypeTreeNode extends FabricTreeNode {
 
         const sortedArtifacts = [...this._children.values()].sort((a, b) => a.displayName.localeCompare(b.displayName));
         for (const artifact of sortedArtifacts) {
-            const artifactNode: ArtifactTreeNode = await createArtifactTreeNode(this.context, artifact, this.extensionManager, this.treeNodeProvider, this.localFolderService);
+            const artifactNode: ArtifactTreeNode = await createArtifactTreeNode(this.context, artifact, this.treeNodeProvider, this.localFolderService, this.childNodeProviders);
             childNodes.push(artifactNode);
         }
 

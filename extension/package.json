@@ -543,6 +543,12 @@
           "default": false,
           "description": "%extension.configuration.ShowFolders.description%",
           "tags": ["preview"]
+        },
+        "Fabric.ShowItemDefinitions": {
+          "type": "boolean",
+          "default": false,
+          "description": "%extension.configuration.ShowItemDefinitions.description%",
+          "tags": ["preview"]
         }
       }
     },
