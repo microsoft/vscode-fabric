@@ -58,10 +58,6 @@ export function registerWorkspaceCommands(
     registerCommand(commandNames.clearWorkspaceFilter, async () => {
         await workspaceFilterManager.clearFilters();
     }, context);
-
-    registerCommand('vscode-fabric.openDefinitionFile', async (node: DefinitionFileTreeNode) => {
-        await openDefinitionFile(node, logger);
-    }, context);
 }
 
 /**
@@ -185,15 +181,4 @@ async function signUpForFabric(
         logger.error(`Error occurred in signUpForFabric: ${errorMessage}`);
         void vscode.window.showErrorMessage(vscode.l10n.t('Failed to open Fabric signup pagee'));
     }
-}
-
-/**
- * Opens a definition file in an editable text editor using the virtual file system
- * @param node The definition file tree node containing the file content
- * @param logger The logger for error reporting
- */
-async function openDefinitionFile(node: DefinitionFileTreeNode, logger: ILogger): Promise<void> {
-    // This function is now just a placeholder - the actual opening is handled
-    // by the DefinitionFileTreeNode which stores the URI and uses it in the command
-    // The file system provider handles the actual file operations
 }
