@@ -8,6 +8,7 @@ import { IFabricExtensionSettings, IFabricWorkspaceSettings, fabricWorkspaceSett
 import { FabricExtensionsSettingStorage } from '../../../src/settings/FabricExtensionsSettingStorage';
 import { IConfigurationProvider, FABRIC_ENVIRONMENT_PROD } from '@microsoft/vscode-fabric-util';
 import { MockFabricEnvironmentProvider } from '../general/serviceCollection';
+import { MockConfigurationProvider } from '../../utilities/MockConfigurationProvider';
 
 const settingsFabricWorkspace = 'settingsFabricWorkspace';
 const defaultFabricEnvironment = 'MOCK';
@@ -41,17 +42,6 @@ function createWorkspaceFolder(workspaceId: string, fabricEnvironment?: string):
         tenantId: undefined,
         fabricEnv: fabricEnvironment ?? defaultFabricEnvironment,
     };
-}
-
-class MockConfigurationProvider implements IConfigurationProvider{
-    get<T>(key: string, defaultValue: T): T {
-        return defaultValue;
-    }
-    update<T>(key: string, value: T): Thenable<void> {
-        throw new Error('Method not implemented.');
-    }
-    private onDidConfigurationChangeEmitter = new vscode.EventEmitter<string>();
-    readonly onDidConfigurationChange = this.onDidConfigurationChangeEmitter.event;
 }
 
 describe('FabricExtensionsSettingStorage unit tests', () => {
