@@ -5,16 +5,16 @@ import { Mock, It, Times } from 'moq.ts';
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
-import { openNotebookInSynapse } from '../../../../src/internalSatellites/notebook/openNotebookInSynapse';
+import { openNotebookInSynapse, getExternalUri } from '../../../../src/internalSatellites/notebook/openNotebookInSynapse';
+import { IArtifact } from '@microsoft/vscode-fabric-api';
 import { TelemetryService, TelemetryEvent } from '@microsoft/vscode-fabric-util';
-import { NotebookTreeNode } from '../../../../src/internalSatellites/notebook/NotebookTreeNode';
 
 describe('openNotebookInSynapse', function () {
     let telemetryServiceMock: Mock<TelemetryService>;
-    let treeNodeMock: Mock<NotebookTreeNode>;
     let openExternalStub: sinon.SinonStub;
     let eventSendStub: sinon.SinonStub;
     let sandbox: sinon.SinonSandbox;
+    let artifact: IArtifact;
 
     before(function () {
         // No global setup needed
@@ -23,18 +23,14 @@ describe('openNotebookInSynapse', function () {
     beforeEach(function () {
         sandbox = sinon.createSandbox();
         telemetryServiceMock = new Mock<TelemetryService>();
-        treeNodeMock = new Mock<NotebookTreeNode>();
 
-        // Setup treeNode.artifact
-        treeNodeMock.setup(x => x.artifact).returns({
+        // Setup artifact
+        artifact = {
             id: 'notebook-123',
             type: 'Notebook',
             displayName: 'TestNotebook',
             workspaceId: 'ws-123',
-        } as any);
-
-        // Setup getExternalUri
-        treeNodeMock.setup(x => x.getExternalUri()).returns(Promise.resolve('https://synapse.uri'));
+        } as IArtifact;
 
         // Stub openExternal
         openExternalStub = sandbox.stub(vscode.env, 'openExternal').resolves(true);
@@ -56,7 +52,7 @@ describe('openNotebookInSynapse', function () {
         // Act
         await openNotebookInSynapse(
             telemetryServiceMock.object(),
-            treeNodeMock.object()
+            artifact
         );
 
         // Assert
@@ -64,4 +60,15 @@ describe('openNotebookInSynapse', function () {
         assert(openExternalStub.calledWith(sinon.match.instanceOf(vscode.Uri)), 'openExternal should be called with a vscode.Uri');
         assert(eventSendStub.calledOnce, 'TelemetryEvent.sendTelemetry should be called once');
     });
+
+    it('getExternalUri should return the correct URI for the notebook', async function () {
+        const expectedUri = `${vscode.env.uriScheme}://SynapseVSCode.synapse?workspaceId=ws-123&artifactId=notebook-123`;
+
+        // Act
+        const result = getExternalUri(artifact);
+
+        // Assert
+        assert.equal(result, expectedUri, 'Should return the correct external URI');
+    });
+
 });
