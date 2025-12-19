@@ -10,7 +10,6 @@ import { IWorkspaceManager, IArtifactManager, IFabricApiClient } from '@microsof
 import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IWorkspaceFilterManager } from '../../../src/workspace/WorkspaceFilterManager';
 import { IFabricExtensionManagerInternal } from '../../../src/apis/internal/fabricExtensionInternal';
-import { DefinitionFileSystemProvider } from '../../../src/workspace/DefinitionFileSystemProvider';
 
 describe('InternalSatelliteManager', function () {
     let contextMock: Mock<vscode.ExtensionContext>;
@@ -21,7 +20,6 @@ describe('InternalSatelliteManager', function () {
     let loggerMock: Mock<ILogger>;
     let extensionManagerMock: Mock<IFabricExtensionManagerInternal>;
     let workspaceFilterManagerMock: Mock<IWorkspaceFilterManager>;
-    let fileSystemProviderMock: Mock<DefinitionFileSystemProvider>;
     let serviceCollection: any;
     let registerCommandStub: sinon.SinonStub;
 
@@ -38,7 +36,6 @@ describe('InternalSatelliteManager', function () {
         loggerMock = new Mock<ILogger>();
         extensionManagerMock = new Mock<IFabricExtensionManagerInternal>();
         workspaceFilterManagerMock = new Mock<IWorkspaceFilterManager>();
-        fileSystemProviderMock = new Mock<DefinitionFileSystemProvider>();
         serviceCollection = {
             workspaceManager: workspaceManagerMock.object(),
             artifactManager: artifactManagerMock.object(),
@@ -67,8 +64,7 @@ describe('InternalSatelliteManager', function () {
             telemetryServiceMock.object(),
             loggerMock.object(),
             extensionManagerMock.object(),
-            workspaceFilterManagerMock.object(),
-            fileSystemProviderMock.object()
+            workspaceFilterManagerMock.object()
         );
         // Assert
         assert.ok(manager.extensionClasses.length >= 2, 'Should have at least two extension classes');
@@ -83,8 +79,7 @@ describe('InternalSatelliteManager', function () {
             telemetryServiceMock.object(),
             loggerMock.object(),
             extensionManagerMock.object(),
-            workspaceFilterManagerMock.object(),
-            fileSystemProviderMock.object()
+            workspaceFilterManagerMock.object()
         );
         // Act
         manager.activateAll();
@@ -103,8 +98,7 @@ describe('InternalSatelliteManager', function () {
             telemetryServiceMock.object(),
             loggerMock.object(),
             extensionManagerMock.object(),
-            workspaceFilterManagerMock.object(),
-            fileSystemProviderMock.object()
+            workspaceFilterManagerMock.object()
         );
         manager.activateAll();
         // Act & Assert

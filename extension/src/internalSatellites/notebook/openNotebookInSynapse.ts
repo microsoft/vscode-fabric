@@ -11,7 +11,7 @@ type TelemetryEventNames = {
     'item/open/synapse': { properties: ArtifactPropertyNames; measurements: never }
 };
 
-function getExternalUri(artifact: IArtifact): string {
+export function getExternalUri(artifact: IArtifact): string {
     const targetUrl = `${vscode.env.uriScheme}://SynapseVSCode.synapse?workspaceId=${artifact.workspaceId}&artifactId=${artifact.id}`;
     return targetUrl;
 }

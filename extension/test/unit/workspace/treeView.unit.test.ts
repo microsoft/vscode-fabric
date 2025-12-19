@@ -202,6 +202,8 @@ describe('RootTreeNodeProvider', () => {
         const workspaceNode = childNodes[0] as ListViewWorkspaceTreeNode;
         const artifactNodes = await workspaceNode.getChildNodes();
 
+        assert.equal(artifactNodes.length, 3, 'Workspace should have three artifact child nodes');
+
         treeNodeProviderMock.verify(instance => instance.createArtifactTreeNode(item2B), Times.Once());
         treeNodeProviderMock.verify(instance => instance.createArtifactTreeNode(item2A), Times.Once());
         treeNodeProviderMock.verify(instance => instance.createArtifactTreeNode(item1C), Times.Never());

@@ -45,7 +45,7 @@ export async function createArtifactTreeNode(
     let satelliteAdapter: TreeNodeProviderChildNodeAdapter | undefined;
     if (treeNodeProvider) {
         // If a satellite provides a tree node provider, wrap it as a child node provider
-        satelliteAdapter = new TreeNodeProviderChildNodeAdapter(context, treeNodeProvider);
+        satelliteAdapter = new TreeNodeProviderChildNodeAdapter(treeNodeProvider, artifact);
         childNodeProviders.push(satelliteAdapter);
     }
     // Create the composable artifact tree node
@@ -53,20 +53,18 @@ export async function createArtifactTreeNode(
 
     // If a satellite provided a tree node, apply its customizations (icon, context values, etc.)
     if (satelliteAdapter) {
-        const satelliteNode = satelliteAdapter.getCreatedNode();
-        if (satelliteNode) {
-            // Apply icon from satellite if it provided one
-            if (satelliteNode.iconPath) {
-                artifactNode.iconPath = satelliteNode.iconPath;
-            }
-            // Apply context value customizations from satellite
-            if (satelliteNode.contextValue && satelliteNode.contextValue !== artifactNode.contextValue) {
-                artifactNode.contextValue = satelliteNode.contextValue;
-            }
-            // Apply allowed design actions from satellite
-            if ('allowedDesignActions' in satelliteNode) {
-                artifactNode.allowedDesignActions = (satelliteNode as any).allowedDesignActions;
-            }
+        const satelliteNode = await satelliteAdapter.getSatelliteNode();
+        // Apply icon from satellite if it provided one
+        if (satelliteNode.iconPath) {
+            artifactNode.iconPath = satelliteNode.iconPath;
+        }
+        // Apply context value customizations from satellite
+        if (satelliteNode.contextValue && satelliteNode.contextValue !== artifactNode.contextValue) {
+            artifactNode.contextValue = satelliteNode.contextValue;
+        }
+        // Apply allowed design actions from satellite
+        if ('allowedDesignActions' in satelliteNode) {
+            artifactNode.allowedDesignActions = (satelliteNode as any).allowedDesignActions;
         }
     }
 
