@@ -4,12 +4,12 @@
 import * as vscode from 'vscode';
 import { FabricTreeNode, IArtifact, IArtifactManager, IItemDefinition, PayloadType } from '@microsoft/vscode-fabric-api';
 import { IArtifactChildNodeProvider } from './IArtifactChildNodeProvider';
-import { DefinitionFileTreeNode } from './DefinitionFileTreeNode';
-import { DefinitionFolderTreeNode } from './DefinitionFolderTreeNode';
-import { DefinitionRootTreeNode } from './DefinitionRootTreeNode';
-import { DefinitionFileSystemProvider } from '../DefinitionFileSystemProvider';
-import { getSupportsArtifactWithDefinition } from '../../metadata/fabricItemUtilities';
-import { IFabricFeatureConfiguration } from '../../settings/FabricFeatureConfiguration';
+import { DefinitionFileTreeNode } from '../DefinitionFileTreeNode';
+import { DefinitionFolderTreeNode } from '../DefinitionFolderTreeNode';
+import { DefinitionRootTreeNode } from '../DefinitionRootTreeNode';
+import { DefinitionFileSystemProvider } from '../../DefinitionFileSystemProvider';
+import { getSupportsArtifactWithDefinition } from '../../../metadata/fabricItemUtilities';
+import { IFabricFeatureConfiguration } from '../../../settings/FabricFeatureConfiguration';
 
 /**
  * Provides definition file nodes as children when the artifact supports definitions
@@ -32,13 +32,13 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
         try {
             // Get the item definition from the artifact manager
             const response = await this.artifactManager.getArtifactDefinition(artifact);
-            
+
             if (response.parsedBody?.definition) {
                 const definition: IItemDefinition = response.parsedBody.definition;
-                
+
                 // Build a hierarchical tree structure from the flat list of parts
                 const rootNodes = this.buildTreeStructure(artifact, definition.parts);
-                
+
                 // Wrap all definition files/folders under a single root node
                 if (rootNodes.length > 0) {
                     const definitionRoot = new DefinitionRootTreeNode(this.context);
@@ -70,7 +70,7 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
             // Normalize path separators and split into segments
             const normalizedPath = part.path.replace(/\\/g, '/');
             const pathSegments = normalizedPath.split('/').filter(s => s.length > 0);
-            
+
             if (pathSegments.length === 0) {
                 continue;
             }
@@ -117,7 +117,7 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
 
                     // Check if folder already exists
                     let folder = folderMap.get(currentPath);
-                    
+
                     if (!folder) {
                         // Create new folder node
                         folder = new DefinitionFolderTreeNode(
@@ -150,14 +150,14 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
         const sorted = rootNodes.sort((a, b) => {
             const aIsFolder = a instanceof DefinitionFolderTreeNode;
             const bIsFolder = b instanceof DefinitionFolderTreeNode;
-            
+
             if (aIsFolder && !bIsFolder) {
                 return -1;
             }
             if (!aIsFolder && bIsFolder) {
                 return 1;
             }
-            
+
             // Both are same type, sort alphabetically by label
             return (a.label as string).localeCompare(b.label as string);
         });

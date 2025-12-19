@@ -4,9 +4,9 @@
 import * as vscode from 'vscode';
 import { FabricTreeNode, IArtifact } from '@microsoft/vscode-fabric-api';
 import { IArtifactChildNodeProvider } from './IArtifactChildNodeProvider';
-import { InstallExtensionTreeNode } from './InstallExtensionTreeNode';
-import { getArtifactExtensionId } from '../../metadata/fabricItemUtilities';
-import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
+import { InstallExtensionTreeNode } from '../InstallExtensionTreeNode';
+import { getArtifactExtensionId } from '../../../metadata/fabricItemUtilities';
+import { IFabricExtensionManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
 
 /**
  * Provides an InstallExtensionTreeNode child when the artifact's extension is not installed.

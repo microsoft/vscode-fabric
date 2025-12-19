@@ -3,7 +3,7 @@
 
 import * as vscode from 'vscode';
 import { IArtifact, ArtifactTreeNode, FabricTreeNode } from '@microsoft/vscode-fabric-api';
-import { IArtifactChildNodeProvider } from './IArtifactChildNodeProvider';
+import { IArtifactChildNodeProvider } from './childNodeProviders/IArtifactChildNodeProvider';
 
 /**
  * An artifact tree node that composes child nodes from multiple providers.
