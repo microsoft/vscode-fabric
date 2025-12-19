@@ -4,14 +4,19 @@
 import * as vscode from 'vscode';
 import { getArtifactIconPath, getArtifactDefaultIconPath, getSupportsArtifactWithDefinition } from '../../metadata/fabricItemUtilities';
 import { IArtifact, ArtifactDesignerActions, ArtifactTreeNode, IFabricTreeNodeProvider, IArtifactManager } from '@microsoft/vscode-fabric-api';
-import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
 import { ILocalFolderService } from '../../LocalFolderService';
-import { DefinitionFileSystemProvider } from '../DefinitionFileSystemProvider';
-import { IFabricFeatureConfiguration } from '../../settings/FabricFeatureConfiguration';
-import { ComposableArtifactTreeNode } from './ComposableArtifactTreeNode';
-import { MissingExtensionChildNodeProvider } from './childNodeProviders/MissingExtensionChildNodeProvider';
-import { DefinitionFilesChildNodeProvider } from './childNodeProviders/DefinitionFilesChildNodeProvider';
-import { TreeNodeProviderChildNodeAdapter } from './childNodeProviders/TreeNodeProviderChildNodeAdapter';
+import { IArtifactChildNodeProviderCollection } from './childNodeProviders/ArtifactChildNodeProviderCollection';
+
+/**
+ * Checks if any child node providers will provide children for this artifact.
+ * This is used to determine if the node should be collapsible.
+ */
+function willHaveChildNodes(
+    artifact: IArtifact,
+    childNodeProviders?: IArtifactChildNodeProviderCollection
+): boolean {
+    return childNodeProviders?.canProvideChildren(artifact) ?? false;
+}
 
 /**
  * Creates an artifact tree node with proper icon and context
@@ -19,59 +24,35 @@ import { TreeNodeProviderChildNodeAdapter } from './childNodeProviders/TreeNodeP
 export async function createArtifactTreeNode(
     context: vscode.ExtensionContext,
     artifact: IArtifact,
-    extensionManager: IFabricExtensionManagerInternal,
     treeNodeProvider?: IFabricTreeNodeProvider,
     localFolderService?: ILocalFolderService,
-    artifactManager?: IArtifactManager,
-    fileSystemProvider?: DefinitionFileSystemProvider,
-    featureConfiguration?: IFabricFeatureConfiguration
+    childNodeProviders?: IArtifactChildNodeProviderCollection
 ): Promise<ArtifactTreeNode> {
     let artifactNode: ArtifactTreeNode;
-    const childNodeProviders = [];
 
-    // Add missing extension provider (shows install prompt if extension not available)
-    childNodeProviders.push(new MissingExtensionChildNodeProvider(context, extensionManager));
-
-    // Add definition files provider if services are available
-    if (artifactManager && fileSystemProvider && featureConfiguration) {
-        childNodeProviders.push(new DefinitionFilesChildNodeProvider(
-            context,
-            artifactManager,
-            fileSystemProvider,
-            featureConfiguration
-        ));
-    }
-
-    let satelliteAdapter: TreeNodeProviderChildNodeAdapter | undefined;
+    // If a satellite provides a tree node provider, use it directly
     if (treeNodeProvider) {
-        // If a satellite provides a tree node provider, wrap it as a child node provider
-        satelliteAdapter = new TreeNodeProviderChildNodeAdapter(treeNodeProvider, artifact);
-        childNodeProviders.push(satelliteAdapter);
+        artifactNode = await treeNodeProvider.createArtifactTreeNode(artifact);
     }
-    // Create the composable artifact tree node
-    artifactNode = new ComposableArtifactTreeNode(context, artifact, childNodeProviders);
-
-    // If a satellite provided a tree node, apply its customizations (icon, context values, etc.)
-    if (satelliteAdapter) {
-        const satelliteNode = await satelliteAdapter.getSatelliteNode();
-        // Apply icon from satellite if it provided one
-        if (satelliteNode.iconPath) {
-            artifactNode.iconPath = satelliteNode.iconPath;
-        }
-        // Apply context value customizations from satellite
-        if (satelliteNode.contextValue && satelliteNode.contextValue !== artifactNode.contextValue) {
-            artifactNode.contextValue = satelliteNode.contextValue;
-        }
-        // Apply allowed design actions from satellite
-        if ('allowedDesignActions' in satelliteNode) {
-            artifactNode.allowedDesignActions = (satelliteNode as any).allowedDesignActions;
-        }
+    else {
+        // No satellite provider, create a default ArtifactTreeNode
+        artifactNode = new ArtifactTreeNode(context, artifact);
     }
 
     if (!artifactNode.iconPath) {
         artifactNode.iconPath = getArtifactIconPath(context.extensionUri, artifact) ?? getArtifactDefaultIconPath(context.extensionUri);
     }
     setContextValue(artifactNode, artifactNode.allowedDesignActions);
+
+    // Check if child node providers will add children, and update collapsible state if needed
+    const willHaveInjectedChildren = willHaveChildNodes(artifact, childNodeProviders);
+    if (willHaveInjectedChildren) {
+        // If we're injecting children, ensure the node is collapsible
+        // Override None or undefined, but respect Expanded if satellite set it
+        if (artifactNode.collapsibleState !== vscode.TreeItemCollapsibleState.Expanded) {
+            artifactNode.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+        }
+    }
 
     // Set tooltip if artifact has a local folder associated with it
     if (localFolderService) {

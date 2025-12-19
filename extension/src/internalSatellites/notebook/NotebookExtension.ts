@@ -26,9 +26,13 @@ export class NotebookExtension implements IFabricExtension, vscode.Disposable{
         extensionManager: IFabricExtensionManager
     ) {
         const serviceCollection = extensionManager.addExtension(this);
+
+        const workspaceManager = serviceCollection.workspaceManager;
         const artifactManager = serviceCollection.artifactManager;
 
         registerNotebookCommands(
+            this.context,
+            workspaceManager,
             artifactManager,
             this.telemetryService
         );

@@ -6,13 +6,12 @@ import * as vscode from 'vscode';
 import { FabricTreeNode, IWorkspaceManager, IWorkspace, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
-import { IFabricFeatureConfiguration } from '../../settings/FabricFeatureConfiguration';
 import { ListViewWorkspaceTreeNode } from './ListViewWorkspaceTreeNode';
 import { TreeViewWorkspaceTreeNode } from './TreeViewWorkspaceTreeNode';
 import { DisplayStyle } from '../definitions';
 import { ITenantSettings } from '../../authentication';
 import { ILocalFolderService } from '../../LocalFolderService';
-import { DefinitionFileSystemProvider } from '../DefinitionFileSystemProvider';
+import { IArtifactChildNodeProviderCollection } from './childNodeProviders/ArtifactChildNodeProviderCollection';
 
 export class TenantTreeNode extends FabricTreeNode {
     constructor(
@@ -23,9 +22,7 @@ export class TenantTreeNode extends FabricTreeNode {
         private tenant: ITenantSettings,
         private displayStyle: DisplayStyle,
         private localFolderService: ILocalFolderService,
-        private artifactManager: IArtifactManager,
-        private fileSystemProvider: DefinitionFileSystemProvider,
-        private featureConfiguration: IFabricFeatureConfiguration,
+        private childNodeProviders: IArtifactChildNodeProviderCollection,
         private shouldExpand?: (id: string | undefined) => boolean,
         private filteredWorkspaces?: IWorkspace[]
     ) {
@@ -55,9 +52,7 @@ export class TenantTreeNode extends FabricTreeNode {
                         this.workspaceManager,
                         this.tenant.tenantId,
                         this.localFolderService,
-                        this.artifactManager,
-                        this.fileSystemProvider,
-                        this.featureConfiguration,
+                        this.childNodeProviders,
                         this.shouldExpand
                     )
                     : new TreeViewWorkspaceTreeNode(
@@ -68,9 +63,7 @@ export class TenantTreeNode extends FabricTreeNode {
                         this.workspaceManager,
                         this.tenant.tenantId,
                         this.localFolderService,
-                        this.artifactManager,
-                        this.fileSystemProvider,
-                        this.featureConfiguration,
+                        this.childNodeProviders,
                         this.shouldExpand
                     )
             );

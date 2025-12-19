@@ -27,6 +27,7 @@ import { ObservableMap } from '../../../src/collections/ObservableMap';
 import { ILocalFolderService } from '../../../src/LocalFolderService';
 import { IFabricFeatureConfiguration } from '../../../src/settings/FabricFeatureConfiguration';
 import { DefinitionFileSystemProvider } from '../../../src/workspace/DefinitionFileSystemProvider';
+import { IArtifactChildNodeProviderCollection } from '../../../src/workspace/treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
 
 describe('RootTreeNodeProvider', () => {
     let storageMock: Mock<IFabricExtensionsSettingStorage>;
@@ -42,6 +43,7 @@ describe('RootTreeNodeProvider', () => {
     let artifactManagerMock: Mock<IArtifactManager>;
     let fileSystemProviderMock: Mock<DefinitionFileSystemProvider>;
     let featureConfigurationMock: Mock<IFabricFeatureConfiguration>;
+    let childNodeProvidersMock: Mock<IArtifactChildNodeProviderCollection>;
 
     beforeEach(() => {
         storageMock = new Mock<IFabricExtensionsSettingStorage>();
@@ -57,6 +59,7 @@ describe('RootTreeNodeProvider', () => {
         artifactManagerMock = new Mock<IArtifactManager>();
         fileSystemProviderMock = new Mock<DefinitionFileSystemProvider>();
         featureConfigurationMock = new Mock<IFabricFeatureConfiguration>();
+        childNodeProvidersMock = new Mock<IArtifactChildNodeProviderCollection>();
 
         // Set up workspace mock with objectId
         workspaceMock.setup(instance => instance.objectId).returns('test-workspace-id');
@@ -71,6 +74,7 @@ describe('RootTreeNodeProvider', () => {
         workspaceManagerMock.setup(instance => instance.getFoldersInWorkspace(It.IsAny())).returns(Promise.resolve([]));
 
         featureConfigurationMock.setup(instance => instance.isItemDefinitionsEnabled()).returns(true);
+        childNodeProvidersMock.setup(instance => instance.canProvideChildren(It.IsAny())).returns(false);
     });
 
     it('ListView Tree: Empty', async () => {
@@ -81,7 +85,7 @@ describe('RootTreeNodeProvider', () => {
 
         const provider = await createInstance();
 
-        const rootNode = provider.create(tenantMock.object());
+        const rootNode = provider.create(tenantMock.object(), childNodeProvidersMock.object());
         assert.notEqual(rootNode, undefined, 'Root node should not be undefined');
         assert(rootNode instanceof TenantTreeNode);
 
@@ -98,7 +102,7 @@ describe('RootTreeNodeProvider', () => {
 
         const provider = await createInstance();
 
-        const rootNode = provider.create(tenantMock.object());
+        const rootNode = provider.create(tenantMock.object(), childNodeProvidersMock.object());
         assert.notEqual(rootNode, undefined, 'Root node should not be undefined');
         assert(rootNode instanceof TenantTreeNode);
 
@@ -116,7 +120,7 @@ describe('RootTreeNodeProvider', () => {
 
         const provider = await createInstance();
 
-        const rootNode = provider.create(tenantMock.object());
+        const rootNode = provider.create(tenantMock.object(), childNodeProvidersMock.object());
         assert.notEqual(rootNode, undefined, 'Root node should not be undefined');
         assert(rootNode instanceof TenantTreeNode);
 
@@ -143,7 +147,7 @@ describe('RootTreeNodeProvider', () => {
         extensionManagerMock.setup(instance => instance.treeNodeProviders).returns(new ObservableMap<string, IFabricTreeNodeProvider>());
         const provider = await createInstance();
 
-        const rootNode = provider.create(tenantMock.object());
+        const rootNode = provider.create(tenantMock.object(), childNodeProvidersMock.object());
         assert.notEqual(rootNode, undefined, 'Root node should not be undefined');
         assert(rootNode instanceof TenantTreeNode);
 
@@ -189,7 +193,7 @@ describe('RootTreeNodeProvider', () => {
         extensionManagerMock.setup(instance => instance.treeNodeProviders).returns(treeNodeProviders);
         const provider = await createInstance();
 
-        const rootNode = provider.create(tenantMock.object());
+        const rootNode = provider.create(tenantMock.object(), childNodeProvidersMock.object());
         assert.notEqual(rootNode, undefined, 'Root node should not be undefined');
         assert(rootNode instanceof TenantTreeNode);
 
@@ -227,7 +231,7 @@ describe('RootTreeNodeProvider', () => {
 
         const provider = await createInstance();
 
-        const rootNode = provider.create(tenantMock.object());
+        const rootNode = provider.create(tenantMock.object(), childNodeProvidersMock.object());
         const childNodes = await rootNode.getChildNodes();
         const workspaceNode = childNodes[0] as ListViewWorkspaceTreeNode;
         const topLevelNodes = await workspaceNode.getChildNodes();
@@ -272,7 +276,7 @@ describe('RootTreeNodeProvider', () => {
         extensionManagerMock.setup(instance => instance.treeNodeProviders).returns(treeNodeProviders);
         const provider = await createInstance();
 
-        const rootNode = provider.create(tenantMock.object());
+        const rootNode = provider.create(tenantMock.object(), childNodeProvidersMock.object());
         assert.notEqual(rootNode, undefined, 'Root node should not be undefined');
         assert(rootNode instanceof TenantTreeNode);
 
