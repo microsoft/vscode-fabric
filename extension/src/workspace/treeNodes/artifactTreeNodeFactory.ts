@@ -9,9 +9,9 @@ import { ILocalFolderService } from '../../LocalFolderService';
 import { DefinitionFileSystemProvider } from '../DefinitionFileSystemProvider';
 import { IFabricFeatureConfiguration } from '../../settings/FabricFeatureConfiguration';
 import { ComposableArtifactTreeNode } from './ComposableArtifactTreeNode';
-import { MissingExtensionChildNodeProvider } from './MissingExtensionChildNodeProvider';
-import { DefinitionFilesChildNodeProvider } from './DefinitionFilesChildNodeProvider';
-import { TreeNodeProviderChildNodeAdapter } from './TreeNodeProviderChildNodeAdapter';
+import { MissingExtensionChildNodeProvider } from './childNodeProviders/MissingExtensionChildNodeProvider';
+import { DefinitionFilesChildNodeProvider } from './childNodeProviders/DefinitionFilesChildNodeProvider';
+import { TreeNodeProviderChildNodeAdapter } from './childNodeProviders/TreeNodeProviderChildNodeAdapter';
 
 /**
  * Creates an artifact tree node with proper icon and context
