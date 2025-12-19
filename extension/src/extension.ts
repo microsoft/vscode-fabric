@@ -64,6 +64,7 @@ import { FakeTokenAcquisitionService } from './authentication';
 import { FabricCommandManager } from './commands/FabricCommandManager';
 import { IFabricCommandManager } from './commands/IFabricCommandManager';
 import { DefinitionFileSystemProvider } from './workspace/DefinitionFileSystemProvider';
+import { IArtifactChildNodeProviderCollection, ArtifactChildNodeProviderCollection } from './workspace/treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
 
 let app: FabricVsCodeExtension;
 
@@ -119,7 +120,7 @@ export class FabricVsCodeExtension {
             context.subscriptions.push(
                 vscode.workspace.registerFileSystemProvider('fabric-definition', dataProvider.getFileSystemProvider(), {
                     isCaseSensitive: true,
-                    isReadonly: false
+                    isReadonly: false,
                 })
             );
 
@@ -480,6 +481,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<DefinitionFileSystemProvider>();
     container.registerSingleton<IRootTreeNodeProvider, RootTreeNodeProvider>();
     container.registerSingleton<IWorkspaceFilterManager, WorkspaceFilterManager>();
+    container.registerSingleton<IArtifactChildNodeProviderCollection, ArtifactChildNodeProviderCollection>();
     container.registerSingleton<FabricWorkspaceDataProvider>();
 
     container.registerSingleton<IArtifactManager, ArtifactManager>();

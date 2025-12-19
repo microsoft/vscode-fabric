@@ -12,6 +12,8 @@ export const openNotebook = 'vscode-fabric.openNotebook';
 let commandDisposables: vscode.Disposable[] = [];
 
 export function registerNotebookCommands(
+    context: vscode.ExtensionContext,
+    workspaceManager: IWorkspaceManager,
     artifactManager: IArtifactManager,
     telemetryService: TelemetryService
 ): void {
@@ -21,7 +23,10 @@ export function registerNotebookCommands(
                 return;
             }
 
-            await openNotebookInSynapse(telemetryService, item.artifact);
+            const notebookTreeNode = item as NotebookTreeNode;
+            const workspaceId = notebookTreeNode.artifact.workspaceId;
+
+            await openNotebookInSynapse(telemetryService, notebookTreeNode);
         });
     };
 

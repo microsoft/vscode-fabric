@@ -12,8 +12,7 @@ import { createArtifactTreeNode } from './artifactTreeNodeFactory';
 import { getDisplayName } from '../../metadata/fabricItemUtilities';
 import { ILocalFolderService } from '../../LocalFolderService';
 import { FolderTreeNode } from './FolderTreeNode';
-import { DefinitionFileSystemProvider } from '../DefinitionFileSystemProvider';
-import { IFabricFeatureConfiguration } from '../../settings/FabricFeatureConfiguration';
+import { IArtifactChildNodeProviderCollection } from './childNodeProviders/ArtifactChildNodeProviderCollection';
 
 export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
     private _rootFolderNodes: FolderTreeNode[] = [];
@@ -29,9 +28,7 @@ export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
         workspaceManager: IWorkspaceManager,
         tenantId: string | null,
         private localFolderService: ILocalFolderService,
-        private artifactManager: IArtifactManager,
-        private fileSystemProvider: DefinitionFileSystemProvider,
-        private featureConfiguration: IFabricFeatureConfiguration,
+        private childNodeProviders: IArtifactChildNodeProviderCollection,
         private shouldExpand?: (id?: string) => boolean
     ) {
         super(context, extensionManager, workspace, DisplayStyle.list, telemetryService, workspaceManager);
@@ -45,7 +42,7 @@ export class ListViewWorkspaceTreeNode extends WorkspaceTreeNode {
 
     protected async addArtifact(artifact: IArtifact): Promise<void> {
         const treeNodeProvider = this.extensionManager.treeNodeProviders.get(artifact.type);
-        const artifactNode: ArtifactTreeNode = await createArtifactTreeNode(this.context, artifact, this.extensionManager, treeNodeProvider, this.localFolderService, this.artifactManager, this.fileSystemProvider, this.featureConfiguration);
+        const artifactNode: ArtifactTreeNode = await createArtifactTreeNode(this.context, artifact, treeNodeProvider, this.localFolderService, this.childNodeProviders);
 
         let description = getDisplayName(artifact);
         if (typeof artifactNode.description === 'string' && artifactNode.description.length > 0) {
