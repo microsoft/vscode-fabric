@@ -1,10 +1,23 @@
 # Change Log
 
-## [0.35 (Pre-release)] 2025-11
+## [0.36] 2026-01-06
 
 ### Added
 - New local folder commands to download item definitions, open folders for items, and change folder mappings.
 - Progress indicators for long running operations (Open in Explorer and Publish commands) displayed in the notification area.
+- "Open in Fabric" button added to publish notification toast, allowing quick browser launch to newly created/updated items.
+- Sign-up button displayed when user does not have a Fabric account (detects 401 Unlicensed errors and initiates free trial sign-up flow).
+- "Create Item" command now available on artifact type nodes, pre-selecting the artifact type to streamline item creation.
+- Local folder scanning now recurses beyond top-level directories, allowing flexible folder structures in the local folder view.
+
+### Changed
+- Improved error messaging for API version mismatches between core and satellite extensions, including version numbers and guidance to use latest releases.
+- URI handler updated to use "Download Item Definition" command instead of deprecated API, with improved prompting and error handling.
+
+### Fixed
+- Security updates: upgraded `js-yaml` (4.1.0 to 4.1.1, 3.14.1 to 3.14.2) to fix prototype pollution vulnerability.
+- Security updates: upgraded `jws` (3.2.2 to 3.2.3).
+- Removed obsolete `cpx` dev dependency.
 
 ## [0.26] - 2025-09-11
 
