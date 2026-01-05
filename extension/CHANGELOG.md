@@ -15,8 +15,8 @@
 - URI handler updated to use "Download Item Definition" command instead of deprecated API, with improved prompting and error handling.
 
 ### Fixed
-- Security updates: upgraded `js-yaml` (4.1.0 to 4.1.1, 3.14.1 to 3.14.2) to fix prototype pollution vulnerability.
-- Security updates: upgraded `jws` (3.2.2 to 3.2.3).
+- Security updates: upgraded `js-yaml` to fix prototype pollution vulnerability.
+- Security updates: upgraded `jws`.
 - Removed obsolete `cpx` dev dependency.
 
 ## [0.26] - 2025-09-11
