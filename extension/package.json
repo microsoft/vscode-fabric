@@ -594,7 +594,7 @@
     "lint:check": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\" --fix",
     "bundle": "webpack --mode production --devtool hidden-source-map",
-    "vsix": "npm run bundle && vsce package --allow-missing-repository --pre-release --no-dependencies --baseImagesUrl https://raw.githubusercontent.com/microsoft/microsoft-fabric-vscode-extension/main/",
+    "vsix": "npm run bundle && vsce package --allow-missing-repository --no-dependencies --baseImagesUrl https://raw.githubusercontent.com/microsoft/microsoft-fabric-vscode-extension/main/",
     "clean": "npm exec rimraf dist out .test-extensions",
     "clean:all": "npm run clean && npm exec rimraf node_modules",
     "localization": "npx @vscode/l10n-dev export -o ./l10n ./src"
