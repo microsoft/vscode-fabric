@@ -186,6 +186,12 @@
         "title": "%extension.clearWorkspaceFilter.title%",
         "category": "Fabric",
         "icon": "$(clear-all)"
+      },
+      {
+        "command": "vscode-fabric.editDefinitionFile",
+        "title": "%extension.editDefinitionFile.title%",
+        "category": "Fabric",
+        "icon": "$(edit)"
       }
     ],
     "views": {
@@ -313,6 +319,10 @@
         },
         {
           "command": "vscode-fabric.installExtension",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.editDefinitionFile",
           "when": "false"
         }
       ],
@@ -478,6 +488,16 @@
           "command": "vscode-fabric.openSqlExtension",
           "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-open-in-sql/",
           "group": "5@11"
+        },
+        {
+          "command": "vscode-fabric.editDefinitionFile",
+          "when": "view == vscode-fabric.view.workspace && viewItem == definition-file",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-fabric.editDefinitionFile",
+          "when": "view == vscode-fabric.view.workspace && viewItem == definition-file",
+          "group": "1@1"
         },
         {
           "command": "vscode-fabric.copyConnectionString",

@@ -13,12 +13,14 @@ export class DefinitionFileTreeNode extends FabricTreeNode {
      * Creates a new instance of the DefinitionFileTreeNode class
      * @param context - The VS Code extension context
      * @param fileName - The name/path of the definition file
-     * @param fileUri - The virtual file system URI for this file
+     * @param readonlyUri - The readonly virtual document URI for this file
+     * @param editableUri - The editable file system URI for this file (used by Edit command)
      */
     constructor(
         context: vscode.ExtensionContext,
         public readonly fileName: string,
-        public readonly fileUri: vscode.Uri
+        public readonly readonlyUri: vscode.Uri,
+        public readonly editableUri: vscode.Uri
     ) {
         // Extract just the filename from the path for display
         const displayName = fileName.split('/').pop() || fileName;
@@ -30,17 +32,17 @@ export class DefinitionFileTreeNode extends FabricTreeNode {
         // Set tooltip with full path
         this.tooltip = vscode.l10n.t('Definition file: {0}', fileName);
 
-        // Add command to open the file when clicked
+        // Add command to open the file in readonly mode when clicked
         this.command = {
             command: 'vscode.open',
             title: 'Open Definition File',
-            arguments: [fileUri],
+            arguments: [readonlyUri],
         };
 
         this.contextValue = 'definition-file';
         
-        // Set the resource URI for the tree item
-        this.resourceUri = fileUri;
+        // Set the resource URI for the tree item (use editable URI for proper file icon/decoration)
+        this.resourceUri = editableUri;
     }
 
     /**

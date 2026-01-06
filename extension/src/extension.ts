@@ -7,6 +7,7 @@ import * as querystring from 'querystring';
 
 import { FeedbackTreeDataProvider } from './feedback/FeedbackTreeDataProvider';
 import { WorkspaceManager, WorkspaceManagerBase } from './workspace/WorkspaceManager';
+import { DefinitionVirtualDocumentContentProvider } from './workspace/DefinitionVirtualDocumentContentProvider';
 import { IFabricExtensionManager, Schema, IArtifactManager, IFabricApiClient, IFabricExtensionServiceCollection, IWorkspaceManager, FabricTreeNode } from '@microsoft/vscode-fabric-api';
 import {
     TelemetryService,
@@ -119,6 +120,12 @@ export class FabricVsCodeExtension {
                     isCaseSensitive: true,
                     isReadonly: false,
                 })
+            );
+
+            // Register the read-only definition document provider
+            const readOnlyProvider = new DefinitionVirtualDocumentContentProvider(dataProvider.getFileSystemProvider());
+            context.subscriptions.push(
+                vscode.workspace.registerTextDocumentContentProvider(DefinitionVirtualDocumentContentProvider.scheme, readOnlyProvider)
             );
 
             // Persist top-level expansion state (Option C)

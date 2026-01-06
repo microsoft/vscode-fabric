@@ -8,6 +8,7 @@ import { DefinitionFileTreeNode } from '../DefinitionFileTreeNode';
 import { DefinitionFolderTreeNode } from '../DefinitionFolderTreeNode';
 import { DefinitionRootTreeNode } from '../DefinitionRootTreeNode';
 import { DefinitionFileSystemProvider } from '../../DefinitionFileSystemProvider';
+import { DefinitionVirtualDocumentContentProvider } from '../../DefinitionVirtualDocumentContentProvider';
 import { getSupportsArtifactWithDefinition } from '../../../metadata/fabricItemUtilities';
 import { IFabricFeatureConfiguration } from '../../../settings/FabricFeatureConfiguration';
 
@@ -86,18 +87,26 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
                 content = Buffer.from(part.payload, 'utf-8');
             }
 
-            // Register the file in the file system provider and get the URI
-            const uri = this.fileSystemProvider.registerFile(
+            // Register the file in the file system provider and get the editable URI
+            const editableUri = this.fileSystemProvider.registerFile(
                 artifact,
                 normalizedPath,
                 content
             );
 
-            // Create the file node
+            // Create a readonly URI for the same file
+            const readonlyUri = DefinitionVirtualDocumentContentProvider.createUri(
+                artifact.workspaceId,
+                artifact.id,
+                normalizedPath
+            );
+
+            // Create the file node with both URIs
             const fileNode = new DefinitionFileTreeNode(
                 this.context,
                 normalizedPath,
-                uri
+                readonlyUri,
+                editableUri
             );
 
             // If file is in root (no folders), add directly to root
