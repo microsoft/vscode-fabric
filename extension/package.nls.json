@@ -27,6 +27,7 @@
     "extension.workspaceViewToTree.title":"Group by Fabric Item",
     "extension.filterWorkspaces.title":"Filter Workspaces...",
     "extension.clearWorkspaceFilter.title":"Clear Workspace Filter",
+    "extension.editDefinitionFile.title":"Edit",
 
     "extension.submenu.importArtifact.title": "Publish",
 

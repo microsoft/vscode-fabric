@@ -23,6 +23,8 @@ import { makeShouldExpand } from './viewExpansionState';
 import { ILocalFolderService } from '../LocalFolderService';
 import { DefinitionFileSystemProvider } from './DefinitionFileSystemProvider';
 import { IArtifactChildNodeProviderCollection } from './treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
+import { DefinitionFileTreeNode } from './treeNodes/DefinitionFileTreeNode';
+import { commandNames } from '../constants';
 
 /**
  * Type guard to check if a FabricTreeNode is an ArtifactTreeNode.
@@ -368,6 +370,23 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
         }
 
         await vscode.commands.executeCommand('setContext', fabricViewDisplayStyleContext, workspaceDisplayStyle);
+
+        // Register the edit definition file command
+        RootTreeNodeProvider.disposables.push(
+            vscode.commands.registerCommand(commandNames.editDefinitionFile, async (node: DefinitionFileTreeNode) => {
+                await this.editDefinitionFile(node);
+            })
+        );
+    }
+
+    /**
+     * Opens a definition file in editable mode using the fabric-definition file system provider.
+     * @param node The definition file tree node to edit
+     */
+    private async editDefinitionFile(node: DefinitionFileTreeNode): Promise<void> {
+        // Use the editable URI (fabric-definition://) which uses the file system provider
+        const doc = await vscode.workspace.openTextDocument(node.editableUri);
+        await vscode.window.showTextDocument(doc, { preview: false });
     }
 
     dispose() {
