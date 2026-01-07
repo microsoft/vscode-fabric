@@ -4,6 +4,7 @@
 import * as vscode from 'vscode';
 import { IArtifactManager, IArtifact, IItemDefinition, IItemDefinitionPart, PayloadType } from '@microsoft/vscode-fabric-api';
 import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { IFabricFeatureConfiguration } from '../settings/FabricFeatureConfiguration';
 
 /**
  * A virtual file system provider for Fabric item definition files.
@@ -21,6 +22,7 @@ export class DefinitionFileSystemProvider implements vscode.FileSystemProvider {
 
     constructor(
         private artifactManager: IArtifactManager,
+        private featureConfiguration: IFabricFeatureConfiguration,
         private logger: ILogger,
         private telemetryService: TelemetryService | null
     ) {}
@@ -83,6 +85,12 @@ export class DefinitionFileSystemProvider implements vscode.FileSystemProvider {
     }
 
     async writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean }): Promise<void> {
+        // Check if editing is enabled
+        if (!this.featureConfiguration.isEditItemDefinitionsEnabled()) {
+            const errorMessage = vscode.l10n.t('Editing definition files is disabled. Enable the "Fabric.EditItemDefinitions" setting to edit.');
+            throw vscode.FileSystemError.NoPermissions(errorMessage);
+        }
+
         const artifactInfo = this.artifactCache.get(uri.toString());
         if (!artifactInfo) {
             throw vscode.FileSystemError.FileNotFound(uri);

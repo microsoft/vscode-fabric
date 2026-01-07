@@ -43,8 +43,8 @@ export class ArtifactChildNodeProviderCollection implements IArtifactChildNodePr
         featureConfiguration: IFabricFeatureConfiguration
     ) {
         this.providers = [
-            new MissingExtensionChildNodeProvider(context, extensionManager),
             new DefinitionFilesChildNodeProvider(context, artifactManager, fileSystemProvider, featureConfiguration),
+            new MissingExtensionChildNodeProvider(context, extensionManager),
         ];
     }
 

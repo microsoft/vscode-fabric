@@ -54,7 +54,7 @@
     "extension.configuration.DebugLogging.description": "Turn on debug logging in the Fabric Output Panel",
     "extension.configuration.ShowFolders.description": "Display folders in the Fabric Workspace view",
     "extension.configuration.McpServer.PromptInstall.description": "Prompt to install the Fabric MCP Server extension for enhanced Copilot capabilities",
-    "extension.configuration.ShowItemDefinitions.description": "Display item definition files as expandable nodes in the Fabric Workspace view",
+    "extension.configuration.EditItemDefinitions.description": "Allow editing of item definition files in Fabric Workspaces view",
 
     "extension.walkthrough.fabric.title": "Get Started with Microsoft Fabric",
     "extension.walkthrough.fabric.description": "Your first steps to work with Fabric!",

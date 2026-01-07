@@ -25,8 +25,7 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
     ) {}
 
     canProvideChildren(artifact: IArtifact): boolean {
-        return this.featureConfiguration.isItemDefinitionsEnabled() &&
-               getSupportsArtifactWithDefinition(artifact);
+        return getSupportsArtifactWithDefinition(artifact);
     }
 
     async getChildNodes(artifact: IArtifact): Promise<FabricTreeNode[]> {

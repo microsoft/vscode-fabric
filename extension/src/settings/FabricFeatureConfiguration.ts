@@ -34,12 +34,12 @@ export interface IFabricFeatureConfiguration {
     readonly onDidFolderGroupingChange: vscode.Event<void>;
 
     /**
-     * Event that fires when the item definitions display configuration changes.
+     * Event that fires when the item definitions edit configuration changes.
      *
-     * Subscribers can use this to react to changes in the ShowItemDefinitions setting,
-     * such as refreshing the tree view to show or hide definition file nodes.
+     * Subscribers can use this to react to changes in the EditItemDefinitions setting,
+     * such as updating command visibility for editing definition files.
      */
-    readonly onDidItemDefinitionsChange: vscode.Event<void>;
+    readonly onDidEditItemDefinitionsChange: vscode.Event<void>;
 
     /**
      * Checks if folder grouping is enabled in the workspace view.
@@ -52,15 +52,15 @@ export interface IFabricFeatureConfiguration {
     isFolderGroupingEnabled(): boolean;
 
     /**
-     * Checks if item definitions should be displayed as expandable nodes.
+     * Checks if item definitions can be edited.
      *
-     * When enabled, artifacts that support item definitions will show their
-     * definition files as expandable child nodes in the tree view.
+     * When enabled, users can edit definition files via the Edit command.
+     * When disabled, definition files are read-only.
      * This is a preview feature that defaults to disabled.
      *
-     * @returns true if item definitions should be displayed, false otherwise
+     * @returns true if item definitions can be edited, false otherwise
      */
-    isItemDefinitionsEnabled(): boolean;
+    isEditItemDefinitionsEnabled(): boolean;
 }
 
 /**
@@ -69,13 +69,13 @@ export interface IFabricFeatureConfiguration {
  */
 export class FabricFeatureConfiguration implements IFabricFeatureConfiguration {
     private static readonly showFoldersKey = 'ShowFolders';
-    private static readonly showItemDefinitionsKey = 'ShowItemDefinitions';
+    private static readonly editItemDefinitionsKey = 'EditItemDefinitions';
 
     private readonly onDidFolderGroupingChangeEmitter = new vscode.EventEmitter<void>();
-    private readonly onDidItemDefinitionsChangeEmitter = new vscode.EventEmitter<void>();
+    private readonly onDidEditItemDefinitionsChangeEmitter = new vscode.EventEmitter<void>();
 
     readonly onDidFolderGroupingChange = this.onDidFolderGroupingChangeEmitter.event;
-    readonly onDidItemDefinitionsChange = this.onDidItemDefinitionsChangeEmitter.event;
+    readonly onDidEditItemDefinitionsChange = this.onDidEditItemDefinitionsChangeEmitter.event;
 
     constructor(private readonly configurationProvider: IConfigurationProvider) {
         // Subscribe to configuration changes and fire specific events
@@ -83,8 +83,8 @@ export class FabricFeatureConfiguration implements IFabricFeatureConfiguration {
             if (key === FabricFeatureConfiguration.showFoldersKey) {
                 this.onDidFolderGroupingChangeEmitter.fire();
             }
-            else if (key === FabricFeatureConfiguration.showItemDefinitionsKey) {
-                this.onDidItemDefinitionsChangeEmitter.fire();
+            else if (key === FabricFeatureConfiguration.editItemDefinitionsKey) {
+                this.onDidEditItemDefinitionsChangeEmitter.fire();
             }
         });
     }
@@ -93,7 +93,7 @@ export class FabricFeatureConfiguration implements IFabricFeatureConfiguration {
         return this.configurationProvider.get(FabricFeatureConfiguration.showFoldersKey, false);
     }
 
-    public isItemDefinitionsEnabled(): boolean {
-        return this.configurationProvider.get(FabricFeatureConfiguration.showItemDefinitionsKey, false);
+    public isEditItemDefinitionsEnabled(): boolean {
+        return this.configurationProvider.get(FabricFeatureConfiguration.editItemDefinitionsKey, false);
     }
 }
