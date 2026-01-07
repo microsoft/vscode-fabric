@@ -30,19 +30,19 @@ describe('FabricFeatureConfiguration', () => {
         });
     });
 
-    describe('isItemDefinitionsEnabled', () => {
+    describe('isEditItemDefinitionsEnabled', () => {
         it('returns false by default', () => {
-            assert.strictEqual(featureConfig.isItemDefinitionsEnabled(), false);
+            assert.strictEqual(featureConfig.isEditItemDefinitionsEnabled(), false);
         });
 
-        it('returns true when ShowItemDefinitions is enabled', () => {
-            mockConfigProvider.setConfigValue('ShowItemDefinitions', true);
-            assert.strictEqual(featureConfig.isItemDefinitionsEnabled(), true);
+        it('returns true when EditItemDefinitions is enabled', () => {
+            mockConfigProvider.setConfigValue('EditItemDefinitions', true);
+            assert.strictEqual(featureConfig.isEditItemDefinitionsEnabled(), true);
         });
 
-        it('returns false when ShowItemDefinitions is disabled', () => {
-            mockConfigProvider.setConfigValue('ShowItemDefinitions', false);
-            assert.strictEqual(featureConfig.isItemDefinitionsEnabled(), false);
+        it('returns false when EditItemDefinitions is disabled', () => {
+            mockConfigProvider.setConfigValue('EditItemDefinitions', false);
+            assert.strictEqual(featureConfig.isEditItemDefinitionsEnabled(), false);
         });
     });
 
@@ -55,14 +55,14 @@ describe('FabricFeatureConfiguration', () => {
             mockConfigProvider.fireConfigChange('ShowFolders');
         });
 
-        it('does not fire when ShowItemDefinitions configuration changes', (done) => {
+        it('does not fire when EditItemDefinitions configuration changes', (done) => {
             let folderEventFired = false;
 
             featureConfig.onDidFolderGroupingChange(() => {
                 folderEventFired = true;
             });
 
-            mockConfigProvider.fireConfigChange('ShowItemDefinitions');
+            mockConfigProvider.fireConfigChange('EditItemDefinitions');
 
             // Give time for event to fire if it's going to
             setTimeout(() => {
@@ -88,19 +88,19 @@ describe('FabricFeatureConfiguration', () => {
         });
     });
 
-    describe('onDidItemDefinitionsChange', () => {
-        it('fires when ShowItemDefinitions configuration changes', (done) => {
-            featureConfig.onDidItemDefinitionsChange(() => {
+    describe('onDidEditItemDefinitionsChange', () => {
+        it('fires when EditItemDefinitions configuration changes', (done) => {
+            featureConfig.onDidEditItemDefinitionsChange(() => {
                 done();
             });
 
-            mockConfigProvider.fireConfigChange('ShowItemDefinitions');
+            mockConfigProvider.fireConfigChange('EditItemDefinitions');
         });
 
         it('does not fire when ShowFolders configuration changes', (done) => {
             let definitionsEventFired = false;
 
-            featureConfig.onDidItemDefinitionsChange(() => {
+            featureConfig.onDidEditItemDefinitionsChange(() => {
                 definitionsEventFired = true;
             });
 
@@ -116,7 +116,7 @@ describe('FabricFeatureConfiguration', () => {
         it('does not fire when unrelated configuration changes', (done) => {
             let definitionsEventFired = false;
 
-            featureConfig.onDidItemDefinitionsChange(() => {
+            featureConfig.onDidEditItemDefinitionsChange(() => {
                 definitionsEventFired = true;
             });
 
@@ -131,10 +131,10 @@ describe('FabricFeatureConfiguration', () => {
     });
 
     describe('event isolation', () => {
-        it('changing ShowFolders does not fire onDidItemDefinitionsChange', (done) => {
+        it('changing ShowFolders does not fire onDidEditItemDefinitionsChange', (done) => {
             let definitionsEventFired = false;
 
-            featureConfig.onDidItemDefinitionsChange(() => {
+            featureConfig.onDidEditItemDefinitionsChange(() => {
                 definitionsEventFired = true;
             });
 
@@ -147,14 +147,14 @@ describe('FabricFeatureConfiguration', () => {
             }, 50);
         });
 
-        it('changing ShowItemDefinitions does not fire onDidFolderGroupingChange', (done) => {
+        it('changing EditItemDefinitions does not fire onDidFolderGroupingChange', (done) => {
             let folderEventFired = false;
 
             featureConfig.onDidFolderGroupingChange(() => {
                 folderEventFired = true;
             });
 
-            mockConfigProvider.update('ShowItemDefinitions', true);
+            mockConfigProvider.update('EditItemDefinitions', true);
 
             // Give time for event to fire if it's going to
             setTimeout(() => {

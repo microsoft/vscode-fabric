@@ -491,12 +491,12 @@
         },
         {
           "command": "vscode-fabric.editDefinitionFile",
-          "when": "view == vscode-fabric.view.workspace && viewItem == definition-file",
+          "when": "view == vscode-fabric.view.workspace && viewItem == definition-file && config.Fabric.EditItemDefinitions",
           "group": "inline"
         },
         {
           "command": "vscode-fabric.editDefinitionFile",
-          "when": "view == vscode-fabric.view.workspace && viewItem == definition-file",
+          "when": "view == vscode-fabric.view.workspace && viewItem == definition-file && config.Fabric.EditItemDefinitions",
           "group": "1@1"
         },
         {
@@ -564,10 +564,10 @@
           "description": "%extension.configuration.ShowFolders.description%",
           "tags": ["preview"]
         },
-        "Fabric.ShowItemDefinitions": {
+        "Fabric.EditItemDefinitions": {
           "type": "boolean",
           "default": false,
-          "description": "%extension.configuration.ShowItemDefinitions.description%",
+          "description": "%extension.configuration.EditItemDefinitions.description%",
           "tags": ["preview"]
         }
       }

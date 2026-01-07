@@ -63,9 +63,6 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
         this.disposables.push(featureConfiguration.onDidFolderGroupingChange(() => {
             this.refresh();
         }));
-        this.disposables.push(featureConfiguration.onDidItemDefinitionsChange(() => {
-            this.refresh();
-        }));
 
         let disposable = workspaceManager.onDidChangePropertyValue((propertyName: string) => {
             if (propertyName === 'allWorkspaces') {
