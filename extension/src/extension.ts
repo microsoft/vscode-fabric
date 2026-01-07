@@ -65,6 +65,7 @@ import { FakeTokenAcquisitionService } from './authentication';
 import { FabricCommandManager } from './commands/FabricCommandManager';
 import { IFabricCommandManager } from './commands/IFabricCommandManager';
 import { DefinitionFileSystemProvider } from './workspace/DefinitionFileSystemProvider';
+import { DefinitionFileEditorDecorator } from './workspace/DefinitionFileEditorDecorator';
 import { IArtifactChildNodeProviderCollection, ArtifactChildNodeProviderCollection } from './workspace/treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
 
 let app: FabricVsCodeExtension;
@@ -130,6 +131,10 @@ export class FabricVsCodeExtension {
             context.subscriptions.push(
                 vscode.workspace.registerTextDocumentContentProvider(DefinitionVirtualDocumentContentProvider.scheme, readOnlyProvider)
             );
+
+            // Register the definition file editor decorator to show warnings
+            const editorDecorator = new DefinitionFileEditorDecorator();
+            context.subscriptions.push(editorDecorator);
 
             // Persist top-level expansion state (Option C)
             const updateExpansionState = async (element: FabricTreeNode | undefined, expand: boolean) => {
