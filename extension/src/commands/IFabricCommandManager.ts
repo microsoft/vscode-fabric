@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ILogger, TelemetryService, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
-import { IWorkspaceManager } from '@microsoft/vscode-fabric-api';
+import { IWorkspaceManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
 import { ICapacityManager } from '../CapacityManager';
@@ -30,6 +30,7 @@ export interface IFabricCommandManager {
     readonly dataProvider: FabricWorkspaceDataProvider;
     readonly workspaceFilterManager: IWorkspaceFilterManager;
     readonly extensionManager: IFabricExtensionManagerInternal;
+    readonly apiClient: IFabricApiClient;
 
     // Lifecycle methods
     initialize(): Promise<void>;

@@ -4,6 +4,7 @@
 export namespace commandNames {
     export const changeLocalFolder = 'vscode-fabric.changeLocalFolder';
     export const clearWorkspaceFilter = 'vscode-fabric.clearWorkspaceFilter';
+    export const copyConnectionString = 'vscode-fabric.copyConnectionString';
     export const createArtifact = 'vscode-fabric.createArtifact';
     export const createWorkspace = 'vscode-fabric.createWorkspace';
     export const deleteArtifact = 'vscode-fabric.deleteArtifact';
@@ -15,6 +16,7 @@ export namespace commandNames {
     export const openArtifact = 'vscode-fabric.openArtifact';
     export const openInPortal = 'vscode-fabric.openInPortal';
     export const openLocalFolder = 'vscode-fabric.openLocalFolder';
+    export const openSqlExtension = 'vscode-fabric.openSqlExtension';
     export const readArtifact = 'vscode-fabric.readArtifact';
     export const refreshArtifactView = 'vscode-fabric.refreshArtifactView';
     export const refreshLocalProjectView = 'vscode-fabric.refreshLocalFolderView';
