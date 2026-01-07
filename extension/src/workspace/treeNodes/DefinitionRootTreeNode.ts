@@ -16,11 +16,11 @@ export class DefinitionRootTreeNode extends FabricTreeNode {
      * @param context - The VS Code extension context
      */
     constructor(context: vscode.ExtensionContext) {
-        super(context, vscode.l10n.t('Definition'), vscode.TreeItemCollapsibleState.Collapsed);
-        
+        super(context, vscode.l10n.t('Item Definition'), vscode.TreeItemCollapsibleState.Collapsed);
+
         // Set folder icon to indicate this is a container
         this.iconPath = new vscode.ThemeIcon('folder-library');
-        
+
         // Set tooltip
         this.tooltip = vscode.l10n.t('Item definition files');
 

@@ -201,6 +201,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         creationCapability: CreationCapability.unsupported,
         displayName: vscode.l10n.t('Semantic model'),
         displayNamePlural: vscode.l10n.t('Semantic models'),
+        extensionId: 'analysis-services.TMDL',
         iconInformation: { fileName: 'semantic_model_32.svg', isThemed: true },
         portalFolder: 'semanticmodels',
         supportsArtifactWithDefinition: true,
