@@ -44,7 +44,7 @@ describe('importArtifactCommand', () => {
     let showConfirmOverwriteMessageStub: sinon.SinonStub;
 
     const folderUri = vscode.Uri.file(`/path/to/local/folder/${artifactDisplayName}.${artifactType}`);
-    const fakeWorkspace: IWorkspace = { displayName: 'ws', type: 'test', objectId: 'id' } as IWorkspace;
+    const fakeWorkspace: IWorkspace = { displayName: 'ws', type: 'test', objectId: 'test-workspace-id' } as IWorkspace;
     const fakeArtifact: IArtifact = { id: artifactId, type: artifactType, displayName: artifactDisplayName } as IArtifact;
     const fakeDefinition = { parts: [] };
 
@@ -69,7 +69,16 @@ describe('importArtifactCommand', () => {
             .returns(Promise.resolve({ status: 200 } as IApiClientResponse));
         artifactManagerMock
             .setup(a => a.createArtifactWithDefinition(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()))
-            .returns(Promise.resolve({ status: 201 } as IApiClientResponse));
+            .returns(Promise.resolve({
+                status: 201,
+                parsedBody: {
+                    id: 'created-artifact-id',
+                    type: artifactType,
+                    displayName: artifactDisplayName,
+                    description: '',
+                    workspaceId: fakeWorkspace.objectId,
+                },
+            } as IApiClientResponse));
 
         workspaceManagerMock
             .setup(m => m.isConnected())
@@ -115,9 +124,14 @@ describe('importArtifactCommand', () => {
 
     it('Import artifact successfully', async () => {
         // Arrange
+        const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand').resolves();
+        showConfirmOverwriteMessageStub.onFirstCall().resolves('Yes');
+        showConfirmOverwriteMessageStub.onSecondCall().resolves('Open in Fabric');
 
         // Act
         await executeCommand();
+        // Wait for the .then() callback to execute
+        await new Promise(resolve => setImmediate(resolve));
 
         // Assert
         assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called');
@@ -134,7 +148,15 @@ describe('importArtifactCommand', () => {
         artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri, It.IsAny()));
         dataProviderMock.verify(x => x.refresh(), Times.Never());
 
-        const expectedParent = vscode.Uri.file('/path/to/local/folder');
+        // Verify success message
+        assert.ok(showConfirmOverwriteMessageStub.calledTwice, 'showInformationMessage should be called twice (confirmation + success)');
+        const successCall = showConfirmOverwriteMessageStub.secondCall;
+        assert.strictEqual(successCall.args.length, 2, 'Success message should have 2 arguments (message + action)');
+        assert.strictEqual(successCall.args[0], `Published ${artifactDisplayName}`, 'Success message should be shown');
+        assert.strictEqual(successCall.args[1], 'Open in Fabric', 'Action button should be "Open in Fabric"');
+
+        // Verify that clicking the action button invokes openInPortal command
+        assert.ok(executeCommandStub.calledWith('vscode-fabric.openInPortal', fakeArtifact), 'openInPortal command should be called with artifact');
 
         verifyAddOrUpdateProperties(telemetryActivityMock, 'statusCode', '200');
         verifyAddOrUpdateProperties(telemetryActivityMock, 'itemType', artifactType);
@@ -165,6 +187,12 @@ describe('importArtifactCommand', () => {
         localFolderServiceMock.verify(m => m.getArtifactInformation(It.Is<vscode.Uri>((uri) => uri.fsPath === expectedPath.fsPath)), Times.Exactly(1));
         assert.ok(showWorkspaceQuickPickStub.notCalled, 'showWorkspaceQuickPick should NOT be called');
         artifactManagerMock.verify(a => a.updateArtifactDefinition(fakeArtifact, fakeDefinition, folderUri, It.IsAny()));
+
+        // Verify success message
+        assert.ok(showConfirmOverwriteMessageStub.calledTwice, 'showInformationMessage should be called twice (confirmation + success)');
+        const successCall = showConfirmOverwriteMessageStub.secondCall;
+        assert.strictEqual(successCall.args[0], `Published ${artifactDisplayName}`, 'Success message should be shown');
+
         verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', fakeWorkspace.objectId);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'fabricWorkspaceName', fakeWorkspace.displayName);
         verifyAddOrUpdateProperties(telemetryActivityMock, 'targetDetermination', 'inferred');
@@ -292,9 +320,13 @@ describe('importArtifactCommand', () => {
         artifactManagerMock
             .setup(m => m.listArtifacts(It.IsAny()))
             .returnsAsync([]);
+        const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand').resolves();
+        showConfirmOverwriteMessageStub.resolves('Open in Fabric');
 
         // Act
         await executeCommand();
+        // Wait for the .then() callback to execute
+        await new Promise(resolve => setImmediate(resolve));
 
         // Assert
         artifactManagerMock.verify(
@@ -312,6 +344,22 @@ describe('importArtifactCommand', () => {
         );
         artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
         dataProviderMock.verify(x => x.refresh(), Times.Once());
+
+        // Verify success message (no confirmation needed for create)
+        assert.ok(showConfirmOverwriteMessageStub.calledOnce, 'showInformationMessage should be called once (success only)');
+        assert.strictEqual(showConfirmOverwriteMessageStub.firstCall.args.length, 2, 'Success message should have 2 arguments (message + action)');
+        assert.strictEqual(showConfirmOverwriteMessageStub.firstCall.args[0], `Published ${artifactDisplayName}`, 'Success message should be shown');
+        assert.strictEqual(showConfirmOverwriteMessageStub.firstCall.args[1], 'Open in Fabric', 'Action button should be "Open in Fabric"');
+
+        // Verify that clicking the action button invokes openInPortal command
+        assert.ok(
+            executeCommandStub.calledWith(
+                'vscode-fabric.openInPortal',
+                sinon.match({ id: 'created-artifact-id', type: artifactType, displayName: artifactDisplayName, workspaceId: fakeWorkspace.objectId })
+            ),
+            'openInPortal command should be called with created artifact'
+        );
+
         assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called');
     });
 
@@ -340,6 +388,11 @@ describe('importArtifactCommand', () => {
         );
         artifactManagerMock.verify(a => a.updateArtifactDefinition(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
         dataProviderMock.verify(x => x.refresh(), Times.Once());
+
+        // Verify success message (no confirmation needed for create)
+        assert.ok(showConfirmOverwriteMessageStub.calledOnce, 'showInformationMessage should be called once (success only)');
+        assert.strictEqual(showConfirmOverwriteMessageStub.firstCall.args[0], `Published ${artifactDisplayName}`, 'Success message should be shown');
+
         assert.ok(showWorkspaceQuickPickStub.calledOnce, 'showWorkspaceQuickPick should be called');
     });
 
@@ -529,7 +582,7 @@ describe('importArtifactCommand', () => {
             .returns(Promise.resolve(fakeWorkspace));
 
         // Act
-        await executeCommand(true); // forcePromptForWorkspace = true
+        await executeCommand({ forcePromptForWorkspace: true });
 
         // Assert
         // Should NOT use inferred workspace, should always prompt
@@ -544,7 +597,7 @@ describe('importArtifactCommand', () => {
     it('Does NOT call setLocalFolderForFabricWorkspace when forcePromptForWorkspace is true', async () => {
         // Arrange
         // Act
-        await executeCommand(true); // forcePromptForWorkspace = true
+        await executeCommand({ forcePromptForWorkspace: true });
 
         // Assert
         // localFolderServiceMock.verify(
@@ -642,28 +695,24 @@ describe('importArtifactCommand', () => {
 
     it('Error: unable to parse source folder name', async () => {
         // Arrange
-        // Patch tryParseLocalProjectData to return undefined
-        const importArtifactModule = await import('../../../src/localProject/utilities');
-        const origTryParse = importArtifactModule.tryParseLocalProjectData;
-        importArtifactModule.tryParseLocalProjectData = async () => undefined;
+        // Create a folder URI that will cause tryParseLocalProjectData to return undefined
+        // by not having a valid .platform file
+        const invalidFolderUri = vscode.Uri.file('/path/to/invalid/folder');
 
         // Act
         let error: FabricError | undefined = undefined;
         await assert.rejects(
             async () => {
-                await executeCommand();
+                await executeCommand({ uri: invalidFolderUri });
             },
             (err: Error) => {
                 assert.ok(err instanceof FabricError, 'Should throw a FabricError');
                 error = err;
-                assert.ok(error!.message.includes('No valid Fabric project data found'), 'Error message should include display name');
+                assert.ok(error!.message.includes('No valid Fabric project data found'), 'Error message should include expected text');
                 assert.strictEqual(error.options?.showInUserNotification, 'Information', 'Error options should show in user notification');
                 return true;
             }
         );
-
-        // Assert
-        importArtifactModule.tryParseLocalProjectData = origTryParse;
     });
 
     it('Error: API Error', async () => {
@@ -771,9 +820,9 @@ describe('importArtifactCommand', () => {
         assert.strictEqual(typeof capturedOptions.progress.report, 'function', 'Progress should have a report method');
     });
 
-    async function executeCommand(forcePromptForWorkspace: boolean = false): Promise<void> {
+    async function executeCommand(options?: { uri?: vscode.Uri; forcePromptForWorkspace?: boolean }): Promise<void> {
         await importArtifactCommand(
-            folderUri,
+            options?.uri ?? folderUri,
             workspaceManagerMock.object(),
             artifactManagerMock.object(),
             extensionManagerMock.object(),
@@ -786,7 +835,7 @@ describe('importArtifactCommand', () => {
             telemetryActivityMock.object(),
             telemetryService,
             logger,
-            forcePromptForWorkspace
+            options?.forcePromptForWorkspace ?? false
         );
     }
 });

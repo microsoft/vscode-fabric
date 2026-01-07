@@ -3,7 +3,7 @@
 
 import * as vscode from 'vscode';
 import { ILocalProjectDiscovery, ILocalProjectInformation, IWorkspaceFolderProvider } from './definitions';
-import { tryParseLocalProjectData } from './utilities';
+import { tryParseLocalProjectData } from '@microsoft/vscode-fabric-util';
 import { IObservableArray } from '../collections/definitions';
 import { ObservableSet } from '../collections/ObservableSet';
 

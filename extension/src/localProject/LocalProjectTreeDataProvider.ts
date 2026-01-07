@@ -2,11 +2,12 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { FabricTreeNode, ILocalProjectTreeNodeProvider, LocalProjectTreeNode, LocalProjectTreeNodeProvider, LocalProjectDesignerActions } from '@microsoft/vscode-fabric-api';
-import { ILogger, TelemetryService, withErrorHandling } from '@microsoft/vscode-fabric-util';
+import { FabricTreeNode, ILocalProjectTreeNodeProvider, LocalProjectTreeNode, LocalProjectDesignerActions } from '@microsoft/vscode-fabric-api';
+import { ILogger, LocalProjectTreeNodeProvider, TelemetryService, withErrorHandling } from '@microsoft/vscode-fabric-util';
 import { ILocalProjectDiscovery, ILocalProjectInformation } from './definitions';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
-import { getDisplayNamePlural, getArtifactIconPath, getArtifactDefaultIconPath, getSupportsArtifactWithDefinition } from '../metadata/fabricItemUtilities';
+import { getDisplayNamePlural, getArtifactIconPath, getArtifactDefaultIconPath, getSupportsArtifactWithDefinition, getArtifactExtensionId } from '../metadata/fabricItemUtilities';
+import { MissingExtensionLocalProjectTreeNode } from './MissingExtensionLocalProjectTreeNode';
 import { commandNames } from '../constants';
 
 export class LocalProjectTreeDataProvider implements vscode.TreeDataProvider<FabricTreeNode> {
@@ -93,15 +94,19 @@ class LocalProjectTreeNodeCollection {
     public async addProject(project: ILocalProjectInformation) {
         if (!this.localProjectProviders.has(project.artifactType)) {
             const localProjectProvider = this.extensionManager.localProjectTreeNodeProviders.get(project.artifactType);
-
-            // TODO: Show a missing extension node if the extension is not installed
+            const extensionId: string | undefined = getArtifactExtensionId(project.artifactType);
 
             if (localProjectProvider) {
-                this.localProjectProviders.set(project.artifactType, new ArtifactTypeTreeNode(this.context, localProjectProvider));
+                this.localProjectProviders.set(project.artifactType, new ArtifactTypeTreeNode(this.context, localProjectProvider, this.extensionManager));
+            }
+            else if (extensionId && !this.extensionManager.isAvailable(extensionId)) {
+                // Extension is available but not installed - show missing extension node
+                const missingExtensionProvider = new MissingExtensionLocalProjectTreeNodeProvider(this.context, project.artifactType, extensionId);
+                this.localProjectProviders.set(project.artifactType, new ArtifactTypeTreeNode(this.context, missingExtensionProvider, this.extensionManager));
             }
             else if (getSupportsArtifactWithDefinition(project.artifactType)) {
                 const defaultProvider = new DefinitionLocalProjectTreeNodeProvider(this.context, project.artifactType);
-                this.localProjectProviders.set(project.artifactType, new ArtifactTypeTreeNode(this.context, defaultProvider));
+                this.localProjectProviders.set(project.artifactType, new ArtifactTypeTreeNode(this.context, defaultProvider, this.extensionManager));
             }
         }
         await this.localProjectProviders.get(project.artifactType)?.addProject(project);
@@ -123,7 +128,7 @@ class ArtifactTypeTreeNode extends FabricTreeNode {
         return getDisplayNamePlural(this.treeNodeProvider.artifactType) ?? this.treeNodeProvider.artifactType;
     };
 
-    constructor(context: vscode.ExtensionContext, private treeNodeProvider: ILocalProjectTreeNodeProvider) {
+    constructor(context: vscode.ExtensionContext, private treeNodeProvider: ILocalProjectTreeNodeProvider, private extensionManager: IFabricExtensionManagerInternal) {
         super(context, getDisplayNamePlural(treeNodeProvider.artifactType) ?? treeNodeProvider.artifactType, vscode.TreeItemCollapsibleState.Expanded);
         this.iconPath = getArtifactIconPath(context.extensionUri, treeNodeProvider.artifactType) ?? getArtifactDefaultIconPath(context.extensionUri);
     }
@@ -158,12 +163,35 @@ class DefinitionLocalProjectTreeNodeProvider extends LocalProjectTreeNodeProvide
 
     public async createLocalProjectTreeNode(projectPath: vscode.Uri): Promise<LocalProjectTreeNode | undefined> {
         const node = await super.createLocalProjectTreeNode(projectPath);
-        if (node && !node.allowedDesignActions) {
-            node.allowedDesignActions =
-                LocalProjectDesignerActions.default |
-                (getSupportsArtifactWithDefinition(this.artifactType) ? LocalProjectDesignerActions.definition : 0);
-        }
+        setDefaultAllowedDesignActions(node, this.artifactType);
         return node;
+    }
+}
+
+class MissingExtensionLocalProjectTreeNodeProvider extends LocalProjectTreeNodeProvider {
+    constructor(context: vscode.ExtensionContext, artifactType: string, private extensionId: string) {
+        super(context, artifactType);
+    }
+
+    public async createLocalProjectTreeNode(projectPath: vscode.Uri): Promise<LocalProjectTreeNode | undefined> {
+        // Use parent's validation and display name logic
+        const baseNode = await super.createLocalProjectTreeNode(projectPath);
+        if (!baseNode) {
+            return undefined;
+        }
+
+        // Create our custom node with the validated display name
+        const node = new MissingExtensionLocalProjectTreeNode(this.context, baseNode.displayName, projectPath, this.extensionId);
+        setDefaultAllowedDesignActions(node, this.artifactType);
+        return node;
+    }
+}
+
+function setDefaultAllowedDesignActions(node: LocalProjectTreeNode | undefined, artifactType: string): void {
+    if (node && !node.allowedDesignActions) {
+        node.allowedDesignActions =
+            LocalProjectDesignerActions.default |
+            (getSupportsArtifactWithDefinition(artifactType) ? LocalProjectDesignerActions.definition : 0);
     }
 }
 

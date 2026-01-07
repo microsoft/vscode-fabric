@@ -15,4 +15,5 @@ export * from './DisposableCollection';
 export * from './FabricError';
 export * from './UserCancelledError';
 export * from './testSupport';
+export * from './treeView';
 export * from './VSCodeUIBypass';
