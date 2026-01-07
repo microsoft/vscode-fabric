@@ -1,6 +1,6 @@
 # Azure Data Explorer Dashboard Development Guide
 
-This guide documents the process of creating and modifying Azure Data Explorer (ADX) dashboards through JSON configuration files, based on lessons learned while building the Core Fabric Extension Health dashboard.
+This guide documents the process of creating and modifying Azure Data Explorer (ADX) dashboards through JSON configuration files, based on lessons learned while building the Core Fabric Extension Health dashboard. Documentation for ADX can be found here: https://learn.microsoft.com/en-us/azure/data-explorer/
 
 ## Table of Contents
 

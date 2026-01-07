@@ -611,6 +611,26 @@
         "autoReset": true
       },
       "showOnPages": { "kind": "all" }
+    },
+    {
+      "kind": "string",
+      "id": "c1d2e3f4-a5b6-4789-c2de-dddddddddddd",
+      "displayName": "Fabric environment",
+      "description": "",
+      "variableName": "_FabricEnv",
+      "selectionType": "array",
+      "includeAllOption": true,
+      "defaultValue": { "kind": "all" },
+      "dataSource": {
+        "kind": "query",
+        "columns": { "value": "FabricEnvironment" },
+        "queryRef": {
+          "kind": "query",
+          "queryId": "d1e2f3a4-b5c6-4789-d5ef-eeeeeeeeeeee"
+        },
+        "autoReset": true
+      },
+      "showOnPages": { "kind": "all" }
     }
   ],
   "dataSources": [
@@ -827,8 +847,8 @@
         "kind": "inline",
         "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
       },
-      "text": "RawEventsVSCodeExt\n| where ExtensionName == \"fabric.vscode-fabric\"\n| where ServerTimestamp between (['_startTime'] .. ['_endTime'])\n| where isempty(['_CoreVersion']) or ExtensionVersion in (_CoreVersion)\n| extend ExtensionMode = toint(Properties['common.extensionmode'])\n| where ExtensionMode == 1 or ExtensionMode == 2",
-      "usedVariables": ["_CoreVersion", "_endTime", "_startTime"]
+      "text": "RawEventsVSCodeExt\n| where ExtensionName == \"fabric.vscode-fabric\"\n| where ServerTimestamp between (['_startTime'] .. ['_endTime'])\n| where isempty(['_CoreVersion']) or ExtensionVersion in (_CoreVersion)\n| extend FabricEnvironment = toupper(tostring(Properties['common.fabricenvironment']))\n| where isempty(['_FabricEnv']) or FabricEnvironment in (_FabricEnv)\n| extend ExtensionMode = toint(Properties['common.extensionmode'])\n| where ExtensionMode == 1 or ExtensionMode == 2",
+      "usedVariables": ["_CoreVersion", "_FabricEnv", "_endTime", "_startTime"]
     },
     {
       "dataSource": {
@@ -865,6 +885,15 @@
       "text": "_events\n| where EventName in (\"fabric/signUpSuccessful\", \"fabric/signUpFailed\")\n| summarize Success = countif(EventName == \"fabric/signUpSuccessful\"), Failed = countif(EventName == \"fabric/signUpFailed\")\n| extend Total = Success + Failed\n| extend SuccessRateString = iff(Total == 0, \"N/A\", strcat(tostring(round((Success * 1.0 / Total) * 100, 1)), \"%\"))\n| project SuccessRateString",
       "id": "061e79aa-a817-43a5-a374-4418504090d9",
       "usedVariables": ["_events"]
+    },
+    {
+      "dataSource": {
+        "kind": "inline",
+        "dataSourceId": "c1d2e3f4-a5b6-4789-c1de-aaaaaaaaaaaa"
+      },
+      "text": "RawEventsVSCodeExt\n| where ExtensionName == \"fabric.vscode-fabric\"\n| where ServerTimestamp between (['_startTime'] .. ['_endTime'])\n| extend FabricEnvironment = toupper(tostring(Properties['common.fabricenvironment']))\n| distinct FabricEnvironment\n| order by FabricEnvironment asc",
+      "id": "d1e2f3a4-b5c6-4789-d5ef-eeeeeeeeeeee",
+      "usedVariables": ["_endTime", "_startTime"]
     }
   ]
 }
