@@ -3,8 +3,9 @@
 
 import * as vscode from 'vscode';
 import { IArtifactManager, IArtifact, IItemDefinition, IItemDefinitionPart, PayloadType } from '@microsoft/vscode-fabric-api';
-import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { IFabricEnvironmentProvider, ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IFabricFeatureConfiguration } from '../settings/FabricFeatureConfiguration';
+import { Base64Encoder, IBase64Encoder } from '../itemDefinition/ItemDefinitionReader';
 
 /**
  * A virtual file system provider for Fabric item definition files.
@@ -16,13 +17,15 @@ export class DefinitionFileSystemProvider implements vscode.FileSystemProvider {
 
     // Cache for file contents: URI -> content
     private fileCache = new Map<string, Uint8Array>();
-    
+
     // Cache for artifact metadata: URI -> artifact info
     private artifactCache = new Map<string, { artifact: IArtifact; fileName: string }>();
 
     constructor(
         private artifactManager: IArtifactManager,
         private featureConfiguration: IFabricFeatureConfiguration,
+        private fabricEnvironmentProvider: IFabricEnvironmentProvider,
+        private base64Encoder: IBase64Encoder,
         private logger: ILogger,
         private telemetryService: TelemetryService | null
     ) {}
@@ -49,15 +52,87 @@ export class DefinitionFileSystemProvider implements vscode.FileSystemProvider {
         return vscode.Uri.parse(`fabric-definition:///${artifact.workspaceId}/${artifact.id}/${fileName}`);
     }
 
+    /**
+     * Extracts and decodes a single file from an item definition.
+     */
+    private extractFileFromDefinition(definition: IItemDefinition, fileName: string): Uint8Array | undefined {
+        const part = definition.parts.find(p => p.path === fileName);
+        if (!part || !part.payload) {
+            return undefined;
+        }
+        return this.base64Encoder.decode(part.payload);
+    }
+
+    /**
+     * Fetches a definition file from the server and caches it.
+     * Parses the URI to extract workspaceId, artifactId, and fileName.
+     */
+    private async fetchAndCacheFile(uri: vscode.Uri): Promise<void> {
+        // URI format: fabric-definition:///<workspaceId>/<artifactId>/<fileName>
+        const pathParts = uri.path.split('/').filter(p => p.length > 0);
+        if (pathParts.length < 3) {
+            throw vscode.FileSystemError.FileNotFound(uri);
+        }
+
+        const workspaceId = pathParts[0];
+        const artifactId = pathParts[1];
+        const fileName = pathParts.slice(2).join('/'); // Handle nested paths
+
+        // Create a minimal artifact object for the API call
+        const artifact: IArtifact = {
+            id: artifactId,
+            workspaceId: workspaceId,
+            fabricEnvironment: this.fabricEnvironmentProvider.getCurrent().env,
+            displayName: '', // Not needed for getArtifactDefinition
+            type: '', // Not needed for getArtifactDefinition
+        };
+
+        try {
+            // Fetch the definition from the server
+            const response = await this.artifactManager.getArtifactDefinition(artifact);
+            if (!response.parsedBody?.definition) {
+                throw vscode.FileSystemError.FileNotFound(uri);
+            }
+
+            const definition: IItemDefinition = response.parsedBody.definition;
+
+            // Extract and decode the file
+            const content = this.extractFileFromDefinition(definition, fileName);
+            if (!content) {
+                throw vscode.FileSystemError.FileNotFound(uri);
+            }
+
+            // Cache it
+            this.fileCache.set(uri.toString(), content);
+            this.artifactCache.set(uri.toString(), { artifact, fileName });
+        }
+        catch (error: any) {
+            this.logger.error(`Error fetching definition file: ${error.message}`);
+            throw vscode.FileSystemError.FileNotFound(uri);
+        }
+    }
+
     watch(uri: vscode.Uri, options: { recursive: boolean; excludes: readonly string[]; }): vscode.Disposable {
         // We don't need to watch for changes since we control all writes
         return new vscode.Disposable(() => {});
     }
 
-    stat(uri: vscode.Uri): vscode.FileStat {
+    stat(uri: vscode.Uri): vscode.FileStat | Thenable<vscode.FileStat> {
         const content = this.fileCache.get(uri.toString());
         if (!content) {
-            throw vscode.FileSystemError.FileNotFound(uri);
+            // File not in cache - need to fetch it lazily
+            return this.fetchAndCacheFile(uri).then(() => {
+                const fetchedContent = this.fileCache.get(uri.toString());
+                if (!fetchedContent) {
+                    throw vscode.FileSystemError.FileNotFound(uri);
+                }
+                return {
+                    type: vscode.FileType.File,
+                    ctime: Date.now(),
+                    mtime: Date.now(),
+                    size: fetchedContent.length,
+                };
+            });
         }
 
         return {
@@ -76,10 +151,17 @@ export class DefinitionFileSystemProvider implements vscode.FileSystemProvider {
         throw vscode.FileSystemError.NoPermissions('Creating directories is not supported');
     }
 
-    readFile(uri: vscode.Uri): Uint8Array {
+    readFile(uri: vscode.Uri): Uint8Array | Thenable<Uint8Array> {
         const content = this.fileCache.get(uri.toString());
         if (!content) {
-            throw vscode.FileSystemError.FileNotFound(uri);
+            // File not in cache - fetch it lazily
+            return this.fetchAndCacheFile(uri).then(() => {
+                const fetchedContent = this.fileCache.get(uri.toString());
+                if (!fetchedContent) {
+                    throw vscode.FileSystemError.FileNotFound(uri);
+                }
+                return fetchedContent;
+            });
         }
         return content;
     }
@@ -115,7 +197,7 @@ export class DefinitionFileSystemProvider implements vscode.FileSystemProvider {
             }
 
             // Encode the new content as base64
-            const base64Content = Buffer.from(content).toString('base64');
+            const base64Content = this.base64Encoder.encode(content);
 
             // Update the part (using splice to avoid object injection warning)
             const updatedPart: IItemDefinitionPart = {

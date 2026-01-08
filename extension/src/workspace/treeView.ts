@@ -23,15 +23,32 @@ import { makeShouldExpand } from './viewExpansionState';
 import { ILocalFolderService } from '../LocalFolderService';
 import { DefinitionFileSystemProvider } from './DefinitionFileSystemProvider';
 import { IArtifactChildNodeProviderCollection } from './treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
-import { DefinitionFileTreeNode } from './treeNodes/DefinitionFileTreeNode';
-import { commandNames } from '../constants';
 
 /**
  * Type guard to check if a FabricTreeNode is an ArtifactTreeNode.
- * Uses duck typing to avoid instanceof issues across module boundaries.
+ * Uses discriminator property pattern (similar to isFabricError) instead of instanceof
+ * because instanceof doesn't work reliably across module boundaries.
+ * Falls back to checking contextValue for backward compatibility with older API versions.
  */
 function isArtifactTreeNode(element: FabricTreeNode): element is ArtifactTreeNode {
-    return 'artifact' in element && typeof (element as any).artifact === 'object';
+    // Primary check: discriminator property (new API versions)
+    if ('isArtifactTreeNode' in element) {
+        // If the property exists, respect its value (don't fall back if explicitly set to false)
+        return (element as any).isArtifactTreeNode === true;
+    }
+
+    // Fallback: check if element has artifact property and contextValue matches the pattern (backward compatibility)
+    // Only executed if isArtifactTreeNode property doesn't exist at all
+    // ArtifactTreeNode sets contextValue to `Item${artifact.type}` in constructor
+    if ('artifact' in element &&
+        (element as any).artifact &&
+        typeof (element as any).artifact.type === 'string' &&
+        typeof element.contextValue === 'string' &&
+        element.contextValue.includes(`Item${(element as any).artifact.type}`)) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -367,23 +384,6 @@ export class RootTreeNodeProvider implements vscode.Disposable, IRootTreeNodePro
         }
 
         await vscode.commands.executeCommand('setContext', fabricViewDisplayStyleContext, workspaceDisplayStyle);
-
-        // Register the edit definition file command
-        RootTreeNodeProvider.disposables.push(
-            vscode.commands.registerCommand(commandNames.editDefinitionFile, async (node: DefinitionFileTreeNode) => {
-                await this.editDefinitionFile(node);
-            })
-        );
-    }
-
-    /**
-     * Opens a definition file in editable mode using the fabric-definition file system provider.
-     * @param node The definition file tree node to edit
-     */
-    private async editDefinitionFile(node: DefinitionFileTreeNode): Promise<void> {
-        // Use the editable URI (fabric-definition://) which uses the file system provider
-        const doc = await vscode.workspace.openTextDocument(node.editableUri);
-        await vscode.window.showTextDocument(doc, { preview: false });
     }
 
     dispose() {

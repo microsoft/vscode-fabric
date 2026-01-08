@@ -67,6 +67,7 @@ import { IFabricCommandManager } from './commands/IFabricCommandManager';
 import { DefinitionFileSystemProvider } from './workspace/DefinitionFileSystemProvider';
 import { DefinitionFileEditorDecorator } from './workspace/DefinitionFileEditorDecorator';
 import { IArtifactChildNodeProviderCollection, ArtifactChildNodeProviderCollection } from './workspace/treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
+import { IBase64Encoder, Base64Encoder } from './itemDefinition/ItemDefinitionReader';
 
 let app: FabricVsCodeExtension;
 
@@ -490,6 +491,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<LocalFolderManager>();
     container.registerSingleton<ILocalFolderService, LocalFolderService>();
     container.registerSingleton<IWorkspaceManager, WorkspaceManager>();
+    container.registerSingleton<IBase64Encoder, Base64Encoder>();
     container.registerSingleton<DefinitionFileSystemProvider>();
     container.registerSingleton<IRootTreeNodeProvider, RootTreeNodeProvider>();
     container.registerSingleton<IWorkspaceFilterManager, WorkspaceFilterManager>();

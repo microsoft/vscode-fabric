@@ -33,6 +33,7 @@ import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 import { ILocalFolderService } from '../LocalFolderService';
 import { IAccountProvider } from '../authentication';
 import { NotSignedInError } from '../ui/NotSignedInError';
+import { DefinitionFileTreeNode } from '../workspace/treeNodes/DefinitionFileTreeNode';
 
 
 let artifactCommandDisposables: vscode.Disposable[] = [];
@@ -418,6 +419,23 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                     await renameArtifactCommand(item, artifactManager, dataProvider, activity);
                 }
             );
+        },
+        context
+    );
+
+    registerCommand(
+        // TODO: Add telemetry and use new command system
+        commandNames.editDefinitionFile,
+        async (...cmdArgs) => {
+            const node = cmdArgs[0] as DefinitionFileTreeNode | undefined;
+            if (!node) {
+                return;
+            }
+
+            // Use the editable URI (fabric-definition://) which uses the file system provider
+            const doc = await vscode.workspace.openTextDocument(node.editableUri);
+            await vscode.window.showTextDocument(doc, { preview: false });
+
         },
         context
     );
