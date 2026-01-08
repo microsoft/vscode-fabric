@@ -24,7 +24,9 @@
     "Functions"
   ],
   "activationEvents": [
-    "onUri"
+    "onUri",
+    "onFileSystem:fabric-definition",
+    "onFileSystem:fabric-definition-virtual"
   ],
   "main": "./dist/extension.js",
   "l10n": "./l10n",

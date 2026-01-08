@@ -20,13 +20,16 @@ export class DefinitionVirtualDocumentContentProvider implements vscode.TextDocu
     /**
      * Provides the content for a readonly definition file.
      * Converts the fabric-definition-virtual:// URI to fabric-definition:// to read from the cache.
+     *
+     * This method is async to support lazy-loading of files that aren't cached yet.
      */
-    provideTextDocumentContent(uri: vscode.Uri): string {
+    async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
         // Convert readonly URI to regular definition URI to access the cached content
         const editableUri = uri.with({ scheme: 'fabric-definition' });
 
         try {
-            const content = this.fileSystemProvider.readFile(editableUri);
+            // readFile can return Uint8Array (cached) or Promise<Uint8Array> (needs fetch)
+            const content = await this.fileSystemProvider.readFile(editableUri);
             return new TextDecoder().decode(content);
         }
         catch (error) {
