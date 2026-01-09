@@ -3,9 +3,10 @@
 
 import * as vscode from 'vscode';
 import { IArtifactManager, IArtifact, IItemDefinition, IItemDefinitionPart, PayloadType } from '@microsoft/vscode-fabric-api';
-import { IFabricEnvironmentProvider, ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { IFabricEnvironmentProvider, ILogger, TelemetryService, TelemetryActivity, doFabricAction } from '@microsoft/vscode-fabric-util';
 import { IFabricFeatureConfiguration } from '../settings/FabricFeatureConfiguration';
 import { Base64Encoder, IBase64Encoder } from '../itemDefinition/ItemDefinitionReader';
+import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 
 /**
  * A virtual file system provider for Fabric item definition files.
@@ -167,86 +168,89 @@ export class DefinitionFileSystemProvider implements vscode.FileSystemProvider {
     }
 
     async writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean }): Promise<void> {
-        // Check if editing is enabled
-        if (!this.featureConfiguration.isEditItemDefinitionsEnabled()) {
-            const errorMessage = vscode.l10n.t('Editing definition files is disabled. Enable the "Fabric.EditItemDefinitions" setting to edit.');
-            throw vscode.FileSystemError.NoPermissions(errorMessage);
-        }
+        const activity = new TelemetryActivity<CoreTelemetryEventNames>('item/definition/write', this.telemetryService);
 
         const artifactInfo = this.artifactCache.get(uri.toString());
-        if (!artifactInfo) {
-            throw vscode.FileSystemError.FileNotFound(uri);
+
+        // Add initial telemetry properties if we have artifact info
+        if (artifactInfo) {
+            activity.addOrUpdateProperties({
+                endpoint: this.fabricEnvironmentProvider.getCurrent().sharedUri,
+                workspaceId: artifactInfo.artifact.workspaceId,
+                artifactId: artifactInfo.artifact.id,
+                fabricArtifactName: artifactInfo.artifact.displayName,
+                itemType: artifactInfo.artifact.type,
+                fileExtension: artifactInfo.fileName.split('.').pop() || '',
+            });
         }
 
-        try {
-            // Update the cache
-            this.fileCache.set(uri.toString(), content);
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: vscode.l10n.t('Saving {0}...', artifactInfo?.fileName ?? 'file'),
+            cancellable: false,
+        }, async () => {
+            await doFabricAction({ fabricLogger: this.logger, telemetryActivity: activity }, async () => {
+                try {
+                    // Check if editing is enabled
+                    if (!this.featureConfiguration.isEditItemDefinitionsEnabled()) {
+                        const errorMessage = vscode.l10n.t('Editing definition files is disabled. Enable the "Fabric.EditItemDefinitions" setting to edit.');
+                        throw vscode.FileSystemError.NoPermissions(errorMessage);
+                    }
 
-            // Get the current definition
-            const response = await this.artifactManager.getArtifactDefinition(artifactInfo.artifact);
-            if (!response.parsedBody?.definition) {
-                throw new Error('Failed to get current artifact definition');
-            }
+                    if (!artifactInfo) {
+                        throw vscode.FileSystemError.FileNotFound(uri);
+                    }
 
-            const definition: IItemDefinition = response.parsedBody.definition;
+                    // Update the cache
+                    this.fileCache.set(uri.toString(), content);
 
-            // Find and update the part
-            const partIndex = definition.parts.findIndex(p => p.path === artifactInfo.fileName);
-            if (partIndex === -1) {
-                throw new Error(`File ${artifactInfo.fileName} not found in definition`);
-            }
+                    // Get the current definition
+                    const response = await this.artifactManager.getArtifactDefinition(artifactInfo.artifact);
+                    if (!response.parsedBody?.definition) {
+                        throw new Error('Failed to get current artifact definition');
+                    }
 
-            // Encode the new content as base64
-            const base64Content = this.base64Encoder.encode(content);
+                    const definition: IItemDefinition = response.parsedBody.definition;
 
-            // Update the part (using splice to avoid object injection warning)
-            const updatedPart: IItemDefinitionPart = {
-                path: artifactInfo.fileName,
-                payload: base64Content,
-                payloadType: PayloadType.InlineBase64,
-            };
-            definition.parts.splice(partIndex, 1, updatedPart);
+                    // Find and update the part
+                    const partIndex = definition.parts.findIndex(p => p.path === artifactInfo.fileName);
+                    if (partIndex === -1) {
+                        throw new Error(`File ${artifactInfo.fileName} not found in definition`);
+                    }
 
-            // Save the updated definition back to the server
-            await vscode.window.withProgress({
-                location: vscode.ProgressLocation.Notification,
-                title: vscode.l10n.t('Saving {0}...', artifactInfo.fileName),
-                cancellable: false,
-            }, async (progress) => {
-                await this.artifactManager.updateArtifactDefinition(
-                    artifactInfo.artifact,
-                    definition,
-                    vscode.Uri.file('') // folder parameter - not used for this scenario
-                );
+                    // Encode the new content as base64
+                    const base64Content = this.base64Encoder.encode(content);
+
+                    // Update the part (using splice to avoid object injection warning)
+                    const updatedPart: IItemDefinitionPart = {
+                        path: artifactInfo.fileName,
+                        payload: base64Content,
+                        payloadType: PayloadType.InlineBase64,
+                    };
+                    definition.parts.splice(partIndex, 1, updatedPart);
+
+                    // Save the updated definition back to the server
+                    await this.artifactManager.updateArtifactDefinition(
+                        artifactInfo.artifact,
+                        definition,
+                        vscode.Uri.file('') // folder parameter - not used for this scenario
+                    );
+
+                    // Fire change event
+                    this._emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
+
+                    activity.addOrUpdateProperties({ result: 'Succeeded' });
+
+                    void vscode.window.showInformationMessage(
+                        vscode.l10n.t('Successfully saved {0}', artifactInfo.fileName)
+                    );
+                }
+                catch (error: any) {
+                    activity.addOrUpdateProperties({ result: 'Failed' });
+                    throw error;
+                }
             });
-
-            // Fire change event
-            this._emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
-
-            this.telemetryService?.sendTelemetryEvent('definition-file/saved', {
-                artifactType: artifactInfo.artifact.type,
-                fileName: artifactInfo.fileName,
-            });
-
-            void vscode.window.showInformationMessage(
-                vscode.l10n.t('Successfully saved {0}', artifactInfo.fileName)
-            );
-        }
-        catch (error: any) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            this.logger.error(`Error saving definition file: ${errorMessage}`);
-            
-            this.telemetryService?.sendTelemetryErrorEvent(error, {
-                errorEventName: 'definition-file/save-error',
-                fault: errorMessage,
-            });
-
-            void vscode.window.showErrorMessage(
-                vscode.l10n.t('Failed to save {0}: {1}', artifactInfo.fileName, errorMessage)
-            );
-            
-            throw vscode.FileSystemError.Unavailable(errorMessage);
-        }
+        });
     }
 
     delete(uri: vscode.Uri, options: { recursive: boolean; }): void {
