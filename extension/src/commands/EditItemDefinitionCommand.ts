@@ -34,8 +34,9 @@ export class EditItemDefinitionCommand extends FabricCommand<'item/definition/ed
         // Add artifact telemetry properties
         this.addArtifactTelemetryProperties(telemetryActivity, node.artifact);
 
-        // Extract file extension for telemetry
-        const fileExtension = node.fileName.split('.').pop() || '';
+        // Extract file extension for telemetry; File name may contain PII, so use only the extension
+        const parts = node.fileName.split('.');
+        const fileExtension = parts.length > 1 ? parts.pop() || '' : '';
         telemetryActivity.addOrUpdateProperties({
             fileExtension: fileExtension,
         });
