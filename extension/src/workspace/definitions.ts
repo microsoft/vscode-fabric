@@ -4,6 +4,7 @@
 import * as vscode from 'vscode';
 import { ITenantSettings } from '../authentication';
 import { FabricTreeNode } from '@microsoft/vscode-fabric-api';
+import { IArtifactChildNodeProviderCollection } from './treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
 
 /**
  * Display styles for the workspace tree view
@@ -17,7 +18,7 @@ export enum DisplayStyle {
  * Interface for root tree node provider
  */
 export interface IRootTreeNodeProvider {
-    create(workspace: ITenantSettings): FabricTreeNode;
+    create(tenant: ITenantSettings, childNodeProviders: IArtifactChildNodeProviderCollection): FabricTreeNode;
     onDisplayStyleChanged: vscode.Event<void>;
     getCurrentDisplayStyle(): DisplayStyle;
 }

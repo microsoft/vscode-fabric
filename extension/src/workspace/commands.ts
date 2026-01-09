@@ -7,7 +7,7 @@ import { showSignInPrompt } from '../ui/prompts';
 import { WorkspaceManagerBase, UnlicensedUserError } from './WorkspaceManager';
 import { WorkspaceTreeNode } from './treeNodes/WorkspaceTreeNode';
 import { showCreateWorkspaceWizard } from '../ui/showCreateWorkspaceWizard';
-import { IFabricApiClient, IWorkspace, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
+import { IWorkspace, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { TelemetryService, ILogger, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../authentication/interfaces';
 import { ICapacityManager } from '../CapacityManager';

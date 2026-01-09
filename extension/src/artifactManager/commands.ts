@@ -34,7 +34,6 @@ import { ILocalFolderService } from '../LocalFolderService';
 import { IAccountProvider } from '../authentication';
 import { NotSignedInError } from '../ui/NotSignedInError';
 
-
 let artifactCommandDisposables: vscode.Disposable[] = [];
 
 function registerCommand<T>(

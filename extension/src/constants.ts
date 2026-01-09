@@ -7,6 +7,7 @@ export namespace commandNames {
     export const createArtifact = 'vscode-fabric.createArtifact';
     export const createWorkspace = 'vscode-fabric.createWorkspace';
     export const deleteArtifact = 'vscode-fabric.deleteArtifact';
+    export const editDefinitionFile = 'vscode-fabric.editDefinitionFile';
     export const exportArtifact = 'vscode-fabric.exportArtifact';
     export const filterWorkspaces = 'vscode-fabric.filterWorkspaces';
     export const importArtifact = 'vscode-fabric.importArtifact';
