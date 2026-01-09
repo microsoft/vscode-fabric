@@ -20,6 +20,7 @@ export type CoreTelemetryEventNames = {
 	'item/export': { properties: ArtifactManagerResultPropertyNames; measurements: never },
 	'item/import': { properties: ArtifactManagerResultPropertyNames | 'targetDetermination'; measurements: never },
 	'item/open': { properties: ResultPropertyNames | ArtifactPropertyNames; measurements: never },
+	'item/definition/edit': { properties: ArtifactPropertyNames | 'fileExtension'; measurements: never },
 	'item/open/portal': { properties: ArtifactPropertyNames; measurements: never },
 	'item/localFolder/open': { properties: ArtifactPropertyNames | 'actionTaken'; measurements: never },
 	'item/localFolder/change': { properties: ArtifactPropertyNames | 'actionTaken'; measurements: never },
