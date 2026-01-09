@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 import { TelemetryActivity, doFabricAction, withErrorHandling } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';

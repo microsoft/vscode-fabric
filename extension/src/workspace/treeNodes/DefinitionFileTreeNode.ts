@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { FabricTreeNode } from '@microsoft/vscode-fabric-api';
+import { FabricTreeNode, IArtifact } from '@microsoft/vscode-fabric-api';
 
 /**
  * Represents a single file within an item definition in the workspace tree view.
@@ -12,12 +12,14 @@ export class DefinitionFileTreeNode extends FabricTreeNode {
     /**
      * Creates a new instance of the DefinitionFileTreeNode class
      * @param context - The VS Code extension context
+     * @param artifact - The artifact that owns this definition file
      * @param fileName - The name/path of the definition file
      * @param readonlyUri - The readonly virtual document URI for this file
      * @param editableUri - The editable file system URI for this file (used by Edit command)
      */
     constructor(
         context: vscode.ExtensionContext,
+        public readonly artifact: IArtifact,
         public readonly fileName: string,
         public readonly readonlyUri: vscode.Uri,
         public readonly editableUri: vscode.Uri
@@ -25,10 +27,10 @@ export class DefinitionFileTreeNode extends FabricTreeNode {
         // Extract just the filename from the path for display
         const displayName = fileName.split('/').pop() || fileName;
         super(context, displayName, vscode.TreeItemCollapsibleState.None);
-        
+
         // Set icon based on file type
         this.iconPath = this.getIconForFile(fileName);
-        
+
         // Set tooltip with full path
         this.tooltip = vscode.l10n.t('Definition file: {0}', fileName);
 
@@ -40,7 +42,7 @@ export class DefinitionFileTreeNode extends FabricTreeNode {
         };
 
         this.contextValue = 'definition-file';
-        
+
         // Set the resource URI for the tree item (use editable URI for proper file icon/decoration)
         this.resourceUri = editableUri;
     }
@@ -50,7 +52,7 @@ export class DefinitionFileTreeNode extends FabricTreeNode {
      */
     private getIconForFile(fileName: string): vscode.ThemeIcon {
         const extension = fileName.toLowerCase().split('.').pop();
-        
+
         switch (extension) {
             case 'json':
                 return new vscode.ThemeIcon('json');

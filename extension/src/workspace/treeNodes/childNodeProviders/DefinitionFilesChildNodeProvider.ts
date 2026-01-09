@@ -103,6 +103,7 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
             // Create the file node with both URIs
             const fileNode = new DefinitionFileTreeNode(
                 this.context,
+                artifact,
                 normalizedPath,
                 readonlyUri,
                 editableUri

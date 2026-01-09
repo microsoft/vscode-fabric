@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 import * as vscode from 'vscode';
 import { ILogger, TelemetryService, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { IWorkspaceManager } from '@microsoft/vscode-fabric-api';
@@ -6,6 +9,7 @@ import { FabricWorkspaceDataProvider } from '../workspace/treeView';
 import { ICapacityManager } from '../CapacityManager';
 import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 import { IFabricCommandManager, IFabricCommand } from './IFabricCommandManager';
+import { EditItemDefinitionCommand } from './EditItemDefinitionCommand';
 
 /**
  * Implementation of the Fabric command manager that handles command registration,
@@ -72,6 +76,10 @@ export class FabricCommandManager implements IFabricCommandManager {
     private async createAndRegisterCommands(): Promise<void> {
         // This is where we'll instantiate all our command classes
         // Commands will be created as we migrate them
+
+        // Definition file editing
+        const editItemDefinitionCommand = new EditItemDefinitionCommand(this);
+        this.registerCommand(editItemDefinitionCommand);
 
         // Example of how commands will be registered:
         // const createArtifactCommand = new CreateArtifactCommand(this);
