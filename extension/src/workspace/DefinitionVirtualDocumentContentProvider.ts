@@ -25,7 +25,7 @@ export class DefinitionVirtualDocumentContentProvider implements vscode.TextDocu
      */
     async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
         // Convert readonly URI to regular definition URI to access the cached content
-        const editableUri = uri.with({ scheme: 'fabric-definition' });
+        const editableUri = uri.with({ scheme: DefinitionFileSystemProvider.scheme });
 
         try {
             // readFile can return Uint8Array (cached) or Promise<Uint8Array> (needs fetch)

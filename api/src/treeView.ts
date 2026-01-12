@@ -31,7 +31,6 @@ export abstract class FabricTreeNode extends vscode.TreeItem {
 export class ArtifactTreeNode extends FabricTreeNode {
     /**
      * Discriminator property for reliable type checking across module boundaries.
-     * Similar to isFabricError pattern - instanceof doesn't work reliably across package boundaries.
      */
     readonly isArtifactTreeNode = true as const;
 

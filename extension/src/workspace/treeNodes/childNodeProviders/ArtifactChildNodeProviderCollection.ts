@@ -4,7 +4,6 @@
 import * as vscode from 'vscode';
 import { IArtifact, IArtifactManager, FabricTreeNode } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
-import { IFabricFeatureConfiguration } from '../../../settings/FabricFeatureConfiguration';
 import { DefinitionFileSystemProvider } from '../../DefinitionFileSystemProvider';
 import { IArtifactChildNodeProvider } from './IArtifactChildNodeProvider';
 import { MissingExtensionChildNodeProvider } from './MissingExtensionChildNodeProvider';
@@ -39,11 +38,10 @@ export class ArtifactChildNodeProviderCollection implements IArtifactChildNodePr
         context: vscode.ExtensionContext,
         extensionManager: IFabricExtensionManagerInternal,
         artifactManager: IArtifactManager,
-        fileSystemProvider: DefinitionFileSystemProvider,
-        featureConfiguration: IFabricFeatureConfiguration
+        fileSystemProvider: DefinitionFileSystemProvider
     ) {
         this.providers = [
-            new DefinitionFilesChildNodeProvider(context, artifactManager, fileSystemProvider, featureConfiguration),
+            new DefinitionFilesChildNodeProvider(context, artifactManager, fileSystemProvider),
             new MissingExtensionChildNodeProvider(context, extensionManager),
         ];
     }

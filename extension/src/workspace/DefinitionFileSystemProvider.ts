@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import { IArtifactManager, IArtifact, IItemDefinition, IItemDefinitionPart, PayloadType } from '@microsoft/vscode-fabric-api';
 import { IFabricEnvironmentProvider, ILogger, TelemetryService, TelemetryActivity, doFabricAction } from '@microsoft/vscode-fabric-util';
 import { IFabricFeatureConfiguration } from '../settings/FabricFeatureConfiguration';
-import { Base64Encoder, IBase64Encoder } from '../itemDefinition/ItemDefinitionReader';
+import { IBase64Encoder } from '../itemDefinition/ItemDefinitionReader';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 
 /**
@@ -13,6 +13,8 @@ import { CoreTelemetryEventNames } from '../TelemetryEventNames';
  * Allows viewing and editing definition files from remote artifacts.
  */
 export class DefinitionFileSystemProvider implements vscode.FileSystemProvider {
+    public static readonly scheme = 'fabric-definition';
+
     private _emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
     readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = this._emitter.event;
 
@@ -50,7 +52,7 @@ export class DefinitionFileSystemProvider implements vscode.FileSystemProvider {
      */
     private createUri(artifact: IArtifact, fileName: string): vscode.Uri {
         // Format: fabric-definition:///<workspaceId>/<artifactId>/<fileName>
-        return vscode.Uri.parse(`fabric-definition:///${artifact.workspaceId}/${artifact.id}/${fileName}`);
+        return vscode.Uri.parse(`${DefinitionFileSystemProvider.scheme}:///${artifact.workspaceId}/${artifact.id}/${fileName}`);
     }
 
     /**

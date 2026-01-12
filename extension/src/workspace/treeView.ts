@@ -69,9 +69,8 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
         private readonly storage: IFabricExtensionsSettingStorage,
         private readonly fabricEnvironmentProvider: IFabricEnvironmentProvider,
         private readonly localFolderService: ILocalFolderService,
-        private readonly artifactManager: IArtifactManager,
         private readonly fileSystemProvider: DefinitionFileSystemProvider,
-        private readonly featureConfiguration: IFabricFeatureConfiguration,
+        featureConfiguration: IFabricFeatureConfiguration,
         private readonly childNodeProviders: IArtifactChildNodeProviderCollection) {
 
         extensionManager.onExtensionsUpdated(() => this.refresh());
@@ -263,13 +262,6 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
         else {
             this.workspaceManager.treeView.title = vscode.l10n.t('Fabric Workspaces (remote)');
         }
-    }
-
-    /**
-     * Gets the file system provider for registering with VS Code
-     */
-    public getFileSystemProvider(): DefinitionFileSystemProvider {
-        return this.fileSystemProvider;
     }
 }
 

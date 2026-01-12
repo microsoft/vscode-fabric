@@ -38,14 +38,14 @@ export class DefinitionFolderTreeNode extends FabricTreeNode {
         return this.children.sort((a, b) => {
             const aIsFolder = a instanceof DefinitionFolderTreeNode;
             const bIsFolder = b instanceof DefinitionFolderTreeNode;
-            
+
             if (aIsFolder && !bIsFolder) {
                 return -1;
             }
             if (!aIsFolder && bIsFolder) {
                 return 1;
             }
-            
+
             // Both are same type, sort alphabetically by label
             return (a.label as string).localeCompare(b.label as string);
         });

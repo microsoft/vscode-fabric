@@ -57,5 +57,6 @@ export class DefinitionFileEditorDecorator implements vscode.Disposable {
     dispose(): void {
         this.statusBarItem.dispose();
         this.disposables.forEach(d => d.dispose());
+        this.disposables.length = 0;
     }
 }

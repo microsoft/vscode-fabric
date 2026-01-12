@@ -111,6 +111,7 @@ export class FabricVsCodeExtension {
             const localFolderService = this.container.get<ILocalFolderService>();
             const apiClient = this.container.get<IFabricApiClient>();
             const fabricEnvironmentProvider = this.container.get<IFabricEnvironmentProvider>();
+            const definitionFileSystemProvider = this.container.get<DefinitionFileSystemProvider>();
             const capacityManager = this.container.get<ICapacityManager>();
 
             // Prompt user to install MCP Server extension (async, non-blocking)
@@ -121,14 +122,14 @@ export class FabricVsCodeExtension {
 
             // Register the definition file system provider
             context.subscriptions.push(
-                vscode.workspace.registerFileSystemProvider('fabric-definition', dataProvider.getFileSystemProvider(), {
+                vscode.workspace.registerFileSystemProvider(DefinitionFileSystemProvider.scheme, definitionFileSystemProvider, {
                     isCaseSensitive: true,
                     isReadonly: false,
                 })
             );
 
             // Register the read-only definition document provider
-            const readOnlyProvider = new DefinitionVirtualDocumentContentProvider(dataProvider.getFileSystemProvider());
+            const readOnlyProvider = new DefinitionVirtualDocumentContentProvider(definitionFileSystemProvider);
             context.subscriptions.push(
                 vscode.workspace.registerTextDocumentContentProvider(DefinitionVirtualDocumentContentProvider.scheme, readOnlyProvider)
             );

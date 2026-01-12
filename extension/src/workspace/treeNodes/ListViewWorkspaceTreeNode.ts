@@ -3,7 +3,7 @@
 
 import * as vscode from 'vscode';
 
-import { IWorkspace, IWorkspaceManager, ArtifactTreeNode, IArtifact, FabricTreeNode, IWorkspaceFolder, IArtifactManager } from '@microsoft/vscode-fabric-api';
+import { IWorkspace, IWorkspaceManager, ArtifactTreeNode, IArtifact, FabricTreeNode, IWorkspaceFolder } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionManagerInternal } from '../../apis/internal/fabricExtensionInternal';
 import { TelemetryService } from '@microsoft/vscode-fabric-util';
 import { WorkspaceTreeNode } from './WorkspaceTreeNode';

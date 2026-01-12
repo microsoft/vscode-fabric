@@ -10,7 +10,6 @@ import { DefinitionRootTreeNode } from '../DefinitionRootTreeNode';
 import { DefinitionFileSystemProvider } from '../../DefinitionFileSystemProvider';
 import { DefinitionVirtualDocumentContentProvider } from '../../DefinitionVirtualDocumentContentProvider';
 import { getSupportsArtifactWithDefinition } from '../../../metadata/fabricItemUtilities';
-import { IFabricFeatureConfiguration } from '../../../settings/FabricFeatureConfiguration';
 
 /**
  * Provides definition file nodes as children when the artifact supports definitions
@@ -20,8 +19,7 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
     constructor(
         private readonly context: vscode.ExtensionContext,
         private readonly artifactManager: IArtifactManager,
-        private readonly fileSystemProvider: DefinitionFileSystemProvider,
-        private readonly featureConfiguration: IFabricFeatureConfiguration
+        private readonly fileSystemProvider: DefinitionFileSystemProvider
     ) {}
 
     canProvideChildren(artifact: IArtifact): boolean {

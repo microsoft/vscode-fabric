@@ -19,7 +19,7 @@ export async function createArtifactTreeNode(
 ): Promise<ArtifactTreeNode> {
     let artifactNode: ArtifactTreeNode;
 
-    // If a satellite provides a tree node provider, use it directly
+    // If a satellite has a tree node provider, use it directly
     if (treeNodeProvider) {
         artifactNode = await treeNodeProvider.createArtifactTreeNode(artifact);
     }

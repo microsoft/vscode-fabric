@@ -4,7 +4,7 @@
 import * as vscode from 'vscode';
 
 import { TelemetryService } from '@microsoft/vscode-fabric-util';
-import { IWorkspaceManager, IArtifact, IWorkspace, FabricTreeNode, IArtifactManager } from '@microsoft/vscode-fabric-api';
+import { IWorkspaceManager, IArtifact, IWorkspace, FabricTreeNode } from '@microsoft/vscode-fabric-api';
 import { WorkspaceTreeNode } from './WorkspaceTreeNode';
 import { DisplayStyle } from '../definitions';
 import { ArtifactTypeTreeNode } from './ArtifactTypeTreeNode';

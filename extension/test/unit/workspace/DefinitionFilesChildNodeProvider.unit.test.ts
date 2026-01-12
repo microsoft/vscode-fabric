@@ -46,8 +46,7 @@ describe('DefinitionFilesChildNodeProvider', function () {
         provider = new DefinitionFilesChildNodeProvider(
             contextMock.object(),
             artifactManagerMock.object(),
-            fileSystemProviderMock.object(),
-            featureConfigMock.object()
+            fileSystemProviderMock.object()
         );
     });
 
