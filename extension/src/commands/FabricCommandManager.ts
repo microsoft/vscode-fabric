@@ -74,14 +74,11 @@ export class FabricCommandManager implements IFabricCommandManager {
         // This is where we'll instantiate all our command classes
         // Commands will be created as we migrate them
 
-        // Internal Satellite Commands - Database
-        const { OpenSqlExtensionCommand } = await import('./OpenSqlExtensionCommand');
-        const { CopyConnectionStringCommand } = await import('./CopyConnectionStringCommand');
-        
-        this.registerCommand(new OpenSqlExtensionCommand(this));
-        this.registerCommand(new CopyConnectionStringCommand(this));
+        // Note: Internal satellite commands (database, notebook, etc.) are now
+        // registered by their respective satellite command managers.
+        // See SqlSatelliteCommandManager for database commands.
 
-        // Example of how commands will be registered:
+        // Example of how extension commands will be registered:
         // const createArtifactCommand = new CreateArtifactCommand(this);
         // this.registerCommand(createArtifactCommand);
 

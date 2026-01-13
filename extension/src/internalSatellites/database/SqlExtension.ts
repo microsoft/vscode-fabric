@@ -3,15 +3,17 @@
 
 import * as vscode from 'vscode';
 import { apiVersion, IArtifactManager, IFabricExtension, IFabricExtensionManager, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, IWorkspaceManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
-import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { ILogger, TelemetryService, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { SqlDatabaseTreeNodeProvider } from './SqlDatabaseTreeNodeProvider';
 import { SqlEndpointTreeNodeProvider } from './SqlEndpointTreeNodeProvider';
 import { WarehouseTreeNodeProvider } from './WarehouseTreeNodeProvider';
+import { SqlSatelliteCommandManager } from './SqlSatelliteCommandManager';
 
 export class SqlExtension implements IFabricExtension, vscode.Disposable {
     private workspaceManager: IWorkspaceManager;
     private artifactManager: IArtifactManager;
     private apiClient: IFabricApiClient;
+    private commandManager: SqlSatelliteCommandManager;
 
     public identity: string = 'fabric.internal-satellite-sql';
     public apiVersion: string = apiVersion;
@@ -27,16 +29,31 @@ export class SqlExtension implements IFabricExtension, vscode.Disposable {
         private context: vscode.ExtensionContext,
         private telemetryService: TelemetryService,
         private logger: ILogger,
-        private extensionManager: IFabricExtensionManager
+        private extensionManager: IFabricExtensionManager,
+        private fabricEnvironmentProvider: IFabricEnvironmentProvider
     ) {
         const serviceCollection = extensionManager.addExtension(this);
 
         this.workspaceManager = serviceCollection.workspaceManager;
         this.artifactManager = serviceCollection.artifactManager;
         this.apiClient = serviceCollection.apiClient;
+
+        // Initialize satellite-specific command manager
+        this.commandManager = new SqlSatelliteCommandManager(
+            this.logger,
+            this.telemetryService,
+            this.context,
+            this.fabricEnvironmentProvider,
+            this.workspaceManager,
+            this.artifactManager,
+            this.apiClient
+        );
+
+        // Initialize commands
+        void this.commandManager.initialize();
     }
 
     dispose() {
-        // Commands are now managed by FabricCommandManager
+        this.commandManager.dispose();
     }
 }

@@ -7,7 +7,7 @@ import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { InternalSatelliteManager } from '../../../src/internalSatellites/InternalSatelliteManager';
 import { IWorkspaceManager, IArtifactManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
-import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { ILogger, TelemetryService, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { IWorkspaceFilterManager } from '../../../src/workspace/WorkspaceFilterManager';
 import { IFabricExtensionManagerInternal } from '../../../src/apis/internal/fabricExtensionInternal';
 
@@ -20,6 +20,7 @@ describe('InternalSatelliteManager', function () {
     let loggerMock: Mock<ILogger>;
     let extensionManagerMock: Mock<IFabricExtensionManagerInternal>;
     let workspaceFilterManagerMock: Mock<IWorkspaceFilterManager>;
+    let fabricEnvironmentProviderMock: Mock<IFabricEnvironmentProvider>;
     let serviceCollection: any;
     let registerCommandStub: sinon.SinonStub;
 
@@ -36,6 +37,11 @@ describe('InternalSatelliteManager', function () {
         loggerMock = new Mock<ILogger>();
         extensionManagerMock = new Mock<IFabricExtensionManagerInternal>();
         workspaceFilterManagerMock = new Mock<IWorkspaceFilterManager>();
+        fabricEnvironmentProviderMock = new Mock<IFabricEnvironmentProvider>();
+        
+        // Setup fabricEnvironmentProvider mock
+        fabricEnvironmentProviderMock.setup(x => x.getCurrent()).returns({ sharedUri: 'https://test.com' } as any);
+        
         serviceCollection = {
             workspaceManager: workspaceManagerMock.object(),
             artifactManager: artifactManagerMock.object(),
@@ -64,7 +70,8 @@ describe('InternalSatelliteManager', function () {
             telemetryServiceMock.object(),
             loggerMock.object(),
             extensionManagerMock.object(),
-            workspaceFilterManagerMock.object()
+            workspaceFilterManagerMock.object(),
+            fabricEnvironmentProviderMock.object()
         );
         // Assert
         assert.ok(manager.extensionClasses.length >= 2, 'Should have at least two extension classes');
@@ -79,7 +86,8 @@ describe('InternalSatelliteManager', function () {
             telemetryServiceMock.object(),
             loggerMock.object(),
             extensionManagerMock.object(),
-            workspaceFilterManagerMock.object()
+            workspaceFilterManagerMock.object(),
+            fabricEnvironmentProviderMock.object()
         );
         // Act
         manager.activateAll();
@@ -98,7 +106,8 @@ describe('InternalSatelliteManager', function () {
             telemetryServiceMock.object(),
             loggerMock.object(),
             extensionManagerMock.object(),
-            workspaceFilterManagerMock.object()
+            workspaceFilterManagerMock.object(),
+            fabricEnvironmentProviderMock.object()
         );
         manager.activateAll();
         // Act & Assert
