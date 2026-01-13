@@ -138,7 +138,7 @@ export class FabricVsCodeExtension {
 
             const commandManager = this.container.get<IFabricCommandManager>();
             await commandManager.initialize();
-            
+
             registerWorkspaceCommands(context, account, workspaceManager, capacityManager, telemetryService, logger, workspaceFilterManager, fabricEnvironmentProvider);
             registerTenantCommands(context, account, telemetryService, logger);
             await registerArtifactCommands(
@@ -258,6 +258,9 @@ export class FabricVsCodeExtension {
             // This solves the problem of calling the code to draw tree nodes before the extension is completely initialized
             void workspaceManager.refreshConnectionToFabric();
 
+            // Prompt user to install MCP Server extension (async, non-blocking)
+            void this.promptMcpServerInstall(telemetryService, this.container.get<IConfigurationProvider>(), logger);
+
             return extensionManager;
         }
         catch (ex) {
@@ -295,6 +298,71 @@ export class FabricVsCodeExtension {
         }
         finally {
             void telemetryService?.dispose();
+        }
+    }
+
+    /**
+     * Prompts the user to install the Fabric MCP Server extension if not already installed.
+     * This is called asynchronously during activation to avoid blocking startup.
+     * Only prompts if GitHub Copilot extension is installed.
+     */
+    private async promptMcpServerInstall(
+        telemetryService: TelemetryService,
+        configurationProvider: IConfigurationProvider,
+        logger: ILogger
+    ): Promise<void> {
+        const copilotExtensionId = 'github.copilot-chat';
+        const mcpExtensionId = 'fabric.vscode-fabric-mcp-server';
+        const configKey = 'Fabric.McpServer.PromptInstall';
+
+        try {
+            // Only prompt if GitHub Copilot is installed
+            const copilotExtension = vscode.extensions.getExtension(copilotExtensionId);
+            if (!copilotExtension) {
+                return; // Copilot not installed, no need to prompt for MCP server
+            }
+
+            // Check if the MCP extension is already installed
+            const mcpExtension = vscode.extensions.getExtension(mcpExtensionId);
+            if (mcpExtension) {
+                return; // Already installed, nothing to do
+            }
+
+            // Check if user has opted out of the prompt
+            const shouldPrompt = configurationProvider.get<boolean>(configKey, true);
+            if (!shouldPrompt) {
+                return;
+            }
+
+            // Show the prompt with three options
+            const installOption = vscode.l10n.t('Install');
+            const notNowOption = vscode.l10n.t('Not Now');
+            const neverAskAgainOption = vscode.l10n.t("Don't Ask Again");
+
+            const choice = await vscode.window.showInformationMessage(
+                vscode.l10n.t('Enhance your Fabric Copilot experience by installing the Fabric MCP Server extension.'),
+                installOption,
+                notNowOption,
+                neverAskAgainOption
+            );
+
+            let userChoice: string;
+
+            if (choice === installOption) {
+                userChoice = 'installed';
+                await vscode.commands.executeCommand('workbench.extensions.installExtension', mcpExtensionId);
+            } else if (choice === neverAskAgainOption) {
+                userChoice = 'neverAskAgain';
+                await configurationProvider.update<boolean>(configKey, false);
+            } else {
+                userChoice = 'dismissed';
+            }
+
+            // Track telemetry
+            telemetryService?.sendTelemetryEvent('mcp/installPrompt', { userChoice });
+
+        } catch (ex) {
+            logger.error(`Failed to prompt for MCP Server extension install: ${ex}`);
         }
     }
 }
