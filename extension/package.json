@@ -516,11 +516,7 @@
         },
         "Fabric.LocalFolderSaveBehavior": {
           "type": "string",
-          "enum": [
-            "prompt",
-            "always",
-            "never"
-          ],
+          "enum": ["prompt", "always", "never"],
           "enumDescriptions": [
             "%extension.configuration.LocalFolderSaveBehavior.prompt%",
             "%extension.configuration.LocalFolderSaveBehavior.always%",
@@ -546,9 +542,7 @@
           "type": "boolean",
           "default": false,
           "description": "%extension.configuration.ShowFolders.description%",
-          "tags": [
-            "preview"
-          ]
+          "tags": ["preview"]
         },
         "Fabric.McpServer.PromptInstall": {
           "type": "boolean",
