@@ -29,6 +29,8 @@ export class SqlSatelliteCommandManager extends FabricCommandManager implements 
      * Initialize command manager and register all satellite commands
      */
     public async initialize(): Promise<void> {
+        await super.initialize();
+        
         this.logger.log('[SqlSatellite] Initializing command manager...');
 
         // Register satellite-specific commands

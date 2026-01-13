@@ -46,8 +46,7 @@ export class FabricCommandManager implements IFabricCommandManagerBase {
      * Initialize command manager (optional - for subclasses to override)
      */
     public async initialize(): Promise<void> {
-        this.logger.log('FabricCommandManager initializing...');
-        this.logger.log(`FabricCommandManager initialized with ${this.commands.size} commands`);
+        // Subclasses should override this to register their commands
     }
 
     /**
