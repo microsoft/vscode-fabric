@@ -18,3 +18,4 @@ export * from './testSupport';
 export * from './VSCodeUIBypass';
 export * from './commands/IFabricCommandManagerBase';
 export * from './commands/FabricCommandBase';
+export * from './commands/FabricCommandManager';
