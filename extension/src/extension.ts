@@ -107,6 +107,9 @@ export class FabricVsCodeExtension {
             const fabricEnvironmentProvider = this.container.get<IFabricEnvironmentProvider>();
             const capacityManager = this.container.get<ICapacityManager>();
 
+            // Prompt user to install MCP Server extension (async, non-blocking)
+            void this.promptMcpServerInstall(telemetryService, this.container.get<IConfigurationProvider>(), logger);
+
             const treeView: vscode.TreeView<FabricTreeNode> = vscode.window.createTreeView('vscode-fabric.view.workspace',
                 { treeDataProvider: dataProvider, showCollapseAll: true });
 
@@ -258,9 +261,6 @@ export class FabricVsCodeExtension {
             // This solves the problem of calling the code to draw tree nodes before the extension is completely initialized
             void workspaceManager.refreshConnectionToFabric();
 
-            // Prompt user to install MCP Server extension (async, non-blocking)
-            void this.promptMcpServerInstall(telemetryService, this.container.get<IConfigurationProvider>(), logger);
-
             return extensionManager;
         }
         catch (ex) {
@@ -350,18 +350,50 @@ export class FabricVsCodeExtension {
 
             if (choice === installOption) {
                 userChoice = 'installed';
-                await vscode.commands.executeCommand('workbench.extensions.installExtension', mcpExtensionId);
-            } else if (choice === neverAskAgainOption) {
+                let installed = false;
+
+                // Try to install stable version first
+                try {
+                    logger.info(`Attempting to install stable version of ${mcpExtensionId}...`);
+                    await vscode.commands.executeCommand('workbench.extensions.installExtension', mcpExtensionId);
+                    installed = !!vscode.extensions.getExtension(mcpExtensionId);
+                } catch (stableError) {
+                    logger.info(`Stable version not available: ${stableError}`);
+                }
+
+                // If stable version was not installed, try prerelease
+                if (!installed) {
+                    try {
+                        logger.info(`Attempting to install prerelease version of ${mcpExtensionId}...`);
+                        await vscode.commands.executeCommand('workbench.extensions.installExtension', mcpExtensionId, {
+                            installPreReleaseVersion: true,
+                        });
+                        installed = !!vscode.extensions.getExtension(mcpExtensionId);
+                    } catch (prereleaseError) {
+                        logger.warn(`Failed to install prerelease version: ${prereleaseError}`);
+                    }
+                }
+
+                // Log final result
+                if (installed) {
+                    logger.info(`Successfully installed ${mcpExtensionId}`);
+                } else {
+                    logger.warn(`Failed to install ${mcpExtensionId} - extension not found after installation attempts`);
+                }
+            }
+            else if (choice === neverAskAgainOption) {
                 userChoice = 'neverAskAgain';
                 await configurationProvider.update<boolean>(configKey, false);
-            } else {
+            }
+            else {
                 userChoice = 'dismissed';
             }
 
             // Track telemetry
             telemetryService?.sendTelemetryEvent('mcp/installPrompt', { userChoice });
 
-        } catch (ex) {
+        }
+        catch (ex) {
             logger.error(`Failed to prompt for MCP Server extension install: ${ex}`);
         }
     }
