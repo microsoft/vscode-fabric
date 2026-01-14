@@ -357,7 +357,8 @@ export class FabricVsCodeExtension {
                     logger.info(`Attempting to install stable version of ${mcpExtensionId}...`);
                     await vscode.commands.executeCommand('workbench.extensions.installExtension', mcpExtensionId);
                     installed = !!vscode.extensions.getExtension(mcpExtensionId);
-                } catch (stableError) {
+                }
+                catch (stableError) {
                     logger.info(`Stable version not available: ${stableError}`);
                 }
 
@@ -377,7 +378,8 @@ export class FabricVsCodeExtension {
                 // Log final result
                 if (installed) {
                     logger.info(`Successfully installed ${mcpExtensionId}`);
-                } else {
+                }
+                else {
                     logger.warn(`Failed to install ${mcpExtensionId} - extension not found after installation attempts`);
                 }
             }
