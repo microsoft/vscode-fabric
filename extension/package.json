@@ -29,6 +29,7 @@
     "onFileSystem:fabric-definition-virtual"
   ],
   "main": "./dist/extension.js",
+  "browser": "./dist/web/extension.js",
   "l10n": "./l10n",
   "license": "SEE LICENSE IN LICENSE.md",
   "bugs": {
@@ -36,6 +37,11 @@
   },
   "contributes": {
     "commands": [
+      {
+        "command": "vscode-fabric.helloWeb",
+        "title": "Hello Web",
+        "category": "Fabric"
+      },
       {
         "command": "vscode-fabric.signIn",
         "title": "%extension.signIn.title%",
@@ -221,7 +227,8 @@
         {
           "id": "vscode-fabric_view_workspace",
           "title": "%extension.activityBarIcon.title%",
-          "icon": "resources/fabric.svg"
+          "icon": "resources/fabric.svg",
+          "when": "!isWeb"
         }
       ]
     },

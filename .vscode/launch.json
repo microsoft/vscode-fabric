@@ -25,6 +25,25 @@
       }
     },
     {
+      "name": "Web Extension (Browser)",
+      "type": "extensionHost",
+      "debugWebWorkerHost": true,
+      "request": "launch",
+      "args": [
+        "--disable-extensions",
+        "--extensionDevelopmentPath=${workspaceFolder}/extension",
+        "--extensionDevelopmentKind=web"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/extension/dist/web/**/*.js"
+      ],
+      "env": {
+        // Enable these selectively for test hooks/fakes.
+        // "VSCODE_FABRIC_ENABLE_TEST_HOOKS": "true",
+        // "VSCODE_FABRIC_ENABLE_TEST_FAKES": "true"
+      }
+    },
+    {
       "name": "Debug Core UI Tests",
       "type": "node",
       "request": "launch",
