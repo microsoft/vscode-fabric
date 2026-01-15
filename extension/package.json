@@ -543,6 +543,11 @@
           "default": false,
           "description": "%extension.configuration.ShowFolders.description%",
           "tags": ["preview"]
+        },
+        "Fabric.McpServer.PromptInstall": {
+          "type": "boolean",
+          "default": true,
+          "description": "%extension.configuration.McpServer.PromptInstall.description%"
         }
       }
     },
