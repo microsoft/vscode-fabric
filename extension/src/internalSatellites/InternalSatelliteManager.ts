@@ -6,7 +6,7 @@ import { SqlExtension } from './database/SqlExtension';
 import { NotebookExtension } from './notebook/NotebookExtension';
 import { ReportExtension } from './report/ReportExtension';
 import { IFabricExtension } from '@microsoft/vscode-fabric-api';
-import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { ILogger, TelemetryService, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 
@@ -20,7 +20,8 @@ export class InternalSatelliteManager {
         private telemetryService: TelemetryService,
         private logger: ILogger,
         private extensionManager: IFabricExtensionManagerInternal,
-        private workspaceFilterManager: IWorkspaceFilterManager
+        private workspaceFilterManager: IWorkspaceFilterManager,
+        private fabricEnvironmentProvider: IFabricEnvironmentProvider
     ) {
     }
 
@@ -41,7 +42,8 @@ export class InternalSatelliteManager {
                 this.context,
                 this.telemetryService,
                 this.logger,
-                this.extensionManager
+                this.extensionManager,
+                this.fabricEnvironmentProvider
             )
         );
 

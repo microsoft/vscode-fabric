@@ -7,13 +7,14 @@ import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
 import { SqlExtension } from '../../../../src/internalSatellites/database/SqlExtension';
 import { IFabricExtensionManager, IWorkspaceManager, IArtifactManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
-import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { ILogger, TelemetryService, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 
 describe('SqlExtension', function () {
     let contextMock: Mock<vscode.ExtensionContext>;
     let telemetryServiceMock: Mock<TelemetryService>;
     let loggerMock: Mock<ILogger>;
     let extensionManagerMock: Mock<IFabricExtensionManager>;
+    let fabricEnvironmentProviderMock: Mock<IFabricEnvironmentProvider>;
     let serviceCollection: any;
     let registerCommandStub: sinon.SinonStub;
 
@@ -26,6 +27,11 @@ describe('SqlExtension', function () {
         telemetryServiceMock = new Mock<TelemetryService>();
         loggerMock = new Mock<ILogger>();
         extensionManagerMock = new Mock<IFabricExtensionManager>();
+        fabricEnvironmentProviderMock = new Mock<IFabricEnvironmentProvider>();
+        
+        // Setup fabricEnvironmentProvider mock
+        fabricEnvironmentProviderMock.setup(x => x.getCurrent()).returns({ sharedUri: 'https://test.com' } as any);
+        
         serviceCollection = {
             workspaceManager: new Mock<IWorkspaceManager>().object(),
             artifactManager: new Mock<IArtifactManager>().object(),
@@ -56,7 +62,8 @@ describe('SqlExtension', function () {
             context,
             telemetryServiceMock.object(),
             loggerMock.object(),
-            extensionManagerMock.object()
+            extensionManagerMock.object(),
+            fabricEnvironmentProviderMock.object()
         );
         // Assert
         assert.equal(sqlExtension.identity, 'fabric.internal-satellite-sql', 'Identity should be set');
@@ -72,7 +79,8 @@ describe('SqlExtension', function () {
             context,
             telemetryServiceMock.object(),
             loggerMock.object(),
-            extensionManagerMock.object()
+            extensionManagerMock.object(),
+            fabricEnvironmentProviderMock.object()
         );
         // Act & Assert
         assert.doesNotThrow(() => sqlExtension.dispose(), 'Dispose should not throw');

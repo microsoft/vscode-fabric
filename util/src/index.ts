@@ -17,3 +17,6 @@ export * from './UserCancelledError';
 export * from './testSupport';
 export * from './treeView';
 export * from './VSCodeUIBypass';
+export * from './commands/IFabricCommandManagerBase';
+export * from './commands/FabricCommandBase';
+export * from './commands/FabricCommandManager';

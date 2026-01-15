@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { ILogger, TelemetryService, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
-import { IWorkspaceManager } from '@microsoft/vscode-fabric-api';
+import { IWorkspaceManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
 import { ICapacityManager } from '../CapacityManager';
@@ -26,7 +26,8 @@ export class FabricCommandManager implements IFabricCommandManager {
         public readonly capacityManager: ICapacityManager,
         public readonly dataProvider: FabricWorkspaceDataProvider,
         public readonly workspaceFilterManager: IWorkspaceFilterManager,
-        public readonly extensionManager: IFabricExtensionManagerInternal
+        public readonly extensionManager: IFabricExtensionManagerInternal,
+        public readonly apiClient: IFabricApiClient
     ) {}
 
     // Private command management methods
@@ -73,7 +74,11 @@ export class FabricCommandManager implements IFabricCommandManager {
         // This is where we'll instantiate all our command classes
         // Commands will be created as we migrate them
 
-        // Example of how commands will be registered:
+        // Note: Internal satellite commands (database, notebook, etc.) are now
+        // registered by their respective satellite command managers.
+        // See SqlSatelliteCommandManager for database commands.
+
+        // Example of how extension commands will be registered:
         // const createArtifactCommand = new CreateArtifactCommand(this);
         // this.registerCommand(createArtifactCommand);
 

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import { TelemetryActivity, doFabricAction, withErrorHandling } from '@microsoft/vscode-fabric-util';
+import { TelemetryActivity, FabricCommandBase } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
-import { IFabricCommandManager, IFabricCommand } from './IFabricCommandManager';
+import { IFabricCommandManager } from './IFabricCommandManager';
 import { fabricViewWorkspace } from '../constants';
 
 /**
@@ -9,69 +9,7 @@ import { fabricViewWorkspace } from '../constants';
  * telemetry tracking, and dependency access functionality
  */
 export abstract class FabricCommand<TEventName extends keyof CoreTelemetryEventNames = keyof CoreTelemetryEventNames>
-implements IFabricCommand<TEventName> {
-
-    public abstract readonly commandName: string;
-    public abstract readonly telemetryEventName: TEventName;
-
-    constructor(protected readonly commandManager: IFabricCommandManager) {}
-
-    /**
-     * Public execute method that wraps the command execution with error handling and telemetry
-     */
-    public async execute(...args: any[]): Promise<any> {
-        return withErrorHandling(
-            this.commandName,
-            this.commandManager.logger,
-            this.commandManager.telemetryService,
-            async () => {
-                const activity = new TelemetryActivity<CoreTelemetryEventNames>(
-                    this.telemetryEventName,
-                    this.commandManager.telemetryService
-                );
-
-                return await vscode.window.withProgress(
-                    { location: this.getProgressLocation() },
-                    async () => {
-                        return await doFabricAction(
-                            {
-                                fabricLogger: this.commandManager.logger,
-                                telemetryActivity: activity,
-                            },
-                            async () => {
-                                try {
-                                    const result = await this.executeInternal(activity, ...args);
-                                    activity.addOrUpdateProperties({ result: 'Succeeded' });
-                                    return result;
-                                }
-                                catch (err: any) {
-                                    if (err && err.isCanceledError === true) {
-                                        activity.addOrUpdateProperties({ result: 'Canceled' });
-                                        const canceledError = err as any;
-                                        if (canceledError.stepName) {
-                                            activity.addOrUpdateProperties({ lastStep: canceledError.stepName });
-                                        }
-                                        return;
-                                    }
-                                    activity.addOrUpdateProperties({ result: 'Failed' });
-                                    throw err;
-                                }
-                            }
-                        );
-                    }
-                );
-            }
-        )();
-    }
-
-    /**
-     * Internal execution method that subclasses must implement
-     * This method contains the actual command logic and has access to the telemetry activity
-     */
-    protected abstract executeInternal(
-        telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>,
-        ...args: any[]
-    ): Promise<any>;
+extends FabricCommandBase<CoreTelemetryEventNames, TEventName, IFabricCommandManager> {
 
     /**
      * Override this method to specify a custom progress location for the command
