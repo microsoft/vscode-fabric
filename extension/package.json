@@ -649,8 +649,7 @@
     "@microsoft/vscode-fabric-util": "^0.37.0-preview",
     "@types/fs-extra": "^11.0.1",
     "@vscode/extension-telemetry": "^0.8.3",
-    "fs-extra": "^11.1.1",
-    "jszip": "^3.10.1"
+    "fs-extra": "^11.1.1"
   },
   "devDependencies": {}
 }
