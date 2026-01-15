@@ -44,6 +44,7 @@
   "extension.configuration.LocalFolderSaveBehavior.never": "Never save local folder paths",
   "extension.configuration.DebugLogging.description": "Activer la journalisation du débogage dans le panneau de sortie de Fabric",
   "extension.configuration.ShowFolders.description": "Afficher les dossiers dans la vue Espace de travail Fabric",
+  "extension.configuration.McpServer.PromptInstall.description": "Prompt to install the Fabric MCP Server extension for enhanced Copilot capabilities",
   "extension.walkthrough.fabric.title": "Démarrer avec Microsoft Fabric",
   "extension.walkthrough.fabric.description": "Vos premières étapes pour travailler avec Fabric !",
   "extension.walkthrough.openPortal.title": "Créer un espace de travail",

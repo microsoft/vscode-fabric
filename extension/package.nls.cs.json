@@ -44,6 +44,7 @@
   "extension.configuration.LocalFolderSaveBehavior.never": "Never save local folder paths",
   "extension.configuration.DebugLogging.description": "Zapnout protokolování ladění na panelu výstupu Fabricu",
   "extension.configuration.ShowFolders.description": "Zobrazit složky v zobrazení pracovního prostoru Fabricu",
+  "extension.configuration.McpServer.PromptInstall.description": "Prompt to install the Fabric MCP Server extension for enhanced Copilot capabilities",
   "extension.walkthrough.fabric.title": "Začínáme s Microsoft Fabricem",
   "extension.walkthrough.fabric.description": "První kroky při práci s Fabricem!",
   "extension.walkthrough.openPortal.title": "Vytvoření pracovního prostoru",

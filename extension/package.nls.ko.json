@@ -44,6 +44,7 @@
   "extension.configuration.LocalFolderSaveBehavior.never": "Never save local folder paths",
   "extension.configuration.DebugLogging.description": "Fabric 출력 패널에서 디버그 로깅 켜기",
   "extension.configuration.ShowFolders.description": "Fabric 작업 영역 보기에서 폴더 표시",
+  "extension.configuration.McpServer.PromptInstall.description": "Prompt to install the Fabric MCP Server extension for enhanced Copilot capabilities",
   "extension.walkthrough.fabric.title": "Microsoft Fabric 시작",
   "extension.walkthrough.fabric.description": "Fabric으로 작업하기 위한 첫 번째 단계입니다!",
   "extension.walkthrough.openPortal.title": "작업 영역 만들기",

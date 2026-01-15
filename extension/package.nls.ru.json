@@ -44,6 +44,7 @@
   "extension.configuration.LocalFolderSaveBehavior.never": "Never save local folder paths",
   "extension.configuration.DebugLogging.description": "Включите отладочную регистрацию на панели вывода Fabric",
   "extension.configuration.ShowFolders.description": "Отображать папки в представлении рабочей области Fabric",
+  "extension.configuration.McpServer.PromptInstall.description": "Prompt to install the Fabric MCP Server extension for enhanced Copilot capabilities",
   "extension.walkthrough.fabric.title": "Начните работу с Microsoft Fabric",
   "extension.walkthrough.fabric.description": "Ваши первые шаги в работе с Fabric!",
   "extension.walkthrough.openPortal.title": "Создать рабочую область",

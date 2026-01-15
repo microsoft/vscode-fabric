@@ -44,6 +44,7 @@
   "extension.configuration.LocalFolderSaveBehavior.never": "Never save local folder paths",
   "extension.configuration.DebugLogging.description": "Debugprotokollierung im Fabric-Ausgabebereich aktivieren",
   "extension.configuration.ShowFolders.description": "Anzeigen von Ordnern in der Fabric-Arbeitsbereichsansicht",
+  "extension.configuration.McpServer.PromptInstall.description": "Prompt to install the Fabric MCP Server extension for enhanced Copilot capabilities",
   "extension.walkthrough.fabric.title": "Erste Schritte mit Microsoft Fabric",
   "extension.walkthrough.fabric.description": "Ihre ersten Schritte zur Arbeit mit Fabric!",
   "extension.walkthrough.openPortal.title": "Arbeitsbereich erstellen",

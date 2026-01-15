@@ -44,6 +44,7 @@
   "extension.configuration.LocalFolderSaveBehavior.never": "Never save local folder paths",
   "extension.configuration.DebugLogging.description": "在 Fabric 輸出面板中開啟偵錯記錄",
   "extension.configuration.ShowFolders.description": "在 Fabric 工作區檢視中顯示資料夾",
+  "extension.configuration.McpServer.PromptInstall.description": "Prompt to install the Fabric MCP Server extension for enhanced Copilot capabilities",
   "extension.walkthrough.fabric.title": "開始使用 Microsoft Fabric",
   "extension.walkthrough.fabric.description": "使用 Fabric 作業的第一步!",
   "extension.walkthrough.openPortal.title": "建立工作區",
