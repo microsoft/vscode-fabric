@@ -30,6 +30,11 @@ export abstract class FabricTreeNode extends vscode.TreeItem {
  */
 export class ArtifactTreeNode extends FabricTreeNode {
     /**
+     * Discriminator property for reliable type checking across module boundaries.
+     */
+    readonly isArtifactTreeNode = true as const;
+
+    /**
      * Creates a new instance of the ArtifactTreeNode class
      * @param artifact - The artifact this node is representing
      * @remarks Sets the following properties of the TreeItem

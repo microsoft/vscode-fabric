@@ -24,7 +24,9 @@
     "Functions"
   ],
   "activationEvents": [
-    "onUri"
+    "onUri",
+    "onFileSystem:fabric-definition",
+    "onFileSystem:fabric-definition-virtual"
   ],
   "main": "./dist/extension.js",
   "l10n": "./l10n",
@@ -186,6 +188,12 @@
         "title": "%extension.clearWorkspaceFilter.title%",
         "category": "Fabric",
         "icon": "$(clear-all)"
+      },
+      {
+        "command": "vscode-fabric.editDefinitionFile",
+        "title": "%extension.editDefinitionFile.title%",
+        "category": "Fabric",
+        "icon": "$(edit)"
       }
     ],
     "views": {
@@ -313,6 +321,10 @@
         },
         {
           "command": "vscode-fabric.installExtension",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.editDefinitionFile",
           "when": "false"
         }
       ],
@@ -480,6 +492,16 @@
           "group": "5@11"
         },
         {
+          "command": "vscode-fabric.editDefinitionFile",
+          "when": "view == vscode-fabric.view.workspace && viewItem == definition-file && config.Fabric.EditItemDefinitions",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-fabric.editDefinitionFile",
+          "when": "view == vscode-fabric.view.workspace && viewItem == definition-file && config.Fabric.EditItemDefinitions",
+          "group": "1@1"
+        },
+        {
           "command": "vscode-fabric.copyConnectionString",
           "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-copy-connection-string/",
           "group": "5@12"
@@ -508,48 +530,54 @@
     },
     "configuration": {
       "title": "Fabric",
-      "properties": {
-        "Fabric.ApiTimeout": {
-          "type": "number",
-          "default": 60000,
-          "description": "%extension.configuration.ApiTimeout.description%"
-        },
-        "Fabric.LocalFolderSaveBehavior": {
-          "type": "string",
-          "enum": ["prompt", "always", "never"],
-          "enumDescriptions": [
-            "%extension.configuration.LocalFolderSaveBehavior.prompt%",
-            "%extension.configuration.LocalFolderSaveBehavior.always%",
-            "%extension.configuration.LocalFolderSaveBehavior.never%"
-          ],
-          "default": "prompt",
-          "description": "%extension.configuration.LocalFolderSaveBehavior.description%"
-        },
-        "Fabric.DebugLogging": {
-          "type": "boolean",
-          "default": "false",
-          "description": "%extension.configuration.DebugLogging.description%"
-        },
-        "Fabric.EnvironmentSettings": {
-          "type": "object",
-          "default": {
-            "current": "PROD",
-            "environments": []
-          },
-          "description": "%extension.configuration.Environment.description%"
-        },
-        "Fabric.ShowFolders": {
-          "type": "boolean",
-          "default": false,
-          "description": "%extension.configuration.ShowFolders.description%",
-          "tags": ["preview"]
-        },
-        "Fabric.McpServer.PromptInstall": {
-          "type": "boolean",
-          "default": true,
-          "description": "%extension.configuration.McpServer.PromptInstall.description%"
+        "properties": {
+            "Fabric.ApiTimeout": {
+                "type": "number",
+                "default": 60000,
+                "description": "%extension.configuration.ApiTimeout.description%"
+            },
+            "Fabric.LocalFolderSaveBehavior": {
+                "type": "string",
+                "enum": [ "prompt", "always", "never" ],
+                "enumDescriptions": [
+                    "%extension.configuration.LocalFolderSaveBehavior.prompt%",
+                    "%extension.configuration.LocalFolderSaveBehavior.always%",
+                    "%extension.configuration.LocalFolderSaveBehavior.never%"
+                ],
+                "default": "prompt",
+                "description": "%extension.configuration.LocalFolderSaveBehavior.description%"
+            },
+            "Fabric.DebugLogging": {
+                "type": "boolean",
+                "default": "false",
+                "description": "%extension.configuration.DebugLogging.description%"
+            },
+            "Fabric.EnvironmentSettings": {
+                "type": "object",
+                "default": {
+                    "current": "PROD",
+                    "environments": []
+                },
+                "description": "%extension.configuration.Environment.description%"
+            },
+            "Fabric.ShowFolders": {
+                "type": "boolean",
+                "default": false,
+                "description": "%extension.configuration.ShowFolders.description%",
+                "tags": [ "preview" ]
+            },
+            "Fabric.McpServer.PromptInstall": {
+                "type": "boolean",
+                "default": true,
+                "description": "%extension.configuration.McpServer.PromptInstall.description%"
+            },
+            "Fabric.EditItemDefinitions": {
+                "type": "boolean",
+                "default": false,
+                "description": "%extension.configuration.EditItemDefinitions.description%",
+                "tags": [ "preview" ]
+            }
         }
-      }
     },
     "walkthroughs": [
       {

@@ -7,6 +7,7 @@ import * as querystring from 'querystring';
 
 import { FeedbackTreeDataProvider } from './feedback/FeedbackTreeDataProvider';
 import { WorkspaceManager, WorkspaceManagerBase } from './workspace/WorkspaceManager';
+import { DefinitionVirtualDocumentContentProvider } from './workspace/DefinitionVirtualDocumentContentProvider';
 import { IFabricExtensionManager, Schema, IArtifactManager, IFabricApiClient, IFabricExtensionServiceCollection, IWorkspaceManager, FabricTreeNode } from '@microsoft/vscode-fabric-api';
 import {
     TelemetryService,
@@ -47,6 +48,7 @@ import { FabricExtensionManager } from './extensionManager/FabricExtensionManage
 import { IArtifactManagerInternal } from './apis/internal/fabricExtensionInternal';
 import { ICapacityManager, CapacityManager } from './CapacityManager';
 import { ExtensionUriHandler } from './ExtensionUriHandler';
+import { IFabricFeatureConfiguration, FabricFeatureConfiguration } from './settings/FabricFeatureConfiguration';
 
 // Information about the DI container can be found here: https://raw.githubusercontent.com/wessberg/DI/refs/heads/master/README.md
 import { DIContainer } from '@wessberg/di';
@@ -62,6 +64,10 @@ import { WorkspaceFilterManager, IWorkspaceFilterManager } from './workspace/Wor
 import { FakeTokenAcquisitionService } from './authentication';
 import { FabricCommandManager } from './commands/FabricCommandManager';
 import { IFabricCommandManager } from './commands/IFabricCommandManager';
+import { DefinitionFileSystemProvider } from './workspace/DefinitionFileSystemProvider';
+import { DefinitionFileEditorDecorator } from './workspace/DefinitionFileEditorDecorator';
+import { IArtifactChildNodeProviderCollection, ArtifactChildNodeProviderCollection } from './workspace/treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
+import { IBase64Encoder, Base64Encoder } from './itemDefinition/ItemDefinitionReader';
 
 let app: FabricVsCodeExtension;
 
@@ -105,6 +111,7 @@ export class FabricVsCodeExtension {
             const localFolderService = this.container.get<ILocalFolderService>();
             const apiClient = this.container.get<IFabricApiClient>();
             const fabricEnvironmentProvider = this.container.get<IFabricEnvironmentProvider>();
+            const definitionFileSystemProvider = this.container.get<DefinitionFileSystemProvider>();
             const capacityManager = this.container.get<ICapacityManager>();
 
             // Prompt user to install MCP Server extension (async, non-blocking)
@@ -112,6 +119,24 @@ export class FabricVsCodeExtension {
 
             const treeView: vscode.TreeView<FabricTreeNode> = vscode.window.createTreeView('vscode-fabric.view.workspace',
                 { treeDataProvider: dataProvider, showCollapseAll: true });
+
+            // Register the definition file system provider
+            context.subscriptions.push(
+                vscode.workspace.registerFileSystemProvider(DefinitionFileSystemProvider.scheme, definitionFileSystemProvider, {
+                    isCaseSensitive: true,
+                    isReadonly: false,
+                })
+            );
+
+            // Register the read-only definition document provider
+            const readOnlyProvider = new DefinitionVirtualDocumentContentProvider(definitionFileSystemProvider);
+            context.subscriptions.push(
+                vscode.workspace.registerTextDocumentContentProvider(DefinitionVirtualDocumentContentProvider.scheme, readOnlyProvider)
+            );
+
+            // Register the definition file editor decorator to show warnings
+            const editorDecorator = new DefinitionFileEditorDecorator();
+            context.subscriptions.push(editorDecorator);
 
             // Persist top-level expansion state (Option C)
             const updateExpansionState = async (element: FabricTreeNode | undefined, expand: boolean) => {
@@ -445,6 +470,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<IFabricExtensionManagerInternal, FabricExtensionManager>();
     container.registerTransient<IDisposableCollection, DisposableCollection>();
     container.registerSingleton<IConfigurationProvider, ConfigurationProvider>();
+    container.registerSingleton<IFabricFeatureConfiguration, FabricFeatureConfiguration>();
 
     container.registerSingleton<IFabricEnvironmentProvider, FabricEnvironmentProvider>();
     container.registerSingleton<VsCodeAuthentication, DefaultVsCodeAuthentication>();
@@ -466,8 +492,11 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<LocalFolderManager>();
     container.registerSingleton<ILocalFolderService, LocalFolderService>();
     container.registerSingleton<IWorkspaceManager, WorkspaceManager>();
+    container.registerSingleton<IBase64Encoder, Base64Encoder>();
+    container.registerSingleton<DefinitionFileSystemProvider>();
     container.registerSingleton<IRootTreeNodeProvider, RootTreeNodeProvider>();
     container.registerSingleton<IWorkspaceFilterManager, WorkspaceFilterManager>();
+    container.registerSingleton<IArtifactChildNodeProviderCollection, ArtifactChildNodeProviderCollection>();
     container.registerSingleton<FabricWorkspaceDataProvider>();
 
     container.registerSingleton<IArtifactManager, ArtifactManager>();

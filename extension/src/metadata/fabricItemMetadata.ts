@@ -204,6 +204,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         iconInformation: { fileName: 'semantic_model_32.svg', isThemed: true },
         portalFolder: 'semanticmodels',
         supportsArtifactWithDefinition: true,
+        extensionId: 'analysis-services.TMDL',
     },
     'SparkJobDefinition': {
         creationCapability: CreationCapability.supported,
