@@ -18,6 +18,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";extension.changeLocalFolder.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Change Local Folder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Zmień folder lokalny]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";extension.clearWorkspaceFilter.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Clear Workspace Filter]]></Val>
@@ -45,20 +54,56 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";extension.configuration.DefaultWorkspaceFolder.description" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[The default folder for Fabric workspaces, defaults to c:\users\<username>>\Workspaces]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Domyślnym folderem dla obszarów roboczych usługi Fabric jest c:\users\<username>>\Workspaces]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";extension.configuration.Environment.description" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The Fabric environment to use.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Środowisko usługi Fabric do użycia.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.configuration.LocalFolderSaveBehavior.always" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Automatically save local folder paths]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Automatycznie zapisuj ścieżki folderów lokalnych]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.configuration.LocalFolderSaveBehavior.description" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Controls when to save local folder paths for items]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Określa, kiedy zapisywać ścieżki folderów lokalnych dla elementów]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.configuration.LocalFolderSaveBehavior.never" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Never save local folder paths]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nigdy nie zapisuj ścieżek folderów lokalnych]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.configuration.LocalFolderSaveBehavior.prompt" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Prompt asks each time]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Monituj za każdym razem]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.configuration.McpServer.PromptInstall.description" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Prompt to install the Fabric MCP Server extension for enhanced Copilot capabilities]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Monituj o zainstalowanie rozszerzenia Fabric serwera MCP, aby uzyskać rozszerzone możliwości funkcji Copilot]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -110,10 +155,13 @@
       </Item>
       <Item ItemId=";extension.exportArtifact.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Open in Explorer]]></Val>
+          <Val><![CDATA[Download Item Definition...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Otwórz w eksploratorze]]></Val>
+            <Val><![CDATA[Pobierz definicję elementu...]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Open in Explorer]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -122,6 +170,24 @@
           <Val><![CDATA[Filter Workspaces...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Filtruj obszary robocze...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.importArtifact.inline.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Publish to current workspace]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Publikuj w bieżącym obszarze roboczym]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.importArtifact.promptWorkspace.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[To specific workspace...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Do określonego obszaru roboczego...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -135,15 +201,6 @@
           <Prev Cat="Text">
             <Val><![CDATA[Publish to Fabric...]]></Val>
           </Prev>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";extension.importArtifactPromptWorkspace.title" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[To specific workspace...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Do określonego obszaru roboczego...]]></Val>
-          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -170,6 +227,15 @@
           <Val><![CDATA[Open in Fabric...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Otwórz w usłudze Fabric...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.openLocalFolder.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Open Local Folder]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Otwórz folder lokalny]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -233,15 +299,6 @@
           <Val><![CDATA[Report Issue...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Zgłoś problem...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";extension.selectWorkspaceLocalFolder.title" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Select working directory...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Wybierz katalog roboczy...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
