@@ -4,7 +4,6 @@
 import * as vscode from 'vscode';
 import { IArtifact } from './FabricApiClient';
 import { ArtifactDesignerActions, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, LocalProjectDesignerActions } from './satelliteFabricExtension';
-import * as path from 'path';
 
 /**
  * Base class for all of the Fabric workspace tree items
@@ -172,13 +171,21 @@ export class LocalProjectTreeNodeProvider implements ILocalProjectTreeNodeProvid
      * @returns - A customized (@link LocalProjectTreeNode}. Returns undefined if the path is not a valid local project
      */
     async createLocalProjectTreeNode(localPath: vscode.Uri): Promise<LocalProjectTreeNode | undefined> {
-        let displayName = localPath.fsPath;
+        let displayName = localPath.path;
 
-        // Expected folder is '<path>\<item_name>.<item_type>'
-        // Because of the '.', path.parse will assume the folder is actually a file name with an extension. Use that information in deducing the label
-        const parsedPath = path.parse(localPath.path);
-        if (parsedPath.ext.toLowerCase() === (`.${this.artifactType.toLowerCase()}`)) {
-            displayName = parsedPath.name;
+        // Expected folder is '<path>/<item_name>.<item_type>'
+        // Extract the name and extension from the URI path
+        const pathSegments = localPath.path.split('/');
+        const lastSegment = pathSegments[pathSegments.length - 1] || '';
+        const lastDotIndex = lastSegment.lastIndexOf('.');
+        
+        if (lastDotIndex > 0) {
+            const ext = lastSegment.substring(lastDotIndex + 1);
+            const name = lastSegment.substring(0, lastDotIndex);
+            
+            if (ext.toLowerCase() === this.artifactType.toLowerCase()) {
+                displayName = name;
+            }
         }
 
         return new LocalProjectTreeNode(this.context, displayName, localPath);
