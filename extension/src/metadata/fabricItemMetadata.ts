@@ -202,7 +202,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         displayName: vscode.l10n.t('Semantic model'),
         displayNamePlural: vscode.l10n.t('Semantic models'),
         iconInformation: { fileName: 'semantic_model_32.svg', isThemed: true },
-        portalFolder: 'semanticmodels',
+        portalFolder: 'datasets',
         supportsArtifactWithDefinition: true,
         extensionId: 'analysis-services.TMDL',
     },
