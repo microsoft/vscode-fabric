@@ -630,7 +630,11 @@
   },
   "scripts": {
     "build": "webpack",
+    "build:node": "webpack --config-name node",
+    "build:web": "webpack --config-name web",
     "watch": "webpack --watch",
+    "watch:node": "webpack --watch --config-name node",
+    "watch:web": "webpack --watch --config-name web",
     "test:compile": "tsc -p tsconfig.test.json",
     "test:watch": "tsc -p tsconfig.test.json -w",
     "pretest:unit": "npm run test:compile",
