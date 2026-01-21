@@ -11,6 +11,7 @@ const di = require('@wessberg/di-compiler');
 
 /** @type WebpackConfig */
 const extensionConfig = {
+    name: 'node',
     target: 'node',
     mode: 'none',
     entry: './src/extension.ts',
@@ -62,6 +63,7 @@ const extensionConfig = {
 
 /** @type WebpackConfig */
 const webExtensionConfig = {
+    name: 'web',
     target: 'webworker',
     mode: 'none',
     entry: './src/web/extension.ts',
