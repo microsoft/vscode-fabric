@@ -84,27 +84,6 @@ async function createWorkspace(manager: WorkspaceManagerBase, workspaceFilterMan
 }
 
 /**
- * If a workspace has been selected, shows the user to select a local folder to associate with the workspace
- * @param manager Handles the Fabric workspaces for the user
- * @param treeNode Optional workspace tree node from context menu, contains the workspace to associate with a local folder
- */
-async function selectLocalFolder(manager: WorkspaceManagerBase, treeNode?: WorkspaceTreeNode): Promise<vscode.Uri | undefined> {
-    if (!(await manager.isConnected())) {
-        await showSignInPrompt();
-        return;
-    }
-
-    // If called from context menu, use the workspace from the tree node
-    if (treeNode && treeNode.workspace) {
-        return await manager.promptForLocalFolder(treeNode.workspace);
-    }
-
-    // If called from command palette without workspace context, show an error message
-    void vscode.window.showErrorMessage(vscode.l10n.t('Please right-click on a workspace in the Fabric explorer to associate it with a local folder.'));
-    return undefined;
-}
-
-/**
  * Checks if the user has a Fabric license and triggers signup only if they don't
  * @param auth The account provider to get session information
  * @param fabricEnvironmentProvider The environment provider to get portal URI

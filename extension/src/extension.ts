@@ -68,6 +68,7 @@ import { DefinitionFileSystemProvider } from './workspace/DefinitionFileSystemPr
 import { DefinitionFileEditorDecorator } from './workspace/DefinitionFileEditorDecorator';
 import { IArtifactChildNodeProviderCollection, ArtifactChildNodeProviderCollection } from './workspace/treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
 import { IBase64Encoder, Base64Encoder } from './itemDefinition/ItemDefinitionReader';
+import { ILocalFolderManager } from './ILocalFolderManager';
 
 let app: FabricVsCodeExtension;
 
@@ -107,7 +108,7 @@ export class FabricVsCodeExtension {
             const workspaceFilterManager = this.container.get<IWorkspaceFilterManager>();
             const dataProvider = this.container.get<FabricWorkspaceDataProvider>();
             const artifactManager = this.container.get<IArtifactManagerInternal>();
-            const localFolderManager = this.container.get<LocalFolderManager>();
+            const localFolderManager = this.container.get<ILocalFolderManager>();
             const localFolderService = this.container.get<ILocalFolderService>();
             const apiClient = this.container.get<IFabricApiClient>();
             const fabricEnvironmentProvider = this.container.get<IFabricEnvironmentProvider>();
@@ -489,7 +490,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<vscode.Memento>(() => container.get<ExtensionContext>().globalState);
     container.registerSingleton<IFabricExtensionsSettingStorage, FabricExtensionsSettingStorage>();
     container.registerSingleton<vscode.FileSystem>(() => vscode.workspace.fs);
-    container.registerSingleton<LocalFolderManager>();
+    container.registerSingleton<ILocalFolderManager, LocalFolderManager>();
     container.registerSingleton<ILocalFolderService, LocalFolderService>();
     container.registerSingleton<IWorkspaceManager, WorkspaceManager>();
     container.registerSingleton<IBase64Encoder, Base64Encoder>();
