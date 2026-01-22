@@ -6,6 +6,7 @@ import { ExtensionContext } from 'vscode';
 
 import { commandNames } from '../constants';
 
+import { FabricTreeNode, IWorkspaceManager, IFabricApiClient, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import {
     TelemetryService,
     ILogger,
@@ -23,6 +24,25 @@ import { ITokenAcquisitionService, IAccountProvider } from '../authentication/in
 import { AccountProvider } from '../authentication/AccountProvider';
 import { TokenAcquisitionService, VsCodeAuthentication, DefaultVsCodeAuthentication } from '../authentication/TokenAcquisitionService';
 import { FeedbackTreeDataProvider } from '../feedback/FeedbackTreeDataProvider';
+import { FabricWorkspaceDataProvider, RootTreeNodeProvider } from '../workspace/treeView';
+import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
+import { FabricExtensionManager } from '../extensionManager/FabricExtensionManager';
+import { WorkspaceManager, WorkspaceManagerBase } from '../workspace/WorkspaceManager';
+import { IRootTreeNodeProvider } from '../workspace/definitions';
+import { WorkspaceFilterManager, IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
+import { IFabricExtensionsSettingStorage } from '../settings/definitions';
+import { FabricExtensionsSettingStorage } from '../settings/FabricExtensionsSettingStorage';
+import { ILocalFolderService, LocalFolderService } from '../LocalFolderService';
+import { IFabricFeatureConfiguration, FabricFeatureConfiguration } from '../settings/FabricFeatureConfiguration';
+import { IArtifactChildNodeProviderCollection, ArtifactChildNodeProviderCollection } from '../workspace/treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
+import { ILocalFolderManager } from '../ILocalFolderManager';
+import { WebLocalFolderManager } from './WebLocalFolderManager';
+import { FabricApiClient } from '../fabric/FabricApiClient';
+import { IGitOperator } from '../apis/internal/fabricExtensionInternal';
+import { WebGitOperator } from './WebGitOperator';
+import { ArtifactManager } from '../artifactManager/ArtifactManager';
+import { DefinitionFileSystemProvider } from '../workspace/DefinitionFileSystemProvider';
+import { IBase64Encoder, Base64Encoder } from '../itemDefinition/ItemDefinitionReader';
 
 let app: FabricVsCodeWebExtension;
 
@@ -55,14 +75,27 @@ export class FabricVsCodeWebExtension {
 
     async activate(): Promise<void> {
         const context = this.container.get<ExtensionContext>();
+        const logger = this.container.get<ILogger>();
 
         // Create feedback view
         context.subscriptions.push(vscode.window.createTreeView('vscode-fabric.view.feedback', {
             treeDataProvider: new FeedbackTreeDataProvider(context),
         }));
 
+        // Create workspaces view
+        const dataProvider = this.container.get<FabricWorkspaceDataProvider>();
+        const treeView: vscode.TreeView<FabricTreeNode> = vscode.window.createTreeView('vscode-fabric.view.workspace',
+            { treeDataProvider: dataProvider, showCollapseAll: true });
+
+        // TODO this is strange. The dependencies should be injected...
+        // And it seems cyclical. The dataProvider is created with the workspaceManager, but the workspaceManager depends dataProvider ??
+        const workspaceManager = this.container.get<IWorkspaceManager>() as WorkspaceManagerBase;
+        workspaceManager.tvProvider = dataProvider;
+        workspaceManager.treeView = treeView;
+
         // register the signIn command
         const signInCommand = vscode.commands.registerCommand(commandNames.signIn, async () => {
+            logger.trace('Sign-in command invoked');
             const auth = this.container.get<IAccountProvider>();
             await auth.signIn();
         });
@@ -90,17 +123,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<TelemetryService>(() => telemetryService);
     container.registerSingleton<TelemetryService | null>(() => telemetryService);
 
-    /*
-        context: vscode.ExtensionContext,
-        + auth: IAccountProvider,
-        + workspaceManager: WorkspaceManagerBase,
-        capacityManager: ICapacityManager,
-        + telemetryService: TelemetryService  | null,
-        + logger: ILogger,
-        workspaceFilterManager: IWorkspaceFilterManager,
-        + fabricEnvironmentProvider: IFabricEnvironmentProvider
-    */
-
+    // Registration necessary for the Sign In command
     container.registerSingleton<IAccountProvider, AccountProvider>();
     container.registerSingleton<ITokenAcquisitionService, TokenAcquisitionService>();
     container.registerSingleton<IFabricEnvironmentProvider, FabricEnvironmentProvider>();
@@ -108,6 +131,33 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
 
     container.registerSingleton<IConfigurationProvider, ConfigurationProvider>();
     container.registerTransient<IDisposableCollection, DisposableCollection>();
-    
+
+    // Registration for the workspace data provider
+    container.registerSingleton<FabricWorkspaceDataProvider>();
+    container.registerSingleton<IFabricExtensionManagerInternal, FabricExtensionManager>();
+    container.registerSingleton<IWorkspaceManager, WorkspaceManager>();
+    container.registerSingleton<IRootTreeNodeProvider, RootTreeNodeProvider>();
+    container.registerSingleton<IWorkspaceFilterManager, WorkspaceFilterManager>();
+    container.registerSingleton<IFabricExtensionsSettingStorage, FabricExtensionsSettingStorage>();
+    container.registerSingleton<ILocalFolderService, LocalFolderService>();
+    container.registerSingleton<IFabricFeatureConfiguration, FabricFeatureConfiguration>();
+    container.registerSingleton<IArtifactChildNodeProviderCollection, ArtifactChildNodeProviderCollection>();
+
+    // Register child dependencies
+    container.registerSingleton<vscode.Memento>(() => container.get<ExtensionContext>().globalState);
+    container.registerSingleton<ILocalFolderManager, WebLocalFolderManager>();
+    container.registerSingleton<IFabricApiClient>(() => new FabricApiClient(
+        container.get<IAccountProvider>(),
+        container.get<IConfigurationProvider>(),
+        container.get<IFabricEnvironmentProvider>(),
+        container.get<TelemetryService>(),
+        container.get<ILogger>()
+    ));
+    container.registerSingleton<IGitOperator, WebGitOperator>();
+    container.registerSingleton<vscode.FileSystem>(() => vscode.workspace.fs);
+    container.registerSingleton<IArtifactManager, ArtifactManager>();
+    container.registerSingleton<DefinitionFileSystemProvider>();
+    container.registerSingleton<IBase64Encoder, Base64Encoder>();
+
     return container;
 }

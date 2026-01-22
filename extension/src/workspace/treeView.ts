@@ -21,7 +21,6 @@ import { IAccountProvider, ITenantSettings } from '../authentication';
 import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { makeShouldExpand } from './viewExpansionState';
 import { ILocalFolderService } from '../LocalFolderService';
-import { DefinitionFileSystemProvider } from './DefinitionFileSystemProvider';
 import { IArtifactChildNodeProviderCollection } from './treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
 
 /**
@@ -69,7 +68,6 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
         private readonly storage: IFabricExtensionsSettingStorage,
         private readonly fabricEnvironmentProvider: IFabricEnvironmentProvider,
         private readonly localFolderService: ILocalFolderService,
-        private readonly fileSystemProvider: DefinitionFileSystemProvider,
         featureConfiguration: IFabricFeatureConfiguration,
         private readonly childNodeProviders: IArtifactChildNodeProviderCollection) {
 
@@ -130,18 +128,25 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
      * @return Children of `element` or root if no element is passed.
      */
     async getChildren(element?: FabricTreeNode): Promise<FabricTreeNode[]> {
+        this.logger.trace('FabricWorkspaceDataProvider.getChildren called');
+        this.logger.trace(`Element: ${element ? element.label : 'root'}`);
         let nodes: FabricTreeNode[] = [];
         await (withErrorHandling('FabricWorkspaceDataProvider', this.logger, this.telemetryService, async () => {
+            this.logger.trace('Inside withErrorHandling for getChildren');
             // Asking for the root node
             if (!element) {
+                this.logger.trace('Getting root nodes');
                 if (await this.workspaceManager.isConnected()) {
+                    this.logger.trace('User is connected');
                     // User is signed in - first ensure workspaces are loaded
                     let workspaces: IWorkspace[];
                     try {
+                        this.logger.trace('Loading workspaces from workspace manager');
                         workspaces = await this.workspaceManager.listWorkspaces();
+                        this.logger.trace(`Loaded ${workspaces.length} workspaces from workspace manager`);
                     }
                     catch (error) {
-                        this.logger.log('Error loading workspaces: ' + error);
+                        this.logger.info('Error loading workspaces: ' + error);
                         return;
                     }
 
@@ -182,6 +187,7 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
                     }
                 }
                 else {
+                    this.logger.trace('User is not connected');
                     // User is not signed in. Return an empty set, which will cause the welcome screen to be shown
                 }
             }
