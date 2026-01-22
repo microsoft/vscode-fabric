@@ -207,12 +207,14 @@
         {
           "id": "vscode-fabric.view.workspace",
           "name": "%extension.views.Workspace.title%",
-          "initialSize": 5
+          "initialSize": 5,
+          "when": "!isWeb"
         },
         {
           "id": "vscode-fabric.view.local",
           "name": "%extension.views.Local.title%",
-          "initialSize": 3
+          "initialSize": 3,
+          "when": "!isWeb"
         },
         {
           "id": "vscode-fabric.view.feedback",

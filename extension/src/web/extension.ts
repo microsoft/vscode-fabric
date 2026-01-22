@@ -22,6 +22,7 @@ import { DIContainer } from '@wessberg/di';
 import { ITokenAcquisitionService, IAccountProvider } from '../authentication/interfaces';
 import { AccountProvider } from '../authentication/AccountProvider';
 import { TokenAcquisitionService, VsCodeAuthentication, DefaultVsCodeAuthentication } from '../authentication/TokenAcquisitionService';
+import { FeedbackTreeDataProvider } from '../feedback/FeedbackTreeDataProvider';
 
 let app: FabricVsCodeWebExtension;
 
@@ -54,6 +55,11 @@ export class FabricVsCodeWebExtension {
 
     async activate(): Promise<void> {
         const context = this.container.get<ExtensionContext>();
+
+        // Create feedback view
+        context.subscriptions.push(vscode.window.createTreeView('vscode-fabric.view.feedback', {
+            treeDataProvider: new FeedbackTreeDataProvider(context),
+        }));
 
         // register the signIn command
         const signInCommand = vscode.commands.registerCommand(commandNames.signIn, async () => {
