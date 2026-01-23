@@ -238,7 +238,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Author, host, and manage serverless user data functions optimized for Fabric.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Creare, ospitare e gestire funzioni dati serverless ottimizzate per Fabric.]]></Val>
+            <Val><![CDATA[Crea, ospita e gestisci funzioni dati utente serverless ottimizzate per Fabric.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
