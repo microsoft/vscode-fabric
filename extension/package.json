@@ -45,7 +45,8 @@
       {
         "command": "vscode-fabric.helloWeb",
         "title": "Hello Web",
-        "category": "Fabric"
+        "category": "Fabric",
+        "enablement": "isWeb"
       },
       {
         "command": "vscode-fabric.signIn",
@@ -56,94 +57,110 @@
         "command": "vscode-fabric.switchTenant",
         "title": "%extension.switchTenant.title%",
         "category": "Fabric",
-        "icon": "$(arrow-swap)"
+        "icon": "$(arrow-swap)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.createWorkspace",
         "title": "%extension.createWorkspace.title%",
         "category": "Fabric",
-        "icon": "$(add)"
+        "icon": "$(add)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.createArtifact",
         "title": "%extension.createArtifact.title%",
         "category": "Fabric",
-        "icon": "$(add)"
+        "icon": "$(add)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.readArtifact",
         "title": "%extension.readArtifact.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.openArtifact",
         "title": "%extension.openArtifact.title%",
         "category": "Fabric",
-        "icon": "$(open-preview)"
+        "icon": "$(open-preview)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.openLocalFolder",
         "title": "%extension.openLocalFolder.title%",
         "category": "Fabric",
-        "icon": "$(folder-opened)"
+        "icon": "$(folder-opened)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.changeLocalFolder",
         "title": "%extension.changeLocalFolder.title%",
         "category": "Fabric",
-        "icon": "$(folder-opened)"
+        "icon": "$(folder-opened)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.exportArtifact",
         "title": "%extension.exportArtifact.title%",
         "category": "Fabric",
-        "icon": "$(cloud-download)"
+        "icon": "$(cloud-download)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.importArtifact",
         "title": "%extension.importArtifact.title%",
         "category": "Fabric",
-        "icon": "$(cloud-upload)"
+        "icon": "$(cloud-upload)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.importArtifact.inline",
         "title": "%extension.importArtifact.inline.title%",
         "category": "Fabric",
-        "icon": "$(cloud-upload)"
+        "icon": "$(cloud-upload)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.importArtifact.promptWorkspace",
         "title": "%extension.importArtifact.promptWorkspace.title%",
         "category": "Fabric",
-        "icon": "$(cloud-upload)"
+        "icon": "$(cloud-upload)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.openInPortal",
         "title": "%extension.openInPortal.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.refreshArtifactView",
         "title": "%extension.refreshArtifactView.title%",
         "category": "Fabric",
-        "icon": "$(refresh)"
+        "icon": "$(refresh)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.refreshLocalFolderView",
         "title": "%extension.refreshLocalFolderView.title%",
         "category": "Fabric",
-        "icon": "$(refresh)"
+        "icon": "$(refresh)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.deleteArtifact",
         "title": "%extension.deleteArtifact.title%",
         "category": "Fabric",
-        "icon": "$(trash)"
+        "icon": "$(trash)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.renameArtifact",
         "title": "%extension.renameArtifact.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.viewIssues",
@@ -159,46 +176,54 @@
         "command": "vscode-fabric.workspaceViewToList",
         "title": "%extension.workspaceViewToList.title%",
         "category": "Fabric",
-        "icon": "$(list-flat)"
+        "icon": "$(list-flat)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.workspaceViewToTree",
         "title": "%extension.workspaceViewToTree.title%",
         "category": "Fabric",
-        "icon": "$(group-by-ref-type)"
+        "icon": "$(group-by-ref-type)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.openNotebook",
         "title": "%extension.openNotebook.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.openSqlExtension",
         "title": "%extension.openSqlExtension.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.copyConnectionString",
         "title": "%extension.copyConnectionString.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.installExtension",
         "title": "%extension.installFabricExtension.title%",
         "category": "Fabric",
-        "icon": "$(extensions)"
+        "icon": "$(extensions)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.filterWorkspaces",
         "title": "%extension.filterWorkspaces.title%",
         "category": "Fabric",
-        "icon": "$(filter)"
+        "icon": "$(filter)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.clearWorkspaceFilter",
         "title": "%extension.clearWorkspaceFilter.title%",
         "category": "Fabric",
-        "icon": "$(clear-all)"
+        "icon": "$(clear-all)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.editDefinitionFile",
@@ -233,8 +258,7 @@
         {
           "id": "vscode-fabric_view_workspace",
           "title": "%extension.activityBarIcon.title%",
-          "icon": "resources/fabric.svg",
-          "when": "!isWeb"
+          "icon": "resources/fabric.svg"
         }
       ]
     },
