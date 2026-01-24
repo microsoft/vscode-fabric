@@ -238,7 +238,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Author, host, and manage serverless user data functions optimized for Fabric.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[A Fabricre optimalizált, kiszolgáló nélküli felhasználóiadat-függvényeket hozhat létre, üzemeltethet és kezelhet.]]></Val>
+            <Val><![CDATA[A Fabricre optimalizált, kiszolgáló nélküli felhasználói adatfüggvényeket hozhat létre, üzemeltethet és kezelhet.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
