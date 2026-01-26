@@ -37,6 +37,9 @@
       "outFiles": [
         "${workspaceFolder}/extension/dist/web/**/*.js"
       ],
+      "sourceMapPathOverrides": {
+        "webpack://vscode-fabric/*": "${workspaceFolder}/extension/*"
+      },
       "env": {
         // Enable these selectively for test hooks/fakes.
         // "VSCODE_FABRIC_ENABLE_TEST_HOOKS": "true",

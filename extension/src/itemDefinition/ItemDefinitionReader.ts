@@ -3,6 +3,7 @@
 
 import * as vscode from 'vscode';
 import { IItemDefinition, PayloadType } from '@microsoft/vscode-fabric-api';
+import { uint8ArrayToBase64, base64ToUint8Array } from '../bufferUtilities';
 
 export interface IBase64Encoder {
     encode(content: Uint8Array): string;
@@ -11,10 +12,10 @@ export interface IBase64Encoder {
 
 export class Base64Encoder implements IBase64Encoder {
     public encode(content: Uint8Array): string {
-        return Buffer.from(content).toString('base64');
+        return uint8ArrayToBase64(content);
     }
     public decode(base64String: string): Uint8Array {
-        return Buffer.from(base64String, 'base64');
+        return base64ToUint8Array(base64String);
     }
 }
 

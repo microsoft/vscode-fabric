@@ -3,6 +3,7 @@
 'use strict';
 
 const path = require('path');
+const webpack = require('webpack');
 
 const di = require('@wessberg/di-compiler');
 
@@ -59,6 +60,11 @@ const extensionConfig = {
     infrastructureLogging: {
         level: 'log', // enables logging required for problem matchers
     },
+    plugins: [
+        new webpack.DefinePlugin({
+            __IS_WEB__: JSON.stringify(false)
+        })
+    ],
 };
 
 /** @type WebpackConfig */
@@ -70,7 +76,8 @@ const webExtensionConfig = {
     output: {
         path: path.resolve(__dirname, 'dist/web'),
         filename: 'extension.js',
-        libraryTarget: 'commonjs2'
+        libraryTarget: 'commonjs2',
+        devtoolModuleFilenameTemplate: 'webpack://vscode-fabric/extension/[resource-path]'
     },
     externals: {
         vscode: 'commonjs vscode',
@@ -104,7 +111,10 @@ const webExtensionConfig = {
     devtool: 'nosources-source-map',
     infrastructureLogging: {
         level: 'log',
-    },
-};
+    },    plugins: [
+        new webpack.DefinePlugin({
+            __IS_WEB__: JSON.stringify(true)
+        })
+    ],};
 
 module.exports = [extensionConfig, webExtensionConfig];
