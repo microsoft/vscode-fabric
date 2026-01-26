@@ -43,6 +43,7 @@ import { WebGitOperator } from './WebGitOperator';
 import { ArtifactManager } from '../artifactManager/ArtifactManager';
 import { DefinitionFileSystemProvider } from '../workspace/DefinitionFileSystemProvider';
 import { IBase64Encoder, Base64Encoder } from '../itemDefinition/ItemDefinitionReader';
+import { DefinitionVirtualDocumentContentProvider } from '../workspace/DefinitionVirtualDocumentContentProvider';
 
 let app: FabricVsCodeWebExtension;
 
@@ -101,6 +102,13 @@ export class FabricVsCodeWebExtension {
         });
 
         context.subscriptions.push(signInCommand);
+
+        // Register the read-only definition document provider
+        const definitionFileSystemProvider = this.container.get<DefinitionFileSystemProvider>();
+        const readOnlyProvider = new DefinitionVirtualDocumentContentProvider(definitionFileSystemProvider);
+        context.subscriptions.push(
+            vscode.workspace.registerTextDocumentContentProvider(DefinitionVirtualDocumentContentProvider.scheme, readOnlyProvider)
+        );
     }
 
     async deactivate(): Promise<void> {
