@@ -3,6 +3,8 @@
 
 import * as assert from 'assert';
 import * as vscode from 'vscode';
+import * as os from 'os';
+import * as path from 'path';
 import { SemanticModelArtifactHandler } from '../../../../src/internalSatellites/semanticModel/SemanticModelArtifactHandler';
 import { IArtifact } from '@microsoft/vscode-fabric-api';
 
@@ -30,7 +32,7 @@ describe('SemanticModelArtifactHandler', function () {
 
         it('should exclude .abf files from update', async function () {
             // Create a temporary directory structure for testing
-            const testFolder = vscode.Uri.file('/tmp/test-semantic-model-' + Date.now());
+            const testFolder = vscode.Uri.file(path.join(os.tmpdir(), 'test-semantic-model-' + Date.now()));
 
             // Create test directory and files
             await vscode.workspace.fs.createDirectory(testFolder);
@@ -67,7 +69,7 @@ describe('SemanticModelArtifactHandler', function () {
         });
 
         it('should exclude .abf files with different cases', async function () {
-            const testFolder = vscode.Uri.file('/tmp/test-semantic-model-case-' + Date.now());
+            const testFolder = vscode.Uri.file(path.join(os.tmpdir(), 'test-semantic-model-case-' + Date.now()));
 
             await vscode.workspace.fs.createDirectory(testFolder);
             await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(testFolder, 'data.ABF'), Buffer.from('content'));
@@ -93,7 +95,7 @@ describe('SemanticModelArtifactHandler', function () {
         });
 
         it('should handle nested directories', async function () {
-            const testFolder = vscode.Uri.file('/tmp/test-semantic-model-nested-' + Date.now());
+            const testFolder = vscode.Uri.file(path.join(os.tmpdir(), 'test-semantic-model-nested-' + Date.now()));
 
             await vscode.workspace.fs.createDirectory(testFolder);
             await vscode.workspace.fs.createDirectory(vscode.Uri.joinPath(testFolder, 'subfolder'));
@@ -127,7 +129,7 @@ describe('SemanticModelArtifactHandler', function () {
         });
 
         it('should exclude .abf files from create', async function () {
-            const testFolder = vscode.Uri.file('/tmp/test-semantic-model-create-' + Date.now());
+            const testFolder = vscode.Uri.file(path.join(os.tmpdir(), 'test-semantic-model-create-' + Date.now()));
 
             await vscode.workspace.fs.createDirectory(testFolder);
             await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(testFolder, 'model.tmdl'), Buffer.from('content'));

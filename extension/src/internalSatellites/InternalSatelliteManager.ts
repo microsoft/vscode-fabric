@@ -28,6 +28,7 @@ export class InternalSatelliteManager {
     public readonly extensionClasses = [
         SqlExtension,
         NotebookExtension,
+        ReportExtension,
         SemanticModelExtension,
     ];
 
