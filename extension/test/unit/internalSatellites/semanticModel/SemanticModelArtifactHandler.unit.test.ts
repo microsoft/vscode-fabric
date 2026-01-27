@@ -3,13 +3,13 @@
 
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import * as os from 'os';
-import * as path from 'path';
+import { Mock, It } from 'moq.ts';
 import { SemanticModelArtifactHandler } from '../../../../src/internalSatellites/semanticModel/SemanticModelArtifactHandler';
 import { IArtifact } from '@microsoft/vscode-fabric-api';
 
 describe('SemanticModelArtifactHandler', function () {
     let handler: SemanticModelArtifactHandler;
+    let fileSystemMock: Mock<vscode.FileSystem>;
 
     const artifact: IArtifact = {
         id: 'sm-1',
@@ -20,8 +20,11 @@ describe('SemanticModelArtifactHandler', function () {
         fabricEnvironment: 'prod' as any,
     };
 
+    const rootUri = vscode.Uri.file('/test/semantic-model');
+
     beforeEach(function () {
-        handler = new SemanticModelArtifactHandler();
+        fileSystemMock = new Mock<vscode.FileSystem>();
+        handler = new SemanticModelArtifactHandler(fileSystemMock.object());
     });
 
     describe('updateDefinitionWorkflow', function () {
@@ -31,93 +34,85 @@ describe('SemanticModelArtifactHandler', function () {
         });
 
         it('should exclude .abf files from update', async function () {
-            // Create a temporary directory structure for testing
-            const testFolder = vscode.Uri.file(path.join(os.tmpdir(), 'test-semantic-model-' + Date.now()));
+            // Setup mock file system
+            fileSystemMock
+                .setup(fs => fs.readDirectory(rootUri))
+                .returns(Promise.resolve([
+                    ['model.tmdl', vscode.FileType.File],
+                    ['data.abf', vscode.FileType.File],
+                    ['metadata.json', vscode.FileType.File],
+                    ['.platform', vscode.FileType.File],
+                ]));
 
-            // Create test directory and files
-            await vscode.workspace.fs.createDirectory(testFolder);
-            await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(testFolder, 'model.tmdl'), Buffer.from('test content'));
-            await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(testFolder, 'data.abf'), Buffer.from('large binary content'));
-            await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(testFolder, 'metadata.json'), Buffer.from('{"test": true}'));
-            await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(testFolder, '.platform'), Buffer.from('platform file'));
+            const files = await handler.updateDefinitionWorkflow.prepareForUpdateWithDefinition!(artifact, rootUri);
 
-            try {
-                const files = await handler.updateDefinitionWorkflow.prepareForUpdateWithDefinition!(artifact, testFolder);
+            assert.ok(files, 'Should return file list');
+            assert.ok(Array.isArray(files), 'Should return an array');
 
-                assert.ok(files, 'Should return file list');
-                assert.ok(Array.isArray(files), 'Should return an array');
+            // Should include non-.abf files
+            assert.ok(files.includes('model.tmdl'), 'Should include model.tmdl');
+            assert.ok(files.includes('metadata.json'), 'Should include metadata.json');
 
-                // Should include non-.abf files
-                assert.ok(files.includes('model.tmdl'), 'Should include model.tmdl');
-                assert.ok(files.includes('metadata.json'), 'Should include metadata.json');
+            // Should exclude .abf files
+            assert.ok(!files.includes('data.abf'), 'Should exclude data.abf');
 
-                // Should exclude .abf files
-                assert.ok(!files.includes('data.abf'), 'Should exclude data.abf');
-
-                // Should exclude .platform
-                assert.ok(!files.includes('.platform'), 'Should exclude .platform');
-            }
-            finally {
-                // Clean up
-                try {
-                    await vscode.workspace.fs.delete(testFolder, { recursive: true });
-                }
-                catch {
-                    // Ignore cleanup errors
-                }
-            }
+            // Should exclude .platform
+            assert.ok(!files.includes('.platform'), 'Should exclude .platform');
         });
 
         it('should exclude .abf files with different cases', async function () {
-            const testFolder = vscode.Uri.file(path.join(os.tmpdir(), 'test-semantic-model-case-' + Date.now()));
+            fileSystemMock
+                .setup(fs => fs.readDirectory(rootUri))
+                .returns(Promise.resolve([
+                    ['data.ABF', vscode.FileType.File],
+                    ['other.Abf', vscode.FileType.File],
+                    ['valid.txt', vscode.FileType.File],
+                ]));
 
-            await vscode.workspace.fs.createDirectory(testFolder);
-            await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(testFolder, 'data.ABF'), Buffer.from('content'));
-            await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(testFolder, 'other.Abf'), Buffer.from('content'));
-            await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(testFolder, 'valid.txt'), Buffer.from('content'));
+            const files = await handler.updateDefinitionWorkflow.prepareForUpdateWithDefinition!(artifact, rootUri);
 
-            try {
-                const files = await handler.updateDefinitionWorkflow.prepareForUpdateWithDefinition!(artifact, testFolder);
-
-                assert.ok(files, 'Should return file list');
-                assert.ok(files.includes('valid.txt'), 'Should include valid.txt');
-                assert.ok(!files.includes('data.ABF'), 'Should exclude data.ABF');
-                assert.ok(!files.includes('other.Abf'), 'Should exclude other.Abf');
-            }
-            finally {
-                try {
-                    await vscode.workspace.fs.delete(testFolder, { recursive: true });
-                }
-                catch {
-                    // Ignore cleanup errors
-                }
-            }
+            assert.ok(files, 'Should return file list');
+            assert.ok(files.includes('valid.txt'), 'Should include valid.txt');
+            assert.ok(!files.includes('data.ABF'), 'Should exclude data.ABF');
+            assert.ok(!files.includes('other.Abf'), 'Should exclude other.Abf');
         });
 
         it('should handle nested directories', async function () {
-            const testFolder = vscode.Uri.file(path.join(os.tmpdir(), 'test-semantic-model-nested-' + Date.now()));
+            fileSystemMock
+                .setup(fs => fs.readDirectory(rootUri))
+                .returns(Promise.resolve([
+                    ['root.tmdl', vscode.FileType.File],
+                    ['subfolder', vscode.FileType.Directory],
+                ]));
 
-            await vscode.workspace.fs.createDirectory(testFolder);
-            await vscode.workspace.fs.createDirectory(vscode.Uri.joinPath(testFolder, 'subfolder'));
-            await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(testFolder, 'root.tmdl'), Buffer.from('content'));
-            await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(testFolder, 'subfolder', 'nested.json'), Buffer.from('content'));
-            await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(testFolder, 'subfolder', 'data.abf'), Buffer.from('content'));
+            fileSystemMock
+                .setup(fs => fs.readDirectory(It.Is<vscode.Uri>(u => u.fsPath.endsWith('subfolder'))))
+                .returns(Promise.resolve([
+                    ['nested.json', vscode.FileType.File],
+                    ['data.abf', vscode.FileType.File],
+                ]));
+
+            const files = await handler.updateDefinitionWorkflow.prepareForUpdateWithDefinition!(artifact, rootUri);
+
+            assert.ok(files, 'Should return file list');
+            assert.ok(files.includes('root.tmdl'), 'Should include root.tmdl');
+            assert.ok(files.includes('subfolder/nested.json'), 'Should include subfolder/nested.json');
+            assert.ok(!files.includes('subfolder/data.abf'), 'Should exclude subfolder/data.abf');
+        });
+
+        it('should throw error with user-friendly message when directory read fails', async function () {
+            const testError = new Error('Permission denied');
+            fileSystemMock
+                .setup(fs => fs.readDirectory(rootUri))
+                .throws(testError);
 
             try {
-                const files = await handler.updateDefinitionWorkflow.prepareForUpdateWithDefinition!(artifact, testFolder);
-
-                assert.ok(files, 'Should return file list');
-                assert.ok(files.includes('root.tmdl'), 'Should include root.tmdl');
-                assert.ok(files.includes('subfolder/nested.json'), 'Should include subfolder/nested.json');
-                assert.ok(!files.includes('subfolder/data.abf'), 'Should exclude subfolder/data.abf');
+                await handler.updateDefinitionWorkflow.prepareForUpdateWithDefinition!(artifact, rootUri);
+                assert.fail('Should have thrown an error');
             }
-            finally {
-                try {
-                    await vscode.workspace.fs.delete(testFolder, { recursive: true });
-                }
-                catch {
-                    // Ignore cleanup errors
-                }
+            catch (error: any) {
+                assert.ok(error.message.includes('Error gathering files'), 'Should have user-friendly error message');
+                assert.ok(error.message.includes(rootUri.fsPath), 'Should include folder path in error');
             }
         });
     });
@@ -129,26 +124,33 @@ describe('SemanticModelArtifactHandler', function () {
         });
 
         it('should exclude .abf files from create', async function () {
-            const testFolder = vscode.Uri.file(path.join(os.tmpdir(), 'test-semantic-model-create-' + Date.now()));
+            fileSystemMock
+                .setup(fs => fs.readDirectory(rootUri))
+                .returns(Promise.resolve([
+                    ['model.tmdl', vscode.FileType.File],
+                    ['cache.abf', vscode.FileType.File],
+                ]));
 
-            await vscode.workspace.fs.createDirectory(testFolder);
-            await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(testFolder, 'model.tmdl'), Buffer.from('content'));
-            await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(testFolder, 'cache.abf'), Buffer.from('content'));
+            const files = await handler.createWithDefinitionWorkflow.prepareForCreateWithDefinition!(artifact, rootUri);
+
+            assert.ok(files, 'Should return file list');
+            assert.ok(files.includes('model.tmdl'), 'Should include model.tmdl');
+            assert.ok(!files.includes('cache.abf'), 'Should exclude cache.abf');
+        });
+
+        it('should throw error with user-friendly message when directory read fails', async function () {
+            const testError = new Error('Access denied');
+            fileSystemMock
+                .setup(fs => fs.readDirectory(rootUri))
+                .throws(testError);
 
             try {
-                const files = await handler.createWithDefinitionWorkflow.prepareForCreateWithDefinition!(artifact, testFolder);
-
-                assert.ok(files, 'Should return file list');
-                assert.ok(files.includes('model.tmdl'), 'Should include model.tmdl');
-                assert.ok(!files.includes('cache.abf'), 'Should exclude cache.abf');
+                await handler.createWithDefinitionWorkflow.prepareForCreateWithDefinition!(artifact, rootUri);
+                assert.fail('Should have thrown an error');
             }
-            finally {
-                try {
-                    await vscode.workspace.fs.delete(testFolder, { recursive: true });
-                }
-                catch {
-                    // Ignore cleanup errors
-                }
+            catch (error: any) {
+                assert.ok(error.message.includes('Error gathering files'), 'Should have user-friendly error message');
+                assert.ok(error.message.includes(rootUri.fsPath), 'Should include folder path in error');
             }
         });
     });

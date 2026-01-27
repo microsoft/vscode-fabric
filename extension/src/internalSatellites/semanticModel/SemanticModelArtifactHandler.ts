@@ -3,6 +3,7 @@
 
 import * as vscode from 'vscode';
 import { IArtifactHandler, IArtifact } from '@microsoft/vscode-fabric-api';
+import { FabricError } from '@microsoft/vscode-fabric-util';
 
 /**
  * Artifact handler for SemanticModel artifacts handling large file exclusion.
@@ -11,6 +12,8 @@ import { IArtifactHandler, IArtifact } from '@microsoft/vscode-fabric-api';
  */
 export class SemanticModelArtifactHandler implements IArtifactHandler {
     public readonly artifactType: string = 'SemanticModel';
+
+    constructor(private readonly fileSystem: vscode.FileSystem = vscode.workspace.fs) {}
 
     public updateDefinitionWorkflow = {
         prepareForUpdateWithDefinition: async (
@@ -34,16 +37,25 @@ export class SemanticModelArtifactHandler implements IArtifactHandler {
      * Gets all files in the folder recursively, excluding .abf files
      */
     private async getFilteredFiles(folder: vscode.Uri): Promise<string[]> {
-        const files: string[] = [];
-        await this.walkDirectory(folder, '', files);
-        return files;
+        try {
+            const files: string[] = [];
+            await this.walkDirectory(folder, '', files);
+            return files;
+        }
+        catch (error: any) {
+            throw new FabricError(
+                vscode.l10n.t('Error gathering files from {0} for semantic model definition: {1}', folder.fsPath, error.message ?? 'Unknown error'),
+                'semantic-model-gather-files-failed',
+                { showInUserNotification: 'Error' }
+            );
+        }
     }
 
     /**
      * Recursively walks through the directory and collects file paths
      */
     private async walkDirectory(directory: vscode.Uri, relativePathSoFar: string, files: string[]): Promise<void> {
-        const entries = await vscode.workspace.fs.readDirectory(directory);
+        const entries = await this.fileSystem.readDirectory(directory);
 
         for (const [name, type] of entries) {
             const newRelativePath = relativePathSoFar ? `${relativePathSoFar}/${name}` : name;
