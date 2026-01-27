@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { SqlExtension } from './database/SqlExtension';
 import { NotebookExtension } from './notebook/NotebookExtension';
 import { ReportExtension } from './report/ReportExtension';
+import { SemanticModelExtension } from './semanticModel/SemanticModelExtension';
 import { IFabricExtension } from '@microsoft/vscode-fabric-api';
 import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
@@ -27,6 +28,7 @@ export class InternalSatelliteManager {
     public readonly extensionClasses = [
         SqlExtension,
         NotebookExtension,
+        SemanticModelExtension,
     ];
 
     private extensionInstances: IInternalSatelliteExtension[] = [];
@@ -59,6 +61,13 @@ export class InternalSatelliteManager {
                 this.telemetryService,
                 this.logger,
                 this.workspaceFilterManager, // Regular satellites would not have access to this, but internal mini-satellite can cheat and take this dependency
+                this.extensionManager
+            )
+        );
+
+        this.extensionInstances.push(
+            new SemanticModelExtension(
+                this.context,
                 this.extensionManager
             )
         );
