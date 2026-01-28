@@ -114,6 +114,9 @@ export class FabricVsCodeExtension {
             const definitionFileSystemProvider = this.container.get<DefinitionFileSystemProvider>();
             const capacityManager = this.container.get<ICapacityManager>();
 
+            // Prompt user to install MCP Server extension (async, non-blocking)
+            void this.promptMcpServerInstall(telemetryService, this.container.get<IConfigurationProvider>(), logger);
+
             const treeView: vscode.TreeView<FabricTreeNode> = vscode.window.createTreeView('vscode-fabric.view.workspace',
                 { treeDataProvider: dataProvider, showCollapseAll: true });
 
@@ -320,6 +323,105 @@ export class FabricVsCodeExtension {
         }
         finally {
             void telemetryService?.dispose();
+        }
+    }
+
+    /**
+     * Prompts the user to install the Fabric MCP Server extension if not already installed.
+     * This is called asynchronously during activation to avoid blocking startup.
+     * Only prompts if GitHub Copilot extension is installed.
+     */
+    private async promptMcpServerInstall(
+        telemetryService: TelemetryService,
+        configurationProvider: IConfigurationProvider,
+        logger: ILogger
+    ): Promise<void> {
+        const copilotExtensionId = 'github.copilot-chat';
+        const mcpExtensionId = 'fabric.vscode-fabric-mcp-server';
+        const configKey = 'Fabric.McpServer.PromptInstall';
+
+        try {
+            // Only prompt if GitHub Copilot is installed
+            const copilotExtension = vscode.extensions.getExtension(copilotExtensionId);
+            if (!copilotExtension) {
+                return; // Copilot not installed, no need to prompt for MCP server
+            }
+
+            // Check if the MCP extension is already installed
+            const mcpExtension = vscode.extensions.getExtension(mcpExtensionId);
+            if (mcpExtension) {
+                return; // Already installed, nothing to do
+            }
+
+            // Check if user has opted out of the prompt
+            const shouldPrompt = configurationProvider.get<boolean>(configKey, true);
+            if (!shouldPrompt) {
+                return;
+            }
+
+            // Show the prompt with three options
+            const installOption = vscode.l10n.t('Install');
+            const notNowOption = vscode.l10n.t('Not Now');
+            const neverAskAgainOption = vscode.l10n.t("Don't Ask Again");
+
+            const choice = await vscode.window.showInformationMessage(
+                vscode.l10n.t('Enhance your Fabric Copilot experience by installing the Fabric MCP Server extension.'),
+                installOption,
+                notNowOption,
+                neverAskAgainOption
+            );
+
+            let userChoice: string;
+
+            if (choice === installOption) {
+                userChoice = 'installed';
+                let installed = false;
+
+                // Try to install stable version first
+                try {
+                    logger.info(`Attempting to install stable version of ${mcpExtensionId}...`);
+                    await vscode.commands.executeCommand('workbench.extensions.installExtension', mcpExtensionId);
+                    installed = !!vscode.extensions.getExtension(mcpExtensionId);
+                }
+                catch (stableError) {
+                    logger.info(`Stable version not available: ${stableError}`);
+                }
+
+                // If stable version was not installed, try prerelease
+                if (!installed) {
+                    try {
+                        logger.info(`Attempting to install prerelease version of ${mcpExtensionId}...`);
+                        await vscode.commands.executeCommand('workbench.extensions.installExtension', mcpExtensionId, {
+                            installPreReleaseVersion: true,
+                        });
+                        installed = !!vscode.extensions.getExtension(mcpExtensionId);
+                    } catch (prereleaseError) {
+                        logger.warn(`Failed to install prerelease version: ${prereleaseError}`);
+                    }
+                }
+
+                // Log final result
+                if (installed) {
+                    logger.info(`Successfully installed ${mcpExtensionId}`);
+                }
+                else {
+                    logger.warn(`Failed to install ${mcpExtensionId} - extension not found after installation attempts`);
+                }
+            }
+            else if (choice === neverAskAgainOption) {
+                userChoice = 'neverAskAgain';
+                await configurationProvider.update<boolean>(configKey, false);
+            }
+            else {
+                userChoice = 'dismissed';
+            }
+
+            // Track telemetry
+            telemetryService?.sendTelemetryEvent('mcp/installPrompt', { userChoice });
+
+        }
+        catch (ex) {
+            logger.error(`Failed to prompt for MCP Server extension install: ${ex}`);
         }
     }
 }

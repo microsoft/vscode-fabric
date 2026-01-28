@@ -13,9 +13,6 @@
   "engines": {
     "vscode": "^1.77.0"
   },
-  "extensionDependencies": [
-    "fabric.vscode-fabric-mcp-server"
-  ],
   "categories": [
     "Data Science"
   ],
@@ -579,6 +576,11 @@
           "tags": [
             "preview"
           ]
+        },
+        "Fabric.McpServer.PromptInstall": {
+          "type": "boolean",
+          "default": true,
+          "description": "%extension.configuration.McpServer.PromptInstall.description%"
         },
         "Fabric.EditItemDefinitions": {
           "type": "boolean",
