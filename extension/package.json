@@ -35,6 +35,11 @@
     "url": "https://aka.ms/fabric/vscode/issues"
   },
   "contributes": {
+    "chatAgents": [
+      {
+        "path": "./assets/agents/Fabric.agent.md"
+      }
+    ],
     "commands": [
       {
         "command": "vscode-fabric.signIn",
@@ -577,6 +582,7 @@
                 "tags": [ "preview" ]
             }
         }
+      }
     },
     "walkthroughs": [
       {
