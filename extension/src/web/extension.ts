@@ -44,6 +44,8 @@ import { ArtifactManager } from '../artifactManager/ArtifactManager';
 import { DefinitionFileSystemProvider } from '../workspace/DefinitionFileSystemProvider';
 import { IBase64Encoder, Base64Encoder } from '../itemDefinition/ItemDefinitionReader';
 import { DefinitionVirtualDocumentContentProvider } from '../workspace/DefinitionVirtualDocumentContentProvider';
+import { registerWorkspaceCommands } from '../workspace/commands';
+import { ICapacityManager, CapacityManager } from '../CapacityManager';
 
 let app: FabricVsCodeWebExtension;
 
@@ -94,14 +96,22 @@ export class FabricVsCodeWebExtension {
         workspaceManager.tvProvider = dataProvider;
         workspaceManager.treeView = treeView;
 
-        // register the signIn command
-        const signInCommand = vscode.commands.registerCommand(commandNames.signIn, async () => {
-            logger.trace('Sign-in command invoked');
-            const auth = this.container.get<IAccountProvider>();
-            await auth.signIn();
-        });
-
-        context.subscriptions.push(signInCommand);
+        // Register workspace commands
+        const accountProvider = this.container.get<IAccountProvider>();
+        const capacityManager = this.container.get<ICapacityManager>();
+        const telemetryService = this.container.get<TelemetryService | null>();
+        const workspaceFilterManager = this.container.get<IWorkspaceFilterManager>();
+        const fabricEnvironmentProvider = this.container.get<IFabricEnvironmentProvider>();
+        registerWorkspaceCommands(
+            context,
+            accountProvider,
+            workspaceManager,
+            capacityManager,
+            telemetryService,
+            logger,
+            workspaceFilterManager,
+            fabricEnvironmentProvider
+        );
 
         // Register the read-only definition document provider
         const definitionFileSystemProvider = this.container.get<DefinitionFileSystemProvider>();
@@ -166,6 +176,9 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<IArtifactManager, ArtifactManager>();
     container.registerSingleton<DefinitionFileSystemProvider>();
     container.registerSingleton<IBase64Encoder, Base64Encoder>();
+
+    container.registerSingleton<ICapacityManager, CapacityManager>();
+    container.registerSingleton<IWorkspaceManager, WorkspaceManager>();
 
     return container;
 }

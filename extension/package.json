@@ -59,8 +59,7 @@
         "command": "vscode-fabric.createWorkspace",
         "title": "%extension.createWorkspace.title%",
         "category": "Fabric",
-        "icon": "$(add)",
-        "enablement": "!isWeb"
+        "icon": "$(add)"
       },
       {
         "command": "vscode-fabric.createArtifact",
@@ -210,15 +209,13 @@
         "command": "vscode-fabric.filterWorkspaces",
         "title": "%extension.filterWorkspaces.title%",
         "category": "Fabric",
-        "icon": "$(filter)",
-        "enablement": "!isWeb"
+        "icon": "$(filter)"
       },
       {
         "command": "vscode-fabric.clearWorkspaceFilter",
         "title": "%extension.clearWorkspaceFilter.title%",
         "category": "Fabric",
-        "icon": "$(clear-all)",
-        "enablement": "!isWeb"
+        "icon": "$(clear-all)"
       },
       {
         "command": "vscode-fabric.editDefinitionFile",
