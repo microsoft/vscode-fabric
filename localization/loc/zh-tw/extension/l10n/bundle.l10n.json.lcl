@@ -238,7 +238,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Author, host, and manage serverless user data functions optimized for Fabric.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[撰寫、裝載及管理針對 Fabric 最佳化的無伺服器使用者資料函式。]]></Val>
+            <Val><![CDATA[撰寫、裝載及管理針對 Fabric 最佳化的無伺服器使用者資料函數。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2245,7 +2245,7 @@
         <Str Cat="Text">
           <Val><![CDATA[User data functions]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[使用者資料函式]]></Val>
+            <Val><![CDATA[使用者資料函數]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
