@@ -60,6 +60,23 @@
         "icon": "$(add)"
       },
       {
+        "command": "vscode-fabric.createFolder",
+        "title": "%extension.createFolder.title%",
+        "category": "Fabric",
+        "icon": "$(new-folder)"
+      },
+      {
+        "command": "vscode-fabric.deleteFolder",
+        "title": "%extension.deleteFolder.title%",
+        "category": "Fabric",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "vscode-fabric.renameFolder",
+        "title": "%extension.renameFolder.title%",
+        "category": "Fabric"
+      },
+      {
         "command": "vscode-fabric.readArtifact",
         "title": "%extension.readArtifact.title%",
         "category": "Fabric"
@@ -300,6 +317,18 @@
           "when": "false"
         },
         {
+          "command": "vscode-fabric.createFolder",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.deleteFolder",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.renameFolder",
+          "when": "false"
+        },
+        {
           "command": "vscode-fabric.openNotebook",
           "when": "false"
         },
@@ -405,6 +434,36 @@
           "command": "vscode-fabric.createArtifact",
           "when": "view == vscode-fabric.view.workspace && viewItem == ItemType",
           "group": "inline"
+        },
+        {
+          "command": "vscode-fabric.createFolder",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceTreeNode",
+          "group": "1@2"
+        },
+        {
+          "command": "vscode-fabric.createArtifact",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceFolderTreeNode",
+          "group": "1@1"
+        },
+        {
+          "command": "vscode-fabric.createArtifact",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceFolderTreeNode",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-fabric.createFolder",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceFolderTreeNode",
+          "group": "1@2"
+        },
+        {
+          "command": "vscode-fabric.renameFolder",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceFolderTreeNode",
+          "group": "9@1"
+        },
+        {
+          "command": "vscode-fabric.deleteFolder",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceFolderTreeNode",
+          "group": "9@2"
         },
         {
           "command": "vscode-fabric.refreshArtifactView",

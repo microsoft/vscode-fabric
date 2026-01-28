@@ -493,6 +493,32 @@ export interface IWorkspaceManager {
      * @returns Promise resolving to the workspace object, or undefined if not found
      */
     getWorkspaceById(workspaceId: string): Promise<IWorkspace | undefined>;
+
+    /**
+     * Creates a new folder within a workspace.
+     * @param workspaceId - The unique identifier of the workspace
+     * @param folderName - Display name for the new folder
+     * @param parentFolderId - Optional parent folder ID for nested folders
+     * @returns Promise resolving to the API response containing the created folder
+     */
+    createFolder(workspaceId: string, folderName: string, parentFolderId?: string): Promise<IApiClientResponse>;
+
+    /**
+     * Deletes a folder from a workspace.
+     * @param workspaceId - The unique identifier of the workspace
+     * @param folderId - The unique identifier of the folder to delete
+     * @returns Promise resolving to the API response for the delete operation
+     */
+    deleteFolder(workspaceId: string, folderId: string): Promise<IApiClientResponse>;
+
+    /**
+     * Renames a folder within a workspace.
+     * @param workspaceId - The unique identifier of the workspace
+     * @param folderId - The unique identifier of the folder to rename
+     * @param newDisplayName - The new display name for the folder
+     * @returns Promise resolving to the API response for the rename operation
+     */
+    renameFolder(workspaceId: string, folderId: string, newDisplayName: string): Promise<IApiClientResponse>;
 }
 
 /**
