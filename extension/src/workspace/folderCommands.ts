@@ -222,10 +222,10 @@ async function deleteFolderCommand(
 
         // Check if the error is because the folder is not empty
         const errorCode = response.parsedBody?.errorCode;
-        if (errorCode === 'FolderNotEmpty' || response.status === 400) {
+        if (errorCode === 'FolderNotEmpty') {
             throw new FabricError(
                 vscode.l10n.t('Cannot delete folder "{0}" because it contains items. Please delete or move all items first.', folderName),
-                errorCode || 'Folder not empty',
+                errorCode,
                 { showInUserNotification: 'Information' }
             );
         }
@@ -257,14 +257,15 @@ async function renameFolderCommand(
         },
     });
 
-    if (!newName || newName === currentName) {
+    if (!newName || !newName.trim() || newName.trim() === currentName) {
         throw new UserCancelledError('folderNameInput');
     }
 
+    const trimmedName = newName.trim();
     const response: IApiClientResponse = await workspaceManager.renameFolder(
         folderTreeNode.workspaceId,
         folderTreeNode.folderId,
-        newName.trim()
+        trimmedName
     );
     activity.addOrUpdateProperties({
         'statusCode': response.status.toString(),
@@ -272,7 +273,7 @@ async function renameFolderCommand(
 
     if (response.status === 200) {
         dataProvider.refresh();
-        void vscode.window.showInformationMessage(vscode.l10n.t('Renamed folder "{0}" to "{1}"', currentName, newName.trim()));
+        void vscode.window.showInformationMessage(vscode.l10n.t('Renamed folder "{0}" to "{1}"', currentName, trimmedName));
     } else {
         activity.addOrUpdateProperties({
             'requestId': response.parsedBody?.requestId,

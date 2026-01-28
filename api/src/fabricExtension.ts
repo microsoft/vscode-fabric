@@ -500,14 +500,18 @@ export interface IWorkspaceManager {
      * @param folderName - Display name for the new folder
      * @param parentFolderId - Optional parent folder ID for nested folders
      * @returns Promise resolving to the API response containing the created folder
+     * @throws FabricError if not connected to Fabric services
      */
     createFolder(workspaceId: string, folderName: string, parentFolderId?: string): Promise<IApiClientResponse>;
 
     /**
      * Deletes a folder from a workspace.
+     * Note: The folder must be empty to be deleted. If the folder contains items,
+     * the API will return an error with code 'FolderNotEmpty'.
      * @param workspaceId - The unique identifier of the workspace
      * @param folderId - The unique identifier of the folder to delete
      * @returns Promise resolving to the API response for the delete operation
+     * @throws FabricError if not connected to Fabric services
      */
     deleteFolder(workspaceId: string, folderId: string): Promise<IApiClientResponse>;
 
@@ -517,6 +521,7 @@ export interface IWorkspaceManager {
      * @param folderId - The unique identifier of the folder to rename
      * @param newDisplayName - The new display name for the folder
      * @returns Promise resolving to the API response for the rename operation
+     * @throws FabricError if not connected to Fabric services
      */
     renameFolder(workspaceId: string, folderId: string, newDisplayName: string): Promise<IApiClientResponse>;
 }
