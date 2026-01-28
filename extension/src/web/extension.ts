@@ -4,8 +4,6 @@
 import * as vscode from 'vscode';
 import { ExtensionContext } from 'vscode';
 
-import { commandNames } from '../constants';
-
 import { FabricTreeNode, IWorkspaceManager, IFabricApiClient, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import {
     TelemetryService,
@@ -25,7 +23,7 @@ import { AccountProvider } from '../authentication/AccountProvider';
 import { TokenAcquisitionService, VsCodeAuthentication, DefaultVsCodeAuthentication } from '../authentication/TokenAcquisitionService';
 import { FeedbackTreeDataProvider } from '../feedback/FeedbackTreeDataProvider';
 import { FabricWorkspaceDataProvider, RootTreeNodeProvider } from '../workspace/treeView';
-import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
+import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { FabricExtensionManager } from '../extensionManager/FabricExtensionManager';
 import { WorkspaceManager, WorkspaceManagerBase } from '../workspace/WorkspaceManager';
 import { IRootTreeNodeProvider } from '../workspace/definitions';
@@ -45,6 +43,8 @@ import { DefinitionFileSystemProvider } from '../workspace/DefinitionFileSystemP
 import { IBase64Encoder, Base64Encoder } from '../itemDefinition/ItemDefinitionReader';
 import { DefinitionVirtualDocumentContentProvider } from '../workspace/DefinitionVirtualDocumentContentProvider';
 import { registerWorkspaceCommands } from '../workspace/commands';
+import { registerArtifactCommands } from '../artifactManager/commands';
+import { registerTenantCommands } from '../tenant/commands';
 import { ICapacityManager, CapacityManager } from '../CapacityManager';
 
 let app: FabricVsCodeWebExtension;
@@ -113,6 +113,52 @@ export class FabricVsCodeWebExtension {
             fabricEnvironmentProvider
         );
 
+        // Register artifact commands
+        const artifactManager = this.container.get<IArtifactManagerInternal>();
+        const extensionManager = this.container.get<IFabricExtensionManagerInternal>();
+
+        await registerArtifactCommands(
+            context,
+            workspaceManager,
+            fabricEnvironmentProvider,
+            artifactManager,
+            dataProvider,
+            extensionManager,
+            workspaceFilterManager,
+            capacityManager,
+            telemetryService,
+            logger
+        );
+
+        // Register tenant commands
+        registerTenantCommands(
+            context,
+            accountProvider,
+            telemetryService,
+            logger
+        );
+
+        const storage = this.container.get<IFabricExtensionsSettingStorage>();
+        await storage.load();
+
+        async function tenantChanged() {
+            const tenantInformation = await accountProvider.getCurrentTenant();
+            if (!tenantInformation) {
+                storage.settings.currentTenant = undefined;
+            }
+            else {
+                // Save the tenant information
+                storage.settings.currentTenant = {
+                    tenantId: tenantInformation.tenantId,
+                    defaultDomain: tenantInformation.defaultDomain,
+                    displayName: tenantInformation.displayName,
+                };
+            }
+            await storage.save();
+        }
+        accountProvider.onTenantChanged(async () => await tenantChanged());
+
+
         // Register the read-only definition document provider
         const definitionFileSystemProvider = this.container.get<DefinitionFileSystemProvider>();
         const readOnlyProvider = new DefinitionVirtualDocumentContentProvider(definitionFileSystemProvider);
@@ -179,6 +225,8 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
 
     container.registerSingleton<ICapacityManager, CapacityManager>();
     container.registerSingleton<IWorkspaceManager, WorkspaceManager>();
+
+    container.registerSingleton<IArtifactManagerInternal>(() => container.get<IArtifactManager>() as IArtifactManagerInternal);
 
     return container;
 }

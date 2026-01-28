@@ -71,8 +71,7 @@
       {
         "command": "vscode-fabric.readArtifact",
         "title": "%extension.readArtifact.title%",
-        "category": "Fabric",
-        "enablement": "!isWeb"
+        "category": "Fabric"
       },
       {
         "command": "vscode-fabric.openArtifact",
@@ -126,15 +125,13 @@
       {
         "command": "vscode-fabric.openInPortal",
         "title": "%extension.openInPortal.title%",
-        "category": "Fabric",
-        "enablement": "!isWeb"
+        "category": "Fabric"
       },
       {
         "command": "vscode-fabric.refreshArtifactView",
         "title": "%extension.refreshArtifactView.title%",
         "category": "Fabric",
-        "icon": "$(refresh)",
-        "enablement": "!isWeb"
+        "icon": "$(refresh)"
       },
       {
         "command": "vscode-fabric.refreshLocalFolderView",
@@ -147,14 +144,12 @@
         "command": "vscode-fabric.deleteArtifact",
         "title": "%extension.deleteArtifact.title%",
         "category": "Fabric",
-        "icon": "$(trash)",
-        "enablement": "!isWeb"
+        "icon": "$(trash)"
       },
       {
         "command": "vscode-fabric.renameArtifact",
         "title": "%extension.renameArtifact.title%",
-        "category": "Fabric",
-        "enablement": "!isWeb"
+        "category": "Fabric"
       },
       {
         "command": "vscode-fabric.viewIssues",
