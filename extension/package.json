@@ -562,9 +562,8 @@
             },
             "Fabric.ShowFolders": {
                 "type": "boolean",
-                "default": false,
-                "description": "%extension.configuration.ShowFolders.description%",
-                "tags": [ "preview" ]
+                "default": true,
+                "description": "%extension.configuration.ShowFolders.description%"
             },
             "Fabric.McpServer.PromptInstall": {
                 "type": "boolean",
