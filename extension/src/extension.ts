@@ -69,6 +69,7 @@ import { DefinitionFileEditorDecorator } from './workspace/DefinitionFileEditorD
 import { IArtifactChildNodeProviderCollection, ArtifactChildNodeProviderCollection } from './workspace/treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
 import { IBase64Encoder, Base64Encoder } from './itemDefinition/ItemDefinitionReader';
 import { ILocalFolderManager } from './ILocalFolderManager';
+import { registerArtifactExportCommands } from './artifactManager/commands.export';
 
 let app: FabricVsCodeExtension;
 
@@ -175,12 +176,20 @@ export class FabricVsCodeExtension {
                 workspaceManager,
                 fabricEnvironmentProvider,
                 artifactManager,
-                localFolderService,
-                this.container.get<IConfigurationProvider>(),
                 dataProvider,
                 extensionManager,
                 workspaceFilterManager,
                 capacityManager,
+                telemetryService,
+                logger
+            );
+            registerArtifactExportCommands(
+                context,
+                workspaceManager,
+                fabricEnvironmentProvider,
+                artifactManager,
+                localFolderService,
+                this.container.get<IConfigurationProvider>(),
                 account,
                 telemetryService,
                 logger
