@@ -2,9 +2,10 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
+
 import { ExtensionContext } from 'vscode';
 
-import { FabricTreeNode, IWorkspaceManager, IFabricApiClient, IArtifactManager } from '@microsoft/vscode-fabric-api';
+import { FabricTreeNode, IWorkspaceManager, IFabricApiClient, IArtifactManager, Schema } from '@microsoft/vscode-fabric-api';
 import {
     TelemetryService,
     ILogger,
@@ -42,6 +43,9 @@ import { ArtifactManager } from '../artifactManager/ArtifactManager';
 import { DefinitionFileSystemProvider } from '../workspace/DefinitionFileSystemProvider';
 import { IBase64Encoder, Base64Encoder } from '../itemDefinition/ItemDefinitionReader';
 import { DefinitionVirtualDocumentContentProvider } from '../workspace/DefinitionVirtualDocumentContentProvider';
+import { DefinitionFileEditorDecorator } from '../workspace/DefinitionFileEditorDecorator';
+import { FabricCommandManager } from '../commands/FabricCommandManager';
+import { IFabricCommandManager } from '../commands/IFabricCommandManager';
 import { registerWorkspaceCommands } from '../workspace/commands';
 import { registerArtifactCommands } from '../artifactManager/commands';
 import { registerTenantCommands } from '../tenant/commands';
@@ -54,13 +58,6 @@ let app: FabricVsCodeWebExtension;
  * This is a simplified entry point for browser-based VS Code environments.
  */
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-    // Register a simple hello world command
-    const helloCommand = vscode.commands.registerCommand('vscode-fabric.helloWeb', async () => {
-        await vscode.window.showInformationMessage('Hello from Fabric Web Extension! Running in: ' + vscode.env.uiKind);
-    });
-
-    context.subscriptions.push(helloCommand);
-
     const container = await composeContainer(context);
     app = new FabricVsCodeWebExtension(container);
     return await app.activate();
@@ -90,11 +87,17 @@ export class FabricVsCodeWebExtension {
         const treeView: vscode.TreeView<FabricTreeNode> = vscode.window.createTreeView('vscode-fabric.view.workspace',
             { treeDataProvider: dataProvider, showCollapseAll: true });
 
+        const rootTreeNodeProvider = this.container.get<IRootTreeNodeProvider>() as RootTreeNodeProvider;
+        await rootTreeNodeProvider.enableCommands();
+
         // TODO this is strange. The dependencies should be injected...
         // And it seems cyclical. The dataProvider is created with the workspaceManager, but the workspaceManager depends dataProvider ??
         const workspaceManager = this.container.get<IWorkspaceManager>() as WorkspaceManagerBase;
         workspaceManager.tvProvider = dataProvider;
         workspaceManager.treeView = treeView;
+
+        const commandManager = this.container.get<IFabricCommandManager>();
+        await commandManager.initialize();
 
         // Register workspace commands
         const accountProvider = this.container.get<IAccountProvider>();
@@ -158,17 +161,56 @@ export class FabricVsCodeWebExtension {
         }
         accountProvider.onTenantChanged(async () => await tenantChanged());
 
+        // Register the virtual document provider
+        initFabricVirtualDocProvider(context);
+
+        const definitionFileSystemProvider = this.container.get<DefinitionFileSystemProvider>();
+        // Register the definition file system provider
+        context.subscriptions.push(
+            vscode.workspace.registerFileSystemProvider(DefinitionFileSystemProvider.scheme, definitionFileSystemProvider, {
+                isCaseSensitive: true,
+                isReadonly: false,
+            })
+        );
 
         // Register the read-only definition document provider
-        const definitionFileSystemProvider = this.container.get<DefinitionFileSystemProvider>();
         const readOnlyProvider = new DefinitionVirtualDocumentContentProvider(definitionFileSystemProvider);
         context.subscriptions.push(
             vscode.workspace.registerTextDocumentContentProvider(DefinitionVirtualDocumentContentProvider.scheme, readOnlyProvider)
         );
+
+        // Register the definition file editor decorator to show warnings
+        const editorDecorator = new DefinitionFileEditorDecorator();
+        context.subscriptions.push(editorDecorator);
     }
 
     async deactivate(): Promise<void> {
     }
+}
+
+function initFabricVirtualDocProvider(context: vscode.ExtensionContext) {
+    const provider = new class implements vscode.TextDocumentContentProvider {
+        provideTextDocumentContent(uri: vscode.Uri, token: vscode.CancellationToken): vscode.ProviderResult<string> {
+            const content = new URLSearchParams(uri.query).get('content') ?? '';
+            let result = '';
+            try {
+                const jsconContent = JSON.parse(content);
+                if (jsconContent.payloadContentType === 'InlineJson' && jsconContent.workloadPayload) { // expand stringified json
+                    const jsPayload = JSON.parse(jsconContent.workloadPayload);
+                    jsconContent.workloadPayload = jsPayload;
+                }
+                // Format all of the content and set indents & spacing to 2
+                result += JSON.stringify(jsconContent, null, 2);
+            }
+            catch (error) {
+                result = JSON.stringify(error);
+            }
+            return result;
+        }
+    };
+    context.subscriptions.push(
+        vscode.workspace.registerTextDocumentContentProvider(Schema.fabricVirtualDoc, provider)
+    );
 }
 
 async function composeContainer(context: vscode.ExtensionContext): Promise<DIContainer> {
@@ -186,6 +228,8 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     const telemetryService = new TelemetryService(container.get<TelemetryReporter>(), { extensionMode: context.extensionMode });
     container.registerSingleton<TelemetryService>(() => telemetryService);
     container.registerSingleton<TelemetryService | null>(() => telemetryService);
+
+    container.registerSingleton<IFabricCommandManager, FabricCommandManager>();
 
     // Registration necessary for the Sign In command
     container.registerSingleton<IAccountProvider, AccountProvider>();
