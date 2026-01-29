@@ -50,6 +50,7 @@ import { registerWorkspaceCommands } from '../workspace/commands';
 import { registerArtifactCommands } from '../artifactManager/commands';
 import { registerTenantCommands } from '../tenant/commands';
 import { ICapacityManager, CapacityManager } from '../CapacityManager';
+import { recordExpansionChange } from '../workspace/viewExpansionState';
 
 let app: FabricVsCodeWebExtension;
 
@@ -86,6 +87,23 @@ export class FabricVsCodeWebExtension {
         const dataProvider = this.container.get<FabricWorkspaceDataProvider>();
         const treeView: vscode.TreeView<FabricTreeNode> = vscode.window.createTreeView('vscode-fabric.view.workspace',
             { treeDataProvider: dataProvider, showCollapseAll: true });
+
+        const updateExpansionState = async (element: FabricTreeNode | undefined, expand: boolean) => {
+            try {
+                if (!element || !('id' in element) || !element.id) {
+                    return;
+                }
+                const id = (element as any).id as string;
+                if (!id.startsWith('tenant:') && !id.startsWith('ws:') && !id.startsWith('grp:')) {
+                    return;
+                }
+                await recordExpansionChange(storage, fabricEnvironmentProvider, accountProvider, id, expand);
+            }
+            catch { /* ignore */ }
+        };
+
+        treeView.onDidExpandElement(async (e) => updateExpansionState(e.element, true));
+        treeView.onDidCollapseElement(async (e) => updateExpansionState(e.element, false));
 
         const rootTreeNodeProvider = this.container.get<IRootTreeNodeProvider>() as RootTreeNodeProvider;
         await rootTreeNodeProvider.enableCommands();
