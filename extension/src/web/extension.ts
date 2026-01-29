@@ -200,6 +200,12 @@ export class FabricVsCodeWebExtension {
         // Register the definition file editor decorator to show warnings
         const editorDecorator = new DefinitionFileEditorDecorator();
         context.subscriptions.push(editorDecorator);
+
+        // We want to have as much of the extension initialized as possible before we refresh the connection, causing
+        // much code to execute. This is to ensure that the extension is initialized before we start executing code
+        // So we call refreshConnectionToFabric() but don't await it.
+        // This solves the problem of calling the code to draw tree nodes before the extension is completely initialized
+        void workspaceManager.refreshConnectionToFabric();
     }
 
     async deactivate(): Promise<void> {
