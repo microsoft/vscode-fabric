@@ -9,7 +9,6 @@ import { IFabricCommandManager } from '../commands/IFabricCommandManager';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { commandNames } from '../constants';
 import { showSignInPrompt } from '../ui/prompts';
-import { WorkspaceTreeNode } from '../workspace/treeNodes/WorkspaceTreeNode';
 import { FolderTreeNode } from '../workspace/treeNodes/FolderTreeNode';
 import { succeeded, formatErrorResponse } from '../utilities';
 
@@ -38,12 +37,15 @@ export class CreateFolderCommand extends FabricCommand<'folder/create'> {
         let parentFolderId: string | undefined;
 
         const contextNode = args[0];
-        if (contextNode instanceof WorkspaceTreeNode) {
-            workspaceId = contextNode.workspace.objectId;
-        }
-        else if (contextNode instanceof FolderTreeNode) {
+        // Use duck-typing to check node type for better testability
+        // WorkspaceTreeNode has workspace.objectId, FolderTreeNode has workspaceId and folderId
+        if (contextNode instanceof FolderTreeNode) {
             workspaceId = contextNode.workspaceId;
             parentFolderId = contextNode.folderId;
+        }
+        else if (contextNode?.workspace?.objectId) {
+            // WorkspaceTreeNode - check for workspace.objectId property
+            workspaceId = contextNode.workspace.objectId;
         }
 
         if (!workspaceId) {

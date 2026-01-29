@@ -11,7 +11,6 @@ import { IWorkspaceFolder, IWorkspaceManager } from '@microsoft/vscode-fabric-ap
 import { ILogger, TelemetryService, TelemetryActivity, UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../../../src/TelemetryEventNames';
 import { verifyAddOrUpdateProperties } from '../../utilities/moqUtilities';
-import { WorkspaceTreeNode } from '../../../src/workspace/treeNodes/WorkspaceTreeNode';
 import { FolderTreeNode } from '../../../src/workspace/treeNodes/FolderTreeNode';
 import { FabricWorkspaceDataProvider } from '../../../src/workspace/treeView';
 
