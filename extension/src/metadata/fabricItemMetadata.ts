@@ -205,6 +205,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         portalFolder: 'semanticmodels',
         supportsArtifactWithDefinition: true,
         extensionId: 'analysis-services.TMDL',
+        webExtensionEnabled: true,
     },
     'SparkJobDefinition': {
         creationCapability: CreationCapability.supported,

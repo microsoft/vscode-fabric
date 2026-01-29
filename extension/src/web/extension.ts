@@ -12,6 +12,7 @@ import {
     FabricTreeNode,
     IArtifactManager,
     IFabricApiClient,
+    IFabricExtensionServiceCollection,
     IWorkspaceManager,
 } from '@microsoft/vscode-fabric-api';
 import {
@@ -71,8 +72,10 @@ import { CapacityManager, ICapacityManager } from '../CapacityManager';
 import { FabricExtensionManager } from '../extensionManager/FabricExtensionManager';
 import { FeedbackTreeDataProvider } from '../feedback/FeedbackTreeDataProvider';
 import { ILocalFolderManager } from '../ILocalFolderManager';
+import { InternalSatelliteManager } from '../internalSatellites/InternalSatelliteManager';
 import { Base64Encoder, IBase64Encoder } from '../itemDefinition/ItemDefinitionReader';
 import { ILocalFolderService, LocalFolderService } from '../LocalFolderService';
+import { FabricExtensionServiceCollection } from '../FabricExtensionServiceCollection';
 
 // Web-specific implementations
 import { WebGitOperator } from './WebGitOperator';
@@ -115,6 +118,7 @@ export class FabricVsCodeWebExtension {
             await this.registerCommands();
             this.setupEventHandlers(treeView);
             this.setupTelemetry();
+            this.initializeExtensionManager();
 
             activateActivity.end();
             activateActivity.sendTelemetry();
@@ -258,6 +262,23 @@ export class FabricVsCodeWebExtension {
     }
 
     /**
+     * Initializes the extension manager with service collection and activates internal satellites.
+     */
+    private initializeExtensionManager(): void {
+        const context = this.container.get<ExtensionContext>();
+        const extensionManager = this.container.get<IFabricExtensionManagerInternal>();
+        const coreServiceCollection = this.container.get<IFabricExtensionServiceCollection>();
+
+        // Set up service collection for public API
+        extensionManager.serviceCollection = coreServiceCollection;
+
+        // Activate internal satellites
+        const internalSatelliteManager = this.container.get<InternalSatelliteManager>();
+        internalSatelliteManager.activateAll();
+        context.subscriptions.push(internalSatelliteManager);
+    }
+
+    /**
      * Sets up telemetry default properties for environment and account.
      */
     private setupTelemetry(): void {
@@ -386,6 +407,8 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<ICapacityManager, CapacityManager>();
     container.registerSingleton<IFabricExtensionManagerInternal, FabricExtensionManager>();
     container.registerTransient<IDisposableCollection, DisposableCollection>();
+    container.registerSingleton<IFabricExtensionServiceCollection, FabricExtensionServiceCollection>();
+    container.registerSingleton<InternalSatelliteManager>();
 
     return container;
 }
