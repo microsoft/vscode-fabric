@@ -41,7 +41,6 @@ import { recordExpansionChange } from './workspace/viewExpansionState';
 import { IRootTreeNodeProvider } from './workspace/definitions';
 import { registerArtifactCommands } from './artifactManager/commands';
 import { registerWorkspaceCommands } from './workspace/commands';
-import { registerFolderCommands } from './workspace/folderCommands';
 import { registerTenantCommands } from './tenant/commands';
 import { registerLocalProjectCommands } from './localProject/commands';
 import TelemetryReporter from '@vscode/extension-telemetry';
@@ -169,7 +168,6 @@ export class FabricVsCodeExtension {
             await commandManager.initialize();
 
             registerWorkspaceCommands(context, account, workspaceManager, capacityManager, telemetryService, logger, workspaceFilterManager, fabricEnvironmentProvider);
-            registerFolderCommands(context, workspaceManager, dataProvider, telemetryService, logger);
             registerTenantCommands(context, account, telemetryService, logger);
             await registerArtifactCommands(
                 context,
