@@ -3,7 +3,6 @@
 
 import * as vscode from 'vscode';
 import { ExtensionContext } from 'vscode';
-import * as querystring from 'querystring';
 
 import { FeedbackTreeDataProvider } from './feedback/FeedbackTreeDataProvider';
 import { WorkspaceManager, WorkspaceManagerBase } from './workspace/WorkspaceManager';
@@ -439,7 +438,7 @@ export class FabricVsCodeExtension {
 function initFabricVirtualDocProvider(context: vscode.ExtensionContext) {
     const provider = new class implements vscode.TextDocumentContentProvider {
         provideTextDocumentContent(uri: vscode.Uri, token: vscode.CancellationToken): vscode.ProviderResult<string> {
-            let content = querystring.parse(uri.query).content as string;
+            const content = new URLSearchParams(uri.query).get('content') ?? '';
             let result = '';
             try {
                 const jsconContent = JSON.parse(content);

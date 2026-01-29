@@ -43,12 +43,6 @@
     ],
     "commands": [
       {
-        "command": "vscode-fabric.helloWeb",
-        "title": "Hello Web",
-        "category": "Fabric",
-        "enablement": "isWeb"
-      },
-      {
         "command": "vscode-fabric.signIn",
         "title": "%extension.signIn.title%",
         "category": "Fabric"
@@ -57,8 +51,7 @@
         "command": "vscode-fabric.switchTenant",
         "title": "%extension.switchTenant.title%",
         "category": "Fabric",
-        "icon": "$(arrow-swap)",
-        "enablement": "!isWeb"
+        "icon": "$(arrow-swap)"
       },
       {
         "command": "vscode-fabric.createWorkspace",
@@ -70,8 +63,7 @@
         "command": "vscode-fabric.createArtifact",
         "title": "%extension.createArtifact.title%",
         "category": "Fabric",
-        "icon": "$(add)",
-        "enablement": "!isWeb"
+        "icon": "$(add)"
       },
       {
         "command": "vscode-fabric.readArtifact",
@@ -170,15 +162,13 @@
         "command": "vscode-fabric.workspaceViewToList",
         "title": "%extension.workspaceViewToList.title%",
         "category": "Fabric",
-        "icon": "$(list-flat)",
-        "enablement": "!isWeb"
+        "icon": "$(list-flat)"
       },
       {
         "command": "vscode-fabric.workspaceViewToTree",
         "title": "%extension.workspaceViewToTree.title%",
         "category": "Fabric",
-        "icon": "$(group-by-ref-type)",
-        "enablement": "!isWeb"
+        "icon": "$(group-by-ref-type)"
       },
       {
         "command": "vscode-fabric.openNotebook",
