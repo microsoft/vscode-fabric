@@ -68,7 +68,8 @@ export class DeleteFolderCommand extends FabricCommand<'folder/delete'> {
         if (succeeded(response)) {
             this.commandManager.dataProvider.refresh();
             void vscode.window.showInformationMessage(vscode.l10n.t('Deleted folder "{0}"', folderName));
-        } else {
+        }
+        else {
             telemetryActivity.addOrUpdateProperties({
                 'requestId': response.parsedBody?.requestId,
                 'errorCode': response.parsedBody?.errorCode,

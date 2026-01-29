@@ -40,7 +40,8 @@ export class CreateFolderCommand extends FabricCommand<'folder/create'> {
         const contextNode = args[0];
         if (contextNode instanceof WorkspaceTreeNode) {
             workspaceId = contextNode.workspace.objectId;
-        } else if (contextNode instanceof FolderTreeNode) {
+        }
+        else if (contextNode instanceof FolderTreeNode) {
             workspaceId = contextNode.workspaceId;
             parentFolderId = contextNode.folderId;
         }
