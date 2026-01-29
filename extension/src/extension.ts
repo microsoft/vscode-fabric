@@ -141,10 +141,8 @@ export class FabricVsCodeExtension {
             const workspaceManager = this.container.get<IWorkspaceManager>() as WorkspaceManagerBase;
             void workspaceManager.refreshConnectionToFabric();
 
-            // Set up service collection on extension manager for public API
-            const extensionManager = this.container.get<IFabricExtensionManagerInternal>();
-            const coreServiceCollection = this.container.get<IFabricExtensionServiceCollection>();
-            extensionManager.serviceCollection = coreServiceCollection;
+            // Initialize extension manager for public API and satellites
+            const extensionManager = this.initializeExtensionManager();
 
             return extensionManager;
         }
@@ -324,11 +322,25 @@ export class FabricVsCodeExtension {
         context.subscriptions.push(
             vscode.window.registerUriHandler(this.container.get<ExtensionUriHandler>())
         );
+    }
 
-        // Internal satellites
+    /**
+     * Initializes the extension manager with service collection and activates internal satellites.
+     */
+    private initializeExtensionManager(): IFabricExtensionManagerInternal {
+        const context = this.container.get<ExtensionContext>();
+        const extensionManager = this.container.get<IFabricExtensionManagerInternal>();
+        const coreServiceCollection = this.container.get<IFabricExtensionServiceCollection>();
+
+        // Set up service collection for public API
+        extensionManager.serviceCollection = coreServiceCollection;
+
+        // Activate internal satellites
         const internalSatelliteManager = this.container.get<InternalSatelliteManager>();
         internalSatelliteManager.activateAll();
         context.subscriptions.push(internalSatelliteManager);
+
+        return extensionManager;
     }
 
     /**
@@ -601,8 +613,8 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<IFabricExtensionManagerInternal, FabricExtensionManager>();
     container.registerTransient<IDisposableCollection, DisposableCollection>();
     container.registerSingleton<IFabricExtensionServiceCollection, FabricExtensionServiceCollection>();
-    container.registerSingleton<ExtensionUriHandler>();
     container.registerSingleton<InternalSatelliteManager>();
+    container.registerSingleton<ExtensionUriHandler>();
 
     // Mock overrides (non-production only)
     if (process.env.VSCODE_FABRIC_USE_MOCKS === 'true' && context.extensionMode !== vscode.ExtensionMode.Production) {

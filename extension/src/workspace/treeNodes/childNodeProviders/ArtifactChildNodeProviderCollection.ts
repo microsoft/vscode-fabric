@@ -44,12 +44,8 @@ export class ArtifactChildNodeProviderCollection implements IArtifactChildNodePr
     ) {
         this.providers = [
             new DefinitionFilesChildNodeProvider(context, artifactManager, fileSystemProvider, logger),
+            new MissingExtensionChildNodeProvider(context, extensionManager),
         ];
-
-        // MissingExtensionChildNodeProvider is only available in desktop builds
-        if (!__IS_WEB__) {
-            this.providers.push(new MissingExtensionChildNodeProvider(context, extensionManager));
-        }
     }
 
     canProvideChildren(artifact: IArtifact): boolean {

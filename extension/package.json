@@ -185,15 +185,13 @@
       {
         "command": "vscode-fabric.copyConnectionString",
         "title": "%extension.copyConnectionString.title%",
-        "category": "Fabric",
-        "enablement": "!isWeb"
+        "category": "Fabric"
       },
       {
         "command": "vscode-fabric.installExtension",
         "title": "%extension.installFabricExtension.title%",
         "category": "Fabric",
-        "icon": "$(extensions)",
-        "enablement": "!isWeb"
+        "icon": "$(extensions)"
       },
       {
         "command": "vscode-fabric.filterWorkspaces",
