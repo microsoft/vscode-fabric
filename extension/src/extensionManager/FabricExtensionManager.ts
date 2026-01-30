@@ -2,14 +2,16 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { apiVersion, IArtifactHandler, IFabricExtension, IFabricExtensionServiceCollection, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider } from '@microsoft/vscode-fabric-api';
+import { apiVersion, IArtifact, IArtifactHandler, IFabricExtension, IFabricExtensionServiceCollection, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { ObservableMap } from '../collections/ObservableMap';
 import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { getArtifactExtensionId } from '../metadata/fabricItemUtilities';
 
 const satelliteExtensionIds = [
     'fabric.vscode-fabric-functions',
     'fabric.vscode-testplatform',
+    'ms-azuretools.vscode-cosmosdb',
 ];
 
 const internalSatelliteIds = [
@@ -26,6 +28,7 @@ export class FabricExtensionManager implements IFabricExtensionManagerInternal {
 
     protected extensions: IFabricExtension[] = [];
     protected allowedExtensions: string[] = [...satelliteExtensionIds, ...internalSatelliteIds];
+    protected activatingExtensions: Map<string, PromiseLike<boolean>> = new Map();
     protected apiVersion: string = apiVersion;
 
     public readonly artifactHandlers: ObservableMap<string, IArtifactHandler> = new ObservableMap<string, IArtifactHandler>();
@@ -110,10 +113,61 @@ export class FabricExtensionManager implements IFabricExtensionManagerInternal {
     }
 
     public isAvailable(extensionId: string): boolean {
-        // Ideally, there would be way to verify that the extension is enabled and active.
-        // However, vscode doesn't expose enable/disbale state and this call could be happening from the extension's activate method.
-        // So let's settle for making sure that the extension is installed
+        // If extension is disabled in VS Code, it won't appear in the extensions list
+        // If extension is not installed, it won't appear in the extensions list
         return !!vscode.extensions.getExtension(extensionId);
+    }
+
+    public isActive(extensionId: string): boolean {
+        return vscode.extensions.getExtension(extensionId)?.isActive ?? false;
+    }
+
+    public async activateExtension(artifact: IArtifact): Promise<vscode.Extension<any> | undefined>;
+    public async activateExtension(extensionId: string): Promise<vscode.Extension<any> | undefined>;
+    public async activateExtension(extensionIdOrArtifact: IArtifact | string): Promise<vscode.Extension<any> | undefined>{
+        let extensionId: string | undefined;
+
+        if (typeof extensionIdOrArtifact !== 'string') {
+            extensionId = getArtifactExtensionId(extensionIdOrArtifact);
+        }
+        else {
+            extensionId = extensionIdOrArtifact;
+        }
+
+        // Important to not rethrow errors here, as we don't want to block functionality if an extension fails to activate
+        try {
+            // Additional check to ensure the extension is indeed missing
+            if (!extensionId) {
+                // No associated extension
+                return undefined;
+            }
+
+            const extension = vscode.extensions.getExtension(extensionId);
+            if (!extension) {
+                // Extension not installed
+                return undefined;
+            }
+
+            // If the extension is installed and active
+            if (extension.isActive) {
+                return extension;
+            }
+
+            if (!this.activatingExtensions.has(extensionId)) {
+                const result = extension.activate().then(() => this.activatingExtensions.delete(extensionId), () => this.activatingExtensions.delete(extensionId));
+                this.activatingExtensions.set(extensionId, result);
+            }
+
+            await this.activatingExtensions.get(extensionId);
+
+            // After activation return the extension
+            if (extension.isActive) {
+                return extension;
+            }
+        }
+        catch (error) {
+            this.logger.warn(`Failed to activate extension ${extensionId}: ${(error as Error).message ?? (typeof error === 'string' ? error : 'Unknown error')}`);
+        }
     }
 
     private buildVersionMismatchMessage(satelliteId: string): string {

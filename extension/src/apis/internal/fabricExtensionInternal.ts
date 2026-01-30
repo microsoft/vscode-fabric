@@ -53,6 +53,23 @@ export interface IFabricExtensionManagerInternal extends IFabricExtensionManager
     isAvailable(extensionId: string): boolean;
 
     /**
+     * Determines if the specified extension is active (installed and enabled)
+     * @param extensionId - The identifier of the extension to check
+     */
+    isActive(extensionId: string): boolean;
+
+    /**
+     * Activates the extension for the specified artifact, if it is not already active
+     * @param artifact - The artifact whose associated extension should be activated
+     */
+    activateExtension(artifact: IArtifact): Promise<vscode.Extension<any> | undefined>;
+    /**
+     * Activates the specified extension by its identifier, if it is not already active
+     * @param extensionId - The identifier of the extension to activate
+     */
+    activateExtension(extensionId: string): Promise<vscode.Extension<any> | undefined>;
+
+    /**
      * The service collection {@link IFabricExtensionServiceCollection}s to provide to satellite extensions
      */
     set serviceCollection(value: IFabricExtensionServiceCollection);
