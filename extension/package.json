@@ -35,6 +35,11 @@
     "url": "https://aka.ms/fabric/vscode/issues"
   },
   "contributes": {
+    "chatAgents": [
+      {
+        "path": "./assets/agents/Fabric.agent.md"
+      }
+    ],
     "commands": [
       {
         "command": "vscode-fabric.signIn",
@@ -530,53 +535,59 @@
     },
     "configuration": {
       "title": "Fabric",
-        "properties": {
-            "Fabric.ApiTimeout": {
-                "type": "number",
-                "default": 60000,
-                "description": "%extension.configuration.ApiTimeout.description%"
-            },
-            "Fabric.LocalFolderSaveBehavior": {
-                "type": "string",
-                "enum": [ "prompt", "always", "never" ],
-                "enumDescriptions": [
-                    "%extension.configuration.LocalFolderSaveBehavior.prompt%",
-                    "%extension.configuration.LocalFolderSaveBehavior.always%",
-                    "%extension.configuration.LocalFolderSaveBehavior.never%"
-                ],
-                "default": "prompt",
-                "description": "%extension.configuration.LocalFolderSaveBehavior.description%"
-            },
-            "Fabric.DebugLogging": {
-                "type": "boolean",
-                "default": "false",
-                "description": "%extension.configuration.DebugLogging.description%"
-            },
-            "Fabric.EnvironmentSettings": {
-                "type": "object",
-                "default": {
-                    "current": "PROD",
-                    "environments": []
-                },
-                "description": "%extension.configuration.Environment.description%"
-            },
-            "Fabric.ShowFolders": {
-                "type": "boolean",
-                "default": true,
-                "description": "%extension.configuration.ShowFolders.description%"
-            },
-            "Fabric.McpServer.PromptInstall": {
-                "type": "boolean",
-                "default": true,
-                "description": "%extension.configuration.McpServer.PromptInstall.description%"
-            },
-            "Fabric.EditItemDefinitions": {
-                "type": "boolean",
-                "default": false,
-                "description": "%extension.configuration.EditItemDefinitions.description%",
-                "tags": [ "preview" ]
-            }
+      "properties": {
+        "Fabric.ApiTimeout": {
+          "type": "number",
+          "default": 60000,
+          "description": "%extension.configuration.ApiTimeout.description%"
+        },
+        "Fabric.LocalFolderSaveBehavior": {
+          "type": "string",
+          "enum": [
+            "prompt",
+            "always",
+            "never"
+          ],
+          "enumDescriptions": [
+            "%extension.configuration.LocalFolderSaveBehavior.prompt%",
+            "%extension.configuration.LocalFolderSaveBehavior.always%",
+            "%extension.configuration.LocalFolderSaveBehavior.never%"
+          ],
+          "default": "prompt",
+          "description": "%extension.configuration.LocalFolderSaveBehavior.description%"
+        },
+        "Fabric.DebugLogging": {
+          "type": "boolean",
+          "default": "false",
+          "description": "%extension.configuration.DebugLogging.description%"
+        },
+        "Fabric.EnvironmentSettings": {
+          "type": "object",
+          "default": {
+            "current": "PROD",
+            "environments": []
+          },
+          "description": "%extension.configuration.Environment.description%"
+        },
+        "Fabric.ShowFolders": {
+          "type": "boolean",
+          "default": true,
+          "description": "%extension.configuration.ShowFolders.description%"
+        },
+        "Fabric.McpServer.PromptInstall": {
+          "type": "boolean",
+          "default": true,
+          "description": "%extension.configuration.McpServer.PromptInstall.description%"
+        },
+        "Fabric.EditItemDefinitions": {
+          "type": "boolean",
+          "default": false,
+          "description": "%extension.configuration.EditItemDefinitions.description%",
+          "tags": [
+            "preview"
+          ]
         }
+      }
     },
     "walkthroughs": [
       {
