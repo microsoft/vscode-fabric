@@ -35,7 +35,15 @@
 				"eslint.workingDirectories": [
 					{ "mode": "auto" }
 				],
-				"testExplorer.useNativeTesting": true
+				"testExplorer.useNativeTesting": true,
+				"mcp": {
+					"servers": {
+						"fabric-rti-mcp": {
+							"command": "uvx",
+							"args": ["fabric-rti-mcp"]
+						}
+					}
+				}
 			}
 		}
 	},
@@ -50,8 +58,8 @@
 	// "File > Open Workspace from File..." and pick vscode-fabric.code-workspace
 	// (at repo root).
 
-	// Just install dependencies now; npm already baked into the image.
-	"postCreateCommand": "npm install",
+	// Install dependencies and uv (Python package manager for MCP servers).
+	"postCreateCommand": "npm install && curl -LsSf https://astral.sh/uv/install.sh | sh && sudo ln -sf /home/node/.local/bin/uv /usr/local/bin/uv && sudo ln -sf /home/node/.local/bin/uvx /usr/local/bin/uvx",
 
 	"remoteUser": "node"
 }
