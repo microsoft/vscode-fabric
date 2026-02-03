@@ -15,6 +15,18 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         portalFolder: 'copyjobs',
         supportsArtifactWithDefinition: true,
     },
+    'CosmosDBDatabase': {
+        creationCapability: CreationCapability.supported,
+        creationDescription: vscode.l10n.t('Define, query and update data.'),
+        displayName: vscode.l10n.t('Cosmos DB database'),
+        displayNamePlural: vscode.l10n.t('Cosmos DB databases'),
+        portalFolder: 'cosmosdbdatabases',
+        extensionId: 'ms-azuretools.vscode-cosmosdb',
+        iconInformation: {
+            fileName: 'cosmosdb.svg',
+            isThemed: false,
+        },
+    },
     'Dashboard': {
         creationCapability: CreationCapability.unsupported,
         displayName: vscode.l10n.t('Dashboard'),

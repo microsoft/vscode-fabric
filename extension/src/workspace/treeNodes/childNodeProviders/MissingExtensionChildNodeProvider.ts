@@ -18,16 +18,40 @@ export class MissingExtensionChildNodeProvider implements IArtifactChildNodeProv
     ) {}
 
     canProvideChildren(artifact: IArtifact): boolean {
-        const extensionId = getArtifactExtensionId(artifact);
-        return !!(extensionId && !this.extensionManager.isAvailable(extensionId));
+        // Check if the artifact has an associated extension
+        return !!(getArtifactExtensionId(artifact));
     }
 
     async getChildNodes(artifact: IArtifact): Promise<FabricTreeNode[]> {
+        // Additional check to ensure the extension is indeed missing
         const extensionId = getArtifactExtensionId(artifact);
         if (!extensionId) {
+            // No associated extension
             return [];
         }
 
+        // If the extension is disabled or not installed, provide the InstallExtensionTreeNode
+        if (!this.extensionManager.isAvailable(extensionId)) {
+            return [new InstallExtensionTreeNode(this.context, extensionId)];
+        }
+
+        // If the extension is installed and active, no children to provide
+        // The extension must register its own provider to show additional nodes
+        if (this.extensionManager.isActive(extensionId)) {
+            return [];
+        }
+
+        await this.extensionManager.activateExtension(extensionId);
+
+        // After activation, if the extension is now active, no children to provide
+        if (this.extensionManager.isActive(extensionId)) {
+            // Extension is now active, however, tree view provider may refresh view asynchronously (addExtension method triggers a refresh)
+            // Therefore, it might to lead to a confusing user experience:
+            // The tree item will collapse again after the user tried to expand it to see the new nodes provided by the now-active extension
+            return [];
+        }
+
+        // Still not active, provide the InstallExtensionTreeNode
         return [new InstallExtensionTreeNode(this.context, extensionId)];
     }
 }

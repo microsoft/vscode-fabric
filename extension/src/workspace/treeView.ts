@@ -194,6 +194,15 @@ export class FabricWorkspaceDataProvider implements vscode.TreeDataProvider<Fabr
                     const additionalChildren = await this.childNodeProviders.getChildrenForArtifact(element.artifact);
                     nodes = [...additionalChildren, ...nodes];
                 }
+
+                nodes.forEach(node => {
+                    if (isArtifactTreeNode(node)) {
+                        // Check if artifact requires a separated extension and if it does try to activate it
+                        // If extension doesn't install, the fallback node will show Install Extension node
+                        // Won't wait for the activation to complete, it will happen in the background
+                        void this.extensionManager.activateExtension(node.artifact);
+                    }
+                });
             }
         }))();
         return nodes;
