@@ -126,7 +126,7 @@
   "Define, schedule, and manage your Apache Spark jobs for big data processing.": "Zdefiniuj zadania platformy Apache Spark na potrzeby przetwarzania danych big data, planuj je i zarządzaj nimi.",
   "Spark Job Definition": "Definicja zadania platformy Apache Spark",
   "Spark Job Definitions": "Definicje zadań platformy Spark",
-  "Author, host, and manage serverless user data functions optimized for Fabric.": "Twórz i hostuj bezserwerowe funkcje danych użytkowników zoptymalizowane pod kątem sieci szkieletowej oraz zarządzaj nimi.",
+  "Author, host, and manage serverless user data functions optimized for Fabric.": "Twórz i hostuj bezserwerowe funkcje danych użytkownika zoptymalizowane pod kątem usługi Fabric oraz zarządzaj nimi.",
   "User data functions": "Funkcje danych użytkownika",
   "Create item variables that can be referenced across this workspace.": "Utwórz zmienne elementów, do których można odwoływać się w tym obszarze roboczym.",
   "Variable library": "Biblioteka zmiennych",
