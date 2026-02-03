@@ -82,6 +82,15 @@ class MockWorkspaceManagerStub implements IWorkspaceManager {
     getFoldersInWorkspace(workspaceId: string): Promise<IWorkspaceFolder[]> {
         throw new Error('Method not implemented.');
     }
+    createFolder(workspaceId: string, folderName: string, parentFolderId?: string): Promise<IApiClientResponse> {
+        throw new Error('Method not implemented.');
+    }
+    deleteFolder(workspaceId: string, folderId: string): Promise<IApiClientResponse> {
+        throw new Error('Method not implemented.');
+    }
+    renameFolder(workspaceId: string, folderId: string, newDisplayName: string): Promise<IApiClientResponse> {
+        throw new Error('Method not implemented.');
+    }
 
     get onDidChangePropertyValue(): vscode.Event<string> {
         throw new Error('Method not implemented.');

@@ -157,6 +157,17 @@ export class ArtifactManager implements IArtifactManagerInternal {
     }
 
     public async createArtifact(artifact: IArtifact, itemSpecificMetadata: any | undefined): Promise<IApiClientResponse> {
+        const requestBody: Record<string, any> = {
+            displayName: artifact.displayName,
+            description: artifact.description,
+            type: artifact.type,
+        };
+
+        // Include folderId if artifact should be created in a folder
+        if (artifact.folderId) {
+            requestBody.folderId = artifact.folderId;
+        }
+
         const request: IApiClientRequestOptions =
         {
             method: 'POST',
@@ -165,11 +176,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'Content-Type': 'application/json',
             },
-            body: {
-                displayName: artifact.displayName,
-                description: artifact.description,
-                type: artifact.type,
-            },
+            body: requestBody,
         };
 
         // Get the custom Artifact Handler to delegate any custom CRUD operations

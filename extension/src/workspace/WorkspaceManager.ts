@@ -435,6 +435,65 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
         return this.apiClient.sendRequest(req);
     }
 
+    public async createFolder(workspaceId: string, folderName: string, parentFolderId?: string): Promise<IApiClientResponse> {
+        if (!(await this.isConnected())) {
+            throw new FabricError(vscode.l10n.t('Currently not connected to Fabric'), 'Currently not connected to Fabric');
+        }
+
+        const body: { displayName: string; parentFolderId?: string } = {
+            displayName: folderName,
+        };
+
+        if (parentFolderId) {
+            body.parentFolderId = parentFolderId;
+        }
+
+        const req: IApiClientRequestOptions = {
+            pathTemplate: `/v1/workspaces/${workspaceId}/folders`,
+            method: 'POST',
+            body,
+            headers: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'application/json',
+            },
+        };
+
+        return this.apiClient.sendRequest(req);
+    }
+
+    public async deleteFolder(workspaceId: string, folderId: string): Promise<IApiClientResponse> {
+        if (!(await this.isConnected())) {
+            throw new FabricError(vscode.l10n.t('Currently not connected to Fabric'), 'Currently not connected to Fabric');
+        }
+
+        const req: IApiClientRequestOptions = {
+            pathTemplate: `/v1/workspaces/${workspaceId}/folders/${folderId}`,
+            method: 'DELETE',
+        };
+
+        return this.apiClient.sendRequest(req);
+    }
+
+    public async renameFolder(workspaceId: string, folderId: string, newDisplayName: string): Promise<IApiClientResponse> {
+        if (!(await this.isConnected())) {
+            throw new FabricError(vscode.l10n.t('Currently not connected to Fabric'), 'Currently not connected to Fabric');
+        }
+
+        const req: IApiClientRequestOptions = {
+            pathTemplate: `/v1/workspaces/${workspaceId}/folders/${folderId}`,
+            method: 'PATCH',
+            body: {
+                displayName: newDisplayName,
+            },
+            headers: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'application/json',
+            },
+        };
+
+        return this.apiClient.sendRequest(req);
+    }
+
     abstract listWorkspaces(): Promise<IWorkspace[]>;
     abstract logToOutPutChannel(message: string): void;
 }
