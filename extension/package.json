@@ -29,6 +29,7 @@
     "onFileSystem:fabric-definition-virtual"
   ],
   "main": "./dist/extension.js",
+  "browser": "./dist/web/extension.js",
   "l10n": "./l10n",
   "license": "SEE LICENSE IN LICENSE.md",
   "bugs": {
@@ -73,43 +74,50 @@
         "command": "vscode-fabric.openArtifact",
         "title": "%extension.openArtifact.title%",
         "category": "Fabric",
-        "icon": "$(open-preview)"
+        "icon": "$(open-preview)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.openLocalFolder",
         "title": "%extension.openLocalFolder.title%",
         "category": "Fabric",
-        "icon": "$(folder-opened)"
+        "icon": "$(folder-opened)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.changeLocalFolder",
         "title": "%extension.changeLocalFolder.title%",
         "category": "Fabric",
-        "icon": "$(folder-opened)"
+        "icon": "$(folder-opened)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.exportArtifact",
         "title": "%extension.exportArtifact.title%",
         "category": "Fabric",
-        "icon": "$(cloud-download)"
+        "icon": "$(cloud-download)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.importArtifact",
         "title": "%extension.importArtifact.title%",
         "category": "Fabric",
-        "icon": "$(cloud-upload)"
+        "icon": "$(cloud-upload)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.importArtifact.inline",
         "title": "%extension.importArtifact.inline.title%",
         "category": "Fabric",
-        "icon": "$(cloud-upload)"
+        "icon": "$(cloud-upload)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.importArtifact.promptWorkspace",
         "title": "%extension.importArtifact.promptWorkspace.title%",
         "category": "Fabric",
-        "icon": "$(cloud-upload)"
+        "icon": "$(cloud-upload)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.openInPortal",
@@ -126,7 +134,8 @@
         "command": "vscode-fabric.refreshLocalFolderView",
         "title": "%extension.refreshLocalFolderView.title%",
         "category": "Fabric",
-        "icon": "$(refresh)"
+        "icon": "$(refresh)",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.deleteArtifact",
@@ -164,12 +173,14 @@
       {
         "command": "vscode-fabric.openNotebook",
         "title": "%extension.openNotebook.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.openSqlExtension",
         "title": "%extension.openSqlExtension.title%",
-        "category": "Fabric"
+        "category": "Fabric",
+        "enablement": "!isWeb"
       },
       {
         "command": "vscode-fabric.copyConnectionString",
@@ -211,7 +222,8 @@
         {
           "id": "vscode-fabric.view.local",
           "name": "%extension.views.Local.title%",
-          "initialSize": 3
+          "initialSize": 3,
+          "when": "!isWeb"
         },
         {
           "id": "vscode-fabric.view.feedback",
@@ -623,7 +635,11 @@
   },
   "scripts": {
     "build": "webpack",
+    "build:node": "webpack --config-name node",
+    "build:web": "webpack --config-name web",
     "watch": "webpack --watch",
+    "watch:node": "webpack --watch --config-name node",
+    "watch:web": "webpack --watch --config-name web",
     "test:compile": "tsc -p tsconfig.test.json",
     "test:watch": "tsc -p tsconfig.test.json -w",
     "pretest:unit": "npm run test:compile",
@@ -649,8 +665,7 @@
     "@microsoft/vscode-fabric-util": "^0.37.0-preview",
     "@types/fs-extra": "^11.0.1",
     "@vscode/extension-telemetry": "^0.8.3",
-    "fs-extra": "^11.1.1",
-    "jszip": "^3.10.1"
+    "fs-extra": "^11.1.1"
   },
   "devDependencies": {}
 }

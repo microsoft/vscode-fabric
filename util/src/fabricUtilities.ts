@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { TaskHelperWithTimeout } from './TaskHelperWithTimeout';
 import { TelemetryService } from './telemetry/TelemetryService';
 import { ILogger } from './logger/Logger';
@@ -81,11 +80,16 @@ export async function tryParseLocalProjectData(
     }
 
     try {
-        const parsedPath = path.parse(uri.path);
-        if (parsedPath.name && parsedPath.ext && parsedPath.ext.length > 1) {
-            // Remove leading dot from ext
-            const type = parsedPath.ext.substring(1);
-            const displayName = parsedPath.name;
+        // Parse the URI path manually to avoid Node.js 'path' module dependency
+        // URI paths use forward slashes regardless of platform
+        const uriPath = uri.path;
+        const lastSlashIndex = uriPath.lastIndexOf('/');
+        const lastSegment = lastSlashIndex >= 0 ? uriPath.substring(lastSlashIndex + 1) : uriPath;
+        const lastDotIndex = lastSegment.lastIndexOf('.');
+
+        if (lastDotIndex > 0) {
+            const displayName = lastSegment.substring(0, lastDotIndex);
+            const type = lastSegment.substring(lastDotIndex + 1);
             if (displayName && type) {
                 return { displayName, type };
             }

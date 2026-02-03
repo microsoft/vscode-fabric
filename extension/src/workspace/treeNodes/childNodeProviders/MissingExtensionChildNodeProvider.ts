@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import { FabricTreeNode, IArtifact } from '@microsoft/vscode-fabric-api';
 import { IArtifactChildNodeProvider } from './IArtifactChildNodeProvider';
 import { InstallExtensionTreeNode } from '../InstallExtensionTreeNode';
-import { getArtifactExtensionId } from '../../../metadata/fabricItemUtilities';
+import { getArtifactExtensionId, isArtifactExtensionWebEnabled } from '../../../metadata/fabricItemUtilities';
 import { IFabricExtensionManagerInternal } from '../../../apis/internal/fabricExtensionInternal';
 
 /**
@@ -19,7 +19,16 @@ export class MissingExtensionChildNodeProvider implements IArtifactChildNodeProv
 
     canProvideChildren(artifact: IArtifact): boolean {
         const extensionId = getArtifactExtensionId(artifact);
-        return !!(extensionId && !this.extensionManager.isAvailable(extensionId));
+        if (!extensionId) {
+            return false;
+        }
+
+        // In web environments, only show install prompt if extension is web-enabled
+        if (__IS_WEB__ && !isArtifactExtensionWebEnabled(artifact)) {
+            return false;
+        }
+
+        return !this.extensionManager.isAvailable(extensionId);
     }
 
     async getChildNodes(artifact: IArtifact): Promise<FabricTreeNode[]> {

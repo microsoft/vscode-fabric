@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import { IArtifact, IWorkspace, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IWorkspaceManager, FabricTreeNode, ISourceControlInformation, IWorkspaceFolder } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from './treeView';
-import { LocalFolderManager } from '../LocalFolderManager';
+import { ILocalFolderManager } from '../ILocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
 import { showLocalFolderQuickPick } from '../ui/showLocalFolderQuickPick';
 import { isDirectory } from '../utilities';
@@ -67,7 +67,7 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
 
     constructor(
         protected extensionSettingsStorage: IFabricExtensionsSettingStorage,
-        protected localFolderManager: LocalFolderManager,
+        protected localFolderManager: ILocalFolderManager,
         protected account: IAccountProvider,
         protected fabricEnvironmentProvider: IFabricEnvironmentProvider,
         protected apiClient: IFabricApiClient,
@@ -446,7 +446,7 @@ export class WorkspaceManager extends WorkspaceManagerBase {
     constructor(account: IAccountProvider,
         fabricEnvironmentProvider: IFabricEnvironmentProvider,
         extensionSettingsStorage: IFabricExtensionsSettingStorage,
-        localFolderManager: LocalFolderManager,
+        localFolderManager: ILocalFolderManager,
         apiClient: IFabricApiClient,
         logger: ILogger,
         telemetryService: TelemetryService | null,
