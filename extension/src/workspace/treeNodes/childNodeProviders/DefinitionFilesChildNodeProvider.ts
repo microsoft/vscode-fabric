@@ -49,7 +49,7 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
             }
         }
         catch (error) {
-            this.logger.error(`Error getting definition files for artifact ${artifact.id}: ${error}`);
+            this.logger.error(`Error getting definition files for item ${artifact.id}: ${error}`);
             // If there's any error getting the definition, return empty array
         }
 
