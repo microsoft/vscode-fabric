@@ -426,15 +426,14 @@ export class FabricVsCodeExtension {
 
             // Manually dispose and clear subscriptions
             // This is redundant because VS Code will do it automatically
-            // but allows for manual programatic cleanup (i.e., for testing)
+            // but allows for manual programmatic cleanup (i.e., for testing)
             if (context?.subscriptions) {
                 // Copy array first to avoid issues with disposal potentially modifying the array
                 [...context.subscriptions].forEach(sub => sub.dispose());
 
                 // Clear the array to prevent double disposal by VS Code.
                 // Not entirely necessary, but good insurance against improperly
-                // implemented disposableslemented disposables that are potentially
-                // not idempotent.
+                // implemented disposables that are potentially not idempotent.
                 context.subscriptions.length = 0;
             }
         }

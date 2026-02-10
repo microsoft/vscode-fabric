@@ -47,10 +47,10 @@
 		{
 			"label": "Stop Web Test Server",
 			"type": "shell",
-			"command": "powershell",
+			"command": "npx",
 			"args": [
-				"-Command",
-				"Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
+				"kill-port",
+				"3000"
 			],
 			"presentation": {
 				"reveal": "silent"
