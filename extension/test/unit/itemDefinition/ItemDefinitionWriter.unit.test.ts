@@ -47,12 +47,12 @@ describe('ItemDefinitionWriter', () => {
 
         fileSystemMock.verify(fs => fs.writeFile(
             It.Is<vscode.Uri>(uri => uri.fsPath.endsWith('root.txt')),
-            It.Is<Uint8Array>(buf => buf.toString() === 'root content')
+            It.Is<Uint8Array>(buf => new TextDecoder().decode(buf) === 'root content')
         ), Times.Once());
         const expectedSubdirPath = path.join(destination.fsPath, 'subdir', 'file.txt');
         fileSystemMock.verify(fs => fs.writeFile(
             It.Is<vscode.Uri>(uri => uri.fsPath.endsWith(expectedSubdirPath)),
-            It.Is<Uint8Array>(buf => buf.toString() === 'subdir content')
+            It.Is<Uint8Array>(buf => new TextDecoder().decode(buf) === 'subdir content')
         ), Times.Once());
     });
 
@@ -100,7 +100,8 @@ describe('ItemDefinitionWriter', () => {
         await writer.save(itemDefinition, destination);
 
         assert.ok(writtenBuffer, 'Buffer should be written');
-        assert.strictEqual(writtenBuffer!.toString(), content, 'Decoded content should match original');
+        const decodedContent = new TextDecoder().decode(writtenBuffer!);
+        assert.strictEqual(decodedContent, content, 'Decoded content should match original');
     });
 
     it('should not write files for unsupported payloadType', async () => {
