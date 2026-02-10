@@ -12,6 +12,7 @@ import {
     FabricTreeNode,
     IArtifactManager,
     IFabricApiClient,
+    IFabricExtensionManager,
     IFabricExtensionServiceCollection,
     IWorkspaceManager,
 } from '@microsoft/vscode-fabric-api';
@@ -87,7 +88,7 @@ let app: FabricVsCodeWebExtension;
  * Activates the web version of the Fabric extension.
  * This is a simplified entry point for browser-based VS Code environments.
  */
-export async function activate(context: vscode.ExtensionContext): Promise<void> {
+export async function activate(context: vscode.ExtensionContext): Promise<IFabricExtensionManager> {
     const container = await composeContainer(context);
     app = new FabricVsCodeWebExtension(container);
     return await app.activate();
@@ -103,7 +104,7 @@ export async function deactivate() {
 export class FabricVsCodeWebExtension {
     constructor(private readonly container: DIContainer) { }
 
-    async activate(): Promise<void> {
+    async activate(): Promise<IFabricExtensionManager> {
         const logger = this.container.get<ILogger>();
         const telemetryService = this.container.get<TelemetryService>();
         const eventName: string = 'extension/start';
@@ -118,7 +119,6 @@ export class FabricVsCodeWebExtension {
             await this.registerCommands();
             this.setupEventHandlers(treeView);
             this.setupTelemetry();
-            this.initializeExtensionManager();
 
             activateActivity.end();
             activateActivity.sendTelemetry();
@@ -127,6 +127,11 @@ export class FabricVsCodeWebExtension {
             // Start async refresh (non-blocking)
             const workspaceManager = this.container.get<IWorkspaceManager>() as WorkspaceManagerBase;
             void workspaceManager.refreshConnectionToFabric();
+
+            // Initialize extension manager for public API and satellites
+            const extensionManager = this.initializeExtensionManager();
+
+            return extensionManager;
         }
         catch (ex) {
             logger.reportExceptionTelemetryAndLog('activate', eventName, ex, telemetryService);
@@ -264,7 +269,7 @@ export class FabricVsCodeWebExtension {
     /**
      * Initializes the extension manager with service collection and activates internal satellites.
      */
-    private initializeExtensionManager(): void {
+    private initializeExtensionManager(): IFabricExtensionManagerInternal {
         const context = this.container.get<ExtensionContext>();
         const extensionManager = this.container.get<IFabricExtensionManagerInternal>();
         const coreServiceCollection = this.container.get<IFabricExtensionServiceCollection>();
@@ -276,6 +281,8 @@ export class FabricVsCodeWebExtension {
         const internalSatelliteManager = this.container.get<InternalSatelliteManager>();
         internalSatelliteManager.activateAll();
         context.subscriptions.push(internalSatelliteManager);
+
+        return extensionManager;
     }
 
     /**
@@ -320,15 +327,14 @@ export class FabricVsCodeWebExtension {
 
             // Manually dispose and clear subscriptions
             // This is redundant because VS Code will do it automatically
-            // but allows for manual programatic cleanup (i.e., for testing)
+            // but allows for manual programmatic cleanup (i.e., for testing)
             if (context?.subscriptions) {
                 // Copy array first to avoid issues with disposal potentially modifying the array
                 [...context.subscriptions].forEach(sub => sub.dispose());
 
                 // Clear the array to prevent double disposal by VS Code.
                 // Not entirely necessary, but good insurance against improperly
-                // implemented disposableslemented disposables that are potentially
-                // not idempotent.
+                // implemented disposables that are potentially not idempotent.
                 context.subscriptions.length = 0;
             }
         }
