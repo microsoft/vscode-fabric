@@ -25,6 +25,11 @@ export class NotebookArtifactHandler implements IArtifactHandler {
          * Customizes the get definition request to ensure notebooks are retrieved in the appropriate format
          */
         async onBeforeGetDefinition(_artifact: IArtifact, folder?: vscode.Uri, options?: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
+            // Options is always provided by core, but signature is optional for backward compatibility
+            if (!options) {
+                throw new Error('options parameter is required');
+            }
+
             // Detect existing format (if any) on disk within the target folder.
             // Behavior:
             //  - If folder is undefined (remote view) -> request ipynb format
@@ -52,7 +57,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
 
             // Only skip adding format parameter if we explicitly detected .py files on disk
             // In all other cases (undefined folder, ipynb, or unknown), request ipynb format
-            if (detectedFormat !== 'py' && options) {
+            if (detectedFormat !== 'py') {
                 const ptOriginal: string = options.pathTemplate ?? options.url ?? '';
                 const hasFormatParam: boolean = /([?&])format=/.test(ptOriginal);
                 if (!hasFormatParam) {
@@ -64,7 +69,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
                     }
                 }
             }
-            return options!;
+            return options;
         },
     };
 
@@ -73,6 +78,11 @@ export class NotebookArtifactHandler implements IArtifactHandler {
          * Validates notebook definition format and ensures consistency before updating
          */
         async onBeforeUpdateDefinition(_artifact: IArtifact, definition: IItemDefinition, _folder?: vscode.Uri, options?: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
+            // Options is always provided by core, but signature is optional for backward compatibility
+            if (!options) {
+                throw new Error('options parameter is required');
+            }
+
             const format = NotebookArtifactHandler.detectNotebookFormatFromDefinition(definition);
             if (format === 'mixed') {
                 throw new FabricError(
@@ -81,7 +91,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
                 );
             }
 
-            if (format === 'ipynb' && options) {
+            if (format === 'ipynb') {
                 definition.format = 'ipynb';
                 if (options.body && typeof options.body === 'object' && 'definition' in options.body) {
                     // Ensure the body carries the updated definition reference
@@ -89,7 +99,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
                 }
             }
 
-            return options!;
+            return options;
         },
     };
 
