@@ -44,23 +44,30 @@ export class ItemDefinitionReader implements IItemDefinitionReader {
         }
 
         const fileReadPromises = filePaths.map(async (relativePath) => {
-            // Normalize all paths to use '/' as separator
-            relativePath = relativePath.replace(/\\/g, '/');
-            const segments = relativePath.split('/');
+            try {
+                // Normalize all paths to use '/' as separator
+                relativePath = relativePath.replace(/\\/g, '/');
+                const segments = relativePath.split('/');
 
-            // Avoid directory traversal: ensure none of the segments are '..'
-            if (segments.some(segment => segment === '..')) {
-                throw new Error(`Invalid file path: directory traversal is not allowed (${relativePath})`);
+                // Avoid directory traversal: ensure none of the segments are '..'
+                if (segments.some(segment => segment === '..')) {
+                    throw new Error(`Invalid file path: directory traversal is not allowed (${relativePath})`);
+                }
+                const file = vscode.Uri.joinPath(rootFolder, ...segments);
+                const content = await this.fileSystem.readFile(file);
+                const base64Content = this.base64Encoder.encode(content);
+
+                return {
+                    path: relativePath,
+                    payload: base64Content,
+                    payloadType: PayloadType.InlineBase64,
+                };
             }
-            const file = vscode.Uri.joinPath(rootFolder, ...segments);
-            const content = await this.fileSystem.readFile(file);
-            const base64Content = this.base64Encoder.encode(content);
-
-            return {
-                path: relativePath,
-                payload: base64Content,
-                payloadType: PayloadType.InlineBase64,
-            };
+            catch (error: any) {
+                // Provide better error message that includes the specific file being processed
+                const errorMessage = error.message ?? 'Unknown error';
+                throw new Error(`Error processing file '${relativePath}': ${errorMessage}`);
+            }
         });
 
         itemDefinition.parts = await Promise.all(fileReadPromises);
