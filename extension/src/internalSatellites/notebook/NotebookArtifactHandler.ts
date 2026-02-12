@@ -52,10 +52,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
 
             // Only skip adding format parameter if we explicitly detected .py files on disk
             // In all other cases (undefined folder, ipynb, or unknown), request ipynb format
-            if (detectedFormat !== 'py') {
-                if (!options) {
-                    options = {};
-                }
+            if (detectedFormat !== 'py' && options) {
                 const ptOriginal: string = options.pathTemplate ?? options.url ?? '';
                 const hasFormatParam: boolean = /([?&])format=/.test(ptOriginal);
                 if (!hasFormatParam) {
@@ -67,7 +64,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
                     }
                 }
             }
-            return options ?? {};
+            return options!;
         },
     };
 
@@ -84,15 +81,15 @@ export class NotebookArtifactHandler implements IArtifactHandler {
                 );
             }
 
-            if (format === 'ipynb') {
+            if (format === 'ipynb' && options) {
                 definition.format = 'ipynb';
-                if (options?.body && typeof options.body === 'object' && 'definition' in options.body) {
+                if (options.body && typeof options.body === 'object' && 'definition' in options.body) {
                     // Ensure the body carries the updated definition reference
                     (options.body as any).definition = definition;
                 }
             }
 
-            return options ?? {};
+            return options!;
         },
     };
 
