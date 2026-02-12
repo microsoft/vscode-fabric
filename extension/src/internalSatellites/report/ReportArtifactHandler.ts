@@ -83,7 +83,7 @@ export class ReportArtifactHandler implements IArtifactHandler {
             options?: IApiClientRequestOptions
         ): Promise<IApiClientRequestOptions> => {
             await this.ensureSemanticModelBinding(artifact, definition, 'updateDefinitionWorkflow');
-            return options || {};
+            return options || {} as IApiClientRequestOptions;
         },
     };
 
@@ -95,7 +95,7 @@ export class ReportArtifactHandler implements IArtifactHandler {
             options?: IApiClientRequestOptions
         ): Promise<IApiClientRequestOptions> => {
             await this.ensureSemanticModelBinding(artifact, definition, 'createWithDefinitionWorkflow');
-            return options || {};
+            return options || {} as IApiClientRequestOptions;
         },
         // No onAfter hook currently required; creation long-running follow-up is handled by ArtifactManager
     };

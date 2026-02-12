@@ -67,7 +67,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
                     }
                 }
             }
-            return options || {};
+            return options || {} as IApiClientRequestOptions;
         },
     };
 
@@ -75,7 +75,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
         /**
          * Validates notebook definition format and ensures consistency before updating
          */
-        async onBeforeUpdateDefinition(_artifact: any, definition: IItemDefinition, folder?: vscode.Uri, options?: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
+        async onBeforeUpdateDefinition(_artifact: any, definition: IItemDefinition, _folder?: vscode.Uri, options?: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
             const format = NotebookArtifactHandler.detectNotebookFormatFromDefinition(definition);
             if (format === 'mixed') {
                 throw new FabricError(
@@ -92,7 +92,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
                 }
             }
 
-            return options || {};
+            return options || {} as IApiClientRequestOptions;
         },
     };
 
