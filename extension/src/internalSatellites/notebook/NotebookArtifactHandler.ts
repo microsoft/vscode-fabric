@@ -29,16 +29,16 @@ export class NotebookArtifactHandler implements IArtifactHandler {
             // Behavior:
             //  - Always request ipynb format (notebooks should always use .ipynb)
             //  - If both .py and .ipynb detected -> throw error (mixed formats not supported)
-            let format: NotebookFormat;
+            let detectedFormat: NotebookFormat;
             try {
-                format = await NotebookArtifactHandler.detectNotebookFormat(folder);
+                detectedFormat = await NotebookArtifactHandler.detectNotebookFormat(folder);
             }
             catch (err) {
                 // If detection fails we fallback to requesting ipynb (default behavior)
-                format = 'ipynb';
+                detectedFormat = 'ipynb';
             }
 
-            if (format === 'mixed') {
+            if (detectedFormat === 'mixed') {
                 throw new FabricError(
                     vscode.l10n.t('Invalid Notebook definition contains both .py and .ipynb files.'),
                     'invalid-notebook-definition-mixed-formats'
