@@ -22,20 +22,25 @@ export class NotebookArtifactHandler implements IArtifactHandler {
 
     public getDefinitionWorkflow = {
         /**
-         * Customizes the get definition request to ensure notebooks are retrieved in .ipynb format
+         * Customizes the get definition request to ensure notebooks are retrieved in the appropriate format
          */
-        async onBeforeGetDefinition(_artifact: any, folder: vscode.Uri, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
+        async onBeforeGetDefinition(_artifact: any, folder: vscode.Uri | undefined, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
             // Detect existing format (if any) on disk within the target folder.
             // Behavior:
-            //  - Always request ipynb format (notebooks should always use .ipynb)
+            //  - If folder is undefined (remote view) -> request ipynb format
+            //  - If folder exists with only .py files -> allow py format (omit format parameter)
+            //  - If folder exists with .ipynb or unknown -> request ipynb format
             //  - If both .py and .ipynb detected -> throw error (mixed formats not supported)
-            let detectedFormat: NotebookFormat;
-            try {
-                detectedFormat = await NotebookArtifactHandler.detectNotebookFormat(folder);
-            }
-            catch (err) {
-                // If detection fails we fallback to requesting ipynb (default behavior)
-                detectedFormat = 'ipynb';
+            let detectedFormat: NotebookFormat = 'unknown';
+            
+            if (folder) {
+                try {
+                    detectedFormat = await NotebookArtifactHandler.detectNotebookFormat(folder);
+                }
+                catch (err) {
+                    // If detection fails we fallback to unknown, which will result in ipynb
+                    detectedFormat = 'unknown';
+                }
             }
 
             if (detectedFormat === 'mixed') {
@@ -45,15 +50,18 @@ export class NotebookArtifactHandler implements IArtifactHandler {
                 );
             }
 
-            // Always request ipynb format for notebooks
-            const ptOriginal: string = options.pathTemplate ?? options.url ?? '';
-            const hasFormatParam: boolean = /([?&])format=/.test(ptOriginal);
-            if (!hasFormatParam) {
-                if (ptOriginal.includes('?')) {
-                    options.pathTemplate = `${ptOriginal}&format=ipynb`;
-                }
-                else {
-                    options.pathTemplate = `${ptOriginal}?format=ipynb`;
+            // Only skip adding format parameter if we explicitly detected .py files on disk
+            // In all other cases (undefined folder, ipynb, or unknown), request ipynb format
+            if (detectedFormat !== 'py') {
+                const ptOriginal: string = options.pathTemplate ?? options.url ?? '';
+                const hasFormatParam: boolean = /([?&])format=/.test(ptOriginal);
+                if (!hasFormatParam) {
+                    if (ptOriginal.includes('?')) {
+                        options.pathTemplate = `${ptOriginal}&format=ipynb`;
+                    }
+                    else {
+                        options.pathTemplate = `${ptOriginal}?format=ipynb`;
+                    }
                 }
             }
             return options;

@@ -336,14 +336,14 @@ export class ArtifactManager implements IArtifactManagerInternal {
         };
 
         const artifactHandler = this.getArtifactHandler(artifact);
-        if (artifactHandler?.getDefinitionWorkflow?.onBeforeGetDefinition && folder) {
+        if (artifactHandler?.getDefinitionWorkflow?.onBeforeGetDefinition) {
             apiRequestOptions = await artifactHandler.getDefinitionWorkflow.onBeforeGetDefinition(artifact, folder, apiRequestOptions);
         }
 
         const response = await this.apiClient.sendRequest(apiRequestOptions);
         const finalResponse = await handleLongRunningOperation(this.apiClient, response, this.logger, options?.progress);
 
-        if (artifactHandler?.getDefinitionWorkflow?.onAfterGetDefinition && folder) {
+        if (artifactHandler?.getDefinitionWorkflow?.onAfterGetDefinition) {
             await artifactHandler.getDefinitionWorkflow.onAfterGetDefinition(artifact, folder, finalResponse);
         }
         return finalResponse;

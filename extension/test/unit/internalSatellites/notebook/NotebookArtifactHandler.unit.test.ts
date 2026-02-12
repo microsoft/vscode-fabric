@@ -90,7 +90,7 @@ describe('NotebookArtifactHandler', function () {
         assert.equal(updated.pathTemplate, '/api/notebooks/123?foo=bar&format=ipynb', 'Should remain unchanged');
     });
 
-    it('getDefinition should add format=ipynb even when only .py file exists', async function () {
+    it('getDefinition should NOT add format when only .py file exists', async function () {
         // Arrange
         folder = await createScenario(['notebook1.py']);
         const options = createOptions('/api/notebooks/123');
@@ -99,7 +99,18 @@ describe('NotebookArtifactHandler', function () {
         const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({}, folder, options);
 
         // Assert
-        assert.equal(updated.pathTemplate, '/api/notebooks/123?format=ipynb', 'Should add format=ipynb for all notebooks, including .py');
+        assert.equal(updated.pathTemplate, '/api/notebooks/123', 'Should not modify pathTemplate for .py notebooks');
+    });
+
+    it('getDefinition should add format=ipynb when folder is undefined (remote view scenario)', async function () {
+        // Arrange
+        const options = createOptions('/api/notebooks/123');
+
+        // Act
+        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({}, undefined, options);
+
+        // Assert
+        assert.equal(updated.pathTemplate, '/api/notebooks/123?format=ipynb', 'Should add format=ipynb when folder is undefined');
     });
 
     it('getDefinition should throw FabricError when mixed .py and .ipynb files detected', async function () {

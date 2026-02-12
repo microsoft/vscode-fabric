@@ -177,19 +177,19 @@ export interface IGetArtifactDefinitionWorkflow {
     /**
      * Allows customization of the API request before it is sent to get the artifact definition
      * @param artifact The artifact whose definition is being retrieved
-     * @param folder The local folder where the definition will be stored
+     * @param folder The local folder where the definition will be stored (optional - undefined for remote view scenarios)
      * @param options The request options that can be modified
      * @returns Modified request options
      */
-    onBeforeGetDefinition?(artifact: IArtifact, folder: vscode.Uri, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions>;
+    onBeforeGetDefinition?(artifact: IArtifact, folder: vscode.Uri | undefined, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions>;
 
     /**
      * Allows post-processing after the definition has been retrieved
      * @param artifact The artifact whose definition was retrieved
-     * @param folder The local folder where the definition was stored
+     * @param folder The local folder where the definition was stored (optional - undefined for remote view scenarios)
      * @param response The response from the API containing the definition
      */
-    onAfterGetDefinition?(artifact: IArtifact, folder: vscode.Uri, response: IApiClientResponse): Promise<void>;
+    onAfterGetDefinition?(artifact: IArtifact, folder: vscode.Uri | undefined, response: IApiClientResponse): Promise<void>;
 }
 
 /**
