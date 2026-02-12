@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { IArtifactHandler, IItemDefinition, IApiClientRequestOptions } from '@microsoft/vscode-fabric-api';
+import { IArtifact, IArtifactHandler, IItemDefinition, IApiClientRequestOptions } from '@microsoft/vscode-fabric-api';
 import { FabricError } from '@microsoft/vscode-fabric-util';
 
 /**
@@ -24,7 +24,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
         /**
          * Customizes the get definition request to ensure notebooks are retrieved in the appropriate format
          */
-        async onBeforeGetDefinition(_artifact: any, folder: vscode.Uri | undefined, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
+        async onBeforeGetDefinition(_artifact: IArtifact, folder: vscode.Uri | undefined, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
             // Detect existing format (if any) on disk within the target folder.
             // Behavior:
             //  - If folder is undefined (remote view) -> request ipynb format
@@ -72,7 +72,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
         /**
          * Validates notebook definition format and ensures consistency before updating
          */
-        async onBeforeUpdateDefinition(_artifact: any, definition: IItemDefinition, _folder: vscode.Uri | undefined, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
+        async onBeforeUpdateDefinition(_artifact: IArtifact, definition: IItemDefinition, _folder: vscode.Uri | undefined, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
             const format = NotebookArtifactHandler.detectNotebookFormatFromDefinition(definition);
             if (format === 'mixed') {
                 throw new FabricError(
