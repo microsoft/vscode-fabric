@@ -67,7 +67,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
                     }
                 }
             }
-            return options || {} as IApiClientRequestOptions;
+            return options ?? {} as IApiClientRequestOptions;
         },
     };
 
@@ -92,7 +92,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
                 }
             }
 
-            return options || {} as IApiClientRequestOptions;
+            return options ?? {} as IApiClientRequestOptions;
         },
     };
 
