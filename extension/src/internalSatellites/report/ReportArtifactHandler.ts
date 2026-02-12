@@ -79,11 +79,11 @@ export class ReportArtifactHandler implements IArtifactHandler {
         onBeforeUpdateDefinition: async (
             artifact: IArtifact,
             definition: IItemDefinition,
-            _folder?: vscode.Uri,
-            options?: IApiClientRequestOptions
+            _folder: vscode.Uri | undefined,
+            options: IApiClientRequestOptions
         ): Promise<IApiClientRequestOptions> => {
             await this.ensureSemanticModelBinding(artifact, definition, 'updateDefinitionWorkflow');
-            return options ?? {} as IApiClientRequestOptions;
+            return options;
         },
     };
 
@@ -91,11 +91,11 @@ export class ReportArtifactHandler implements IArtifactHandler {
         onBeforeCreateWithDefinition: async (
             artifact: IArtifact,
             definition: IItemDefinition,
-            _folder?: vscode.Uri,
-            options?: IApiClientRequestOptions
+            _folder: vscode.Uri | undefined,
+            options: IApiClientRequestOptions
         ): Promise<IApiClientRequestOptions> => {
             await this.ensureSemanticModelBinding(artifact, definition, 'createWithDefinitionWorkflow');
-            return options ?? {} as IApiClientRequestOptions;
+            return options;
         },
         // No onAfter hook currently required; creation long-running follow-up is handled by ArtifactManager
     };

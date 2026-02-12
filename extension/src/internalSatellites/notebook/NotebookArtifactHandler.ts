@@ -24,7 +24,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
         /**
          * Customizes the get definition request to ensure notebooks are retrieved in the appropriate format
          */
-        async onBeforeGetDefinition(_artifact: any, folder?: vscode.Uri, options?: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
+        async onBeforeGetDefinition(_artifact: any, folder: vscode.Uri | undefined, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
             // Detect existing format (if any) on disk within the target folder.
             // Behavior:
             //  - If folder is undefined (remote view) -> request ipynb format
@@ -53,9 +53,6 @@ export class NotebookArtifactHandler implements IArtifactHandler {
             // Only skip adding format parameter if we explicitly detected .py files on disk
             // In all other cases (undefined folder, ipynb, or unknown), request ipynb format
             if (detectedFormat !== 'py') {
-                if (!options) {
-                    options = {};
-                }
                 const ptOriginal: string = options.pathTemplate ?? options.url ?? '';
                 const hasFormatParam: boolean = /([?&])format=/.test(ptOriginal);
                 if (!hasFormatParam) {
@@ -67,7 +64,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
                     }
                 }
             }
-            return options ?? {} as IApiClientRequestOptions;
+            return options;
         },
     };
 
@@ -75,7 +72,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
         /**
          * Validates notebook definition format and ensures consistency before updating
          */
-        async onBeforeUpdateDefinition(_artifact: any, definition: IItemDefinition, _folder?: vscode.Uri, options?: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
+        async onBeforeUpdateDefinition(_artifact: any, definition: IItemDefinition, _folder: vscode.Uri | undefined, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
             const format = NotebookArtifactHandler.detectNotebookFormatFromDefinition(definition);
             if (format === 'mixed') {
                 throw new FabricError(
@@ -86,13 +83,13 @@ export class NotebookArtifactHandler implements IArtifactHandler {
 
             if (format === 'ipynb') {
                 definition.format = 'ipynb';
-                if (options?.body && typeof options.body === 'object' && 'definition' in options.body) {
+                if (options.body && typeof options.body === 'object' && 'definition' in options.body) {
                     // Ensure the body carries the updated definition reference
                     (options.body as any).definition = definition;
                 }
             }
 
-            return options ?? {} as IApiClientRequestOptions;
+            return options;
         },
     };
 
