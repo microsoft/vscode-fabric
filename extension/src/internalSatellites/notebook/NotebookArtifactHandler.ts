@@ -53,18 +53,21 @@ export class NotebookArtifactHandler implements IArtifactHandler {
             // Only skip adding format parameter if we explicitly detected .py files on disk
             // In all other cases (undefined folder, ipynb, or unknown), request ipynb format
             if (detectedFormat !== 'py') {
-                const ptOriginal: string = options?.pathTemplate ?? options?.url ?? '';
+                if (!options) {
+                    options = {};
+                }
+                const ptOriginal: string = options.pathTemplate ?? options.url ?? '';
                 const hasFormatParam: boolean = /([?&])format=/.test(ptOriginal);
                 if (!hasFormatParam) {
                     if (ptOriginal.includes('?')) {
-                        options!.pathTemplate = `${ptOriginal}&format=ipynb`;
+                        options.pathTemplate = `${ptOriginal}&format=ipynb`;
                     }
                     else {
-                        options!.pathTemplate = `${ptOriginal}?format=ipynb`;
+                        options.pathTemplate = `${ptOriginal}?format=ipynb`;
                     }
                 }
             }
-            return options!;
+            return options || {};
         },
     };
 
@@ -89,7 +92,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
                 }
             }
 
-            return options!;
+            return options || {};
         },
     };
 
