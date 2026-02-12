@@ -368,7 +368,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
 
         const artifactHandler = this.getArtifactHandler(artifact);
         // Allow handler to customize request before sending update definition
-        if (artifactHandler?.updateDefinitionWorkflow?.onBeforeUpdateDefinition && folder) {
+        if (artifactHandler?.updateDefinitionWorkflow?.onBeforeUpdateDefinition) {
             apiRequestOptions = await artifactHandler.updateDefinitionWorkflow.onBeforeUpdateDefinition(
                 artifact,
                 definition,
@@ -380,7 +380,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
         const response = await this.apiClient.sendRequest(apiRequestOptions);
         const finalResponse = await handleLongRunningOperation(this.apiClient, response, this.logger, options?.progress);
 
-        if (artifactHandler?.updateDefinitionWorkflow?.onAfterUpdateDefinition && folder) {
+        if (artifactHandler?.updateDefinitionWorkflow?.onAfterUpdateDefinition) {
             await artifactHandler.updateDefinitionWorkflow.onAfterUpdateDefinition(
                 artifact,
                 definition,
