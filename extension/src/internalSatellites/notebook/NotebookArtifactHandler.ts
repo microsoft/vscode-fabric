@@ -27,9 +27,8 @@ export class NotebookArtifactHandler implements IArtifactHandler {
         async onBeforeGetDefinition(_artifact: any, folder: vscode.Uri, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
             // Detect existing format (if any) on disk within the target folder.
             // Behavior:
-            //  - If only .py detected -> request default (omit format parameter)
-            //  - If only .ipynb detected or unknown -> force ipynb via query param
-            //  - If both detected -> throw error (mixed formats not supported)
+            //  - Always request ipynb format (notebooks should always use .ipynb)
+            //  - If both .py and .ipynb detected -> throw error (mixed formats not supported)
             let format: NotebookFormat;
             try {
                 format = await NotebookArtifactHandler.detectNotebookFormat(folder);
@@ -46,16 +45,15 @@ export class NotebookArtifactHandler implements IArtifactHandler {
                 );
             }
 
-            if (format !== 'py') { // ipynb or unknown
-                const ptOriginal: string = options.pathTemplate ?? options.url ?? '';
-                const hasFormatParam: boolean = /([?&])format=/.test(ptOriginal);
-                if (!hasFormatParam) {
-                    if (ptOriginal.includes('?')) {
-                        options.pathTemplate = `${ptOriginal}&format=ipynb`;
-                    }
-                    else {
-                        options.pathTemplate = `${ptOriginal}?format=ipynb`;
-                    }
+            // Always request ipynb format for notebooks
+            const ptOriginal: string = options.pathTemplate ?? options.url ?? '';
+            const hasFormatParam: boolean = /([?&])format=/.test(ptOriginal);
+            if (!hasFormatParam) {
+                if (ptOriginal.includes('?')) {
+                    options.pathTemplate = `${ptOriginal}&format=ipynb`;
+                }
+                else {
+                    options.pathTemplate = `${ptOriginal}?format=ipynb`;
                 }
             }
             return options;
