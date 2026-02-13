@@ -4,6 +4,105 @@
 
 Definition files in the remote workspace view now open in **readonly mode** by default, with a "Make Editable" button that allows users to intentionally switch to editable mode. This prevents accidental edits to remote Fabric definitions.
 
+## How the "Make Editable" Button Appears
+
+### What is CodeLens?
+
+CodeLens is a VS Code feature that displays **inline, clickable links** within the editor. It appears as small, blue/gray text above or within code content.
+
+### Visual Appearance
+
+When you open a readonly definition file, the CodeLens appears at the very top:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ definition.pbir                                       × ⊗ ⋮ │
+├─────────────────────────────────────────────────────────────┤
+│ 📝 Make Editable                                             │  ← CodeLens (clickable)
+│                                                              │
+│ {                                                            │
+│   "version": "1.0",                                          │
+│   "datasetReference": {                                      │
+│     ...                                                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+For notebooks opened in Notebook Editor:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ notebook.ipynb                           📔 Open With... ⋮  │
+├─────────────────────────────────────────────────────────────┤
+│ 📝 Make Editable                                             │  ← CodeLens at top
+│                                                              │
+│ ┌────────────────────────────────────────────────┐          │
+│ │ 📝 Markdown Cell                               │          │
+│ │ # My Notebook                                  │          │
+│ └────────────────────────────────────────────────┘          │
+│ ┌────────────────────────────────────────────────┐          │
+│ │ ▶ Code Cell                                    │          │
+│ │ print("Hello World")                           │          │
+│ └────────────────────────────────────────────────┘          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### User Interaction Flow
+
+1. **User clicks definition file in tree view**
+   - File opens with `fabric-definition-virtual://` URI
+   - CodeLens "Make Editable" appears at top
+   - File is readonly (cannot type/edit)
+
+2. **User hovers over "Make Editable"**
+   - Cursor changes to pointer (hand icon)
+   - Tooltip shows: "Switch to editable mode to modify this file"
+
+3. **User clicks "Make Editable"**
+   - Readonly document closes automatically
+   - Editable document opens with `fabric-definition://` URI
+   - Modal dialog: "You are editing a remote definition file..."
+   - Status bar shows: "⚠️ Editing Remote Fabric Definition"
+
+### How CodeLens is Rendered
+
+The implementation in `DefinitionFileCodeLensProvider.ts`:
+
+```typescript
+provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {
+    if (document.uri.scheme !== 'fabric-definition-virtual') {
+        return [];
+    }
+
+    const topOfDocument = new vscode.Range(0, 0, 0, 0);  // Line 0, column 0
+    const codeLens = new vscode.CodeLens(topOfDocument);
+    
+    codeLens.command = {
+        title: '$(edit) Make Editable',    // $(edit) renders as edit icon
+        tooltip: 'Switch to editable mode to modify this file',
+        command: 'vscode-fabric.editDefinitionFile',
+        arguments: [document.uri]
+    };
+
+    return [codeLens];
+}
+```
+
+**Key Points:**
+- `$(edit)` is a VS Code icon reference that renders as 📝 or similar edit glyph
+- Position is `Range(0, 0, 0, 0)` meaning top-left of the document
+- Returns array with single CodeLens (appears as one button)
+
+### Registration
+
+Registered in `extension.ts` to only apply to readonly virtual files:
+
+```typescript
+vscode.languages.registerCodeLensProvider(
+    { scheme: 'fabric-definition-virtual' },  // Document selector
+    codeLensProvider
+);
+```
+
 ## Architecture
 
 ### Dual File System Provider Registration
