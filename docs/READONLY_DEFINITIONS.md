@@ -6,9 +6,38 @@ Definition files in the remote workspace view now open in **readonly mode** by d
 
 ## How the "Make Editable" Button Appears
 
-### What is CodeLens?
+### Two Ways to Make Files Editable
+
+Since different editors have different capabilities, we provide **two ways** to make files editable:
+
+1. **CodeLens** (for text editors) - Clickable link at top of file
+2. **Editor Title Button** (for all editors) - Icon button in title bar
+
+### CodeLens (Text Files)
 
 CodeLens is a VS Code feature that displays **inline, clickable links** within the editor. It appears as small, blue/gray text above or within code content.
+
+**Important: CodeLens only works in text editors, not notebook editor.**
+
+### Editor Title Button (All Files Including Notebooks)
+
+A dedicated button appears in the **editor title bar** (toolbar at top of editor).
+
+**Visual location:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ notebook.ipynb    [📝] [📔 Open in Text Editor]    × ⊗ ⋮ │
+│                    ↑                                         │
+│                   Edit button appears here                   │
+├─────────────────────────────────────────────────────────────┤
+│ [Notebook cells render below]                                │
+```
+
+The `[📝]` button:
+- Appears for all `fabric-definition-virtual://` files
+- Works in text editor AND notebook editor
+- Always visible in the title bar
+- Clicking triggers "Make Editable" command
 
 ### Important: CodeLens Visibility
 
@@ -23,7 +52,22 @@ CodeLens is a VS Code feature that displays **inline, clickable links** within t
 - ❌ Wrong URI scheme (e.g., file opens with `fabric-definition://` instead)
 - ❌ Extension not fully loaded/activated
 
-### Visual Appearance
+### Visual Appearance for Different File Types
+
+**Text Files (JSON, PBIR, etc.):**
+- CodeLens link at line 0: "📝 Make Editable"
+- Title bar button: Edit icon
+- Both options available
+
+**Notebook Files (.ipynb):**
+- Title bar button: Edit icon
+- CodeLens: Not displayed (notebook editor doesn't support CodeLens)
+- Title button is the primary way to make editable
+
+**Why both?**
+- Text editors support CodeLens (more discoverable, inline)
+- Notebook editor only supports title buttons
+- Providing both ensures consistency across all file types
 
 When you open a readonly definition file, the CodeLens appears at the very top:
 
