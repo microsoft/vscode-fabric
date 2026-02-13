@@ -34,11 +34,16 @@ export class DefinitionFileTreeNode extends FabricTreeNode {
         // Set tooltip with full path
         this.tooltip = vscode.l10n.t('Definition file: {0}', fileName);
 
-        // Add command to open the file in readonly mode when clicked
+        // For .ipynb files, use editableUri so notebook editor can access via FileSystemProvider
+        // For other files, use readonlyUri for readonly mode
+        const isNotebook = fileName.toLowerCase().endsWith('.ipynb');
+        const uriToOpen = isNotebook ? editableUri : readonlyUri;
+
+        // Add command to open the file when clicked
         this.command = {
             command: 'vscode.open',
             title: 'Open Definition File',
-            arguments: [readonlyUri],
+            arguments: [uriToOpen],
         };
 
         this.contextValue = 'definition-file';
