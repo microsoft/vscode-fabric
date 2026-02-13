@@ -25,28 +25,61 @@ export class EditItemDefinitionCommand extends FabricCommand<'item/definition/ed
         telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>,
         ...args: any[]
     ): Promise<void> {
-        const node = args[0] as DefinitionFileTreeNode | undefined;
-        if (!node) {
-            this.commandManager.logger.error('editDefinitionFile called without a DefinitionFileTreeNode');
+        const arg = args[0];
+        
+        let editableUri: vscode.Uri | undefined;
+        let fileName: string | undefined;
+        let artifact: any | undefined;
+
+        // Handle two cases: called from tree node or from CodeLens/URI
+        if (arg instanceof DefinitionFileTreeNode) {
+            // Called from tree view context menu
+            const node = arg as DefinitionFileTreeNode;
+            editableUri = node.editableUri;
+            fileName = node.fileName;
+            artifact = node.artifact;
+        } else if (arg?.scheme === 'fabric-definition-virtual') {
+            // Called from CodeLens - convert readonly URI to editable URI
+            const readonlyUri = arg as vscode.Uri;
+            editableUri = readonlyUri.with({ scheme: 'fabric-definition' });
+            fileName = readonlyUri.path.split('/').pop();
+        } else {
+            this.commandManager.logger.error('editDefinitionFile called without valid argument');
             return;
         }
 
-        // Add artifact telemetry properties
-        this.addArtifactTelemetryProperties(telemetryActivity, node.artifact);
+        if (!editableUri) {
+            this.commandManager.logger.error('editDefinitionFile: could not determine editable URI');
+            return;
+        }
 
-        // Extract file extension for telemetry.
-        // File name may contain PII, so use only the extension
-        const parts = node.fileName.split('.');
-        const fileExtension = parts.length > 1 ? parts.pop() || '' : '';
-        telemetryActivity.addOrUpdateProperties({
-            fileExtension: fileExtension,
-        });
+        // Add artifact telemetry properties if available
+        if (artifact) {
+            this.addArtifactTelemetryProperties(telemetryActivity, artifact);
+        }
+
+        // Extract file extension for telemetry if we have fileName
+        if (fileName) {
+            const parts = fileName.split('.');
+            const fileExtension = parts.length > 1 ? parts.pop() || '' : '';
+            telemetryActivity.addOrUpdateProperties({
+                fileExtension: fileExtension,
+            });
+        }
+
+        // Close the readonly document if it's open
+        const readonlyUri = editableUri.with({ scheme: 'fabric-definition-virtual' });
+        const readonlyDoc = vscode.workspace.textDocuments.find(doc => doc.uri.toString() === readonlyUri.toString());
+        if (readonlyDoc) {
+            await vscode.window.showTextDocument(readonlyDoc, { preview: false, preserveFocus: false });
+            await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+        }
 
         // Open the file using the editable URI (fabric-definition://)
         // This uses the DefinitionFileSystemProvider which supports editing
-        const doc = await vscode.workspace.openTextDocument(node.editableUri);
+        const doc = await vscode.workspace.openTextDocument(editableUri);
         await vscode.window.showTextDocument(doc, { preview: false });
 
-        this.commandManager.logger.debug(`Opened definition file for editing: ${node.fileName}`);
+        this.commandManager.logger.debug(`Opened definition file for editing: ${fileName || editableUri.toString()}`);
     }
 }
