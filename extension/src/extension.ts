@@ -215,9 +215,6 @@ export class FabricVsCodeExtension {
             })
         );
 
-        // Definition file editor decorator
-        const editorDecorator = new DefinitionFileEditorDecorator();
-        context.subscriptions.push(editorDecorator);
 
         // Register CodeLens provider for readonly definition files
         context.subscriptions.push(
