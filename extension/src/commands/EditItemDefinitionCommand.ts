@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
+import { IArtifact } from '@microsoft/vscode-fabric-api';
 import { TelemetryActivity } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { FabricCommand } from './FabricCommand';
@@ -29,7 +30,7 @@ export class EditItemDefinitionCommand extends FabricCommand<'item/definition/ed
         
         let editableUri: vscode.Uri | undefined;
         let fileName: string | undefined;
-        let artifact: any | undefined;
+        let artifact: IArtifact | undefined;
 
         // Handle two cases: called from tree node or from CodeLens/URI
         if (arg instanceof DefinitionFileTreeNode) {
@@ -69,7 +70,8 @@ export class EditItemDefinitionCommand extends FabricCommand<'item/definition/ed
 
         // Close the readonly document if it's open
         const readonlyUri = editableUri.with({ scheme: 'fabric-definition-virtual' });
-        const readonlyDoc = vscode.workspace.textDocuments.find(doc => doc.uri.toString() === readonlyUri.toString());
+        const readonlyUriString = readonlyUri.toString();
+        const readonlyDoc = vscode.workspace.textDocuments.find(doc => doc.uri.toString() === readonlyUriString);
         if (readonlyDoc) {
             await vscode.window.showTextDocument(readonlyDoc, { preview: false, preserveFocus: false });
             await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
