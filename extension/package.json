@@ -543,13 +543,6 @@
           "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-delete/",
           "group": "9@3"
         }
-      ],
-      "editor/title": [
-        {
-          "command": "vscode-fabric.editDefinitionFile",
-          "when": "resourceScheme == fabric-definition-virtual",
-          "group": "navigation"
-        }
       ]
     },
     "configuration": {

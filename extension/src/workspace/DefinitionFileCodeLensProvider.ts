@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import { commandNames } from '../constants';
 
 /**
- * Provides CodeLens for readonly definition files showing "Make Editable" action
+ * Provides CodeLens for readonly definition files showing "Start editing" action
  */
 export class DefinitionFileCodeLensProvider implements vscode.CodeLensProvider {
     private readonly _onDidChangeCodeLenses = new vscode.EventEmitter<void>();
@@ -22,7 +22,7 @@ export class DefinitionFileCodeLensProvider implements vscode.CodeLensProvider {
         const codeLens = new vscode.CodeLens(topOfDocument);
         
         codeLens.command = {
-            title: '$(edit) Make Editable',
+            title: '$(edit)  Start editing',
             tooltip: 'Switch to editable mode to modify this file',
             command: commandNames.editDefinitionFile,
             arguments: [document.uri]
