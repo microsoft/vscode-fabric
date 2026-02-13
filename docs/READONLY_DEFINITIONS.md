@@ -10,6 +10,19 @@ Definition files in the remote workspace view now open in **readonly mode** by d
 
 CodeLens is a VS Code feature that displays **inline, clickable links** within the editor. It appears as small, blue/gray text above or within code content.
 
+### Important: CodeLens Visibility
+
+**The CodeLens will appear if:**
+- ✅ File opens with `fabric-definition-virtual://` scheme
+- ✅ VS Code setting `"editor.codeLens": true` is enabled (default)
+- ✅ Only FileSystemProvider is registered (no duplicate TextDocumentContentProvider)
+
+**Common issues why CodeLens might not appear:**
+- ❌ Multiple providers registered for same scheme (causes conflicts)
+- ❌ CodeLens disabled in settings: `"editor.codeLens": false`
+- ❌ Wrong URI scheme (e.g., file opens with `fabric-definition://` instead)
+- ❌ Extension not fully loaded/activated
+
 ### Visual Appearance
 
 When you open a readonly definition file, the CodeLens appears at the very top:
