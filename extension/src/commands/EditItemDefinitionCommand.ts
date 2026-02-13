@@ -43,7 +43,7 @@ export class EditItemDefinitionCommand extends FabricCommand<'item/definition/ed
             // Called from CodeLens - convert readonly URI to editable URI
             const readonlyUri = arg as vscode.Uri;
             editableUri = readonlyUri.with({ scheme: 'fabric-definition' });
-            fileName = readonlyUri.path.split('/').pop();
+            fileName = readonlyUri.path.split('/').pop() ?? undefined;
         } else {
             this.commandManager.logger.error('editDefinitionFile called without valid argument');
             return;
