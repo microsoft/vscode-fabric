@@ -7,6 +7,7 @@ import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { DefinitionFilesChildNodeProvider } from '../../../src/workspace/treeNodes/childNodeProviders/DefinitionFilesChildNodeProvider';
 import { IArtifactManager, IArtifact, IItemDefinition, PayloadType, IApiClientResponse } from '@microsoft/vscode-fabric-api';
+import { ILogger } from '@microsoft/vscode-fabric-util';
 import { DefinitionFileSystemProvider } from '../../../src/workspace/DefinitionFileSystemProvider';
 import { IFabricFeatureConfiguration } from '../../../src/settings/FabricFeatureConfiguration';
 import { DefinitionFileTreeNode } from '../../../src/workspace/treeNodes/DefinitionFileTreeNode';
@@ -19,6 +20,7 @@ describe('DefinitionFilesChildNodeProvider', function () {
     let artifactManagerMock: Mock<IArtifactManager>;
     let fileSystemProviderMock: Mock<DefinitionFileSystemProvider>;
     let featureConfigMock: Mock<IFabricFeatureConfiguration>;
+    let loggerMock: Mock<ILogger>;
     let provider: DefinitionFilesChildNodeProvider;
     let getSupportsArtifactWithDefinitionStub: sinon.SinonStub;
 
@@ -31,6 +33,7 @@ describe('DefinitionFilesChildNodeProvider', function () {
         artifactManagerMock = new Mock<IArtifactManager>();
         fileSystemProviderMock = new Mock<DefinitionFileSystemProvider>();
         featureConfigMock = new Mock<IFabricFeatureConfiguration>();
+        loggerMock = new Mock<ILogger>();
 
         artifact = {
             id: artifactId,
@@ -46,7 +49,8 @@ describe('DefinitionFilesChildNodeProvider', function () {
         provider = new DefinitionFilesChildNodeProvider(
             contextMock.object(),
             artifactManagerMock.object(),
-            fileSystemProviderMock.object()
+            fileSystemProviderMock.object(),
+            loggerMock.object()
         );
     });
 
@@ -98,9 +102,12 @@ describe('DefinitionFilesChildNodeProvider', function () {
             artifactManagerMock.setup(x => x.getArtifactDefinition(artifact))
                 .returns(Promise.reject(new Error('API Error')));
 
+            loggerMock.setup(x => x.error(It.IsAny())).returns(undefined);
+
             const nodes = await provider.getChildNodes(artifact);
 
             assert.strictEqual(nodes.length, 0);
+            loggerMock.verify(x => x.error(It.Is<string>(msg => msg.includes(artifactId))), Times.Once());
         });
 
         it('should skip .platform file', async function () {

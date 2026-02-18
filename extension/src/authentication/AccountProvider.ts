@@ -7,6 +7,7 @@ import { IDisposable } from '@microsoft/vscode-fabric-api';
 import { IAccountProvider, ITenantSettings, ITokenAcquisitionService, TokenRequestOptions } from './interfaces';
 import { AuthenticationSessionAccountInformation } from 'vscode';
 import { doTaskWithTimeout, TelemetryActivity, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { base64ToString } from '../bufferUtilities';
 import { SubscriptionClient, TenantIdDescription } from '@azure/arm-resources-subscriptions';
 import type { TokenCredential } from '@azure/core-auth';
 import { getConfiguredAzureEnv } from '@microsoft/vscode-azext-azureauth';
@@ -200,7 +201,7 @@ export class AccountProvider implements IAccountProvider, IDisposable {
             try {
                 // @ts-ignore: the idToken property not documented by VS Code but exists on the AuthenticationSession. The AccessToken does exist, but doesn't have the id info
                 const tokenBody = session?.idToken.split('.')[1];
-                decodedToken = Buffer.from(tokenBody, 'base64').toString('binary');
+                decodedToken = base64ToString(tokenBody);
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 const parsedToken = JSON.parse(decodedToken) as { email?: string, tid?: string, preferred_username?: string };
                 email = parsedToken?.email ?? parsedToken?.preferred_username ?? ''; // some users have email empty, but preferred_username has email (some Mac machines)

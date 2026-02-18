@@ -10,6 +10,8 @@ import { DefinitionRootTreeNode } from '../DefinitionRootTreeNode';
 import { DefinitionFileSystemProvider } from '../../DefinitionFileSystemProvider';
 import { DefinitionVirtualDocumentContentProvider } from '../../DefinitionVirtualDocumentContentProvider';
 import { getSupportsArtifactWithDefinition } from '../../../metadata/fabricItemUtilities';
+import { ILogger } from '@microsoft/vscode-fabric-util';
+import { base64ToUint8Array, stringToUint8Array } from '../../../bufferUtilities';
 
 /**
  * Provides definition file nodes as children when the artifact supports definitions
@@ -19,7 +21,8 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
     constructor(
         private readonly context: vscode.ExtensionContext,
         private readonly artifactManager: IArtifactManager,
-        private readonly fileSystemProvider: DefinitionFileSystemProvider
+        private readonly fileSystemProvider: DefinitionFileSystemProvider,
+        private readonly logger: ILogger
     ) {}
 
     canProvideChildren(artifact: IArtifact): boolean {
@@ -46,6 +49,7 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
             }
         }
         catch (error) {
+            this.logger.error(`Error getting definition files for item ${artifact.id}: ${error}`);
             // If there's any error getting the definition, return empty array
         }
 
@@ -77,11 +81,11 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
             let content: Uint8Array;
             if (part.payloadType === PayloadType.InlineBase64) {
                 // Decode base64 content
-                content = Buffer.from(part.payload, 'base64');
+                content = base64ToUint8Array(part.payload);
             }
             else {
                 // For other payload types, convert to bytes
-                content = Buffer.from(part.payload, 'utf-8');
+                content = stringToUint8Array(part.payload);
             }
 
             // Register the file in the file system provider and get the editable URI

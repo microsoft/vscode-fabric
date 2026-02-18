@@ -25,6 +25,40 @@
       }
     },
     {
+      "name": "Web extension",
+      "type": "extensionHost",
+      "debugWebWorkerHost": true,
+      "request": "launch",
+      "args": [
+        "--disable-extensions",
+        "--extensionDevelopmentPath=${workspaceFolder}/extension",
+        "--extensionDevelopmentKind=web"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/extension/dist/web/**/*.js"
+      ],
+      "sourceMapPathOverrides": {
+        "webpack://vscode-fabric/*": "${workspaceFolder}/extension/*"
+      },
+      "env": {
+        // Enable these selectively for test hooks/fakes.
+        // "VSCODE_FABRIC_ENABLE_TEST_HOOKS": "true",
+        // "VSCODE_FABRIC_ENABLE_TEST_FAKES": "true"
+      }
+    },
+    {
+      "name": "Web extension (Browser)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "preLaunchTask": "Start Web Test Server",
+      "postDebugTask": "Stop Web Test Server",
+      "webRoot": "${workspaceFolder}/extension",
+      "sourceMapPathOverrides": {
+        "webpack://vscode-fabric/*": "${workspaceFolder}/extension/*"
+      }
+    },
+    {
       "name": "Debug Core UI Tests",
       "type": "node",
       "request": "launch",

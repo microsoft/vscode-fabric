@@ -63,6 +63,11 @@ export function getSupportsArtifactWithDefinition(artifact: IArtifact | string):
     return fabricItemMetadata[artifactType]?.supportsArtifactWithDefinition === true;
 }
 
+export function isArtifactExtensionWebEnabled(artifact: IArtifact | string): boolean {
+    const artifactType: string = getArtifactTypeString(artifact);
+    return fabricItemMetadata[artifactType]?.webExtensionEnabled === true;
+}
+
 /**
  * Gets the themed icon path for a workspace based on its type
  * @param baseUri The base URI for the extension

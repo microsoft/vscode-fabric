@@ -108,4 +108,10 @@ export interface FabricItemMetadata {
      * Whether the item type supports get and update item definition public API
      */
     supportsArtifactWithDefinition?: boolean;
+
+    /**
+     * Whether the satellite extension is enabled for web environments.
+     * If false or not specified, the extension is only available in desktop.
+     */
+    webExtensionEnabled?: boolean;
 }

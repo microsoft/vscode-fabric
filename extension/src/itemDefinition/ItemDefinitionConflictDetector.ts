@@ -4,6 +4,7 @@
 import * as vscode from 'vscode';
 import { IItemDefinition, PayloadType } from '@microsoft/vscode-fabric-api';
 import { getItemDefinitionPathUri } from './pathUtils';
+import { base64ToUint8Array, uint8ArraysEqual } from '../bufferUtilities';
 
 export interface IItemDefinitionConflictDetector {
     getConflictingFiles(itemDefinition: IItemDefinition, destination: vscode.Uri): Promise<string[]>;
@@ -38,8 +39,8 @@ export class ItemDefinitionConflictDetector {
                 await this.fileSystem.stat(fileUri);
                 // File exists, check content
                 const existingContent = await this.fileSystem.readFile(fileUri);
-                const partContent = Buffer.from(part.payload, 'base64');
-                if (!Buffer.from(existingContent).equals(partContent)) {
+                const partContent = base64ToUint8Array(part.payload);
+                if (!uint8ArraysEqual(existingContent, partContent)) {
                     conflicts.push(part.path);
                 }
             }
