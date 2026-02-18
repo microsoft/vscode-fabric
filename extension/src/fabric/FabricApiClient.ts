@@ -102,19 +102,6 @@ export class FabricApiClient implements IFabricApiClient {
                 curHeaders = { ...curHeaders, ...options.headers };
             }
             const headers = azApi.createHttpHeaders(curHeaders);
-            // if (options.formData) { // For more details, see Task 1330509: Determine why deployments consistently fail on 1st try, and require retry
-            //     for (const key in options.formData) {
-            //         if (Object.prototype.hasOwnProperty.call(options.formData, key)) {
-            //             const element = options.formData[key];
-            //             if (typeof element === 'string' && element.startsWith('File:')) {
-            //                 const filePath = element.substring(5);
-            //                 const baseFilename = path.basename(filePath);
-            //                 const strm = fs.createReadStream(filePath);
-            //                 options.formData[key] = azApi.createFileFromStream(() => strm, baseFilename);
-            //             }
-            //         }
-            //     }
-            // }
             const apiOptions: azApi.PipelineRequestOptions = {
                 url: theUrl,
                 method: options.method === undefined ? 'GET' : options.method,
