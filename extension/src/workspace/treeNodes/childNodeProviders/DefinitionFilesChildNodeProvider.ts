@@ -8,7 +8,7 @@ import { DefinitionFileTreeNode } from '../DefinitionFileTreeNode';
 import { DefinitionFolderTreeNode } from '../DefinitionFolderTreeNode';
 import { DefinitionRootTreeNode } from '../DefinitionRootTreeNode';
 import { DefinitionFileSystemProvider } from '../../DefinitionFileSystemProvider';
-import { DefinitionVirtualDocumentContentProvider } from '../../DefinitionVirtualDocumentContentProvider';
+import { ReadonlyDefinitionFileSystemProvider } from '../../ReadonlyDefinitionFileSystemProvider';
 import { getSupportsArtifactWithDefinition } from '../../../metadata/fabricItemUtilities';
 import { ILogger } from '@microsoft/vscode-fabric-util';
 import { base64ToUint8Array, stringToUint8Array } from '../../../bufferUtilities';
@@ -96,7 +96,7 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
             );
 
             // Create a readonly URI for the same file
-            const readonlyUri = DefinitionVirtualDocumentContentProvider.createUri(
+            const readonlyUri = ReadonlyDefinitionFileSystemProvider.createUri(
                 artifact.workspaceId,
                 artifact.id,
                 normalizedPath

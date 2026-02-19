@@ -17,6 +17,20 @@ export class ReadonlyDefinitionFileSystemProvider implements vscode.FileSystemPr
     constructor(private readonly innerProvider: DefinitionFileSystemProvider) {}
 
     /**
+     * Creates a readonly URI for a definition file.
+     * @param workspaceId The workspace ID
+     * @param artifactId The artifact ID
+     * @param fileName The file name/path
+     * @returns A URI with the fabric-definition-virtual scheme
+     */
+    static createUri(workspaceId: string, artifactId: string, fileName: string): vscode.Uri {
+        return vscode.Uri.from({
+            scheme: ReadonlyDefinitionFileSystemProvider.scheme,
+            path: `/${workspaceId}/${artifactId}/${fileName}`,
+        });
+    }
+
+    /**
      * Converts virtual URI to editable URI for delegation
      */
     private toEditableUri(uri: vscode.Uri): vscode.Uri {
