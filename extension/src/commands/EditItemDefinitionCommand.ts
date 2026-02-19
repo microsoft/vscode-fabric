@@ -77,10 +77,19 @@ export class EditItemDefinitionCommand extends FabricCommand<'item/definition/ed
             await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
         }
 
-        // Open the file using the editable URI (fabric-definition://)
-        // Use vscode.open command to let VS Code choose the appropriate editor
-        // (notebook editor for .ipynb, text editor for other files)
-        await vscode.commands.executeCommand('vscode.open', editableUri);
+        // Check if this is a notebook file
+        const isNotebook = fileName?.toLowerCase().endsWith('.ipynb');
+
+        if (isNotebook) {
+            // For notebooks, use vscode.openWith to explicitly open in notebook editor
+            // This ensures the notebook editor is used instead of the text editor
+            await vscode.commands.executeCommand('vscode.openWith', editableUri, 'jupyter-notebook');
+        } else {
+            // For other files, use the normal text document flow
+            // This properly triggers the DefinitionFileEditorDecorator
+            const doc = await vscode.workspace.openTextDocument(editableUri);
+            await vscode.window.showTextDocument(doc, { preview: false });
+        }
 
         this.commandManager.logger.debug(`Opened definition file for editing: ${fileName || editableUri.toString()}`);
     }
