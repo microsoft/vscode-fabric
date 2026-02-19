@@ -43,6 +43,12 @@ describe('DefinitionFilesChildNodeProvider', function () {
             fabricEnvironment: 'Production',
         };
 
+        // Setup default logger mock
+        loggerMock.setup(x => x.error(It.IsAny())).returns(undefined);
+
+        // Setup default fileSystemProvider mock
+        fileSystemProviderMock.setup(x => x.registerItem(It.IsAny(), It.IsAny())).returns(undefined);
+
         // Stub the utility function
         getSupportsArtifactWithDefinitionStub = sinon.stub(fabricItemUtilities, 'getSupportsArtifactWithDefinition');
 
@@ -101,8 +107,6 @@ describe('DefinitionFilesChildNodeProvider', function () {
         it('should return empty array when API call fails', async function () {
             artifactManagerMock.setup(x => x.getArtifactDefinition(artifact))
                 .returns(Promise.reject(new Error('API Error')));
-
-            loggerMock.setup(x => x.error(It.IsAny())).returns(undefined);
 
             const nodes = await provider.getChildNodes(artifact);
 
