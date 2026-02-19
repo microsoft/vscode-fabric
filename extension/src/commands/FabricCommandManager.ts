@@ -10,6 +10,8 @@ import { ICapacityManager } from '../CapacityManager';
 import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 import { IFabricCommandManager, IFabricCommand } from './IFabricCommandManager';
 import { EditItemDefinitionCommand } from './EditItemDefinitionCommand';
+import { CreateDefinitionFileCommand } from './CreateDefinitionFileCommand';
+import { DeleteDefinitionFileCommand } from './DeleteDefinitionFileCommand';
 
 /**
  * Implementation of the Fabric command manager that handles command registration,
@@ -80,6 +82,13 @@ export class FabricCommandManager implements IFabricCommandManager {
         // Definition file editing
         const editItemDefinitionCommand = new EditItemDefinitionCommand(this);
         this.registerCommand(editItemDefinitionCommand);
+
+        // Definition file create/delete
+        const createDefinitionFileCommand = new CreateDefinitionFileCommand(this);
+        this.registerCommand(createDefinitionFileCommand);
+
+        const deleteDefinitionFileCommand = new DeleteDefinitionFileCommand(this);
+        this.registerCommand(deleteDefinitionFileCommand);
 
         // Example of how commands will be registered:
         // const createArtifactCommand = new CreateArtifactCommand(this);

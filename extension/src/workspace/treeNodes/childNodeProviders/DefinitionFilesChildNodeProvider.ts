@@ -37,12 +37,15 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
             if (response.parsedBody?.definition) {
                 const definition: IItemDefinition = response.parsedBody.definition;
 
+                // Register the full item definition for directory-level operations
+                this.fileSystemProvider.registerItem(artifact, definition);
+
                 // Build a hierarchical tree structure from the flat list of parts
                 const rootNodes = this.buildTreeStructure(artifact, definition.parts);
 
                 // Wrap all definition files/folders under a single root node
                 if (rootNodes.length > 0) {
-                    const definitionRoot = new DefinitionRootTreeNode(this.context);
+                    const definitionRoot = new DefinitionRootTreeNode(this.context, artifact);
                     definitionRoot.addChildren(rootNodes);
                     return [definitionRoot];
                 }
@@ -133,6 +136,7 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
                         // Create new folder node
                         folder = new DefinitionFolderTreeNode(
                             this.context,
+                            artifact,
                             segment,
                             currentPath
                         );

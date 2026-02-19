@@ -5,8 +5,11 @@ export namespace commandNames {
     export const changeLocalFolder = 'vscode-fabric.changeLocalFolder';
     export const clearWorkspaceFilter = 'vscode-fabric.clearWorkspaceFilter';
     export const createArtifact = 'vscode-fabric.createArtifact';
+    // sorted alphabetically
+    export const createDefinitionFile = 'vscode-fabric.createDefinitionFile';
     export const createWorkspace = 'vscode-fabric.createWorkspace';
     export const deleteArtifact = 'vscode-fabric.deleteArtifact';
+    export const deleteDefinitionFile = 'vscode-fabric.deleteDefinitionFile';
     export const editDefinitionFile = 'vscode-fabric.editDefinitionFile';
     export const exportArtifact = 'vscode-fabric.exportArtifact';
     export const filterWorkspaces = 'vscode-fabric.filterWorkspaces';

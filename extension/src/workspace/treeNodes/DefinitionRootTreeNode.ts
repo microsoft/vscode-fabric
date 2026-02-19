@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { FabricTreeNode } from '@microsoft/vscode-fabric-api';
+import { FabricTreeNode, IArtifact } from '@microsoft/vscode-fabric-api';
 
 /**
  * Represents the root node for all definition files and folders within an artifact.
@@ -14,8 +14,12 @@ export class DefinitionRootTreeNode extends FabricTreeNode {
     /**
      * Creates a new instance of the DefinitionRootTreeNode class
      * @param context - The VS Code extension context
+     * @param artifact - The artifact that owns this definition
      */
-    constructor(context: vscode.ExtensionContext) {
+    constructor(
+        context: vscode.ExtensionContext,
+        public readonly artifact: IArtifact
+    ) {
         super(context, vscode.l10n.t('Item definition'), vscode.TreeItemCollapsibleState.Collapsed);
 
         // Set tooltip

@@ -210,6 +210,18 @@
         "title": "%extension.editDefinitionFile.title%",
         "category": "Fabric",
         "icon": "$(edit)"
+      },
+      {
+        "command": "vscode-fabric.createDefinitionFile",
+        "title": "%extension.createDefinitionFile.title%",
+        "category": "Fabric",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "vscode-fabric.deleteDefinitionFile",
+        "title": "%extension.deleteDefinitionFile.title%",
+        "category": "Fabric",
+        "icon": "$(trash)"
       }
     ],
     "views": {
@@ -342,6 +354,14 @@
         },
         {
           "command": "vscode-fabric.editDefinitionFile",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.createDefinitionFile",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.deleteDefinitionFile",
           "when": "false"
         }
       ],
@@ -517,6 +537,36 @@
           "command": "vscode-fabric.editDefinitionFile",
           "when": "view == vscode-fabric.view.workspace && viewItem == definition-file && config.Fabric.EditItemDefinitions",
           "group": "1@1"
+        },
+        {
+          "command": "vscode-fabric.createDefinitionFile",
+          "when": "view == vscode-fabric.view.workspace && viewItem == definition-root && config.Fabric.EditItemDefinitions",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-fabric.createDefinitionFile",
+          "when": "view == vscode-fabric.view.workspace && viewItem == definition-root && config.Fabric.EditItemDefinitions",
+          "group": "1@1"
+        },
+        {
+          "command": "vscode-fabric.createDefinitionFile",
+          "when": "view == vscode-fabric.view.workspace && viewItem == definition-folder && config.Fabric.EditItemDefinitions",
+          "group": "inline"
+        },
+        {
+          "command": "vscode-fabric.createDefinitionFile",
+          "when": "view == vscode-fabric.view.workspace && viewItem == definition-folder && config.Fabric.EditItemDefinitions",
+          "group": "1@1"
+        },
+        {
+          "command": "vscode-fabric.deleteDefinitionFile",
+          "when": "view == vscode-fabric.view.workspace && viewItem == definition-file && config.Fabric.EditItemDefinitions",
+          "group": "1@2"
+        },
+        {
+          "command": "vscode-fabric.deleteDefinitionFile",
+          "when": "view == vscode-fabric.view.workspace && viewItem == definition-folder && config.Fabric.EditItemDefinitions",
+          "group": "1@2"
         },
         {
           "command": "vscode-fabric.copyConnectionString",

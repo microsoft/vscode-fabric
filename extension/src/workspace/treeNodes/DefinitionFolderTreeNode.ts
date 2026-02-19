@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { FabricTreeNode } from '@microsoft/vscode-fabric-api';
+import { FabricTreeNode, IArtifact } from '@microsoft/vscode-fabric-api';
 
 /**
  * Represents a folder within an item definition in the workspace tree view.
@@ -14,11 +14,13 @@ export class DefinitionFolderTreeNode extends FabricTreeNode {
     /**
      * Creates a new instance of the DefinitionFolderTreeNode class
      * @param context - The VS Code extension context
+     * @param artifact - The artifact that owns this definition folder
      * @param folderName - The name of the folder
      * @param folderPath - The full path of the folder
      */
     constructor(
         context: vscode.ExtensionContext,
+        public readonly artifact: IArtifact,
         public readonly folderName: string,
         public readonly folderPath: string
     ) {

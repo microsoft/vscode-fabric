@@ -28,6 +28,8 @@
     "extension.filterWorkspaces.title":"Filter Workspaces...",
     "extension.clearWorkspaceFilter.title":"Clear Workspace Filter",
     "extension.editDefinitionFile.title":"Edit",
+    "extension.createDefinitionFile.title":"New File...",
+    "extension.deleteDefinitionFile.title":"Delete",
 
     "extension.submenu.importArtifact.title": "Publish",
 
