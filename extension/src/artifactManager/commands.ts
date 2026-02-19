@@ -485,6 +485,7 @@ function addCommonArtifactTelemetryProps(
         artifactId: item.id,
         fabricArtifactName: item.displayName,
         itemType: item.type,
+        folderId: item.folderId ?? 'root',
     });
 }
 

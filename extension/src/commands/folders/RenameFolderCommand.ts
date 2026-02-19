@@ -4,12 +4,12 @@
 import * as vscode from 'vscode';
 import { IApiClientResponse } from '@microsoft/vscode-fabric-api';
 import { FabricError, TelemetryActivity, UserCancelledError } from '@microsoft/vscode-fabric-util';
-import { FabricCommand } from '../commands/FabricCommand';
-import { IFabricCommandManager } from '../commands/IFabricCommandManager';
-import { CoreTelemetryEventNames } from '../TelemetryEventNames';
-import { commandNames } from '../constants';
-import { FolderTreeNode } from '../workspace/treeNodes/FolderTreeNode';
-import { formatErrorResponse } from '../utilities';
+import { FabricCommand } from '../FabricCommand';
+import { IFabricCommandManager } from '../IFabricCommandManager';
+import { CoreTelemetryEventNames } from '../../TelemetryEventNames';
+import { commandNames } from '../../constants';
+import { FolderTreeNode } from '../../workspace/treeNodes/FolderTreeNode';
+import { formatErrorResponse } from '../../utilities';
 
 /**
  * Command to rename a folder in a Fabric workspace
@@ -57,7 +57,7 @@ export class RenameFolderCommand extends FabricCommand<'folder/rename'> {
         }
 
         const trimmedName = newName.trim();
-        const response: IApiClientResponse = await this.commandManager.workspaceManager.renameFolder(
+        const response: IApiClientResponse = await this.commandManager.folderManager.renameFolder(
             folderTreeNode.workspaceId,
             folderTreeNode.folderId,
             trimmedName
@@ -70,7 +70,8 @@ export class RenameFolderCommand extends FabricCommand<'folder/rename'> {
         if (response.status === 200) {
             this.commandManager.dataProvider.refresh();
             void vscode.window.showInformationMessage(vscode.l10n.t('Renamed folder "{0}" to "{1}"', currentName, trimmedName));
-        } else {
+        }
+        else {
             telemetryActivity.addOrUpdateProperties({
                 'requestId': response.parsedBody?.requestId,
                 'errorCode': response.parsedBody?.errorCode,

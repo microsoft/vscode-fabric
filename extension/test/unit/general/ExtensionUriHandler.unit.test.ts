@@ -81,6 +81,7 @@ describe('ExtensionUriHandler', () => {
         const core: IFabricExtensionServiceCollection = {
             workspaceManager,
             artifactManager: {} as any,
+            folderManager: {} as any,
             apiClient: {} as any,
         };
         const infoSpy = overrides?.loggerInfoSpy ?? sandbox.spy();

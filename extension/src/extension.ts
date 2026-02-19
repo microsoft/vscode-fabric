@@ -8,7 +8,7 @@ import * as querystring from 'querystring';
 import { FeedbackTreeDataProvider } from './feedback/FeedbackTreeDataProvider';
 import { WorkspaceManager, WorkspaceManagerBase } from './workspace/WorkspaceManager';
 import { DefinitionVirtualDocumentContentProvider } from './workspace/DefinitionVirtualDocumentContentProvider';
-import { IFabricExtensionManager, Schema, IArtifactManager, IFabricApiClient, IFabricExtensionServiceCollection, IWorkspaceManager, FabricTreeNode } from '@microsoft/vscode-fabric-api';
+import { IFabricExtensionManager, Schema, IArtifactManager, IFabricApiClient, IFabricExtensionServiceCollection, IWorkspaceManager, IFolderManager, FabricTreeNode } from '@microsoft/vscode-fabric-api';
 import {
     TelemetryService,
     TelemetryActivity,
@@ -492,6 +492,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<LocalFolderManager>();
     container.registerSingleton<ILocalFolderService, LocalFolderService>();
     container.registerSingleton<IWorkspaceManager, WorkspaceManager>();
+    container.registerSingleton<IFolderManager>(() => container.get<IWorkspaceManager>() as unknown as IFolderManager);
     container.registerSingleton<IBase64Encoder, Base64Encoder>();
     container.registerSingleton<DefinitionFileSystemProvider>();
     container.registerSingleton<IRootTreeNodeProvider, RootTreeNodeProvider>();

@@ -4,12 +4,12 @@
 import * as vscode from 'vscode';
 import { IApiClientResponse } from '@microsoft/vscode-fabric-api';
 import { FabricError, TelemetryActivity, UserCancelledError } from '@microsoft/vscode-fabric-util';
-import { FabricCommand } from '../commands/FabricCommand';
-import { IFabricCommandManager } from '../commands/IFabricCommandManager';
-import { CoreTelemetryEventNames } from '../TelemetryEventNames';
-import { commandNames } from '../constants';
-import { FolderTreeNode } from '../workspace/treeNodes/FolderTreeNode';
-import { succeeded, formatErrorResponse } from '../utilities';
+import { FabricCommand } from '../FabricCommand';
+import { IFabricCommandManager } from '../IFabricCommandManager';
+import { CoreTelemetryEventNames } from '../../TelemetryEventNames';
+import { commandNames } from '../../constants';
+import { FolderTreeNode } from '../../workspace/treeNodes/FolderTreeNode';
+import { succeeded, formatErrorResponse } from '../../utilities';
 
 /**
  * Command to delete a folder from a Fabric workspace
@@ -42,21 +42,12 @@ export class DeleteFolderCommand extends FabricCommand<'folder/delete'> {
         // Check if folder has children
         if (folderTreeNode.hasChildren()) {
             void vscode.window.showWarningMessage(
-                vscode.l10n.t('Cannot delete folder "{0}" because it contains items. Please delete or move all items first.', folderName)
+                vscode.l10n.t('Cannot delete folder "{0}" because it contains items.', folderName)
             );
             throw new UserCancelledError('folderNotEmpty');
         }
 
-        // Confirm delete
-        const confirmMessage = vscode.l10n.t('Are you sure you want to delete the folder "{0}"?', folderName);
-        const deleteAction = vscode.l10n.t('Delete');
-        const result = await vscode.window.showWarningMessage(confirmMessage, { modal: true }, deleteAction);
-
-        if (result !== deleteAction) {
-            throw new UserCancelledError('deleteConfirmation');
-        }
-
-        const response: IApiClientResponse = await this.commandManager.workspaceManager.deleteFolder(
+        const response: IApiClientResponse = await this.commandManager.folderManager.deleteFolder(
             folderTreeNode.workspaceId,
             folderTreeNode.folderId
         );
@@ -79,7 +70,7 @@ export class DeleteFolderCommand extends FabricCommand<'folder/delete'> {
             const errorCode = response.parsedBody?.errorCode;
             if (errorCode === 'FolderNotEmpty') {
                 throw new FabricError(
-                    vscode.l10n.t('Cannot delete folder "{0}" because it contains items. Please delete or move all items first.', folderName),
+                    vscode.l10n.t('Cannot delete folder "{0}" because it contains items.', folderName),
                     errorCode,
                     { showInUserNotification: 'Information' }
                 );

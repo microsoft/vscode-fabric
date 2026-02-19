@@ -4,13 +4,13 @@
 import * as vscode from 'vscode';
 import { IApiClientResponse } from '@microsoft/vscode-fabric-api';
 import { FabricError, TelemetryActivity, UserCancelledError } from '@microsoft/vscode-fabric-util';
-import { FabricCommand } from '../commands/FabricCommand';
-import { IFabricCommandManager } from '../commands/IFabricCommandManager';
-import { CoreTelemetryEventNames } from '../TelemetryEventNames';
-import { commandNames } from '../constants';
-import { showSignInPrompt } from '../ui/prompts';
-import { FolderTreeNode } from '../workspace/treeNodes/FolderTreeNode';
-import { succeeded, formatErrorResponse } from '../utilities';
+import { FabricCommand } from '../FabricCommand';
+import { IFabricCommandManager } from '../IFabricCommandManager';
+import { CoreTelemetryEventNames } from '../../TelemetryEventNames';
+import { commandNames } from '../../constants';
+import { showSignInPrompt } from '../../ui/prompts';
+import { FolderTreeNode } from '../../workspace/treeNodes/FolderTreeNode';
+import { succeeded, formatErrorResponse } from '../../utilities';
 
 /**
  * Command to create a new folder in a Fabric workspace
@@ -76,7 +76,7 @@ export class CreateFolderCommand extends FabricCommand<'folder/create'> {
         }
 
         const trimmedName = folderName.trim();
-        const response: IApiClientResponse = await this.commandManager.workspaceManager.createFolder(
+        const response: IApiClientResponse = await this.commandManager.folderManager.createFolder(
             workspaceId,
             trimmedName,
             parentFolderId
@@ -94,7 +94,8 @@ export class CreateFolderCommand extends FabricCommand<'folder/create'> {
             }
             this.commandManager.dataProvider.refresh();
             void vscode.window.showInformationMessage(vscode.l10n.t('Created folder "{0}"', trimmedName));
-        } else {
+        }
+        else {
             telemetryActivity.addOrUpdateProperties({
                 'requestId': response.parsedBody?.requestId,
                 'errorCode': response.parsedBody?.errorCode,

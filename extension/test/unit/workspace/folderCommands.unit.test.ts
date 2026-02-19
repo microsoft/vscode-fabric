@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
-import { IApiClientResponse, IWorkspaceManager, IWorkspaceFolder } from '@microsoft/vscode-fabric-api';
+import { IApiClientResponse, IWorkspaceManager, IWorkspaceFolder, IFolderManager } from '@microsoft/vscode-fabric-api';
 import { TelemetryActivity, ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../../../src/TelemetryEventNames';
 import { FabricWorkspaceDataProvider } from '../../../src/workspace/treeView';
@@ -134,12 +134,12 @@ describe('FolderTreeNode', () => {
     });
 });
 
-describe('WorkspaceManager folder operations', () => {
-    let workspaceManagerMock: Mock<IWorkspaceManager>;
+describe('FolderManager folder operations', () => {
+    let folderManagerMock: Mock<IFolderManager>;
     let apiClientResponseMock: Mock<IApiClientResponse>;
 
     beforeEach(() => {
-        workspaceManagerMock = new Mock<IWorkspaceManager>();
+        folderManagerMock = new Mock<IFolderManager>();
         apiClientResponseMock = new Mock<IApiClientResponse>();
     });
 
@@ -153,16 +153,16 @@ describe('WorkspaceManager folder operations', () => {
             apiClientResponseMock.setup(r => r.status).returns(201);
             apiClientResponseMock.setup(r => r.parsedBody).returns({ id: 'new-folder-id' });
 
-            workspaceManagerMock.setup(wm => wm.createFolder('workspace-123', 'New Folder', undefined))
+            folderManagerMock.setup(fm => fm.createFolder('workspace-123', 'New Folder', undefined))
                 .returns(Promise.resolve(apiClientResponseMock.object()));
 
             // Act
-            const result = await workspaceManagerMock.object().createFolder('workspace-123', 'New Folder', undefined);
+            const result = await folderManagerMock.object().createFolder('workspace-123', 'New Folder', undefined);
 
             // Assert
             assert.strictEqual(result.status, 201);
-            workspaceManagerMock.verify(
-                wm => wm.createFolder('workspace-123', 'New Folder', undefined),
+            folderManagerMock.verify(
+                fm => fm.createFolder('workspace-123', 'New Folder', undefined),
                 Times.Once()
             );
         });
@@ -172,16 +172,16 @@ describe('WorkspaceManager folder operations', () => {
             apiClientResponseMock.setup(r => r.status).returns(201);
             apiClientResponseMock.setup(r => r.parsedBody).returns({ id: 'new-folder-id' });
 
-            workspaceManagerMock.setup(wm => wm.createFolder('workspace-123', 'Nested Folder', 'parent-folder-id'))
+            folderManagerMock.setup(fm => fm.createFolder('workspace-123', 'Nested Folder', 'parent-folder-id'))
                 .returns(Promise.resolve(apiClientResponseMock.object()));
 
             // Act
-            const result = await workspaceManagerMock.object().createFolder('workspace-123', 'Nested Folder', 'parent-folder-id');
+            const result = await folderManagerMock.object().createFolder('workspace-123', 'Nested Folder', 'parent-folder-id');
 
             // Assert
             assert.strictEqual(result.status, 201);
-            workspaceManagerMock.verify(
-                wm => wm.createFolder('workspace-123', 'Nested Folder', 'parent-folder-id'),
+            folderManagerMock.verify(
+                fm => fm.createFolder('workspace-123', 'Nested Folder', 'parent-folder-id'),
                 Times.Once()
             );
         });
@@ -192,16 +192,16 @@ describe('WorkspaceManager folder operations', () => {
             // Arrange
             apiClientResponseMock.setup(r => r.status).returns(200);
 
-            workspaceManagerMock.setup(wm => wm.deleteFolder('workspace-123', 'folder-id'))
+            folderManagerMock.setup(fm => fm.deleteFolder('workspace-123', 'folder-id'))
                 .returns(Promise.resolve(apiClientResponseMock.object()));
 
             // Act
-            const result = await workspaceManagerMock.object().deleteFolder('workspace-123', 'folder-id');
+            const result = await folderManagerMock.object().deleteFolder('workspace-123', 'folder-id');
 
             // Assert
             assert.strictEqual(result.status, 200);
-            workspaceManagerMock.verify(
-                wm => wm.deleteFolder('workspace-123', 'folder-id'),
+            folderManagerMock.verify(
+                fm => fm.deleteFolder('workspace-123', 'folder-id'),
                 Times.Once()
             );
         });
@@ -212,16 +212,16 @@ describe('WorkspaceManager folder operations', () => {
             // Arrange
             apiClientResponseMock.setup(r => r.status).returns(200);
 
-            workspaceManagerMock.setup(wm => wm.renameFolder('workspace-123', 'folder-id', 'Renamed Folder'))
+            folderManagerMock.setup(fm => fm.renameFolder('workspace-123', 'folder-id', 'Renamed Folder'))
                 .returns(Promise.resolve(apiClientResponseMock.object()));
 
             // Act
-            const result = await workspaceManagerMock.object().renameFolder('workspace-123', 'folder-id', 'Renamed Folder');
+            const result = await folderManagerMock.object().renameFolder('workspace-123', 'folder-id', 'Renamed Folder');
 
             // Assert
             assert.strictEqual(result.status, 200);
-            workspaceManagerMock.verify(
-                wm => wm.renameFolder('workspace-123', 'folder-id', 'Renamed Folder'),
+            folderManagerMock.verify(
+                fm => fm.renameFolder('workspace-123', 'folder-id', 'Renamed Folder'),
                 Times.Once()
             );
         });

@@ -437,7 +437,7 @@
         },
         {
           "command": "vscode-fabric.createFolder",
-          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceTreeNode",
+          "when": "view == vscode-fabric.view.workspace && viewItem == WorkspaceTreeNode && vscode-fabric.workspaceViewDisplayStyle != TreeView",
           "group": "1@2"
         },
         {

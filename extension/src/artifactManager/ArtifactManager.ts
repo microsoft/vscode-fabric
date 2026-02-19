@@ -212,6 +212,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
                 description: artifact.description,
                 type: artifact.type,
                 definition,
+                ...(artifact.folderId ? { folderId: artifact.folderId } : {}),
             },
         };
 

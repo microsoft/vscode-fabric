@@ -4,7 +4,7 @@
 /* eslint-disable security/detect-non-literal-fs-filename */
 
 import * as vscode from 'vscode';
-import { IArtifact, IWorkspace, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IWorkspaceManager, FabricTreeNode, ISourceControlInformation, IWorkspaceFolder } from '@microsoft/vscode-fabric-api';
+import { IArtifact, IWorkspace, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IWorkspaceManager, IFolderManager, FabricTreeNode, ISourceControlInformation, IWorkspaceFolder } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from './treeView';
 import { LocalFolderManager } from '../LocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
@@ -26,7 +26,7 @@ export class UnlicensedUserError extends Error {
 /**
  * Base class for managing the logged-in user's Fabric Workspace. Mock also inherits from this class. Put code common to both here
  */
-export abstract class WorkspaceManagerBase implements IWorkspaceManager {
+export abstract class WorkspaceManagerBase implements IWorkspaceManager, IFolderManager {
     protected disposables: vscode.Disposable[] = [];
     protected didInitializePriorState = false;
     public isProcessingAutoLogin = false;

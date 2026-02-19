@@ -5,9 +5,9 @@ import { Mock, It, Times } from 'moq.ts';
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
-import { RenameFolderCommand } from '../../../src/folders/RenameFolderCommand';
+import { RenameFolderCommand } from '../../../src/commands/folders/RenameFolderCommand';
 import { IFabricCommandManager } from '../../../src/commands/IFabricCommandManager';
-import { IWorkspaceFolder, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
+import { IWorkspaceFolder, IWorkspaceManager, IFolderManager } from '@microsoft/vscode-fabric-api';
 import { ILogger, TelemetryService, TelemetryActivity, UserCancelledError, FabricError } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../../../src/TelemetryEventNames';
 import { verifyAddOrUpdateProperties } from '../../utilities/moqUtilities';
@@ -20,6 +20,7 @@ describe('RenameFolderCommand', function () {
     let telemetryServiceMock: Mock<TelemetryService>;
     let telemetryActivityMock: Mock<TelemetryActivity<CoreTelemetryEventNames>>;
     let workspaceManagerMock: Mock<IWorkspaceManager>;
+    let folderManagerMock: Mock<IFolderManager>;
     let dataProviderMock: Mock<FabricWorkspaceDataProvider>;
     let command: RenameFolderCommand;
     let contextMock: Mock<vscode.ExtensionContext>;
@@ -39,6 +40,7 @@ describe('RenameFolderCommand', function () {
         telemetryServiceMock = new Mock<TelemetryService>();
         commandManagerMock = new Mock<IFabricCommandManager>();
         workspaceManagerMock = new Mock<IWorkspaceManager>();
+        folderManagerMock = new Mock<IFolderManager>();
         dataProviderMock = new Mock<FabricWorkspaceDataProvider>();
         telemetryActivityMock = new Mock<TelemetryActivity<CoreTelemetryEventNames>>();
 
@@ -51,6 +53,7 @@ describe('RenameFolderCommand', function () {
         commandManagerMock.setup(x => x.logger).returns(loggerMock.object());
         commandManagerMock.setup(x => x.telemetryService).returns(telemetryServiceMock.object());
         commandManagerMock.setup(x => x.workspaceManager).returns(workspaceManagerMock.object());
+        commandManagerMock.setup(x => x.folderManager).returns(folderManagerMock.object());
         commandManagerMock.setup(x => x.dataProvider).returns(dataProviderMock.object());
 
         // Setup data provider mock
@@ -80,7 +83,7 @@ describe('RenameFolderCommand', function () {
             await executeCommand(undefined);
 
             assert.ok(showErrorMessageStub.calledOnce, 'showErrorMessage should be called once');
-            workspaceManagerMock.verify(x => x.renameFolder(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
+            folderManagerMock.verify(x => x.renameFolder(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
         });
 
         it('should throw UserCancelledError when input is cancelled', async function () {
@@ -92,7 +95,7 @@ describe('RenameFolderCommand', function () {
                 (err: any) => err instanceof UserCancelledError
             );
 
-            workspaceManagerMock.verify(x => x.renameFolder(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
+            folderManagerMock.verify(x => x.renameFolder(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
         });
 
         it('should throw UserCancelledError when name is unchanged', async function () {
@@ -104,7 +107,7 @@ describe('RenameFolderCommand', function () {
                 (err: any) => err instanceof UserCancelledError
             );
 
-            workspaceManagerMock.verify(x => x.renameFolder(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
+            folderManagerMock.verify(x => x.renameFolder(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
         });
 
         it('should throw UserCancelledError when trimmed name is unchanged', async function () {
@@ -116,18 +119,18 @@ describe('RenameFolderCommand', function () {
                 (err: any) => err instanceof UserCancelledError
             );
 
-            workspaceManagerMock.verify(x => x.renameFolder(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
+            folderManagerMock.verify(x => x.renameFolder(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
         });
 
         it('should rename folder when new name is provided', async function () {
             const folderNode = createFolderNode();
             showInputBoxStub.resolves(newFolderName);
-            workspaceManagerMock.setup(x => x.renameFolder(workspaceId, folderId, newFolderName))
+            folderManagerMock.setup(x => x.renameFolder(workspaceId, folderId, newFolderName))
                 .returnsAsync({ status: 200 } as any);
 
             await executeCommand(folderNode);
 
-            workspaceManagerMock.verify(x => x.renameFolder(workspaceId, folderId, newFolderName), Times.Once());
+            folderManagerMock.verify(x => x.renameFolder(workspaceId, folderId, newFolderName), Times.Once());
             verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', workspaceId);
             verifyAddOrUpdateProperties(telemetryActivityMock, 'folderId', folderId);
             verifyAddOrUpdateProperties(telemetryActivityMock, 'statusCode', '200');
@@ -137,18 +140,18 @@ describe('RenameFolderCommand', function () {
         it('should trim the new folder name before renaming', async function () {
             const folderNode = createFolderNode();
             showInputBoxStub.resolves('  Trimmed Name  ');
-            workspaceManagerMock.setup(x => x.renameFolder(workspaceId, folderId, 'Trimmed Name'))
+            folderManagerMock.setup(x => x.renameFolder(workspaceId, folderId, 'Trimmed Name'))
                 .returnsAsync({ status: 200 } as any);
 
             await executeCommand(folderNode);
 
-            workspaceManagerMock.verify(x => x.renameFolder(workspaceId, folderId, 'Trimmed Name'), Times.Once());
+            folderManagerMock.verify(x => x.renameFolder(workspaceId, folderId, 'Trimmed Name'), Times.Once());
         });
 
         it('should throw FabricError when API call fails', async function () {
             const folderNode = createFolderNode();
             showInputBoxStub.resolves(newFolderName);
-            workspaceManagerMock.setup(x => x.renameFolder(workspaceId, folderId, newFolderName))
+            folderManagerMock.setup(x => x.renameFolder(workspaceId, folderId, newFolderName))
                 .returnsAsync({ status: 400, parsedBody: { errorCode: 'InvalidName' } } as any);
 
             await assert.rejects(
@@ -160,7 +163,7 @@ describe('RenameFolderCommand', function () {
         it('should add telemetry properties on failure', async function () {
             const folderNode = createFolderNode();
             showInputBoxStub.resolves(newFolderName);
-            workspaceManagerMock.setup(x => x.renameFolder(workspaceId, folderId, newFolderName))
+            folderManagerMock.setup(x => x.renameFolder(workspaceId, folderId, newFolderName))
                 .returnsAsync({
                     status: 400,
                     parsedBody: { errorCode: 'InvalidName', requestId: 'req-123' }

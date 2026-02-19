@@ -700,8 +700,9 @@ describe('registerArtifactCommands', () => {
             assert.strictEqual(capturedTelemetryProps.artifactId, specialCase ? undefined : 'test-artifact-id', 'artifactId should match');
             assert.strictEqual(capturedTelemetryProps.fabricArtifactName, 'TestArtifactDisplayName', 'fabricArtifactName should match');
             assert.strictEqual(capturedTelemetryProps.itemType, 'test-artifact-type', 'itemType should match');
+            assert.strictEqual(capturedTelemetryProps.folderId, 'root', 'folderId should match');
             assert.strictEqual(capturedTelemetryProps.result, 'Succeeded', 'result should match');
-            assert.strictEqual(Object.keys(capturedTelemetryProps).length, specialCase ? 6 : 7, 'Telemetry properties key count should match');
+            assert.strictEqual(Object.keys(capturedTelemetryProps).length, specialCase ? 7 : 8, 'Telemetry properties key count should match');
         }
     });
 

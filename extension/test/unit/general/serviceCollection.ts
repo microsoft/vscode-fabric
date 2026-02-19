@@ -8,6 +8,7 @@ import {
     IArtifact,
     IArtifactManager,
     IFabricExtensionServiceCollection,
+    IFolderManager,
     IOpenArtifactOptions,
     IWorkspace,
     IWorkspaceManager,
@@ -82,15 +83,6 @@ class MockWorkspaceManagerStub implements IWorkspaceManager {
     getFoldersInWorkspace(workspaceId: string): Promise<IWorkspaceFolder[]> {
         throw new Error('Method not implemented.');
     }
-    createFolder(workspaceId: string, folderName: string, parentFolderId?: string): Promise<IApiClientResponse> {
-        throw new Error('Method not implemented.');
-    }
-    deleteFolder(workspaceId: string, folderId: string): Promise<IApiClientResponse> {
-        throw new Error('Method not implemented.');
-    }
-    renameFolder(workspaceId: string, folderId: string, newDisplayName: string): Promise<IApiClientResponse> {
-        throw new Error('Method not implemented.');
-    }
 
     get onDidChangePropertyValue(): vscode.Event<string> {
         throw new Error('Method not implemented.');
@@ -107,6 +99,18 @@ class MockWorkspaceManagerStub implements IWorkspaceManager {
         throw new Error('Method not implemented.');
     }
     treeView: vscode.TreeView<FabricTreeNode> | undefined = undefined;
+}
+
+class MockFolderManagerStub implements IFolderManager {
+    createFolder(workspaceId: string, folderName: string, parentFolderId?: string): Promise<IApiClientResponse> {
+        throw new Error('Method not implemented.');
+    }
+    deleteFolder(workspaceId: string, folderId: string): Promise<IApiClientResponse> {
+        throw new Error('Method not implemented.');
+    }
+    renameFolder(workspaceId: string, folderId: string, newDisplayName: string): Promise<IApiClientResponse> {
+        throw new Error('Method not implemented.');
+    }
 }
 
 export class MockFabricEnvironmentProvider implements IFabricEnvironmentProvider {
@@ -176,6 +180,6 @@ export function initializeServiceCollection(
         apiClient = new Mock<IFabricApiClient>().object();
     }
 
-    const serviceCollection = new FabricExtensionServiceCollection(artifactManager, workspaceManager!, apiClient);
+    const serviceCollection = new FabricExtensionServiceCollection(artifactManager, workspaceManager!, new MockFolderManagerStub(), apiClient);
     return serviceCollection;
 }

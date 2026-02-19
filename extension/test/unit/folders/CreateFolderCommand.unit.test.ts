@@ -5,9 +5,9 @@ import { Mock, It, Times } from 'moq.ts';
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
-import { CreateFolderCommand } from '../../../src/folders/CreateFolderCommand';
+import { CreateFolderCommand } from '../../../src/commands/folders/CreateFolderCommand';
 import { IFabricCommandManager } from '../../../src/commands/IFabricCommandManager';
-import { IWorkspaceFolder, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
+import { IWorkspaceFolder, IWorkspaceManager, IFolderManager } from '@microsoft/vscode-fabric-api';
 import { ILogger, TelemetryService, TelemetryActivity, UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../../../src/TelemetryEventNames';
 import { verifyAddOrUpdateProperties } from '../../utilities/moqUtilities';
@@ -20,6 +20,7 @@ describe('CreateFolderCommand', function () {
     let telemetryServiceMock: Mock<TelemetryService>;
     let telemetryActivityMock: Mock<TelemetryActivity<CoreTelemetryEventNames>>;
     let workspaceManagerMock: Mock<IWorkspaceManager>;
+    let folderManagerMock: Mock<IFolderManager>;
     let dataProviderMock: Mock<FabricWorkspaceDataProvider>;
     let command: CreateFolderCommand;
     let contextMock: Mock<vscode.ExtensionContext>;
@@ -39,6 +40,7 @@ describe('CreateFolderCommand', function () {
         telemetryServiceMock = new Mock<TelemetryService>();
         commandManagerMock = new Mock<IFabricCommandManager>();
         workspaceManagerMock = new Mock<IWorkspaceManager>();
+        folderManagerMock = new Mock<IFolderManager>();
         dataProviderMock = new Mock<FabricWorkspaceDataProvider>();
         telemetryActivityMock = new Mock<TelemetryActivity<CoreTelemetryEventNames>>();
 
@@ -51,6 +53,7 @@ describe('CreateFolderCommand', function () {
         commandManagerMock.setup(x => x.logger).returns(loggerMock.object());
         commandManagerMock.setup(x => x.telemetryService).returns(telemetryServiceMock.object());
         commandManagerMock.setup(x => x.workspaceManager).returns(workspaceManagerMock.object());
+        commandManagerMock.setup(x => x.folderManager).returns(folderManagerMock.object());
         commandManagerMock.setup(x => x.dataProvider).returns(dataProviderMock.object());
 
         // Setup workspace manager mock - default to connected
@@ -84,7 +87,7 @@ describe('CreateFolderCommand', function () {
 
             await executeCommand(undefined);
 
-            workspaceManagerMock.verify(x => x.createFolder(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
+            folderManagerMock.verify(x => x.createFolder(It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
         });
 
         it('should show error when context node is undefined', async function () {
@@ -96,12 +99,12 @@ describe('CreateFolderCommand', function () {
         it('should create folder from workspace node context', async function () {
             const workspaceNode = createMockWorkspaceTreeNode(workspaceId);
             showInputBoxStub.resolves(folderName);
-            workspaceManagerMock.setup(x => x.createFolder(workspaceId, folderName, undefined))
+            folderManagerMock.setup(x => x.createFolder(workspaceId, folderName, undefined))
                 .returnsAsync({ status: 200, parsedBody: { id: folderId } } as any);
 
             await executeCommand(workspaceNode);
 
-            workspaceManagerMock.verify(x => x.createFolder(workspaceId, folderName, undefined), Times.Once());
+            folderManagerMock.verify(x => x.createFolder(workspaceId, folderName, undefined), Times.Once());
             verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', workspaceId);
             verifyAddOrUpdateProperties(telemetryActivityMock, 'parentFolderId', 'root');
             verifyAddOrUpdateProperties(telemetryActivityMock, 'folderId', folderId);
@@ -117,12 +120,12 @@ describe('CreateFolderCommand', function () {
             };
             const folderNode = new FolderTreeNode(contextMock.object(), folder);
             showInputBoxStub.resolves(folderName);
-            workspaceManagerMock.setup(x => x.createFolder(workspaceId, folderName, parentFolderId))
+            folderManagerMock.setup(x => x.createFolder(workspaceId, folderName, parentFolderId))
                 .returnsAsync({ status: 200, parsedBody: { id: folderId } } as any);
 
             await executeCommand(folderNode);
 
-            workspaceManagerMock.verify(x => x.createFolder(workspaceId, folderName, parentFolderId), Times.Once());
+            folderManagerMock.verify(x => x.createFolder(workspaceId, folderName, parentFolderId), Times.Once());
             verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', workspaceId);
             verifyAddOrUpdateProperties(telemetryActivityMock, 'parentFolderId', parentFolderId);
         });
@@ -150,7 +153,7 @@ describe('CreateFolderCommand', function () {
         it('should throw FabricError when API call fails', async function () {
             const workspaceNode = createMockWorkspaceTreeNode(workspaceId);
             showInputBoxStub.resolves(folderName);
-            workspaceManagerMock.setup(x => x.createFolder(workspaceId, folderName, undefined))
+            folderManagerMock.setup(x => x.createFolder(workspaceId, folderName, undefined))
                 .returnsAsync({ status: 400, parsedBody: { errorCode: 'InvalidName' } } as any);
 
             await assert.rejects(
@@ -162,12 +165,12 @@ describe('CreateFolderCommand', function () {
         it('should trim folder name before creating', async function () {
             const workspaceNode = createMockWorkspaceTreeNode(workspaceId);
             showInputBoxStub.resolves('  Trimmed Name  ');
-            workspaceManagerMock.setup(x => x.createFolder(workspaceId, 'Trimmed Name', undefined))
+            folderManagerMock.setup(x => x.createFolder(workspaceId, 'Trimmed Name', undefined))
                 .returnsAsync({ status: 200, parsedBody: { id: folderId } } as any);
 
             await executeCommand(workspaceNode);
 
-            workspaceManagerMock.verify(x => x.createFolder(workspaceId, 'Trimmed Name', undefined), Times.Once());
+            folderManagerMock.verify(x => x.createFolder(workspaceId, 'Trimmed Name', undefined), Times.Once());
         });
     });
 

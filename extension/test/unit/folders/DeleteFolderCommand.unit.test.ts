@@ -5,9 +5,9 @@ import { Mock, It, Times } from 'moq.ts';
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
-import { DeleteFolderCommand } from '../../../src/folders/DeleteFolderCommand';
+import { DeleteFolderCommand } from '../../../src/commands/folders/DeleteFolderCommand';
 import { IFabricCommandManager } from '../../../src/commands/IFabricCommandManager';
-import { IWorkspaceFolder, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
+import { IWorkspaceFolder, IWorkspaceManager, IFolderManager } from '@microsoft/vscode-fabric-api';
 import { ILogger, TelemetryService, TelemetryActivity, UserCancelledError, FabricError } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../../../src/TelemetryEventNames';
 import { verifyAddOrUpdateProperties } from '../../utilities/moqUtilities';
@@ -20,6 +20,7 @@ describe('DeleteFolderCommand', function () {
     let telemetryServiceMock: Mock<TelemetryService>;
     let telemetryActivityMock: Mock<TelemetryActivity<CoreTelemetryEventNames>>;
     let workspaceManagerMock: Mock<IWorkspaceManager>;
+    let folderManagerMock: Mock<IFolderManager>;
     let dataProviderMock: Mock<FabricWorkspaceDataProvider>;
     let command: DeleteFolderCommand;
     let contextMock: Mock<vscode.ExtensionContext>;
@@ -38,6 +39,7 @@ describe('DeleteFolderCommand', function () {
         telemetryServiceMock = new Mock<TelemetryService>();
         commandManagerMock = new Mock<IFabricCommandManager>();
         workspaceManagerMock = new Mock<IWorkspaceManager>();
+        folderManagerMock = new Mock<IFolderManager>();
         dataProviderMock = new Mock<FabricWorkspaceDataProvider>();
         telemetryActivityMock = new Mock<TelemetryActivity<CoreTelemetryEventNames>>();
 
@@ -50,6 +52,7 @@ describe('DeleteFolderCommand', function () {
         commandManagerMock.setup(x => x.logger).returns(loggerMock.object());
         commandManagerMock.setup(x => x.telemetryService).returns(telemetryServiceMock.object());
         commandManagerMock.setup(x => x.workspaceManager).returns(workspaceManagerMock.object());
+        commandManagerMock.setup(x => x.folderManager).returns(folderManagerMock.object());
         commandManagerMock.setup(x => x.dataProvider).returns(dataProviderMock.object());
 
         // Setup data provider mock
@@ -79,7 +82,7 @@ describe('DeleteFolderCommand', function () {
             await executeCommand(undefined);
 
             assert.ok(showErrorMessageStub.calledOnce, 'showErrorMessage should be called once');
-            workspaceManagerMock.verify(x => x.deleteFolder(It.IsAny(), It.IsAny()), Times.Never());
+            folderManagerMock.verify(x => x.deleteFolder(It.IsAny(), It.IsAny()), Times.Never());
         });
 
         it('should throw UserCancelledError when folder has children', async function () {
@@ -90,30 +93,17 @@ describe('DeleteFolderCommand', function () {
                 (err: any) => err instanceof UserCancelledError && err.stepName === 'folderNotEmpty'
             );
 
-            workspaceManagerMock.verify(x => x.deleteFolder(It.IsAny(), It.IsAny()), Times.Never());
-        });
-
-        it('should throw UserCancelledError when user cancels confirmation', async function () {
-            const folderNode = createEmptyFolderNode();
-            showWarningMessageStub.resolves(undefined); // User cancelled
-
-            await assert.rejects(
-                async () => await executeCommand(folderNode),
-                (err: any) => err instanceof UserCancelledError && err.stepName === 'deleteConfirmation'
-            );
-
-            workspaceManagerMock.verify(x => x.deleteFolder(It.IsAny(), It.IsAny()), Times.Never());
+            folderManagerMock.verify(x => x.deleteFolder(It.IsAny(), It.IsAny()), Times.Never());
         });
 
         it('should delete folder when user confirms', async function () {
             const folderNode = createEmptyFolderNode();
-            showWarningMessageStub.resolves('Delete'); // User confirmed
-            workspaceManagerMock.setup(x => x.deleteFolder(workspaceId, folderId))
+            folderManagerMock.setup(x => x.deleteFolder(workspaceId, folderId))
                 .returnsAsync({ status: 200 } as any);
 
             await executeCommand(folderNode);
 
-            workspaceManagerMock.verify(x => x.deleteFolder(workspaceId, folderId), Times.Once());
+            folderManagerMock.verify(x => x.deleteFolder(workspaceId, folderId), Times.Once());
             verifyAddOrUpdateProperties(telemetryActivityMock, 'workspaceId', workspaceId);
             verifyAddOrUpdateProperties(telemetryActivityMock, 'folderId', folderId);
             verifyAddOrUpdateProperties(telemetryActivityMock, 'statusCode', '200');
@@ -122,8 +112,7 @@ describe('DeleteFolderCommand', function () {
 
         it('should throw FabricError when API call fails', async function () {
             const folderNode = createEmptyFolderNode();
-            showWarningMessageStub.resolves('Delete');
-            workspaceManagerMock.setup(x => x.deleteFolder(workspaceId, folderId))
+            folderManagerMock.setup(x => x.deleteFolder(workspaceId, folderId))
                 .returnsAsync({ status: 400, parsedBody: { errorCode: 'SomeError' } } as any);
 
             await assert.rejects(
@@ -134,8 +123,7 @@ describe('DeleteFolderCommand', function () {
 
         it('should throw FabricError with special message when folder is not empty from API', async function () {
             const folderNode = createEmptyFolderNode();
-            showWarningMessageStub.resolves('Delete');
-            workspaceManagerMock.setup(x => x.deleteFolder(workspaceId, folderId))
+            folderManagerMock.setup(x => x.deleteFolder(workspaceId, folderId))
                 .returnsAsync({ status: 400, parsedBody: { errorCode: 'FolderNotEmpty' } } as any);
 
             await assert.rejects(
@@ -146,8 +134,7 @@ describe('DeleteFolderCommand', function () {
 
         it('should add telemetry properties on failure', async function () {
             const folderNode = createEmptyFolderNode();
-            showWarningMessageStub.resolves('Delete');
-            workspaceManagerMock.setup(x => x.deleteFolder(workspaceId, folderId))
+            folderManagerMock.setup(x => x.deleteFolder(workspaceId, folderId))
                 .returnsAsync({
                     status: 400,
                     parsedBody: { errorCode: 'SomeError', requestId: 'req-123' }
