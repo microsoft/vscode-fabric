@@ -9,6 +9,8 @@ import { FabricCommand } from './FabricCommand';
 import { IFabricCommandManager } from './IFabricCommandManager';
 import { commandNames } from '../constants';
 import { DefinitionFileTreeNode } from '../workspace/treeNodes/DefinitionFileTreeNode';
+import { DefinitionFileSystemProvider } from '../workspace/DefinitionFileSystemProvider';
+import { ReadonlyDefinitionFileSystemProvider } from '../workspace/ReadonlyDefinitionFileSystemProvider';
 
 /**
  * Command to open an item definition file in editable mode.
@@ -39,10 +41,10 @@ export class EditItemDefinitionCommand extends FabricCommand<'item/definition/ed
             editableUri = node.editableUri;
             fileName = node.fileName;
             artifact = node.artifact;
-        } else if (arg?.scheme === 'fabric-definition-virtual') {
+        } else if (arg?.scheme === ReadonlyDefinitionFileSystemProvider.scheme) {
             // Called from CodeLens - convert readonly URI to editable URI
             const readonlyUri = arg as vscode.Uri;
-            editableUri = readonlyUri.with({ scheme: 'fabric-definition' });
+            editableUri = readonlyUri.with({ scheme: DefinitionFileSystemProvider.scheme });
             fileName = readonlyUri.path.split('/').pop() ?? undefined;
         } else {
             this.commandManager.logger.error('editDefinitionFile called without valid argument');
@@ -69,7 +71,7 @@ export class EditItemDefinitionCommand extends FabricCommand<'item/definition/ed
         }
 
         // Close the readonly document if it's open
-        const readonlyUri = editableUri.with({ scheme: 'fabric-definition-virtual' });
+        const readonlyUri = editableUri.with({ scheme: ReadonlyDefinitionFileSystemProvider.scheme });
         const readonlyUriString = readonlyUri.toString();
         const readonlyDoc = vscode.workspace.textDocuments.find(doc => doc.uri.toString() === readonlyUriString);
         if (readonlyDoc) {

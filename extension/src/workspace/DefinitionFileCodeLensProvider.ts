@@ -3,6 +3,7 @@
 
 import * as vscode from 'vscode';
 import { commandNames } from '../constants';
+import { ReadonlyDefinitionFileSystemProvider } from './ReadonlyDefinitionFileSystemProvider';
 
 /**
  * Provides CodeLens for readonly definition files showing "Start editing" action
@@ -13,7 +14,7 @@ export class DefinitionFileCodeLensProvider implements vscode.CodeLensProvider {
 
     provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] | Thenable<vscode.CodeLens[]> {
         // Only show for readonly virtual definition files
-        if (document.uri.scheme !== 'fabric-definition-virtual') {
+        if (document.uri.scheme !== ReadonlyDefinitionFileSystemProvider.scheme) {
             return [];
         }
 

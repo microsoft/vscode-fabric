@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
+import { DefinitionFileSystemProvider } from './DefinitionFileSystemProvider';
 
 /**
  * Manages status bar notifications for definition files to warn users that changes sync to Fabric portal.
@@ -56,8 +57,8 @@ export class DefinitionFileEditorDecorator implements vscode.Disposable {
      * Checks if any fabric-definition editor is currently active
      */
     private hasActiveFabricDefinitionEditor(): boolean {
-        const hasTextEditor = vscode.window.activeTextEditor?.document.uri.scheme === 'fabric-definition';
-        const hasNotebookEditor = vscode.window.activeNotebookEditor?.notebook.uri.scheme === 'fabric-definition';
+        const hasTextEditor = vscode.window.activeTextEditor?.document.uri.scheme === DefinitionFileSystemProvider.scheme;
+        const hasNotebookEditor = vscode.window.activeNotebookEditor?.notebook.uri.scheme === DefinitionFileSystemProvider.scheme;
         return hasTextEditor || hasNotebookEditor;
     }
 
@@ -65,7 +66,7 @@ export class DefinitionFileEditorDecorator implements vscode.Disposable {
      * Updates the status bar visibility based on the active notebook editor
      */
     private updateStatusBarForNotebook(editor: vscode.NotebookEditor | undefined): void {
-        if (editor && editor.notebook.uri.scheme === 'fabric-definition') {
+        if (editor && editor.notebook.uri.scheme === DefinitionFileSystemProvider.scheme) {
             this.statusBarItem.show();
             this.showWarningIfNeeded(editor.notebook.uri);
         }
@@ -78,7 +79,7 @@ export class DefinitionFileEditorDecorator implements vscode.Disposable {
      * Updates the status bar visibility based on the active editor
      */
     private updateStatusBar(editor: vscode.TextEditor | undefined): void {
-        if (editor && editor.document.uri.scheme === 'fabric-definition') {
+        if (editor && editor.document.uri.scheme === DefinitionFileSystemProvider.scheme) {
             this.statusBarItem.show();
             this.showWarningIfNeeded(editor.document.uri);
         }
