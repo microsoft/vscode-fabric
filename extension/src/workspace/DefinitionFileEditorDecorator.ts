@@ -38,26 +38,38 @@ export class DefinitionFileEditorDecorator implements vscode.Disposable {
     }
 
     /**
+     * Shows warning message on first open of a file
+     */
+    private showWarningIfNeeded(uri: vscode.Uri): void {
+        const uriString = uri.toString();
+        if (!this.shownWarnings.has(uriString)) {
+            this.shownWarnings.add(uriString);
+            void vscode.window.showInformationMessage(
+                vscode.l10n.t('You are editing a remote definition file. Changes will be saved to the item in Microsoft Fabric portal.'),
+                { modal: true },
+                vscode.l10n.t('OK')
+            );
+        }
+    }
+
+    /**
+     * Checks if any fabric-definition editor is currently active
+     */
+    private hasActiveFabricDefinitionEditor(): boolean {
+        const hasTextEditor = vscode.window.activeTextEditor?.document.uri.scheme === 'fabric-definition';
+        const hasNotebookEditor = vscode.window.activeNotebookEditor?.notebook.uri.scheme === 'fabric-definition';
+        return hasTextEditor || hasNotebookEditor;
+    }
+
+    /**
      * Updates the status bar visibility based on the active notebook editor
      */
     private updateStatusBarForNotebook(editor: vscode.NotebookEditor | undefined): void {
         if (editor && editor.notebook.uri.scheme === 'fabric-definition') {
-            // Show status bar for editable definition notebooks
             this.statusBarItem.show();
-
-            // Show warning message on first open of this file
-            const uri = editor.notebook.uri.toString();
-            if (!this.shownWarnings.has(uri)) {
-                this.shownWarnings.add(uri);
-                void vscode.window.showInformationMessage(
-                    vscode.l10n.t('You are editing a remote definition file. Changes will be saved to the item in Microsoft Fabric portal.'),
-                    { modal: true },
-                    vscode.l10n.t('OK')
-                );
-            }
+            this.showWarningIfNeeded(editor.notebook.uri);
         }
-        else if (!vscode.window.activeTextEditor || vscode.window.activeTextEditor.document.uri.scheme !== 'fabric-definition') {
-            // Hide status bar if no fabric-definition editor is active
+        else if (!this.hasActiveFabricDefinitionEditor()) {
             this.statusBarItem.hide();
         }
     }
@@ -67,22 +79,10 @@ export class DefinitionFileEditorDecorator implements vscode.Disposable {
      */
     private updateStatusBar(editor: vscode.TextEditor | undefined): void {
         if (editor && editor.document.uri.scheme === 'fabric-definition') {
-            // Show status bar for editable definition files
             this.statusBarItem.show();
-
-            // Show warning message on first open of this file
-            const uri = editor.document.uri.toString();
-            if (!this.shownWarnings.has(uri)) {
-                this.shownWarnings.add(uri);
-                void vscode.window.showInformationMessage(
-                    vscode.l10n.t('You are editing a remote definition file. Changes will be saved to the item in Microsoft Fabric portal.'),
-                    { modal: true },
-                    vscode.l10n.t('OK')
-                );
-            }
+            this.showWarningIfNeeded(editor.document.uri);
         }
-        else if (!vscode.window.activeNotebookEditor || vscode.window.activeNotebookEditor.notebook.uri.scheme !== 'fabric-definition') {
-            // Hide status bar if no fabric-definition editor is active
+        else if (!this.hasActiveFabricDefinitionEditor()) {
             this.statusBarItem.hide();
         }
     }
