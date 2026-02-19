@@ -14,10 +14,6 @@
 
 ### Fixed
 - Fixed "Open in Fabric" navigation for Semantic Models, which was returning a 404 due to an incorrect portal path (`semanticmodels` → `datasets`).
-- Security updates: upgraded `lodash` to 4.17.23.
-- Security updates: upgraded `webpack` to 5.105.0.
-- Security updates: upgraded `@isaacs/brace-expansion` to 5.0.1.
-- Security updates: upgraded `qs` to 6.14.2.
 
 ## [0.37 (Pre-release)] 2026-01
 
