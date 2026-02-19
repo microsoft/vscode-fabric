@@ -78,9 +78,9 @@ export class EditItemDefinitionCommand extends FabricCommand<'item/definition/ed
         }
 
         // Open the file using the editable URI (fabric-definition://)
-        // This uses the DefinitionFileSystemProvider which supports editing
-        const doc = await vscode.workspace.openTextDocument(editableUri);
-        await vscode.window.showTextDocument(doc, { preview: false });
+        // Use vscode.open command to let VS Code choose the appropriate editor
+        // (notebook editor for .ipynb, text editor for other files)
+        await vscode.commands.executeCommand('vscode.open', editableUri);
 
         this.commandManager.logger.debug(`Opened definition file for editing: ${fileName || editableUri.toString()}`);
     }
