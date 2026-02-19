@@ -22,8 +22,8 @@ export class DefinitionFileCodeLensProvider implements vscode.CodeLensProvider {
         const codeLens = new vscode.CodeLens(topOfDocument);
         
         codeLens.command = {
-            title: '$(edit)  Start editing',
-            tooltip: 'Switch to editable mode to modify this file',
+            title: vscode.l10n.t('$(edit)  Start editing'),
+            tooltip: vscode.l10n.t('Enable editing for this remote file'),
             command: commandNames.editDefinitionFile,
             arguments: [document.uri]
         };
