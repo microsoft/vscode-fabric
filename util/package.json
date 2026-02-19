@@ -1,7 +1,7 @@
 {
   "name": "@microsoft/vscode-fabric-util",
   "author": "Microsoft Corporation",
-  "version": "0.37.0-preview",
+  "version": "0.38.0",
   "displayName": "Microsoft Fabric - Utilities for VS Code",
   "description": "Contains utilities for interacting with Microsoft Fabric and VS Code Fabric extensions",
   "tags": [
@@ -36,7 +36,7 @@
     "clean:all": "npm run clean && npm exec rimraf node_modules"
   },
   "dependencies": {
-    "@microsoft/vscode-fabric-api": "^0.37.0-preview",
+    "@microsoft/vscode-fabric-api": "^0.38.0",
     "@vscode/extension-telemetry": "^0.9.0"
   },
   "devDependencies": {}
