@@ -59,7 +59,7 @@ import { DefinitionFileEditorDecorator } from './workspace/DefinitionFileEditorD
 import { DefinitionFileSystemProvider } from './workspace/DefinitionFileSystemProvider';
 import { ReadonlyDefinitionFileSystemProvider } from './workspace/ReadonlyDefinitionFileSystemProvider';
 import { DefinitionFileCodeLensProvider } from './workspace/DefinitionFileCodeLensProvider';
-cimport { MockWorkspaceManager } from './workspace/mockWorkspaceManager';
+import { MockWorkspaceManager } from './workspace/mockWorkspaceManager';
 import { FabricWorkspaceDataProvider, RootTreeNodeProvider } from './workspace/treeView';
 import { ArtifactChildNodeProviderCollection, IArtifactChildNodeProviderCollection } from './workspace/treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
 import { IWorkspaceFilterManager, WorkspaceFilterManager } from './workspace/WorkspaceFilterManager';
@@ -217,12 +217,17 @@ export class FabricVsCodeExtension {
 
 
         // Register CodeLens provider for readonly definition files
+        const codeLensProvider = new DefinitionFileCodeLensProvider();
         context.subscriptions.push(
             vscode.languages.registerCodeLensProvider(
                 { scheme: ReadonlyDefinitionFileSystemProvider.scheme },
                 codeLensProvider
             )
         );
+        
+        // Definition file editor decorator
+        const editorDecorator = new DefinitionFileEditorDecorator();
+        context.subscriptions.push(editorDecorator);
     }
 
     /**
@@ -602,6 +607,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
 
     // Definition file system
     container.registerSingleton<DefinitionFileSystemProvider>();
+    container.registerSingleton<ReadonlyDefinitionFileSystemProvider>();
     container.registerSingleton<IBase64Encoder, Base64Encoder>();
     container.registerSingleton<vscode.FileSystem>(() => vscode.workspace.fs);
 
