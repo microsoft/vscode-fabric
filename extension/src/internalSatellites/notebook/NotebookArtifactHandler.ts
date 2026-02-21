@@ -37,7 +37,7 @@ export class NotebookArtifactHandler implements IArtifactHandler {
             //  - If folder exists with .ipynb or unknown -> request ipynb format
             //  - If both .py and .ipynb detected -> throw error (mixed formats not supported)
             let detectedFormat: NotebookFormat = 'unknown';
-            
+
             if (folder) {
                 try {
                     detectedFormat = await NotebookArtifactHandler.detectNotebookFormat(folder);

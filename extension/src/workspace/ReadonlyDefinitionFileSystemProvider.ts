@@ -6,7 +6,16 @@ import { DefinitionFileSystemProvider } from './DefinitionFileSystemProvider';
 
 /**
  * A readonly wrapper around DefinitionFileSystemProvider for the fabric-definition-virtual:// scheme.
- * This provider allows viewing definition files (including notebooks) but blocks write operations.
+ *
+ * Remote definition files are served through two URI schemes:
+ * - `fabric-definition://` - Editable. Registered with `isReadonly: false`. When active, the
+ *   `DefinitionFileEditorDecorator` shows a status bar warning and a one-time modal notification.
+ * - `fabric-definition-virtual://` - Readonly (this provider). Wraps the editable provider,
+ *   delegating read operations and rejecting writes with `NoPermissions`. A `CodeLensProvider`
+ *   registered against this scheme offers a "Start editing" action that switches to the editable URI.
+ *
+ * This must be a full `FileSystemProvider` rather than a `TextDocumentContentProvider` because
+ * VS Code's notebook editor requires a `FileSystemProvider` to open `.ipynb` files.
  */
 export class ReadonlyDefinitionFileSystemProvider implements vscode.FileSystemProvider {
     public static readonly scheme = 'fabric-definition-virtual';

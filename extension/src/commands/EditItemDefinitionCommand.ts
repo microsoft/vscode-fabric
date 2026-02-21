@@ -29,7 +29,7 @@ export class EditItemDefinitionCommand extends FabricCommand<'item/definition/ed
         ...args: any[]
     ): Promise<void> {
         const arg = args[0];
-        
+
         let editableUri: vscode.Uri | undefined;
         let fileName: string | undefined;
         let artifact: IArtifact | undefined;
@@ -41,12 +41,14 @@ export class EditItemDefinitionCommand extends FabricCommand<'item/definition/ed
             editableUri = node.editableUri;
             fileName = node.fileName;
             artifact = node.artifact;
-        } else if (arg?.scheme === ReadonlyDefinitionFileSystemProvider.scheme) {
+        }
+        else if (arg?.scheme === ReadonlyDefinitionFileSystemProvider.scheme) {
             // Called from CodeLens - convert readonly URI to editable URI
             const readonlyUri = arg as vscode.Uri;
             editableUri = readonlyUri.with({ scheme: DefinitionFileSystemProvider.scheme });
             fileName = readonlyUri.path.split('/').pop() ?? undefined;
-        } else {
+        }
+        else {
             this.commandManager.logger.error('editDefinitionFile called without valid argument');
             return;
         }
