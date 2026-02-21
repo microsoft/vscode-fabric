@@ -178,11 +178,11 @@ export class LocalProjectTreeNodeProvider implements ILocalProjectTreeNodeProvid
         const pathSegments = localPath.path.split('/');
         const lastSegment = pathSegments[pathSegments.length - 1] || '';
         const lastDotIndex = lastSegment.lastIndexOf('.');
-        
+
         if (lastDotIndex > 0) {
             const ext = lastSegment.substring(lastDotIndex + 1);
             const name = lastSegment.substring(0, lastDotIndex);
-            
+
             if (ext.toLowerCase() === this.artifactType.toLowerCase()) {
                 displayName = name;
             }

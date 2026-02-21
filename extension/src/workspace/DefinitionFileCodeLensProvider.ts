@@ -21,12 +21,12 @@ export class DefinitionFileCodeLensProvider implements vscode.CodeLensProvider {
         // Create a CodeLens at the top of the file
         const topOfDocument = new vscode.Range(0, 0, 0, 0);
         const codeLens = new vscode.CodeLens(topOfDocument);
-        
+
         codeLens.command = {
             title: vscode.l10n.t('$(edit)  Start editing'),
             tooltip: vscode.l10n.t('Enable editing for this remote file'),
             command: commandNames.editDefinitionFile,
-            arguments: [document.uri]
+            arguments: [document.uri],
         };
 
         return [codeLens];
