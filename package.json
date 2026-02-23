@@ -40,7 +40,7 @@
     "eslint": "^8.56.0",
     "eslint-plugin-security": "^2.1.0",
     "madge": "^8.0.0",
-    "minimatch": "^10.0.1",
+    "minimatch": "^10.2.1",
     "mocha-junit-reporter": "^2.2.1",
     "mocha-multi-reporters": "^1.5.1",
     "moq.ts": "^10.0.8",
