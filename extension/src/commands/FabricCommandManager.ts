@@ -3,13 +3,14 @@
 
 import * as vscode from 'vscode';
 import { ILogger, TelemetryService, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
-import { IWorkspaceManager } from '@microsoft/vscode-fabric-api';
+import { IWorkspaceManager, IFolderManager } from '@microsoft/vscode-fabric-api';
 import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
 import { ICapacityManager } from '../CapacityManager';
 import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 import { IFabricCommandManager, IFabricCommand } from './IFabricCommandManager';
 import { EditItemDefinitionCommand } from './EditItemDefinitionCommand';
+import { CreateFolderCommand, DeleteFolderCommand, RenameFolderCommand } from './folders';
 
 /**
  * Implementation of the Fabric command manager that handles command registration,
@@ -26,6 +27,7 @@ export class FabricCommandManager implements IFabricCommandManager {
         public readonly extensionContext: vscode.ExtensionContext,
         public readonly fabricEnvironmentProvider: IFabricEnvironmentProvider,
         public readonly workspaceManager: IWorkspaceManager,
+        public readonly folderManager: IFolderManager,
         public readonly artifactManager: IArtifactManagerInternal,
         public readonly capacityManager: ICapacityManager,
         public readonly dataProvider: FabricWorkspaceDataProvider,
@@ -80,6 +82,16 @@ export class FabricCommandManager implements IFabricCommandManager {
         // Definition file editing
         const editItemDefinitionCommand = new EditItemDefinitionCommand(this);
         this.registerCommand(editItemDefinitionCommand);
+
+        // Folder commands
+        const createFolderCommand = new CreateFolderCommand(this);
+        this.registerCommand(createFolderCommand);
+
+        const deleteFolderCommand = new DeleteFolderCommand(this);
+        this.registerCommand(deleteFolderCommand);
+
+        const renameFolderCommand = new RenameFolderCommand(this);
+        this.registerCommand(renameFolderCommand);
 
         // Example of how commands will be registered:
         // const createArtifactCommand = new CreateArtifactCommand(this);

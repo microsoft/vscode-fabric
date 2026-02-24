@@ -4,7 +4,7 @@
 /* eslint-disable security/detect-non-literal-fs-filename */
 
 import * as vscode from 'vscode';
-import { IArtifact, IWorkspace, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IWorkspaceManager, FabricTreeNode, ISourceControlInformation, IWorkspaceFolder } from '@microsoft/vscode-fabric-api';
+import { IArtifact, IWorkspace, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IWorkspaceManager, IFolderManager, FabricTreeNode, ISourceControlInformation, IWorkspaceFolder } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from './treeView';
 import { ILocalFolderManager } from '../ILocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
@@ -26,7 +26,7 @@ export class UnlicensedUserError extends Error {
 /**
  * Base class for managing the logged-in user's Fabric Workspace. Mock also inherits from this class. Put code common to both here
  */
-export abstract class WorkspaceManagerBase implements IWorkspaceManager {
+export abstract class WorkspaceManagerBase implements IWorkspaceManager, IFolderManager {
     protected disposables: vscode.Disposable[] = [];
     protected didInitializePriorState = false;
     public isProcessingAutoLogin = false;
@@ -425,6 +425,65 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager {
                 displayName: workspaceName,
                 capacityId: options?.capacityId,
                 description: options?.description,
+            },
+            headers: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'application/json',
+            },
+        };
+
+        return this.apiClient.sendRequest(req);
+    }
+
+    public async createFolder(workspaceId: string, folderName: string, parentFolderId?: string): Promise<IApiClientResponse> {
+        if (!(await this.isConnected())) {
+            throw new FabricError(vscode.l10n.t('Currently not connected to Fabric'), 'Currently not connected to Fabric');
+        }
+
+        const body: { displayName: string; parentFolderId?: string } = {
+            displayName: folderName,
+        };
+
+        if (parentFolderId) {
+            body.parentFolderId = parentFolderId;
+        }
+
+        const req: IApiClientRequestOptions = {
+            pathTemplate: `/v1/workspaces/${workspaceId}/folders`,
+            method: 'POST',
+            body,
+            headers: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'Content-Type': 'application/json',
+            },
+        };
+
+        return this.apiClient.sendRequest(req);
+    }
+
+    public async deleteFolder(workspaceId: string, folderId: string): Promise<IApiClientResponse> {
+        if (!(await this.isConnected())) {
+            throw new FabricError(vscode.l10n.t('Currently not connected to Fabric'), 'Currently not connected to Fabric');
+        }
+
+        const req: IApiClientRequestOptions = {
+            pathTemplate: `/v1/workspaces/${workspaceId}/folders/${folderId}`,
+            method: 'DELETE',
+        };
+
+        return this.apiClient.sendRequest(req);
+    }
+
+    public async renameFolder(workspaceId: string, folderId: string, newDisplayName: string): Promise<IApiClientResponse> {
+        if (!(await this.isConnected())) {
+            throw new FabricError(vscode.l10n.t('Currently not connected to Fabric'), 'Currently not connected to Fabric');
+        }
+
+        const req: IApiClientRequestOptions = {
+            pathTemplate: `/v1/workspaces/${workspaceId}/folders/${folderId}`,
+            method: 'PATCH',
+            body: {
+                displayName: newDisplayName,
             },
             headers: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
