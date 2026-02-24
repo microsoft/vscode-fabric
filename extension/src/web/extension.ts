@@ -14,6 +14,7 @@ import {
     IFabricApiClient,
     IFabricExtensionManager,
     IFabricExtensionServiceCollection,
+    IFolderManager,
     IWorkspaceManager,
 } from '@microsoft/vscode-fabric-api';
 import {
@@ -387,6 +388,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
 
     // Workspace and tree views
     container.registerSingleton<IWorkspaceManager, WorkspaceManager>();
+    container.registerSingleton<IFolderManager>(() => container.get<IWorkspaceManager>() as unknown as IFolderManager);
     container.registerSingleton<FabricWorkspaceDataProvider>();
     container.registerSingleton<IRootTreeNodeProvider, RootTreeNodeProvider>();
     container.registerSingleton<IWorkspaceFilterManager, WorkspaceFilterManager>();
