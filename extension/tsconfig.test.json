@@ -8,6 +8,7 @@
         "emitDeclarationOnly": false
     },
     "include": [
+        "src/global.d.ts",
         "test/**/*.ts"
     ],
     "exclude": [

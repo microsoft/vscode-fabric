@@ -1,9 +1,19 @@
 # Change Log
 
-## [0.37 (Pre-release)] 2026-01
+## [0.38] 2026-02-19
 
 ### Added
-- "Install extension" breadcrumb in local projects view 
+- "Install extension" breadcrumb in local projects view.
+- Prompt to install Fabric MCP server extension when GitHub Copilot Chat is detected, offering enhanced Fabric-aware Copilot functionality.
+- Item definition files are now viewable directly in the remote workspace tree view: each item exposes an "Item definition" node listing its definition files as read-only previews.
+- Item definition files can be directly edited via a virtual file system; saving automatically updates the item definition via the Fabric API. This feature is behind a Preview setting and is off by default.
+- Fabric agent mode added with Copilot instructions for assisting users with and without the Fabric MCP server installed.
+
+### Changed
+- Local folder view now shows folders by default (no longer requires enabling a Preview setting).
+
+### Fixed
+- Fixed "Open in Fabric" navigation for Semantic Models, which was returning a 404 due to an incorrect portal path (`semanticmodels` → `datasets`).
 
 ## [0.36] 2026-01-06
 

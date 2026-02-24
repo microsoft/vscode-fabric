@@ -6,6 +6,7 @@ import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
 import { registerArtifactCommands } from '../../../src/artifactManager/commands';
+import { registerArtifactExportCommands } from '../../../src/artifactManager/commands.export';
 import { commandNames } from '../../../src/constants';
 import { ArtifactTreeNode, IWorkspaceManager, IArtifact, IWorkspace } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from '../../../src/workspace/treeView';
@@ -17,6 +18,7 @@ import { ICapacityManager } from '../../../src/CapacityManager';
 import { IWorkspaceFilterManager } from '../../../src/workspace/WorkspaceFilterManager';
 import { ILocalFolderService } from '../../../src/LocalFolderService';
 import { IAccountProvider } from '../../../src/authentication';
+import { config } from 'process';
 
 describe('registerArtifactCommands', () => {
     let contextMock: Mock<vscode.ExtensionContext>;
@@ -712,12 +714,21 @@ describe('registerArtifactCommands', () => {
             workspaceManagerMock.object(),
             fabricEnvironmentProviderMock.object(),
             artifactManagerMock.object(),
-            localFolderServiceMock.object(),
-            configurationProviderMock.object(),
             dataProviderMock.object(),
             extensionManagerMock.object(),
             workspaceFilterManagerMock.object(),
             capacityManagerMock.object(),
+            telemetryServiceMock.object(),
+            loggerMock.object()
+        );
+
+        await registerArtifactExportCommands(
+            contextMock.object(),
+            workspaceManagerMock.object(),
+            fabricEnvironmentProviderMock.object(),
+            artifactManagerMock.object(),
+            localFolderServiceMock.object(),
+            configurationProviderMock.object(),
             accountProviderMock.object(),
             telemetryServiceMock.object(),
             loggerMock.object()

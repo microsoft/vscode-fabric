@@ -238,7 +238,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Author, host, and manage serverless user data functions optimized for Fabric.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Twórz i hostuj bezserwerowe funkcje danych użytkowników zoptymalizowane pod kątem sieci szkieletowej oraz zarządzaj nimi.]]></Val>
+            <Val><![CDATA[Twórz i hostuj bezserwerowe funkcje danych użytkownika zoptymalizowane pod kątem usługi Fabric oraz zarządzaj nimi.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -535,7 +535,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Data agents]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Agenty danych]]></Val>
+            <Val><![CDATA[Agenci danych]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
