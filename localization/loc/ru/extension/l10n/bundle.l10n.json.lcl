@@ -238,7 +238,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Author, host, and manage serverless user data functions optimized for Fabric.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Создавайте, размещайте и управляйте бессерверными функциями пользовательских данных, оптимизированными для Fabric.]]></Val>
+            <Val><![CDATA[Создавайте, размещайте и управляйте бессерверными пользовательскими функциями данных, оптимизированными для Fabric.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2245,7 +2245,7 @@
         <Str Cat="Text">
           <Val><![CDATA[User data functions]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Функции пользовательских данных]]></Val>
+            <Val><![CDATA[Пользовательские функции данных]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
