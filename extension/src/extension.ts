@@ -228,6 +228,9 @@ export class FabricVsCodeExtension {
         // Definition file editor decorator
         const editorDecorator = new DefinitionFileEditorDecorator();
         context.subscriptions.push(editorDecorator);
+
+        // Virtual document content provider for read-only artifact viewing
+        initFabricVirtualDocProvider(context);
     }
 
     /**
