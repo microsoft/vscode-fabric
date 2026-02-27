@@ -22,10 +22,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         displayNamePlural: vscode.l10n.t('Cosmos DB databases'),
         portalFolder: 'cosmosdbdatabases',
         extensionId: 'ms-azuretools.vscode-cosmosdb',
-        iconInformation: {
-            fileName: 'cosmosdb.svg',
-            isThemed: false,
-        },
+        iconInformation: { fileName: 'cosmosdb_64.svg', isThemed: true },
     },
     'Dashboard': {
         creationCapability: CreationCapability.unsupported,
