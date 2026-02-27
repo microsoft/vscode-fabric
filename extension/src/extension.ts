@@ -58,7 +58,8 @@ import { FabricApiClient, FakeFabricApiClient, MockApiClient } from './fabric';
 import { IRootTreeNodeProvider } from './workspace/definitions';
 import { DefinitionFileEditorDecorator } from './workspace/DefinitionFileEditorDecorator';
 import { DefinitionFileSystemProvider } from './workspace/DefinitionFileSystemProvider';
-import { DefinitionVirtualDocumentContentProvider } from './workspace/DefinitionVirtualDocumentContentProvider';
+import { ReadonlyDefinitionFileSystemProvider } from './workspace/ReadonlyDefinitionFileSystemProvider';
+import { DefinitionFileCodeLensProvider } from './workspace/DefinitionFileCodeLensProvider';
 import { MockWorkspaceManager } from './workspace/mockWorkspaceManager';
 import { FabricWorkspaceDataProvider, RootTreeNodeProvider } from './workspace/treeView';
 import { ArtifactChildNodeProviderCollection, IArtifactChildNodeProviderCollection } from './workspace/treeNodes/childNodeProviders/ArtifactChildNodeProviderCollection';
@@ -196,12 +197,9 @@ export class FabricVsCodeExtension {
      */
     private registerProviders(): void {
         const context = this.container.get<ExtensionContext>();
+
+        // Definition file system provider (editable)
         const definitionFileSystemProvider = this.container.get<DefinitionFileSystemProvider>();
-
-        // Virtual document provider
-        initFabricVirtualDocProvider(context);
-
-        // Definition file system provider
         context.subscriptions.push(
             vscode.workspace.registerFileSystemProvider(DefinitionFileSystemProvider.scheme, definitionFileSystemProvider, {
                 isCaseSensitive: true,
@@ -209,15 +207,31 @@ export class FabricVsCodeExtension {
             })
         );
 
-        // Read-only definition document provider
-        const readOnlyProvider = new DefinitionVirtualDocumentContentProvider(definitionFileSystemProvider);
+        // Definition file system provider (read-only)
+        const readonlyFileSystemProvider = this.container.get<ReadonlyDefinitionFileSystemProvider>();
         context.subscriptions.push(
-            vscode.workspace.registerTextDocumentContentProvider(DefinitionVirtualDocumentContentProvider.scheme, readOnlyProvider)
+            vscode.workspace.registerFileSystemProvider(ReadonlyDefinitionFileSystemProvider.scheme, readonlyFileSystemProvider, {
+                isCaseSensitive: true,
+                isReadonly: true,
+            })
         );
 
+
+        // Register CodeLens provider for readonly definition files
+        const codeLensProvider = new DefinitionFileCodeLensProvider();
+        context.subscriptions.push(
+            vscode.languages.registerCodeLensProvider(
+                { scheme: ReadonlyDefinitionFileSystemProvider.scheme },
+                codeLensProvider
+            )
+        );
+        
         // Definition file editor decorator
         const editorDecorator = new DefinitionFileEditorDecorator();
         context.subscriptions.push(editorDecorator);
+
+        // Virtual document content provider for read-only artifact viewing
+        initFabricVirtualDocProvider(context);
     }
 
     /**
@@ -598,6 +612,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
 
     // Definition file system
     container.registerSingleton<DefinitionFileSystemProvider>();
+    container.registerSingleton<ReadonlyDefinitionFileSystemProvider>();
     container.registerSingleton<IBase64Encoder, Base64Encoder>();
     container.registerSingleton<vscode.FileSystem>(() => vscode.workspace.fs);
 

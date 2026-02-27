@@ -177,19 +177,19 @@ export interface IGetArtifactDefinitionWorkflow {
     /**
      * Allows customization of the API request before it is sent to get the artifact definition
      * @param artifact The artifact whose definition is being retrieved
-     * @param folder The local folder where the definition will be stored
+     * @param folder The local folder where the definition will be stored (optional - undefined for remote view scenarios)
      * @param options The request options that can be modified
      * @returns Modified request options
      */
-    onBeforeGetDefinition?(artifact: IArtifact, folder: vscode.Uri, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions>;
+    onBeforeGetDefinition?(artifact: IArtifact, folder?: vscode.Uri, options?: IApiClientRequestOptions): Promise<IApiClientRequestOptions>;
 
     /**
      * Allows post-processing after the definition has been retrieved
      * @param artifact The artifact whose definition was retrieved
-     * @param folder The local folder where the definition was stored
+     * @param folder The local folder where the definition was stored (optional - undefined for remote view scenarios)
      * @param response The response from the API containing the definition
      */
-    onAfterGetDefinition?(artifact: IArtifact, folder: vscode.Uri, response: IApiClientResponse): Promise<void>;
+    onAfterGetDefinition?(artifact: IArtifact, folder?: vscode.Uri, response?: IApiClientResponse): Promise<void>;
 }
 
 /**
@@ -203,29 +203,29 @@ export interface IUpdateArtifactDefinitionWorkflow {
      * Provides a means to stipulate which files should be included in the update.
      *
      * @param artifact The artifact whose definition is being updated
-     * @param folder The local folder containing the artifact
+     * @param folder The local folder containing the artifact (optional)
      * @returns An array of file paths (relative to the folder) to include in the update, or undefined if the update should be canceled
      */
-    prepareForUpdateWithDefinition?(artifact: IArtifact, folder: vscode.Uri): Promise<string[] | undefined>;
+    prepareForUpdateWithDefinition?(artifact: IArtifact, folder?: vscode.Uri): Promise<string[] | undefined>;
 
     /**
      * Allows customization of the API request before it is sent to update the definition
      * @param artifact The artifact whose definition is being updated
      * @param definition The definition to be updated
-     * @param folder The local folder containing the artifact
+     * @param folder The local folder containing the artifact (optional)
      * @param options The request options that can be modified
      * @returns Modified request options
      */
-    onBeforeUpdateDefinition?(artifact: IArtifact, definition: IItemDefinition, folder: vscode.Uri, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions>;
+    onBeforeUpdateDefinition?(artifact: IArtifact, definition: IItemDefinition, folder?: vscode.Uri, options?: IApiClientRequestOptions): Promise<IApiClientRequestOptions>;
 
     /**
      * Allows post-processing after the definition has been updated
      * @param artifact The artifact whose definition was updated
      * @param definition The definition that was updated
-     * @param folder The local folder containing the artifact
+     * @param folder The local folder containing the artifact (optional)
      * @param response The response from the API
      */
-    onAfterUpdateDefinition?(artifact: IArtifact, definition: IItemDefinition, folder: vscode.Uri, response: IApiClientResponse): Promise<void>;
+    onAfterUpdateDefinition?(artifact: IArtifact, definition: IItemDefinition, folder?: vscode.Uri, response?: IApiClientResponse): Promise<void>;
 }
 
 /**
@@ -239,29 +239,29 @@ export interface ICreateArtifactWithDefinitionWorkflow {
      * Provides a means to stipulate which files should be included in the creation.
      *
      * @param artifact The artifact whose definition is being created
-     * @param folder The local folder containing the artifact
+     * @param folder The local folder containing the artifact (optional)
      * @returns An array of file paths (relative to the folder) to include in the creation, or undefined if the creation should be canceled
      */
-    prepareForCreateWithDefinition?(artifact: IArtifact, folder: vscode.Uri): Promise<string[] | undefined>;
+    prepareForCreateWithDefinition?(artifact: IArtifact, folder?: vscode.Uri): Promise<string[] | undefined>;
 
     /**
      * Allows customization of the API request before it is sent to create the artifact with its definition
      * @param artifact The artifact being created
      * @param definition The initial definition for the artifact
-     * @param folder The local folder containing (or to contain) the artifact
+     * @param folder The local folder containing (or to contain) the artifact (optional)
      * @param options The request options that can be modified
      * @returns Modified request options
      */
-    onBeforeCreateWithDefinition?(artifact: IArtifact, definition: IItemDefinition, folder: vscode.Uri, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions>;
+    onBeforeCreateWithDefinition?(artifact: IArtifact, definition: IItemDefinition, folder?: vscode.Uri, options?: IApiClientRequestOptions): Promise<IApiClientRequestOptions>;
 
     /**
      * Allows post-processing after the artifact with definition has been created
      * @param artifact The artifact that was created
      * @param definition The definition that was created with the artifact
-     * @param folder The local folder containing the artifact
+     * @param folder The local folder containing the artifact (optional)
      * @param response The response from the API
      */
-    onAfterCreateWithDefinition?(artifact: IArtifact, definition: IItemDefinition, folder: vscode.Uri, response: IApiClientResponse): Promise<void>;
+    onAfterCreateWithDefinition?(artifact: IArtifact, definition: IItemDefinition, folder?: vscode.Uri, response?: IApiClientResponse): Promise<void>;
 }
 
 /**

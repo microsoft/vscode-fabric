@@ -79,9 +79,13 @@ export class ReportArtifactHandler implements IArtifactHandler {
         onBeforeUpdateDefinition: async (
             artifact: IArtifact,
             definition: IItemDefinition,
-            _folder: vscode.Uri,
-            options: IApiClientRequestOptions
+            _folder?: vscode.Uri,
+            options?: IApiClientRequestOptions
         ): Promise<IApiClientRequestOptions> => {
+            // Options is always provided by core, but signature is optional for backward compatibility
+            if (!options) {
+                throw new Error('options parameter is required');
+            }
             await this.ensureSemanticModelBinding(artifact, definition, 'updateDefinitionWorkflow');
             return options;
         },
@@ -91,9 +95,13 @@ export class ReportArtifactHandler implements IArtifactHandler {
         onBeforeCreateWithDefinition: async (
             artifact: IArtifact,
             definition: IItemDefinition,
-            _folder: vscode.Uri,
-            options: IApiClientRequestOptions
+            _folder?: vscode.Uri,
+            options?: IApiClientRequestOptions
         ): Promise<IApiClientRequestOptions> => {
+            // Options is always provided by core, but signature is optional for backward compatibility
+            if (!options) {
+                throw new Error('options parameter is required');
+            }
             await this.ensureSemanticModelBinding(artifact, definition, 'createWithDefinitionWorkflow');
             return options;
         },
