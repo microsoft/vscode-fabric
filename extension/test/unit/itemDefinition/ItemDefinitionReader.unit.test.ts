@@ -237,4 +237,45 @@ describe('ItemDefinitionReader', () => {
             /directory traversal/
         );
     });
+
+    it('includes file name in error message when file read fails', async () => {
+        const files = ['good.txt', 'problematic.abf'];
+        fileSystemMock
+            .setup(fs => fs.readFile(It.Is<vscode.Uri>(v => v.fsPath.endsWith('good.txt'))))
+            .returns(Promise.resolve(new Uint8Array([1, 2, 3])));
+        fileSystemMock
+            .setup(fs => fs.readFile(It.Is<vscode.Uri>(v => v.fsPath.endsWith('problematic.abf'))))
+            .throws(new Error('Cannot create a string longer than 0x1fffffe8 characters'));
+        encoderMock
+            .setup(e => e.encode(It.IsAny()))
+            .returns('encoded');
+
+        await assert.rejects(
+            () => reader.read(rootUri, files),
+            (error: Error) => {
+                assert.ok(error.message.includes('problematic.abf'), 'Error should include the problematic file name');
+                assert.ok(error.message.includes('Cannot create a string longer than'), 'Error should include the original error message');
+                return true;
+            }
+        );
+    });
+
+    it('includes file name in error message when encoding fails', async () => {
+        const files = ['large-file.bin'];
+        fileSystemMock
+            .setup(fs => fs.readFile(It.IsAny()))
+            .returns(Promise.resolve(new Uint8Array([1, 2, 3])));
+        encoderMock
+            .setup(e => e.encode(It.IsAny()))
+            .throws(new Error('String length exceeded'));
+
+        await assert.rejects(
+            () => reader.read(rootUri, files),
+            (error: Error) => {
+                assert.ok(error.message.includes('large-file.bin'), 'Error should include the file name');
+                assert.ok(error.message.includes('String length exceeded'), 'Error should include the encoding error');
+                return true;
+            }
+        );
+    });
 });
