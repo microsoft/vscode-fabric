@@ -18,6 +18,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";$(edit)  Start editing" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[$(edit)  Start editing]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[$(edit)  Comece a editar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";$(organization) Choose from another Workspace..." ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[$(organization) Choose from another Workspace...]]></Val>
@@ -666,6 +675,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Don't Ask Again" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Don't Ask Again]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Não perguntar novamente]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Download" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Download]]></Val>
@@ -689,6 +707,24 @@
           <Val><![CDATA[Editing definition files is disabled. Enable the "Fabric.EditItemDefinitions" setting to edit.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[A edição de arquivos de definição está desabilitada. Habilite a configuração “Fabric.EditItemDefinitions” para editar.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Enable editing for this remote file" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable editing for this remote file]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Habilitar edição para este arquivo remoto]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Enhance your Fabric Copilot experience by installing the Fabric MCP Server extension." ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enhance your Fabric Copilot experience by installing the Fabric MCP Server extension.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aprimore sua experiência com o Fabric Copilot instalando a extensão do Servidor MCP do Fabric.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1134,6 +1170,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Install" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Install]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Instalar]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Install extension to enable additional features..." ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Install extension to enable additional features...]]></Val>
@@ -1454,6 +1499,15 @@
           <Val><![CDATA[No workspaces found to filter.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nenhum workspace encontrado para filtrar.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Not Now" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Not Now]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Agora não]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

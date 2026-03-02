@@ -18,6 +18,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";$(edit)  Start editing" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[$(edit)  Start editing]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[$(edit)  Szerkesztés megkezdése]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";$(organization) Choose from another Workspace..." ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[$(organization) Choose from another Workspace...]]></Val>
@@ -238,7 +247,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Author, host, and manage serverless user data functions optimized for Fabric.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[A Fabricre optimalizált, kiszolgáló nélküli felhasználóiadat-függvényeket hozhat létre, üzemeltethet és kezelhet.]]></Val>
+            <Val><![CDATA[A Fabricre optimalizált, kiszolgáló nélküli felhasználói adatfüggvényeket hozhat létre, üzemeltethet és kezelhet.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -666,6 +675,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Don't Ask Again" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Don't Ask Again]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ne kérdezzen rá újra]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Download" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Download]]></Val>
@@ -689,6 +707,24 @@
           <Val><![CDATA[Editing definition files is disabled. Enable the "Fabric.EditItemDefinitions" setting to edit.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[A definíciós fájlok szerkesztése le van tiltva. Engedélyezze a „Fabric.EditItemDefinitions” beállítást a szerkesztéshez.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Enable editing for this remote file" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable editing for this remote file]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[A távoli fájl szerkesztésének engedélyezése]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Enhance your Fabric Copilot experience by installing the Fabric MCP Server extension." ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enhance your Fabric Copilot experience by installing the Fabric MCP Server extension.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[A Fabric MCP Server bővítmény telepítésével javíthatja a Fabric Copilot-élményt.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1134,6 +1170,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Install" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Install]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Telepítés]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Install extension to enable additional features..." ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Install extension to enable additional features...]]></Val>
@@ -1454,6 +1499,15 @@
           <Val><![CDATA[No workspaces found to filter.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nem találhatók szűrhető munkaterületek.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Not Now" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Not Now]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Most nem]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
