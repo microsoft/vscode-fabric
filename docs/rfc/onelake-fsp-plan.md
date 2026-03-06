@@ -104,9 +104,15 @@ context.subscriptions.push(
 **Location**: `extension/src/artifactManager/LocalFolderService.ts` (likely)
 
 The `ILocalFolderService.getLocalFolder()` method currently shows a native folder picker. For web:
-- Instead of a folder picker, prompt the user to select/configure a Lakehouse
+- Do not show a folder picker - destination is deterministic from configured OneLake storage + artifact metadata
 - Return an `onelake://` URI instead of a `file://` URI
 - The rest of the export flow (download, write, open) works unchanged
+
+Web UX differences for PoC:
+- User is prompted to choose **Open in current window** or **Open in new window** after download
+- **Do nothing** is not offered in web flow
+- User is not asked to remember folder location
+- **Change local folder** is not available in web flow
 
 ### Step 5: Configuration
 
@@ -120,6 +126,24 @@ Add a setting for the target Lakehouse (PoC approach):
 ```
 
 Later this could auto-detect the first Lakehouse in the user's workspace or provide a picker UI.
+
+### Step 5a: Deterministic OneLake Destination Path (PoC)
+
+To support multiple artifacts safely, keep storage identity and source artifact identity distinct:
+
+- Storage identity (from config): `{storageWorkspaceId}`, `{storageLakehouseId}`
+- Source identity (from artifact): `{sourceWorkspaceId}`, `{artifactType}`, `{artifactId}`
+
+URI pattern for export target folder:
+
+```text
+onelake:///{storageWorkspaceId}/{storageLakehouseId}/fabric-definitions/{sourceWorkspaceId}/{artifactType}/{artifactId}/{displayName}.{artifactType}
+```
+
+Notes:
+- `displayName.{artifactType}` is kept as the visible leaf folder to stay consistent with local-folder naming
+- Unique identity does not depend on display name; identity is encoded by source workspace + type + artifact ID in parent path
+- This avoids collisions and supports multi-artifact PoC storage in a single configured Lakehouse
 
 ### Step 6: Tests
 
@@ -178,6 +202,9 @@ Use this as the execution checklist for a minimal proof-of-concept.
 - [ ] Register `onelake` provider during extension activation
 - [ ] Add minimal config for PoC target (`workspaceId`, `lakehouseId`) and use a fixed/default OneLake DFS endpoint
 - [ ] Update web local-folder path to return `onelake://` URI from config
+- [ ] Use deterministic destination path: `fabric-definitions/{sourceWorkspaceId}/{artifactType}/{artifactId}/{displayName}.{artifactType}`
+- [ ] In web flow, offer only: Open in current window / Open in new window (no Do nothing)
+- [ ] In web flow, skip remember-location prompt and disable Change local folder
 - [ ] Keep existing export/import orchestration unchanged; route through `vscode.workspace.fs`
 - [ ] Manual smoke test only: export -> edit -> import using `onelake://`
 
