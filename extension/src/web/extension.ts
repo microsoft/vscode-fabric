@@ -79,6 +79,8 @@ import { InternalSatelliteManager } from '../internalSatellites/InternalSatellit
 import { Base64Encoder, IBase64Encoder } from '../itemDefinition/ItemDefinitionReader';
 import { ILocalFolderService, LocalFolderService } from '../LocalFolderService';
 import { FabricExtensionServiceCollection } from '../FabricExtensionServiceCollection';
+import { OneLakeDfsClient } from '../onelake/OneLakeDfsClient';
+import { OneLakeFileSystemProvider } from '../onelake/OneLakeFileSystemProvider';
 
 // Web-specific implementations
 import { WebGitOperator } from './WebGitOperator';
@@ -191,6 +193,15 @@ export class FabricVsCodeWebExtension {
             vscode.workspace.registerFileSystemProvider(ReadonlyDefinitionFileSystemProvider.scheme, readonlyFileSystemProvider, {
                 isCaseSensitive: true,
                 isReadonly: true,
+            })
+        );
+
+        // OneLake file system provider
+        const oneLakeFileSystemProvider = this.container.get<OneLakeFileSystemProvider>();
+        context.subscriptions.push(
+            vscode.workspace.registerFileSystemProvider(OneLakeFileSystemProvider.scheme, oneLakeFileSystemProvider, {
+                isCaseSensitive: true,
+                isReadonly: false,
             })
         );
 
@@ -414,6 +425,8 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     // Definition file system
     container.registerSingleton<DefinitionFileSystemProvider>();
     container.registerSingleton<ReadonlyDefinitionFileSystemProvider>();
+    container.registerSingleton<OneLakeDfsClient>();
+    container.registerSingleton<OneLakeFileSystemProvider>();
     container.registerSingleton<IBase64Encoder, Base64Encoder>();
     container.registerSingleton<vscode.FileSystem>(() => vscode.workspace.fs);
 
