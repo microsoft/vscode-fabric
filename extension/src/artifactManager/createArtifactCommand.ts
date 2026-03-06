@@ -98,6 +98,31 @@ export async function promptForArtifactTypeAndName(
         prompt: vscode.l10n.t('Enter name'),
         value: '',
         title: vscode.l10n.t('New {0}', selectedArtifactType.label),
+        validateInput: async (value: string): Promise<string | undefined> => {
+            const trimmedValue = value.trim();
+            if (!trimmedValue) {
+                return vscode.l10n.t('Name is required.');
+            }
+
+            try {
+                const workspaceItems = await workspaceManager.getItemsInWorkspace(selectedWorkspace.objectId);
+                const hasMatchingName = workspaceItems.some((item) => item.displayName?.localeCompare(trimmedValue, undefined, { sensitivity: 'accent' }) === 0);
+
+                if (hasMatchingName) {
+                    return vscode.l10n.t('An item named "{0}" already exists in this workspace.', trimmedValue);
+                }
+
+                return undefined;
+            }
+            catch (error) {
+                const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
+                if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+                    return vscode.l10n.t('Unable to validate name because the workspace was not found.');
+                }
+
+                return vscode.l10n.t('Unable to validate name right now. Please try again.');
+            }
+        },
     });
 
     if (!artifactName || !artifactName.trim()) {

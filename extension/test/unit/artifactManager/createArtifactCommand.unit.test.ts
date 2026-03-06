@@ -43,6 +43,7 @@ describe('promptForArtifactParameters', function () {
         // Mock workspace selection
         const testWorkspace = { objectId: 'test-workspace-id', displayName: 'TestWorkspaceDisplayName' } as any;
         showWorkspaceQuickPickStub = sinon.stub(showWorkspaceQuickPickModule, 'showWorkspaceQuickPick').returns(Promise.resolve(testWorkspace));
+        workspaceManagerMock.setup(x => x.getItemsInWorkspace(testWorkspace.objectId)).returns(Promise.resolve([]));
 
         // Stub VS Code window methods
         showQuickPickStub = sinon.stub(vscode.window, 'showQuickPick');
@@ -122,6 +123,56 @@ describe('promptForArtifactParameters', function () {
         itemsProviderMock.setup(x => x.getItemsForCreate(It.IsAny())).returns([itemDetails]);
         showQuickPickStub.resolves({ details: itemDetails, label: 'Notebook' });
         showInputBoxStub.resolves(undefined);
+
+        // Act
+        const result = await act();
+
+        // Assert
+        assert(!result, 'Result should be undefined');
+    });
+
+    it('Blocks duplicate artifact names during input validation', async function () {
+        // Arrange
+        const itemDetails: ItemCreationDetails = {
+            type: 'Notebook',
+            displayName: 'Notebook',
+            description: 'Create a new Notebook',
+            creationCapability: CreationCapability.supported,
+        };
+        itemsProviderMock.setup(x => x.getItemsForCreate(It.IsAny())).returns([itemDetails]);
+        workspaceManagerMock.setup(x => x.getItemsInWorkspace('test-workspace-id')).returns(Promise.resolve([
+            { displayName: 'ExistingItem' } as IArtifact,
+        ]));
+        showInputBoxStub.callsFake(async (options: vscode.InputBoxOptions) => {
+            assert(options.validateInput, 'validateInput should be provided');
+            const validationResult = await options.validateInput!('ExistingItem');
+            assert.strictEqual(validationResult, 'An item named "ExistingItem" already exists in this workspace.');
+            return undefined;
+        });
+
+        // Act
+        const result = await act();
+
+        // Assert
+        assert(!result, 'Result should be undefined');
+    });
+
+    it('Shows user-friendly validation message when name lookup fails', async function () {
+        // Arrange
+        const itemDetails: ItemCreationDetails = {
+            type: 'Notebook',
+            displayName: 'Notebook',
+            description: 'Create a new Notebook',
+            creationCapability: CreationCapability.supported,
+        };
+        itemsProviderMock.setup(x => x.getItemsForCreate(It.IsAny())).returns([itemDetails]);
+        workspaceManagerMock.setup(x => x.getItemsInWorkspace('test-workspace-id')).returns(Promise.reject(new Error('404 not found')));
+        showInputBoxStub.callsFake(async (options: vscode.InputBoxOptions) => {
+            assert(options.validateInput, 'validateInput should be provided');
+            const validationResult = await options.validateInput!('NewItem');
+            assert.strictEqual(validationResult, 'Unable to validate name because the workspace was not found.');
+            return undefined;
+        });
 
         // Act
         const result = await act();
