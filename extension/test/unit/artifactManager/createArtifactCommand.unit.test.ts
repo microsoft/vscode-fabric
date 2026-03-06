@@ -19,6 +19,7 @@ import * as showWorkspaceQuickPickModule from '../../../src/ui/showWorkspaceQuic
 import { IWorkspaceFilterManager } from '../../../src/workspace/WorkspaceFilterManager';
 
 describe('promptForArtifactParameters', function () {
+    const TEST_WORKSPACE_ID = 'test-workspace-id';
     let contextMock: Mock<vscode.ExtensionContext>;
     let itemsProviderMock: Mock<ICreateItemsProvider>;
     let workspaceManagerMock: Mock<IWorkspaceManager>;
@@ -41,7 +42,7 @@ describe('promptForArtifactParameters', function () {
         loggerMock = new Mock<ILogger>();
 
         // Mock workspace selection
-        const testWorkspace = { objectId: 'test-workspace-id', displayName: 'TestWorkspaceDisplayName' } as any;
+        const testWorkspace = { objectId: TEST_WORKSPACE_ID, displayName: 'TestWorkspaceDisplayName' } as any;
         showWorkspaceQuickPickStub = sinon.stub(showWorkspaceQuickPickModule, 'showWorkspaceQuickPick').returns(Promise.resolve(testWorkspace));
         workspaceManagerMock.setup(x => x.getItemsInWorkspace(testWorkspace.objectId)).returns(Promise.resolve([]));
 
@@ -140,13 +141,15 @@ describe('promptForArtifactParameters', function () {
             creationCapability: CreationCapability.supported,
         };
         itemsProviderMock.setup(x => x.getItemsForCreate(It.IsAny())).returns([itemDetails]);
-        workspaceManagerMock.setup(x => x.getItemsInWorkspace('test-workspace-id')).returns(Promise.resolve([
+        workspaceManagerMock.setup(x => x.getItemsInWorkspace(TEST_WORKSPACE_ID)).returns(Promise.resolve([
             { displayName: 'ExistingItem' } as IArtifact,
         ]));
         showInputBoxStub.callsFake(async (options: vscode.InputBoxOptions) => {
             assert(options.validateInput, 'validateInput should be provided');
             const validationResult = await options.validateInput!('ExistingItem');
             assert.strictEqual(validationResult, 'An item named "ExistingItem" already exists in this workspace.');
+            const validNameResult = await options.validateInput!('NewItem');
+            assert.strictEqual(validNameResult, undefined);
             return undefined;
         });
 
@@ -166,7 +169,7 @@ describe('promptForArtifactParameters', function () {
             creationCapability: CreationCapability.supported,
         };
         itemsProviderMock.setup(x => x.getItemsForCreate(It.IsAny())).returns([itemDetails]);
-        workspaceManagerMock.setup(x => x.getItemsInWorkspace('test-workspace-id')).returns(Promise.reject(new Error('404 not found')));
+        workspaceManagerMock.setup(x => x.getItemsInWorkspace(TEST_WORKSPACE_ID)).returns(Promise.reject(new Error('404 not found')));
         showInputBoxStub.callsFake(async (options: vscode.InputBoxOptions) => {
             assert(options.validateInput, 'validateInput should be provided');
             const validationResult = await options.validateInput!('NewItem');

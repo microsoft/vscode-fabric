@@ -106,17 +106,22 @@ export async function promptForArtifactTypeAndName(
 
             try {
                 const workspaceItems = await workspaceManager.getItemsInWorkspace(selectedWorkspace.objectId);
-                const hasMatchingName = workspaceItems.some((item) => item.displayName?.localeCompare(trimmedValue, undefined, { sensitivity: 'accent' }) === 0);
+                const isDuplicateName = workspaceItems.some((item) => {
+                    const itemName = item.displayName;
+                    return typeof itemName === 'string'
+                        && itemName.localeCompare(trimmedValue, undefined, { sensitivity: 'base' }) === 0;
+                });
 
-                if (hasMatchingName) {
+                if (isDuplicateName) {
                     return vscode.l10n.t('An item named "{0}" already exists in this workspace.', trimmedValue);
                 }
 
                 return undefined;
             }
             catch (error) {
+                const errorStatus = typeof error === 'object' && error && 'status' in error ? (error as { status?: number }).status : undefined;
                 const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
-                if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+                if (errorStatus === 404 || errorMessage.includes('404') || errorMessage.includes('not found')) {
                     return vscode.l10n.t('Unable to validate name because the workspace was not found.');
                 }
 
