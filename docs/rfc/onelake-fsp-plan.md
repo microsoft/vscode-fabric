@@ -165,3 +165,27 @@ Later this could auto-detect the first Lakehouse in the user's workspace or prov
 - The `fabric-definition://` FSP enhancements (inline tree-view editing, create/delete commands) - that's separate work on the `dev/mwade/workspace-virtual-folder-azure-poc` branch
 - Virtual workspace folders added to VS Code Explorer
 - Any changes to the Fabric tree view
+
+## 9. Phase 1 PoC Checklist (Compact)
+
+Use this as the execution checklist for a minimal proof-of-concept.
+
+- [ ] Keep scope to web import/export via `onelake://` only (no tree-view or virtual workspace work)
+- [ ] Add minimal OneLake DFS client in `extension/src/onelake/OneLakeDfsClient.ts`
+- [ ] Implement only required operations: `readFile`, `writeFile`, `readDirectory`, `stat`, `createDirectory`, `delete`
+- [ ] Add `OneLakeFileSystemProvider` in `extension/src/onelake/OneLakeFileSystemProvider.ts`
+- [ ] Support core FSP methods needed by existing flows; return `NotSupported` for `rename`
+- [ ] Register `onelake` provider during extension activation
+- [ ] Add minimal config for PoC target (`workspaceId`, `lakehouseId`) and use a fixed/default OneLake DFS endpoint
+- [ ] Update web local-folder path to return `onelake://` URI from config
+- [ ] Keep existing export/import orchestration unchanged; route through `vscode.workspace.fs`
+- [ ] Manual smoke test only: export -> edit -> import using `onelake://`
+
+### Deferred Until After PoC
+
+- Automated tests
+- Telemetry instrumentation
+- Advanced error handling/retry policy and detailed error taxonomy
+- Conflict resolution (ETags), caching, and performance tuning
+- Environment-specific OneLake endpoint discovery
+- Lakehouse picker UX and auto-detection
