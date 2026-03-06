@@ -1,0 +1,167 @@
+# OneLake FileSystemProvider - Implementation Plan
+
+## Context for New Chat Session
+
+This document summarizes the findings and plan from a prior conversation. The goal is to implement an `OneLakeFileSystemProvider` that gives web users (vscode.dev) the same "local folder" experience that desktop users get via the native file system. The backing storage is a Fabric Lakehouse's OneLake Files section, accessed via the ADLS Gen2-compatible DFS API.
+
+**Branch**: Start from `main`. This work is independent of the `dev/mwade/workspace-virtual-folder-azure-poc` branch (which has `fabric-definition://` FSP enhancements for inline tree-view editing - a separate feature).
+
+---
+
+## 1. Problem Statement
+
+The extension's "Export" and "Import" flows let desktop users download item definitions to a local folder, edit them with full VS Code tooling (language servers, Copilot, Explorer), and publish changes back. On the web (`vscode.dev`), there is no local file system - these flows are disabled (`"enablement": "!isWeb"` in package.json). We need a cloud-backed file system that works identically from the web.
+
+## 2. Key Architectural Finding
+
+The existing export/import code is **already file-system-agnostic**. These classes all use `vscode.workspace.fs` (the `vscode.FileSystem` API) with `vscode.Uri` - they never call Node.js `fs` directly:
+
+- **`ItemDefinitionWriter`** (`extension/src/itemDefinition/ItemDefinitionWriter.ts`): Writes definition parts to a destination `vscode.Uri` using `this.fileSystem.writeFile()`. Constructor takes `vscode.FileSystem`.
+- **`ItemDefinitionReader`** (`extension/src/itemDefinition/ItemDefinitionReader.ts`): Reads files from a root `vscode.Uri` using `this.fileSystem.readFile()` and `this.fileSystem.readDirectory()`. Constructor takes `vscode.FileSystem`.
+- **`downloadAndSaveArtifact`** (`extension/src/artifactManager/localFolderCommandHelpers.ts`): Downloads definition via `artifactManager.getArtifactDefinition()`, writes it using `ItemDefinitionWriter`.
+- **`copyFolderContents`** (`extension/src/artifactManager/localFolderCommandHelpers.ts`): Uses `vscode.workspace.fs.readDirectory()`, `vscode.workspace.fs.copy()`.
+- **`importArtifactCommand`** (`extension/src/localProject/importArtifactCommand.ts`): Reads definition from folder via `ItemDefinitionReader`, publishes via `artifactManager.createArtifactWithDefinition()` or `updateArtifactDefinition()`.
+
+**This means**: if we register a `FileSystemProvider` for an `onelake://` scheme, all these flows work with zero changes - they just operate on `onelake://` URIs instead of `file://` URIs.
+
+## 3. OneLake DFS API
+
+OneLake exposes an ADLS Gen2-compatible REST API at `https://onelake.dfs.fabric.microsoft.com`. The URL pattern for Lakehouse files:
+
+```
+https://onelake.dfs.fabric.microsoft.com/{workspaceId}/{lakehouseId}/Files/{path}
+```
+
+Operations map to standard ADLS Gen2 calls:
+
+| VS Code FSP Method | OneLake DFS Operation |
+|---|---|
+| `stat` | `HEAD` on path |
+| `readFile` | `GET` on file path |
+| `writeFile` | `PUT ?resource=file` + `PATCH ?action=append&position=0` + `PATCH ?action=flush&position={len}` |
+| `delete` | `DELETE` on path (with `recursive=true` query param for dirs) |
+| `readDirectory` | `GET ?resource=filesystem&directory={path}&recursive=false` |
+| `createDirectory` | `PUT ?resource=directory` |
+| `rename` | Can be done but could be left as unsupported initially |
+
+Authentication uses the same OAuth token the extension already has. The existing `FabricApiClient` (`extension/src/fabric/FabricApiClient.ts`) can make these calls - it's a wrapper around `@azure/core-rest-pipeline` that handles auth header injection. The Fabric scopes (`https://analysis.windows.net/powerbi/api/.default`) cover OneLake access.
+
+**Note**: `FabricEnvironmentSettings` (`util/src/settings/FabricEnvironment.ts`) currently has `sharedUri` and `portalUri` but no OneLake URI. The PROD OneLake DFS endpoint is always `https://onelake.dfs.fabric.microsoft.com` but custom environments may differ.
+
+## 4. Implementation Plan
+
+### Step 1: Create `OneLakeDfsClient`
+
+A helper class that wraps raw ADLS Gen2 REST calls. Uses `IFabricApiClient.sendRequest()` for all HTTP operations.
+
+**Location**: `extension/src/onelake/OneLakeDfsClient.ts`
+
+```typescript
+export interface IOneLakeDfsClient {
+    readFile(path: string): Promise<Uint8Array>;
+    writeFile(path: string, content: Uint8Array): Promise<void>;
+    deleteFile(path: string, recursive?: boolean): Promise<void>;
+    listDirectory(path: string): Promise<{ name: string; isDirectory: boolean; contentLength: number }[]>;
+    getProperties(path: string): Promise<{ contentLength: number; isDirectory: boolean; lastModified: Date } | undefined>;
+    createDirectory(path: string): Promise<void>;
+}
+```
+
+Key implementation details:
+- `writeFile` is a three-step ADLS Gen2 operation: create file, append content, flush
+- `listDirectory` parses the JSON response from the filesystem list API
+- Binary content needs `streamResponseStatusCodes` for efficient handling
+- The `sendRequest` call needs the raw token and custom `url` (not `pathTemplate`, since OneLake is a different base URL from the Fabric API)
+
+### Step 2: Create `OneLakeFileSystemProvider`
+
+A full `vscode.FileSystemProvider` implementation that delegates to `OneLakeDfsClient`.
+
+**Location**: `extension/src/onelake/OneLakeFileSystemProvider.ts`  
+**Scheme**: `onelake`
+
+URI format: `onelake:///{workspaceId}/{lakehouseId}/{path}`
+
+The provider:
+- Parses URIs to extract workspace ID, lakehouse ID, and file path
+- Translates VS Code FSP calls to `OneLakeDfsClient` calls
+- Fires `onDidChangeFile` events after mutations
+- Optional: in-memory read cache with short TTL to reduce API calls during rapid reads (e.g., when `ItemDefinitionReader` scans a directory)
+
+### Step 3: Register the FSP
+
+In extension activation, register the provider:
+
+```typescript
+const oneLakeProvider = new OneLakeFileSystemProvider(dfsClient, logger);
+context.subscriptions.push(
+    vscode.workspace.registerFileSystemProvider('onelake', oneLakeProvider, { isCaseSensitive: true })
+);
+```
+
+### Step 4: Adapt `ILocalFolderService` for Web
+
+**Location**: `extension/src/artifactManager/LocalFolderService.ts` (likely)
+
+The `ILocalFolderService.getLocalFolder()` method currently shows a native folder picker. For web:
+- Instead of a folder picker, prompt the user to select/configure a Lakehouse
+- Return an `onelake://` URI instead of a `file://` URI
+- The rest of the export flow (download, write, open) works unchanged
+
+### Step 5: Configuration
+
+Add a setting for the target Lakehouse (PoC approach):
+
+```jsonc
+"Fabric.oneLakeStorage": {
+    "workspaceId": "...",
+    "lakehouseId": "..."
+}
+```
+
+Later this could auto-detect the first Lakehouse in the user's workspace or provide a picker UI.
+
+### Step 6: Tests
+
+- Unit tests for `OneLakeDfsClient` (mock the `IFabricApiClient`)
+- Unit tests for `OneLakeFileSystemProvider` (mock the `IOneLakeDfsClient`)
+- The existing `ItemDefinitionWriter` and `ItemDefinitionReader` tests should continue passing since they're already file-system-agnostic
+
+## 5. Files You'll Need to Reference
+
+| File | Why |
+|------|-----|
+| `extension/src/fabric/FabricApiClient.ts` | HTTP client for REST calls - reuse for OneLake DFS |
+| `extension/src/itemDefinition/ItemDefinitionWriter.ts` | Writes definitions to `vscode.Uri` - uses `vscode.FileSystem` |
+| `extension/src/itemDefinition/ItemDefinitionReader.ts` | Reads definitions from `vscode.Uri` - uses `vscode.FileSystem` |
+| `extension/src/artifactManager/exportArtifactCommand.ts` | Export flow - calls `downloadAndSaveArtifact` |
+| `extension/src/artifactManager/localFolderCommandHelpers.ts` | `downloadAndSaveArtifact`, `copyFolderContents`, folder action helpers |
+| `extension/src/localProject/importArtifactCommand.ts` | Import flow - reads from folder, publishes to Fabric |
+| `util/src/settings/FabricEnvironment.ts` | `FabricEnvironmentSettings` type - may need OneLake URI field |
+| `util/src/settings/FabricEnvironmentProvider.ts` | Provides current environment config |
+| `extension/src/workspace/DefinitionFileSystemProvider.ts` | Existing FSP for reference (different purpose but similar patterns) |
+| `AGENTS.MD` | Codebase conventions (DI, layering, util-first helpers, testing) |
+
+## 6. Codebase Conventions (from AGENTS.MD)
+
+- **Layering**: API (contracts) -> Util (helpers) -> Extension (VS Code behaviors). New helpers that could be reused belong in `util`, not `extension`.
+- **DI**: Uses `@wessberg/di`. Keep constructors slim.
+- **Error handling**: Use `FabricError`, `withErrorHandling`, `doFabricAction` from util.
+- **Telemetry**: Use `TelemetryService`, `TelemetryActivity` from util.
+- **Testing**: moq.ts for mocks, sinon for stubs, mocha runner, assert.
+- **Build**: `npm run compile` (all), `npm run test:unit -w extension` (unit tests).
+- **Localization**: `%extension.*%` keys in `package.nls.json`. Run `npm run localization -w extension` after string changes.
+- **Comment style**: Use '-' not '—' in comments.
+
+## 7. Questions Already Answered
+
+- **Push timing**: Not yet decided. Options are push-on-save (every save publishes to Fabric API) vs. explicit publish (save only writes to OneLake, user manually publishes). This is independent of the FSP implementation.
+- **Lakehouse selection**: Start with manual configuration setting (PoC), evolve to auto-detect or picker later.
+- **Web support**: OneLake DFS is standard HTTPS REST - works from `vscode.dev` with no local filesystem dependency.
+- **Conflict handling**: Last-writer-wins for PoC. Real conflict resolution would need ETags.
+
+## 8. What This Does NOT Include
+
+- The `fabric-definition://` FSP enhancements (inline tree-view editing, create/delete commands) - that's separate work on the `dev/mwade/workspace-virtual-folder-azure-poc` branch
+- Virtual workspace folders added to VS Code Explorer
+- Any changes to the Fabric tree view
