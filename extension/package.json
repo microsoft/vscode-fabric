@@ -627,6 +627,29 @@
           "default": "prompt",
           "description": "%extension.configuration.LocalFolderSaveBehavior.description%"
         },
+        "Fabric.OneLakeStorage": {
+          "type": "object",
+          "default": {
+            "endpoint": "https://onelake.dfs.fabric.microsoft.com",
+            "workspaceId": "",
+            "lakehouseId": ""
+          },
+          "properties": {
+            "endpoint": {
+              "type": "string",
+              "description": "%extension.configuration.OneLakeStorage.endpoint.description%"
+            },
+            "workspaceId": {
+              "type": "string",
+              "description": "%extension.configuration.OneLakeStorage.workspaceId.description%"
+            },
+            "lakehouseId": {
+              "type": "string",
+              "description": "%extension.configuration.OneLakeStorage.lakehouseId.description%"
+            }
+          },
+          "description": "%extension.configuration.OneLakeStorage.description%"
+        },
         "Fabric.DebugLogging": {
           "type": "boolean",
           "default": "false",

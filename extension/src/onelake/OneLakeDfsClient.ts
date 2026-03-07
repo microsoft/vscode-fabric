@@ -2,15 +2,15 @@
 // Licensed under the MIT License.
 
 import { IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { stringToUint8Array } from '../bufferUtilities';
 import { succeeded } from '../utilities';
+import { getOneLakeStorageConfiguration } from './OneLakeStorageSettings';
 
 export class OneLakeDfsClient {
-    private static readonly defaultDfsEndpoint = 'https://onelake.dfs.fabric.microsoft.com';
-
     public constructor(
         private readonly apiClient: IFabricApiClient,
-        private readonly dfsEndpoint: string = OneLakeDfsClient.defaultDfsEndpoint
+        private readonly configurationProvider: IConfigurationProvider
     ) {
     }
 
@@ -38,13 +38,18 @@ export class OneLakeDfsClient {
     }
 
     private buildFileUrl(workspaceId: string, lakehouseId: string, filePath: string): string {
-        const baseEndpoint = this.dfsEndpoint.replace(/\/+$/, '');
+        const baseEndpoint = this.getDfsEndpoint().replace(/\/+$/, '');
         const normalizedPath = filePath.split('/').filter(segment => segment.length > 0).map(encodeURIComponent).join('/');
         const encodedWorkspaceId = encodeURIComponent(workspaceId);
         const encodedLakehouseId = encodeURIComponent(lakehouseId);
         const pathSuffix = normalizedPath ? `/${normalizedPath}` : '';
 
         return `${baseEndpoint}/${encodedWorkspaceId}/${encodedLakehouseId}/Files${pathSuffix}`;
+    }
+
+    private getDfsEndpoint(): string {
+        const config = getOneLakeStorageConfiguration(this.configurationProvider);
+        return config.endpoint;
     }
 
     private async readBrowserStream(stream: ReadableStream<Uint8Array>): Promise<Uint8Array> {

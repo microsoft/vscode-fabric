@@ -4,17 +4,13 @@
 import * as vscode from 'vscode';
 import { IArtifact } from '@microsoft/vscode-fabric-api';
 import { IConfigurationProvider } from '@microsoft/vscode-fabric-util';
+import { getOneLakeStorageConfiguration } from '../onelake/OneLakeStorageSettings';
 import {
     ILocalFolderService,
     LocalFolderArtifactInformation,
     LocalFolderGetOptions,
     LocalFolderGetResult,
 } from '../LocalFolderService';
-
-interface OneLakeStorageConfiguration {
-    workspaceId: string;
-    lakehouseId: string;
-}
 
 /**
  * Web-specific local folder service that resolves a deterministic OneLake URI.
@@ -86,14 +82,11 @@ export class WebLocalFolderService implements ILocalFolderService {
         };
     }
 
-    private getOneLakeStorageConfiguration(): OneLakeStorageConfiguration {
-        const config = this.configurationProvider.get<OneLakeStorageConfiguration>('oneLakeStorage', {
-            workspaceId: '',
-            lakehouseId: '',
-        });
+    private getOneLakeStorageConfiguration() {
+        const config = getOneLakeStorageConfiguration(this.configurationProvider);
 
         if (!config.workspaceId || !config.lakehouseId) {
-            throw new Error('OneLake storage is not configured. Set Fabric.oneLakeStorage.workspaceId and Fabric.oneLakeStorage.lakehouseId.');
+            throw new Error('OneLake storage is not configured. Set Fabric.OneLakeStorage.workspaceId and Fabric.OneLakeStorage.lakehouseId.');
         }
 
         return config;
