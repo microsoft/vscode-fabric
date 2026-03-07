@@ -8,6 +8,7 @@ import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { IItemDefinitionConflictDetector } from '../itemDefinition/ItemDefinitionConflictDetector';
 import { IItemDefinitionWriter } from '../itemDefinition/ItemDefinitionWriter';
 import { ILocalFolderService, LocalFolderPromptMode } from '../LocalFolderService';
+import { OneLakeFileSystemProvider } from '../onelake/OneLakeFileSystemProvider';
 import { downloadAndSaveArtifact, getFolderDisplayName, showFolderActionAndSavePreference, LocalFolderServices, FolderActionRequest } from './localFolderCommandHelpers';
 
 /**
@@ -27,11 +28,18 @@ export async function showCompletionMessage(
     // Show folder action dialog and perform the selected action
     const services: LocalFolderServices = { localFolderService, configurationProvider };
     const request: FolderActionRequest = { folderUri: localFolderResults.uri, artifact, prompted: localFolderResults.prompted };
+    const effectiveOptions = localFolderResults.uri.scheme === OneLakeFileSystemProvider.scheme
+        ? {
+            modal: options?.modal ?? false,
+            includeDoNothing: false,
+        }
+        : options;
+
     await showFolderActionAndSavePreference(
         vscode.l10n.t('{0}. What would you like to do?', baseMessage),
         request,
         services,
-        options
+        effectiveOptions
     );
 }
 

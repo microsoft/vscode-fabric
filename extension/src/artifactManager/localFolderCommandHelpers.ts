@@ -9,6 +9,7 @@ import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { IItemDefinitionConflictDetector } from '../itemDefinition/ItemDefinitionConflictDetector';
 import { IItemDefinitionWriter } from '../itemDefinition/ItemDefinitionWriter';
 import { ILocalFolderService, LocalFolderSaveBehavior } from '../LocalFolderService';
+import { OneLakeFileSystemProvider } from '../onelake/OneLakeFileSystemProvider';
 
 /**
  * Gets the display name for a folder from its URI.
@@ -153,6 +154,10 @@ async function handleLocalFolderSavePreference(
     services: LocalFolderServices,
     options?: { modal?: boolean;  }
 ): Promise<void> {
+    if (request.folderUri.scheme === OneLakeFileSystemProvider.scheme) {
+        return;
+    }
+
     // Only handle save preference if the user was prompted to select a folder
     if (!request.prompted) {
         return;
