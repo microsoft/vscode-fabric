@@ -77,7 +77,7 @@ import { FeedbackTreeDataProvider } from '../feedback/FeedbackTreeDataProvider';
 import { ILocalFolderManager } from '../ILocalFolderManager';
 import { InternalSatelliteManager } from '../internalSatellites/InternalSatelliteManager';
 import { Base64Encoder, IBase64Encoder } from '../itemDefinition/ItemDefinitionReader';
-import { ILocalFolderService, LocalFolderService } from '../LocalFolderService';
+import { ILocalFolderService } from '../LocalFolderService';
 import { FabricExtensionServiceCollection } from '../FabricExtensionServiceCollection';
 import { OneLakeDfsClient } from '../onelake/OneLakeDfsClient';
 import { OneLakeFileSystemProvider } from '../onelake/OneLakeFileSystemProvider';
@@ -85,6 +85,7 @@ import { OneLakeFileSystemProvider } from '../onelake/OneLakeFileSystemProvider'
 // Web-specific implementations
 import { WebGitOperator } from './WebGitOperator';
 import { WebLocalFolderManager } from './WebLocalFolderManager';
+import { WebLocalFolderService } from './WebLocalFolderService';
 
 let app: FabricVsCodeWebExtension;
 
@@ -432,7 +433,7 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
 
     // Local folder and git operations (web-specific implementations)
     container.registerSingleton<ILocalFolderManager, WebLocalFolderManager>();
-    container.registerSingleton<ILocalFolderService, LocalFolderService>();
+    container.registerSingleton<ILocalFolderService, WebLocalFolderService>();
     container.registerSingleton<IGitOperator, WebGitOperator>();
 
     // Commands
