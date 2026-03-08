@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import * as path from 'path';
 import * as vscode from 'vscode';
 
 /**
@@ -16,21 +15,31 @@ export function getItemDefinitionPathUri(partPath: string, destination: vscode.U
     if (!partPath) {
         throw new Error('Missing file path');
     }
-    // Strictly block absolute paths and traversal
-    if (path.isAbsolute(partPath) ||
-        partPath.startsWith('..') ||
-        partPath.includes('../') ||
-        partPath.includes('..\\')) {
+
+    // Normalize to POSIX-style separators for cross-platform/web compatibility.
+    const normalizedInput = partPath.replace(/\\/g, '/');
+
+    // Block absolute paths (POSIX and Windows drive format).
+    if (normalizedInput.startsWith('/') || /^[A-Za-z]:/.test(normalizedInput)) {
         throw new Error(`Unsafe file path detected: ${partPath}`);
     }
-    // Normalize and remove leading './'
-    const normalized = path.normalize(partPath).replace(/^(\.\/|\.\\)+/, '');
-    const fileUri = vscode.Uri.joinPath(destination, normalized);
+
+    // Remove leading './' segments and normalize duplicate separators.
+    const trimmed = normalizedInput.replace(/^(\.\/)+/, '').replace(/\/+/g, '/');
+    const segments = trimmed.split('/').filter(segment => segment.length > 0);
+
+    // Block traversal after normalization.
+    if (segments.some(segment => segment === '..')) {
+        throw new Error(`Unsafe file path detected: ${partPath}`);
+    }
+
+    const fileUri = vscode.Uri.joinPath(destination, ...segments);
 
     // Ensure fileUri is within destination (root or subdirectory)
-    const destPath = destination.fsPath.endsWith(path.sep) ? destination.fsPath : destination.fsPath + path.sep;
-    if (!fileUri.fsPath.startsWith(destPath)) {
+    const destinationPath = destination.path.endsWith('/') ? destination.path : `${destination.path}/`;
+    if (fileUri.path !== destination.path && !fileUri.path.startsWith(destinationPath)) {
         throw new Error(`Unsafe file path detected: ${partPath}`);
     }
+
     return fileUri;
 }

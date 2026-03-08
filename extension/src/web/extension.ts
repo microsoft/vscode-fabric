@@ -70,6 +70,7 @@ import { FabricCommandManager } from '../commands/FabricCommandManager';
 import { IFabricCommandManager } from '../commands/IFabricCommandManager';
 import { registerTenantCommands } from '../tenant/commands';
 import { registerWorkspaceCommands } from '../workspace/commands';
+import { registerLocalProjectCommands } from '../localProject/commands';
 
 // Other services
 import { CapacityManager, ICapacityManager } from '../CapacityManager';
@@ -284,6 +285,20 @@ export class FabricVsCodeWebExtension {
             localFolderService,
             configurationProvider,
             accountProvider,
+            telemetryService,
+            logger
+        );
+
+        registerLocalProjectCommands(
+            context,
+            workspaceManager,
+            fabricEnvironmentProvider,
+            artifactManager,
+            extensionManager,
+            localFolderService,
+            workspaceFilterManager,
+            capacityManager,
+            dataProvider,
             telemetryService,
             logger
         );
