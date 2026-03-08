@@ -159,6 +159,21 @@ export class OneLakeDfsClient {
         }
     }
 
+    public async deletePath(workspaceId: string, lakehouseId: string, path: string, recursive: boolean): Promise<void> {
+        const response = await this.apiClient.sendRequest({
+            url: this.buildFileUrl(workspaceId, lakehouseId, path, { recursive: recursive ? 'true' : 'false' }),
+            method: 'DELETE',
+        });
+
+        if (response.status === 404) {
+            return;
+        }
+
+        if (!succeeded(response)) {
+            throw new Error(`OneLake deletePath failed with status ${response.status}`);
+        }
+    }
+
     private buildFileUrl(
         workspaceId: string,
         lakehouseId: string,

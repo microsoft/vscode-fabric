@@ -75,8 +75,10 @@ export class OneLakeFileSystemProvider implements vscode.FileSystemProvider {
         this.emitter.fire([{ type: fileExists ? vscode.FileChangeType.Changed : vscode.FileChangeType.Created, uri }]);
     }
 
-    public delete(_uri: vscode.Uri, _options: { recursive: boolean; }): void {
-        throw vscode.FileSystemError.NoPermissions('Deleting files is not supported yet');
+    public async delete(uri: vscode.Uri, options: { recursive: boolean; }): Promise<void> {
+        const parsed = this.parseOneLakeUri(uri);
+        await this.oneLakeDfsClient.deletePath(parsed.storageWorkspaceId, parsed.storageLakehouseId, parsed.filePath, options.recursive);
+        this.emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
     }
 
     public rename(_oldUri: vscode.Uri, _newUri: vscode.Uri, _options: { overwrite: boolean; }): void {
