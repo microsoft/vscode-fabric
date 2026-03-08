@@ -112,29 +112,25 @@
         "command": "vscode-fabric.exportArtifact",
         "title": "%extension.exportArtifact.title%",
         "category": "Fabric",
-        "icon": "$(cloud-download)",
-        "enablement": "!isWeb"
+        "icon": "$(cloud-download)"
       },
       {
         "command": "vscode-fabric.importArtifact",
         "title": "%extension.importArtifact.title%",
         "category": "Fabric",
-        "icon": "$(cloud-upload)",
-        "enablement": "!isWeb"
+        "icon": "$(cloud-upload)"
       },
       {
         "command": "vscode-fabric.importArtifact.inline",
         "title": "%extension.importArtifact.inline.title%",
         "category": "Fabric",
-        "icon": "$(cloud-upload)",
-        "enablement": "!isWeb"
+        "icon": "$(cloud-upload)"
       },
       {
         "command": "vscode-fabric.importArtifact.promptWorkspace",
         "title": "%extension.importArtifact.promptWorkspace.title%",
         "category": "Fabric",
-        "icon": "$(cloud-upload)",
-        "enablement": "!isWeb"
+        "icon": "$(cloud-upload)"
       },
       {
         "command": "vscode-fabric.openInPortal",
