@@ -63,6 +63,7 @@ import { WorkspaceManager, WorkspaceManagerBase } from '../workspace/WorkspaceMa
 // Artifact manager
 import { ArtifactManager } from '../artifactManager/ArtifactManager';
 import { registerArtifactCommands } from '../artifactManager/commands';
+import { registerArtifactExportCommands } from '../artifactManager/commands.export';
 
 // Commands
 import { FabricCommandManager } from '../commands/FabricCommandManager';
@@ -235,6 +236,8 @@ export class FabricVsCodeWebExtension {
         const extensionManager = this.container.get<IFabricExtensionManagerInternal>();
         const fabricEnvironmentProvider = this.container.get<IFabricEnvironmentProvider>();
         const capacityManager = this.container.get<ICapacityManager>();
+        const localFolderService = this.container.get<ILocalFolderService>();
+        const configurationProvider = this.container.get<IConfigurationProvider>();
 
         const commandManager = this.container.get<IFabricCommandManager>();
         await commandManager.initialize();
@@ -269,6 +272,18 @@ export class FabricVsCodeWebExtension {
             extensionManager,
             workspaceFilterManager,
             capacityManager,
+            telemetryService,
+            logger
+        );
+
+        registerArtifactExportCommands(
+            context,
+            workspaceManager,
+            fabricEnvironmentProvider,
+            artifactManager,
+            localFolderService,
+            configurationProvider,
+            accountProvider,
             telemetryService,
             logger
         );
