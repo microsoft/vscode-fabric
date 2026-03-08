@@ -102,10 +102,15 @@ export class FabricApiClient implements IFabricApiClient {
                 curHeaders = { ...curHeaders, ...options.headers };
             }
             const headers = azApi.createHttpHeaders(curHeaders);
+            const requestBody = options.body === undefined
+                ? undefined
+                : typeof options.body === 'string' || options.body instanceof Uint8Array
+                    ? options.body
+                    : JSON.stringify(options.body);
             const apiOptions: azApi.PipelineRequestOptions = {
                 url: theUrl,
                 method: options.method === undefined ? 'GET' : options.method,
-                body: options.body === undefined ? undefined : JSON.stringify(options.body),
+                body: requestBody,
                 headers: headers,
                 streamResponseStatusCodes: options?.streamResponseStatusCodes,
                 formData: options.formData,

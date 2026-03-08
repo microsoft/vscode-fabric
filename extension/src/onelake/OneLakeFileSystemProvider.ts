@@ -41,8 +41,10 @@ export class OneLakeFileSystemProvider implements vscode.FileSystemProvider {
         throw vscode.FileSystemError.NoPermissions('Reading directories is not supported yet');
     }
 
-    public createDirectory(_uri: vscode.Uri): void {
-        throw vscode.FileSystemError.NoPermissions('Creating directories is not supported yet');
+    public async createDirectory(uri: vscode.Uri): Promise<void> {
+        const parsed = this.parseOneLakeUri(uri);
+        await this.oneLakeDfsClient.createDirectory(parsed.storageWorkspaceId, parsed.storageLakehouseId, parsed.filePath);
+        this.emitter.fire([{ type: vscode.FileChangeType.Created, uri }]);
     }
 
     public async readFile(uri: vscode.Uri): Promise<Uint8Array> {
@@ -50,8 +52,22 @@ export class OneLakeFileSystemProvider implements vscode.FileSystemProvider {
         return this.oneLakeDfsClient.readFile(parsed.storageWorkspaceId, parsed.storageLakehouseId, parsed.filePath);
     }
 
-    public writeFile(_uri: vscode.Uri, _content: Uint8Array, _options: { create: boolean; overwrite: boolean; }): void {
-        throw vscode.FileSystemError.NoPermissions('Writing files is not supported yet');
+    public async writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean; overwrite: boolean; }): Promise<void> {
+        const parsed = this.parseOneLakeUri(uri);
+
+        const fileExists = await this.fileExists(uri);
+        if (!fileExists && !options.create) {
+            throw vscode.FileSystemError.FileNotFound(uri);
+        }
+
+        if (fileExists && !options.overwrite) {
+            throw vscode.FileSystemError.FileExists(uri);
+        }
+
+        await this.ensureParentDirectories(parsed.storageWorkspaceId, parsed.storageLakehouseId, parsed.filePath);
+        await this.oneLakeDfsClient.writeFile(parsed.storageWorkspaceId, parsed.storageLakehouseId, parsed.filePath, content);
+
+        this.emitter.fire([{ type: fileExists ? vscode.FileChangeType.Changed : vscode.FileChangeType.Created, uri }]);
     }
 
     public delete(_uri: vscode.Uri, _options: { recursive: boolean; }): void {
@@ -81,5 +97,28 @@ export class OneLakeFileSystemProvider implements vscode.FileSystemProvider {
             storageLakehouseId,
             filePath,
         };
+    }
+
+    private async fileExists(uri: vscode.Uri): Promise<boolean> {
+        try {
+            await this.stat(uri);
+            return true;
+        }
+        catch {
+            return false;
+        }
+    }
+
+    private async ensureParentDirectories(storageWorkspaceId: string, storageLakehouseId: string, filePath: string): Promise<void> {
+        const parts = filePath.split('/').filter(part => part.length > 0);
+        if (parts.length <= 1) {
+            return;
+        }
+
+        let currentPath = '';
+        for (const part of parts.slice(0, -1)) {
+            currentPath = currentPath ? `${currentPath}/${part}` : part;
+            await this.oneLakeDfsClient.createDirectory(storageWorkspaceId, storageLakehouseId, currentPath);
+        }
     }
 }
