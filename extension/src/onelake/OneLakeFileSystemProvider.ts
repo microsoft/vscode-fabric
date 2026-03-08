@@ -27,18 +27,23 @@ export class OneLakeFileSystemProvider implements vscode.FileSystemProvider {
 
     public async stat(uri: vscode.Uri): Promise<vscode.FileStat> {
         const parsed = this.parseOneLakeUri(uri);
-        const content = await this.oneLakeDfsClient.readFile(parsed.storageWorkspaceId, parsed.storageLakehouseId, parsed.filePath);
+        const properties = await this.oneLakeDfsClient.getPathProperties(parsed.storageWorkspaceId, parsed.storageLakehouseId, parsed.filePath);
+        if (!properties) {
+            throw vscode.FileSystemError.FileNotFound(uri);
+        }
 
         return {
-            type: vscode.FileType.File,
+            type: properties.isDirectory ? vscode.FileType.Directory : vscode.FileType.File,
             ctime: Date.now(),
             mtime: Date.now(),
-            size: content.length,
+            size: properties.size,
         };
     }
 
-    public readDirectory(_uri: vscode.Uri): [string, vscode.FileType][] {
-        throw vscode.FileSystemError.NoPermissions('Reading directories is not supported yet');
+    public async readDirectory(uri: vscode.Uri): Promise<[string, vscode.FileType][]> {
+        const parsed = this.parseOneLakeUri(uri);
+        const entries = await this.oneLakeDfsClient.listDirectory(parsed.storageWorkspaceId, parsed.storageLakehouseId, parsed.filePath);
+        return entries.map(entry => [entry.name, entry.isDirectory ? vscode.FileType.Directory : vscode.FileType.File]);
     }
 
     public async createDirectory(uri: vscode.Uri): Promise<void> {

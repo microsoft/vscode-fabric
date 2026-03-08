@@ -7,6 +7,17 @@ import { stringToUint8Array } from '../bufferUtilities';
 import { succeeded } from '../utilities';
 import { getOneLakeStorageConfiguration } from './OneLakeStorageSettings';
 
+export interface OneLakePathProperties {
+    isDirectory: boolean;
+    size: number;
+}
+
+export interface OneLakeDirectoryEntry {
+    name: string;
+    isDirectory: boolean;
+    size: number;
+}
+
 export class OneLakeDfsClient {
     public constructor(
         private readonly apiClient: IFabricApiClient,
@@ -51,6 +62,65 @@ export class OneLakeDfsClient {
         if (!succeeded(response)) {
             throw new Error(`OneLake createDirectory failed with status ${response.status}`);
         }
+    }
+
+    public async getPathProperties(workspaceId: string, lakehouseId: string, path: string): Promise<OneLakePathProperties | undefined> {
+        const response = await this.apiClient.sendRequest({
+            url: this.buildFileUrl(workspaceId, lakehouseId, path),
+            method: 'HEAD',
+        });
+
+        if (response.status === 404) {
+            return undefined;
+        }
+
+        if (!succeeded(response)) {
+            throw new Error(`OneLake getPathProperties failed with status ${response.status}`);
+        }
+
+        const resourceType = response.headers?.get('x-ms-resource-type') || 'file';
+        const contentLengthHeader = response.headers?.get('content-length') || '0';
+        const size = Number.parseInt(contentLengthHeader, 10);
+
+        return {
+            isDirectory: resourceType.toLowerCase() === 'directory',
+            size: Number.isNaN(size) ? 0 : size,
+        };
+    }
+
+    public async listDirectory(workspaceId: string, lakehouseId: string, directoryPath: string): Promise<OneLakeDirectoryEntry[]> {
+        const response = await this.apiClient.sendRequest({
+            url: this.buildFileUrl(workspaceId, lakehouseId, '', {
+                resource: 'filesystem',
+                directory: directoryPath,
+                recursive: 'false',
+            }),
+            method: 'GET',
+        });
+
+        if (!succeeded(response)) {
+            throw new Error(`OneLake listDirectory failed with status ${response.status}`);
+        }
+
+        const paths = Array.isArray(response.parsedBody?.paths) ? response.parsedBody.paths : [];
+        const normalizedDirectoryPath = directoryPath.replace(/^\/+|\/+$/g, '');
+
+        return paths
+            .map((entry: any) => {
+                const fullName = `${entry.name || ''}`;
+                const relativeName = this.getRelativeEntryName(normalizedDirectoryPath, fullName);
+                if (!relativeName || relativeName.includes('/')) {
+                    return undefined;
+                }
+
+                const contentLength = Number.parseInt(`${entry.contentLength ?? '0'}`, 10);
+                return {
+                    name: relativeName,
+                    isDirectory: `${entry.isDirectory}`.toLowerCase() === 'true',
+                    size: Number.isNaN(contentLength) ? 0 : contentLength,
+                } as OneLakeDirectoryEntry;
+            })
+            .filter((entry: OneLakeDirectoryEntry | undefined): entry is OneLakeDirectoryEntry => !!entry);
     }
 
     public async writeFile(workspaceId: string, lakehouseId: string, filePath: string, content: Uint8Array): Promise<void> {
@@ -114,6 +184,24 @@ export class OneLakeDfsClient {
     private getDfsEndpoint(): string {
         const config = getOneLakeStorageConfiguration(this.configurationProvider);
         return config.endpoint;
+    }
+
+    private getRelativeEntryName(directoryPath: string, fullName: string): string {
+        const normalizedFullName = fullName.replace(/^\/+|\/+$/g, '');
+        if (!directoryPath) {
+            return normalizedFullName;
+        }
+
+        if (normalizedFullName === directoryPath) {
+            return '';
+        }
+
+        const prefix = `${directoryPath}/`;
+        if (normalizedFullName.startsWith(prefix)) {
+            return normalizedFullName.slice(prefix.length);
+        }
+
+        return normalizedFullName;
     }
 
     private async readBrowserStream(stream: ReadableStream<Uint8Array>): Promise<Uint8Array> {
