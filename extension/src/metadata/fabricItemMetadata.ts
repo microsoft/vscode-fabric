@@ -116,6 +116,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         displayNamePlural: vscode.l10n.t('Lakehouses'),
         iconInformation: { fileName: 'lakehouse_24.svg', isThemed: true },
         portalFolder: 'lakehouses',
+        supportsArtifactWithDefinition: true,
     },
     'MLExperiment': {
         creationCapability: CreationCapability.supported,
