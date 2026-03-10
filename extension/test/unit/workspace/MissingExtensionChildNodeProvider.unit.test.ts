@@ -16,6 +16,7 @@ describe('MissingExtensionChildNodeProvider', function () {
     let extensionManagerMock: Mock<IFabricExtensionManagerInternal>;
     let provider: MissingExtensionChildNodeProvider;
     let getArtifactExtensionIdStub: sinon.SinonStub;
+    let isArtifactExtensionWebEnabledStub: sinon.SinonStub;
 
     const workspaceId = 'workspace-123';
     const artifactId = 'artifact-456';
@@ -36,6 +37,7 @@ describe('MissingExtensionChildNodeProvider', function () {
 
         // Stub the utility function
         getArtifactExtensionIdStub = sinon.stub(fabricItemUtilities, 'getArtifactExtensionId');
+        isArtifactExtensionWebEnabledStub = sinon.stub(fabricItemUtilities, 'isArtifactExtensionWebEnabled');
 
         provider = new MissingExtensionChildNodeProvider(
             contextMock.object(),
@@ -45,6 +47,8 @@ describe('MissingExtensionChildNodeProvider', function () {
 
     afterEach(function () {
         sinon.restore();
+        // Reset __IS_WEB__ to default value
+        (globalThis as any).__IS_WEB__ = false;
     });
 
     describe('canProvideChildren', function () {
@@ -72,6 +76,28 @@ describe('MissingExtensionChildNodeProvider', function () {
             const result = provider.canProvideChildren(artifact);
 
             assert.strictEqual(result, false);
+        });
+
+        it('should return true in web environment when extension is web-enabled', function () {
+            (globalThis as any).__IS_WEB__ = true;
+            getArtifactExtensionIdStub.returns(testExtensionId);
+            isArtifactExtensionWebEnabledStub.returns(true);
+
+            const result = provider.canProvideChildren(artifact);
+
+            assert.strictEqual(result, true);
+            assert.ok(isArtifactExtensionWebEnabledStub.calledOnceWith(artifact));
+        });
+
+        it('should return false in web environment when extension is not web-enabled', function () {
+            (globalThis as any).__IS_WEB__ = true;
+            getArtifactExtensionIdStub.returns(testExtensionId);
+            isArtifactExtensionWebEnabledStub.returns(false);
+
+            const result = provider.canProvideChildren(artifact);
+
+            assert.strictEqual(result, false);
+            assert.ok(isArtifactExtensionWebEnabledStub.calledOnceWith(artifact));
         });
     });
 
@@ -195,4 +221,3 @@ describe('MissingExtensionChildNodeProvider', function () {
         });
     });
 });
-
