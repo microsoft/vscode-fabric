@@ -21,6 +21,7 @@ export default defineConfig({
 		},
 		mocha: {
 			ui: 'bdd',
+			require: [join(__dirname, 'test', 'unit', 'setup.js')],
 			...getMochaReporterOptions('core-unit')
 		}
 	},
