@@ -29,7 +29,8 @@ export class MissingExtensionChildNodeProvider implements IArtifactChildNodeProv
             return false;
         }
 
-        return !this.extensionManager.isAvailable(extensionId);
+        // Even if extension is not installed the `getChildNodes()` will return installation node
+        return true;
     }
 
     async getChildNodes(artifact: IArtifact): Promise<FabricTreeNode[]> {
