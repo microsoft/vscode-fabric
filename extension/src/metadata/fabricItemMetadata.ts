@@ -125,6 +125,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         displayNamePlural: vscode.l10n.t('Experiments'),
         iconInformation: { fileName: 'experiments_24.svg', isThemed: true },
         portalFolder: 'mlexperiments',
+        supportsArtifactWithDefinition: true,
     },
     'MLModel': {
         creationCapability: CreationCapability.supported,
@@ -133,6 +134,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         displayNamePlural: vscode.l10n.t('ML models'),
         iconInformation: { fileName: 'model_24.svg', isThemed: true },
         portalFolder: 'mlmodels',
+        supportsArtifactWithDefinition: true,
     },
     'MirroredDatabase': {
         creationCapability: CreationCapability.unsupported,
