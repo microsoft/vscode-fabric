@@ -8,6 +8,7 @@ import { DefinitionFileSystemProvider } from '../../DefinitionFileSystemProvider
 import { IArtifactChildNodeProvider } from './IArtifactChildNodeProvider';
 import { MissingExtensionChildNodeProvider } from './MissingExtensionChildNodeProvider';
 import { DefinitionFilesChildNodeProvider } from './DefinitionFilesChildNodeProvider';
+import { ILogger } from '@microsoft/vscode-fabric-util';
 
 /**
  * Centralized collection of child node providers for artifact nodes.
@@ -38,10 +39,11 @@ export class ArtifactChildNodeProviderCollection implements IArtifactChildNodePr
         context: vscode.ExtensionContext,
         extensionManager: IFabricExtensionManagerInternal,
         artifactManager: IArtifactManager,
-        fileSystemProvider: DefinitionFileSystemProvider
+        fileSystemProvider: DefinitionFileSystemProvider,
+        logger: ILogger
     ) {
         this.providers = [
-            new DefinitionFilesChildNodeProvider(context, artifactManager, fileSystemProvider),
+            new DefinitionFilesChildNodeProvider(context, artifactManager, fileSystemProvider, logger),
             new MissingExtensionChildNodeProvider(context, extensionManager),
         ];
     }

@@ -7,7 +7,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { NotebookArtifactHandler } from '../../../../src/internalSatellites/notebook/NotebookArtifactHandler';
 import { FabricError } from '@microsoft/vscode-fabric-util';
-import { IItemDefinition, IApiClientRequestOptions } from '@microsoft/vscode-fabric-api';
+import { IItemDefinition, IApiClientRequestOptions, IArtifact } from '@microsoft/vscode-fabric-api';
 
 /**
  * Unit tests for NotebookArtifactHandler covering getDefinitionWorkflow and updateDefinitionWorkflow logic.
@@ -60,7 +60,7 @@ describe('NotebookArtifactHandler', function () {
         const options = createOptions('/api/notebooks/123');
 
         // Act
-        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({}, folder, options);
+        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({} as IArtifact, folder, options);
 
         // Assert
         assert.equal(updated.pathTemplate, '/api/notebooks/123?format=ipynb', 'Should append ?format=ipynb');
@@ -72,7 +72,7 @@ describe('NotebookArtifactHandler', function () {
         const options = createOptions('/api/notebooks/123?foo=bar');
 
         // Act
-        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({}, folder, options);
+        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({} as IArtifact, folder, options);
 
         // Assert
         assert.equal(updated.pathTemplate, '/api/notebooks/123?foo=bar&format=ipynb', 'Should append &format=ipynb');
@@ -84,7 +84,7 @@ describe('NotebookArtifactHandler', function () {
         const options = createOptions('/api/notebooks/123?foo=bar&format=ipynb');
 
         // Act
-        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({}, folder, options);
+        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({} as IArtifact, folder, options);
 
         // Assert
         assert.equal(updated.pathTemplate, '/api/notebooks/123?foo=bar&format=ipynb', 'Should remain unchanged');
@@ -96,10 +96,21 @@ describe('NotebookArtifactHandler', function () {
         const options = createOptions('/api/notebooks/123');
 
         // Act
-        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({}, folder, options);
+        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({} as IArtifact, folder, options);
 
         // Assert
         assert.equal(updated.pathTemplate, '/api/notebooks/123', 'Should not modify pathTemplate for .py notebooks');
+    });
+
+    it('getDefinition should add format=ipynb when folder is undefined (remote view scenario)', async function () {
+        // Arrange
+        const options = createOptions('/api/notebooks/123');
+
+        // Act
+        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({} as IArtifact, undefined, options);
+
+        // Assert
+        assert.equal(updated.pathTemplate, '/api/notebooks/123?format=ipynb', 'Should add format=ipynb when folder is undefined');
     });
 
     it('getDefinition should throw FabricError when mixed .py and .ipynb files detected', async function () {
@@ -109,7 +120,7 @@ describe('NotebookArtifactHandler', function () {
 
         // Act & Assert
         await assert.rejects(
-            () => handler.getDefinitionWorkflow.onBeforeGetDefinition({}, folder, options),
+            () => handler.getDefinitionWorkflow.onBeforeGetDefinition({} as IArtifact, folder, options),
             (err: any) => err instanceof FabricError && err.nonLocalizedMessage === 'invalid-notebook-definition-mixed-formats',
             'Should throw FabricError for mixed formats'
         );
@@ -121,7 +132,7 @@ describe('NotebookArtifactHandler', function () {
         const options = createOptions('/api/notebooks/123');
 
         // Act
-        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({}, folder, options);
+        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({} as IArtifact, folder, options);
 
         // Assert
         assert.equal(updated.pathTemplate, '/api/notebooks/123?format=ipynb', 'Should force ipynb for unknown format');
@@ -133,7 +144,7 @@ describe('NotebookArtifactHandler', function () {
         const options = createOptions('/api/notebooks/123');
 
         // Act
-        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({}, folder, options);
+        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({} as IArtifact, folder, options);
 
         // Assert
         assert.equal(updated.pathTemplate, '/api/notebooks/123?format=ipynb', 'Should force ipynb on readDirectory failure');
@@ -145,7 +156,7 @@ describe('NotebookArtifactHandler', function () {
         const options = createOptions(undefined, '/api/notebooks/456');
 
         // Act
-        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({}, folder, options);
+        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({} as IArtifact, folder, options);
 
         // Assert
         assert.equal(updated.pathTemplate, '/api/notebooks/456?format=ipynb', 'Should set pathTemplate based on url and add format');
@@ -157,7 +168,7 @@ describe('NotebookArtifactHandler', function () {
         const options = {} as IApiClientRequestOptions;
 
         // Act
-        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({}, folder, options);
+        const updated = await handler.getDefinitionWorkflow.onBeforeGetDefinition({} as IArtifact, folder, options);
 
         // Assert
         assert.equal(updated.pathTemplate, '?format=ipynb', 'Should default to just ?format=ipynb');
@@ -174,7 +185,7 @@ describe('NotebookArtifactHandler', function () {
         const options: IApiClientRequestOptions = { body: bodyCarrier } as IApiClientRequestOptions;
 
         // Act
-        const updated = await handler.updateDefinitionWorkflow.onBeforeUpdateDefinition({}, definition, folder, options);
+        const updated = await handler.updateDefinitionWorkflow.onBeforeUpdateDefinition({} as IArtifact, definition, folder, options);
 
         // Assert
         assert.equal(definition.format, 'ipynb', 'Definition format should be set to ipynb');
@@ -189,7 +200,7 @@ describe('NotebookArtifactHandler', function () {
         const options: IApiClientRequestOptions = {} as IApiClientRequestOptions;
 
         // Act
-        await handler.updateDefinitionWorkflow.onBeforeUpdateDefinition({}, definition, folder, options);
+        await handler.updateDefinitionWorkflow.onBeforeUpdateDefinition({} as IArtifact, definition, folder, options);
 
         // Assert
         assert.notEqual(definition.format, 'ipynb', 'Definition format should not be forced for py');
@@ -205,7 +216,7 @@ describe('NotebookArtifactHandler', function () {
 
         // Act & Assert
         await assert.rejects(
-            () => handler.updateDefinitionWorkflow.onBeforeUpdateDefinition({}, definition, folder, options),
+            () => handler.updateDefinitionWorkflow.onBeforeUpdateDefinition({} as IArtifact, definition, folder, options),
             (err: any) => err instanceof FabricError && err.nonLocalizedMessage === 'invalid-notebook-definition-mixed-formats',
             'Should throw FabricError for mixed definition parts'
         );
@@ -217,7 +228,7 @@ describe('NotebookArtifactHandler', function () {
         const options: IApiClientRequestOptions = {} as IApiClientRequestOptions;
 
         // Act
-        await handler.updateDefinitionWorkflow.onBeforeUpdateDefinition({}, definition, folder, options);
+        await handler.updateDefinitionWorkflow.onBeforeUpdateDefinition({} as IArtifact, definition, folder, options);
 
         // Assert
         assert.equal(definition.format, undefined, 'Format should remain undefined for unknown');

@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { IArtifactHandler, IItemDefinition, IApiClientRequestOptions } from '@microsoft/vscode-fabric-api';
+import { IArtifact, IArtifactHandler, IItemDefinition, IApiClientRequestOptions } from '@microsoft/vscode-fabric-api';
 import { FabricError } from '@microsoft/vscode-fabric-util';
 
 /**
@@ -22,31 +22,42 @@ export class NotebookArtifactHandler implements IArtifactHandler {
 
     public getDefinitionWorkflow = {
         /**
-         * Customizes the get definition request to ensure notebooks are retrieved in .ipynb format
+         * Customizes the get definition request to ensure notebooks are retrieved in the appropriate format
          */
-        async onBeforeGetDefinition(_artifact: any, folder: vscode.Uri, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
-            // Detect existing format (if any) on disk within the target folder.
-            // Behavior:
-            //  - If only .py detected -> request default (omit format parameter)
-            //  - If only .ipynb detected or unknown -> force ipynb via query param
-            //  - If both detected -> throw error (mixed formats not supported)
-            let format: NotebookFormat;
-            try {
-                format = await NotebookArtifactHandler.detectNotebookFormat(folder);
-            }
-            catch (err) {
-                // If detection fails we fallback to requesting ipynb (default behavior)
-                format = 'ipynb';
+        async onBeforeGetDefinition(_artifact: IArtifact, folder?: vscode.Uri, options?: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
+            // Options is always provided by core, but signature is optional for backward compatibility
+            if (!options) {
+                throw new Error('options parameter is required');
             }
 
-            if (format === 'mixed') {
+            // Detect existing format (if any) on disk within the target folder.
+            // Behavior:
+            //  - If folder is undefined (remote view) -> request ipynb format
+            //  - If folder exists with only .py files -> allow py format (omit format parameter)
+            //  - If folder exists with .ipynb or unknown -> request ipynb format
+            //  - If both .py and .ipynb detected -> throw error (mixed formats not supported)
+            let detectedFormat: NotebookFormat = 'unknown';
+
+            if (folder) {
+                try {
+                    detectedFormat = await NotebookArtifactHandler.detectNotebookFormat(folder);
+                }
+                catch (err) {
+                    // If detection fails we fallback to unknown, which will result in ipynb
+                    detectedFormat = 'unknown';
+                }
+            }
+
+            if (detectedFormat === 'mixed') {
                 throw new FabricError(
                     vscode.l10n.t('Invalid Notebook definition contains both .py and .ipynb files.'),
                     'invalid-notebook-definition-mixed-formats'
                 );
             }
 
-            if (format !== 'py') { // ipynb or unknown
+            // Only skip adding format parameter if we explicitly detected .py files on disk
+            // In all other cases (undefined folder, ipynb, or unknown), request ipynb format
+            if (detectedFormat !== 'py') {
                 const ptOriginal: string = options.pathTemplate ?? options.url ?? '';
                 const hasFormatParam: boolean = /([?&])format=/.test(ptOriginal);
                 if (!hasFormatParam) {
@@ -66,7 +77,12 @@ export class NotebookArtifactHandler implements IArtifactHandler {
         /**
          * Validates notebook definition format and ensures consistency before updating
          */
-        async onBeforeUpdateDefinition(_artifact: any, definition: IItemDefinition, folder: vscode.Uri, options: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
+        async onBeforeUpdateDefinition(_artifact: IArtifact, definition: IItemDefinition, _folder?: vscode.Uri, options?: IApiClientRequestOptions): Promise<IApiClientRequestOptions> {
+            // Options is always provided by core, but signature is optional for backward compatibility
+            if (!options) {
+                throw new Error('options parameter is required');
+            }
+
             const format = NotebookArtifactHandler.detectNotebookFormatFromDefinition(definition);
             if (format === 'mixed') {
                 throw new FabricError(

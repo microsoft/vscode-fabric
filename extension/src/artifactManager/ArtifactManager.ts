@@ -157,6 +157,17 @@ export class ArtifactManager implements IArtifactManagerInternal {
     }
 
     public async createArtifact(artifact: IArtifact, itemSpecificMetadata: any | undefined): Promise<IApiClientResponse> {
+        const requestBody: Record<string, any> = {
+            displayName: artifact.displayName,
+            description: artifact.description,
+            type: artifact.type,
+        };
+
+        // Include folderId if artifact should be created in a folder
+        if (artifact.folderId) {
+            requestBody.folderId = artifact.folderId;
+        }
+
         const request: IApiClientRequestOptions =
         {
             method: 'POST',
@@ -165,11 +176,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 'Content-Type': 'application/json',
             },
-            body: {
-                displayName: artifact.displayName,
-                description: artifact.description,
-                type: artifact.type,
-            },
+            body: requestBody,
         };
 
         // Get the custom Artifact Handler to delegate any custom CRUD operations
@@ -205,6 +212,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
                 description: artifact.description,
                 type: artifact.type,
                 definition,
+                ...(artifact.folderId ? { folderId: artifact.folderId } : {}),
             },
         };
 
@@ -336,14 +344,14 @@ export class ArtifactManager implements IArtifactManagerInternal {
         };
 
         const artifactHandler = this.getArtifactHandler(artifact);
-        if (artifactHandler?.getDefinitionWorkflow?.onBeforeGetDefinition && folder) {
+        if (artifactHandler?.getDefinitionWorkflow?.onBeforeGetDefinition) {
             apiRequestOptions = await artifactHandler.getDefinitionWorkflow.onBeforeGetDefinition(artifact, folder, apiRequestOptions);
         }
 
         const response = await this.apiClient.sendRequest(apiRequestOptions);
         const finalResponse = await handleLongRunningOperation(this.apiClient, response, this.logger, options?.progress);
 
-        if (artifactHandler?.getDefinitionWorkflow?.onAfterGetDefinition && folder) {
+        if (artifactHandler?.getDefinitionWorkflow?.onAfterGetDefinition) {
             await artifactHandler.getDefinitionWorkflow.onAfterGetDefinition(artifact, folder, finalResponse);
         }
         return finalResponse;
@@ -368,7 +376,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
 
         const artifactHandler = this.getArtifactHandler(artifact);
         // Allow handler to customize request before sending update definition
-        if (artifactHandler?.updateDefinitionWorkflow?.onBeforeUpdateDefinition && folder) {
+        if (artifactHandler?.updateDefinitionWorkflow?.onBeforeUpdateDefinition) {
             apiRequestOptions = await artifactHandler.updateDefinitionWorkflow.onBeforeUpdateDefinition(
                 artifact,
                 definition,
@@ -380,7 +388,7 @@ export class ArtifactManager implements IArtifactManagerInternal {
         const response = await this.apiClient.sendRequest(apiRequestOptions);
         const finalResponse = await handleLongRunningOperation(this.apiClient, response, this.logger, options?.progress);
 
-        if (artifactHandler?.updateDefinitionWorkflow?.onAfterUpdateDefinition && folder) {
+        if (artifactHandler?.updateDefinitionWorkflow?.onAfterUpdateDefinition) {
             await artifactHandler.updateDefinitionWorkflow.onAfterUpdateDefinition(
                 artifact,
                 definition,

@@ -21,6 +21,40 @@
 			"problemMatcher": [
 				"$tsc"
 			]
+		},
+		{
+			"label": "Start Web Test Server",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"@vscode/test-web",
+				"--browserType=none",
+				"--extensionDevelopmentPath=${workspaceFolder}/extension",
+				"--port=3000"
+			],
+			"isBackground": true,
+			"problemMatcher": {
+				"pattern": {
+					"regexp": "."
+				},
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": ".",
+					"endsPattern": "Listening on"
+				}
+			}
+		},
+		{
+			"label": "Stop Web Test Server",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"kill-port",
+				"3000"
+			],
+			"presentation": {
+				"reveal": "silent"
+			}
 		}
 	]
 }

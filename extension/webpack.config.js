@@ -3,6 +3,7 @@
 'use strict';
 
 const path = require('path');
+const webpack = require('webpack');
 
 const di = require('@wessberg/di-compiler');
 
@@ -11,6 +12,7 @@ const di = require('@wessberg/di-compiler');
 
 /** @type WebpackConfig */
 const extensionConfig = {
+    name: 'node',
     target: 'node',
     mode: 'none',
     entry: './src/extension.ts',
@@ -58,5 +60,61 @@ const extensionConfig = {
     infrastructureLogging: {
         level: 'log', // enables logging required for problem matchers
     },
+    plugins: [
+        new webpack.DefinePlugin({
+            __IS_WEB__: JSON.stringify(false)
+        })
+    ],
 };
-module.exports = [extensionConfig];
+
+/** @type WebpackConfig */
+const webExtensionConfig = {
+    name: 'web',
+    target: 'webworker',
+    mode: 'none',
+    entry: './src/web/extension.ts',
+    output: {
+        path: path.resolve(__dirname, 'dist/web'),
+        filename: 'extension.js',
+        libraryTarget: 'commonjs2',
+        devtoolModuleFilenameTemplate: 'webpack://vscode-fabric/extension/[resource-path]'
+    },
+    externals: {
+        vscode: 'commonjs vscode',
+    },
+    resolve: {
+        extensions: ['.ts', '.js'],
+        alias: {
+            '@microsoft/vscode-fabric-api': path.resolve(__dirname, '../api/src/'),
+            '@microsoft/vscode-fabric-util': path.resolve(__dirname, '../util/src/'),
+        },
+    },
+    module: {
+        rules: [
+            {
+                test: /\.ts$/,
+                exclude: [/node_modules/, /out\/\.test-extensions/],
+                use: [
+                    {
+                        loader: 'ts-loader',
+                        options: {
+                            getCustomTransformers: (/** @type {any} */ program) => di.di({program})
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    watchOptions: {
+        ignored: ['**/out/.test-extensions/**']
+    },
+    devtool: 'nosources-source-map',
+    infrastructureLogging: {
+        level: 'log',
+    },    plugins: [
+        new webpack.DefinePlugin({
+            __IS_WEB__: JSON.stringify(true)
+        })
+    ],};
+
+module.exports = [extensionConfig, webExtensionConfig];

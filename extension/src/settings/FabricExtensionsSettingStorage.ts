@@ -3,7 +3,6 @@
 
 import * as vscode from 'vscode';
 import { fabricWorkspaceSettingsVersion, IFabricArtifactSettings, IFabricWorkspaceSettings, IFabricExtensionsSettingStorage, ILocalFolderSettingsAdapter, IFabricExtensionSettings } from './definitions';
-import { mkdir } from 'fs';
 import { IConfigurationProvider, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 
 export const settingsFabricWorkspace = 'settingsFabricWorkspace';
@@ -44,22 +43,7 @@ export class FabricExtensionsSettingStorage implements IFabricExtensionsSettingS
     }
 
     get defaultWorkspacesPath(): string | undefined {
-        let value: string | undefined = this.config.get('DefaultWorkspaceFolder',  '');
-        try {
-            if (value && value.length > 0) { // attempt to create the folder if it doesn't exist. Also validates value is a valid path
-                // eslint-disable-next-line security/detect-non-literal-fs-filename
-                mkdir(value, { recursive: true }, (err) => {
-                    if (err) {
-                        console.error(err);
-                        value = undefined;
-                    }
-                });
-            }
-        }
-        catch (error) {
-            value = undefined;
-        }
-        return value;
+        return this.config.get('DefaultWorkspaceFolder',  '');
     }
 
     get mostRecentWorkspace(): string | undefined {

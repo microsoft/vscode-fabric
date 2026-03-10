@@ -526,7 +526,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Data agent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Datenagent]]></Val>
+            <Val><![CDATA[Daten-Agent]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -535,7 +535,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Data agents]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Datenagents]]></Val>
+            <Val><![CDATA[Daten-Agents]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

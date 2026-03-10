@@ -915,8 +915,13 @@ describe('ArtifactManager', function () {
             const apiResponse: IApiClientResponse = { status: 200 } as any;
             const folderUri = vscode.Uri.file('/tmp/folder');
 
-            const onBeforeGetDefinitionStub = sinon.stub().callsFake(async (_artifact: IArtifact, folder: vscode.Uri, options: IApiClientRequestOptions) => {
-                assert.strictEqual(folder.toString(), folderUri.toString(), 'Folder should match expected');
+            const onBeforeGetDefinitionStub = sinon.stub().callsFake(async (_artifact: IArtifact, folder: vscode.Uri | undefined, options: IApiClientRequestOptions) => {
+                if (folderProvided) {
+                    assert.strictEqual(folder?.toString(), folderUri.toString(), 'Folder should match expected');
+                }
+                else {
+                    assert.strictEqual(folder, undefined, 'Folder should be undefined when not provided');
+                }
                 options.pathTemplate = options.pathTemplate + '?detail=full';
                 return options;
             });
@@ -950,14 +955,11 @@ describe('ArtifactManager', function () {
             assert.strictEqual(result, apiResponse, 'Should return final API response');
             assert.ok(sendRequestArgs, 'sendRequestArgs should be defined');
             assert.ok(handleLongRunningOperationStub.calledOnce, 'handleLongRunningOperation should be called');
+            assert.ok(onBeforeGetDefinitionStub.calledOnce, 'onBeforeGetDefinition should be called once');
+            assert.ok(onAfterGetDefinitionStub.calledOnce, 'onAfterGetDefinition should be called once');
+            assert.ok(sendRequestArgs!.pathTemplate!.endsWith('?detail=full'), 'Path template should be modified by onBeforeGetDefinition');
             if (folderProvided) {
-                assert.ok(onBeforeGetDefinitionStub.calledOnce, 'onBeforeGetDefinition should be called once');
-                assert.ok(onAfterGetDefinitionStub.calledOnce, 'onAfterGetDefinition should be called once');
-                assert.ok(sendRequestArgs!.pathTemplate!.endsWith('?detail=full'), 'Path template should be modified by onBeforeGetDefinition');
-            }
-            else {
-                assert.ok(onBeforeGetDefinitionStub.notCalled, 'onBeforeGetDefinition should not be called');
-                assert.ok(onAfterGetDefinitionStub.notCalled, 'onAfterGetDefinition should not be called');
+                // folder-specific assertions already validated in the stub
             }
         });
     });

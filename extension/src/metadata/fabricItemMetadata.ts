@@ -214,6 +214,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         portalFolder: 'datasets',
         supportsArtifactWithDefinition: true,
         extensionId: 'analysis-services.TMDL',
+        webExtensionEnabled: true,
     },
     'SparkJobDefinition': {
         creationCapability: CreationCapability.supported,

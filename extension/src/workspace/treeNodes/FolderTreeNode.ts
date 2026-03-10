@@ -17,12 +17,24 @@ export class FolderTreeNode extends FabricTreeNode {
         this.id = `ws-folder:${folder.workspaceId}:${folder.id}`;
     }
 
+    get workspaceId(): string {
+        return this.folder.workspaceId;
+    }
+
+    get folderId(): string {
+        return this.folder.id;
+    }
+
     addFolder(folderNode: FolderTreeNode): void {
         this.childFolders.push(folderNode);
     }
 
     addArtifact(artifactNode: ArtifactTreeNode): void {
         this.childArtifacts.push(artifactNode);
+    }
+
+    hasChildren(): boolean {
+        return this.childFolders.length > 0 || this.childArtifacts.length > 0;
     }
 
     async getChildNodes(): Promise<FabricTreeNode[]> {

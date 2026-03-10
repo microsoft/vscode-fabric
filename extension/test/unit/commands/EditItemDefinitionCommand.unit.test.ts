@@ -22,8 +22,7 @@ describe('EditItemDefinitionCommand', function () {
     let contextMock: Mock<vscode.ExtensionContext>;
     let fabricEnvironmentProviderMock: Mock<IFabricEnvironmentProvider>;
 
-    let openTextDocumentStub: sinon.SinonStub;
-    let showTextDocumentStub: sinon.SinonStub;
+    let executeCommandStub: sinon.SinonStub;
 
     const workspaceId = 'workspace-123';
     const artifactId = 'artifact-456';
@@ -80,9 +79,8 @@ describe('EditItemDefinitionCommand', function () {
         const readonlyUri = vscode.Uri.parse(`fabric-definition-virtual:///${workspaceId}/${artifactId}/${fileName}`);
         node = new DefinitionFileTreeNode(contextMock.object(), artifact, fileName, editableUri, readonlyUri);
 
-        // Stub VS Code workspace and window methods
-        openTextDocumentStub = sinon.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
-        showTextDocumentStub = sinon.stub(vscode.window, 'showTextDocument').resolves({} as vscode.TextEditor);
+        // Stub VS Code commands
+        executeCommandStub = sinon.stub(vscode.commands, 'executeCommand').resolves();
 
         // Create command instance
         command = new EditItemDefinitionCommand(commandManagerMock.object());
@@ -96,10 +94,10 @@ describe('EditItemDefinitionCommand', function () {
         it('should open the editable document with correct URI', async function () {
             await executeCommand(node);
 
-            assert.ok(openTextDocumentStub.calledOnce, 'openTextDocument should be called once');
-            assert.ok(openTextDocumentStub.calledWith(node.editableUri), 'Should use editable URI');
-            assert.ok(showTextDocumentStub.calledOnce, 'showTextDocument should be called once');
-            assert.ok(showTextDocumentStub.calledWith(mockDocument, { preview: false }), 'Should show document without preview');
+            assert.ok(
+                executeCommandStub.calledWith('vscode.open', node.editableUri),
+                'Should call vscode.open with editable URI'
+            );
         });
 
         it('should add artifact telemetry properties', async function () {
@@ -148,9 +146,8 @@ describe('EditItemDefinitionCommand', function () {
         it('should return early and log error when node is undefined', async function () {
             await executeCommand(undefined);
 
-            loggerMock.verify(x => x.error(It.Is<string>(msg => msg.includes('without a DefinitionFileTreeNode'))), Times.Once());
-            assert.ok(openTextDocumentStub.notCalled, 'openTextDocument should not be called');
-            assert.ok(showTextDocumentStub.notCalled, 'showTextDocument should not be called');
+            loggerMock.verify(x => x.error(It.Is<string>(msg => msg.includes('without valid argument'))), Times.Once());
+            assert.ok(executeCommandStub.notCalled, 'executeCommand should not be called');
 
             // Verify no artifact properties or file extension were added
             verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'workspaceId');
@@ -161,9 +158,8 @@ describe('EditItemDefinitionCommand', function () {
         it('should return early and log error when node is null', async function () {
             await executeCommand(null);
 
-            loggerMock.verify(x => x.error(It.Is<string>(msg => msg.includes('without a DefinitionFileTreeNode'))), Times.Once());
-            assert.ok(openTextDocumentStub.notCalled, 'openTextDocument should not be called');
-            assert.ok(showTextDocumentStub.notCalled, 'showTextDocument should not be called');
+            loggerMock.verify(x => x.error(It.Is<string>(msg => msg.includes('without valid argument'))), Times.Once());
+            assert.ok(executeCommandStub.notCalled, 'executeCommand should not be called');
 
             // Verify no artifact properties or file extension were added
             verifyAddOrUpdatePropertiesNever(telemetryActivityMock, 'workspaceId');

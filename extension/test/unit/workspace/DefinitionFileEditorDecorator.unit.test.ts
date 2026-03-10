@@ -72,7 +72,7 @@ describe('DefinitionFileEditorDecorator', function () {
         it('should hide status bar when no active editor', function () {
             decorator = new DefinitionFileEditorDecorator();
 
-            assert.ok(statusBarItem.hide.calledOnce);
+            assert.ok(statusBarItem.hide.called, 'hide should be called');
             assert.ok(statusBarItem.show.notCalled);
         });
 

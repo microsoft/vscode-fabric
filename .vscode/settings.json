@@ -6,6 +6,7 @@
 
     "files.exclude": {
         "**/node_modules": true,
+        "**/.vscode-test-web": true,
         // From extension .vscode/settings.json: keep build artifacts visible (explicit false)
         "out": false,
         "dist": false
@@ -18,6 +19,7 @@
         "**/lib": true,
         // Added from package + extension settings
         "**/.vscode-test": true,
+        "**/.vscode-test-web": true,
         // Localization build artifacts
         "*.nls.*.json": true,
         "l10n/*.l10n.*.json": true,
@@ -50,7 +52,7 @@
     // Use npm consistently across the monorepo.
     "npm.packageManager": "npm",
     "npm.scriptRunner": "npm",
-    "npm.exclude": "**/.test-extensions/**",
+    "npm.exclude": "**/.test-extensions/**,**/.vscode-test-web/**",
 
     // Gen AI script
     "genaiscript.languageChatModels": {

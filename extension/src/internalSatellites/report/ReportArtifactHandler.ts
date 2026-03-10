@@ -7,6 +7,7 @@ import { FabricError, TelemetryService, UserCancelledError, ILogger } from '@mic
 import { IWorkspaceFilterManager } from '../../workspace/WorkspaceFilterManager';
 import { showItemQuickPick } from '../../ui/showItemQuickPick';
 import { Base64Encoder } from '../../itemDefinition/ItemDefinitionReader';
+import { uint8ArrayToString, stringToUint8Array } from '../../bufferUtilities';
 
 // custom metadata is no longer used; selection happens within onBeforeUpdateDefinition
 
@@ -78,9 +79,13 @@ export class ReportArtifactHandler implements IArtifactHandler {
         onBeforeUpdateDefinition: async (
             artifact: IArtifact,
             definition: IItemDefinition,
-            _folder: vscode.Uri,
-            options: IApiClientRequestOptions
+            _folder?: vscode.Uri,
+            options?: IApiClientRequestOptions
         ): Promise<IApiClientRequestOptions> => {
+            // Options is always provided by core, but signature is optional for backward compatibility
+            if (!options) {
+                throw new Error('options parameter is required');
+            }
             await this.ensureSemanticModelBinding(artifact, definition, 'updateDefinitionWorkflow');
             return options;
         },
@@ -90,9 +95,13 @@ export class ReportArtifactHandler implements IArtifactHandler {
         onBeforeCreateWithDefinition: async (
             artifact: IArtifact,
             definition: IItemDefinition,
-            _folder: vscode.Uri,
-            options: IApiClientRequestOptions
+            _folder?: vscode.Uri,
+            options?: IApiClientRequestOptions
         ): Promise<IApiClientRequestOptions> => {
+            // Options is always provided by core, but signature is optional for backward compatibility
+            if (!options) {
+                throw new Error('options parameter is required');
+            }
             await this.ensureSemanticModelBinding(artifact, definition, 'createWithDefinitionWorkflow');
             return options;
         },
@@ -107,7 +116,7 @@ export class ReportArtifactHandler implements IArtifactHandler {
         if (part) {
             try {
                 const decoded = encoder.decode(part.payload);
-                const txt = Buffer.from(decoded).toString('utf8');
+                const txt = uint8ArrayToString(decoded);
                 existing = JSON.parse(txt);
             }
             catch {
@@ -130,7 +139,7 @@ export class ReportArtifactHandler implements IArtifactHandler {
         };
 
         const updatedContent: string = JSON.stringify(existing, undefined, 2);
-        const newPayload = encoder.encode(Buffer.from(updatedContent, 'utf8'));
+        const newPayload = encoder.encode(stringToUint8Array(updatedContent));
 
         this.logger.log(`Updated Report definition.pbir to reference Semantic Model ${semanticModelId}`);
         this.logger.log(`New definition.pbir content: ${updatedContent}`);
@@ -156,7 +165,7 @@ export class ReportArtifactHandler implements IArtifactHandler {
         }
         try {
             const decoded = encoder.decode(part.payload);
-            const txt = Buffer.from(decoded).toString('utf8');
+            const txt = uint8ArrayToString(decoded);
             const existing = JSON.parse(txt);
             return !!existing?.datasetReference?.byConnection;
         }

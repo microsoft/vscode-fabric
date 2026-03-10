@@ -26,6 +26,11 @@ export type CoreTelemetryEventNames = {
 	'item/localFolder/open': { properties: ArtifactPropertyNames | 'actionTaken'; measurements: never },
 	'item/localFolder/change': { properties: ArtifactPropertyNames | 'actionTaken'; measurements: never },
 
+	// folder management
+	'folder/create': { properties: ResultPropertyNames | 'workspaceId' | 'folderId' | 'parentFolderId' | ApiResultPropertyNames; measurements: never },
+	'folder/delete': { properties: ResultPropertyNames | 'workspaceId' | 'folderId' | ApiResultPropertyNames; measurements: never },
+	'folder/rename': { properties: ResultPropertyNames | 'workspaceId' | 'folderId' | ApiResultPropertyNames; measurements: never },
+
 	// tenant management
 	'tenant/switch': { properties: ResultPropertyNames; measurements: never }
 

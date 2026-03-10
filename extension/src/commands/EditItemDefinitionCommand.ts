@@ -2,12 +2,15 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
+import { IArtifact } from '@microsoft/vscode-fabric-api';
 import { TelemetryActivity } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { FabricCommand } from './FabricCommand';
 import { IFabricCommandManager } from './IFabricCommandManager';
 import { commandNames } from '../constants';
 import { DefinitionFileTreeNode } from '../workspace/treeNodes/DefinitionFileTreeNode';
+import { DefinitionFileSystemProvider } from '../workspace/DefinitionFileSystemProvider';
+import { ReadonlyDefinitionFileSystemProvider } from '../workspace/ReadonlyDefinitionFileSystemProvider';
 
 /**
  * Command to open an item definition file in editable mode.
@@ -25,28 +28,67 @@ export class EditItemDefinitionCommand extends FabricCommand<'item/definition/ed
         telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>,
         ...args: any[]
     ): Promise<void> {
-        const node = args[0] as DefinitionFileTreeNode | undefined;
-        if (!node) {
-            this.commandManager.logger.error('editDefinitionFile called without a DefinitionFileTreeNode');
+        const arg = args[0];
+
+        let editableUri: vscode.Uri | undefined;
+        let fileName: string | undefined;
+        let artifact: IArtifact | undefined;
+
+        // Handle two cases: called from tree node or from CodeLens/URI
+        if (arg instanceof DefinitionFileTreeNode) {
+            // Called from tree view context menu
+            const node = arg as DefinitionFileTreeNode;
+            editableUri = node.editableUri;
+            fileName = node.fileName;
+            artifact = node.artifact;
+        }
+        else if (arg?.scheme === ReadonlyDefinitionFileSystemProvider.scheme) {
+            // Called from CodeLens - convert readonly URI to editable URI
+            const readonlyUri = arg as vscode.Uri;
+            editableUri = readonlyUri.with({ scheme: DefinitionFileSystemProvider.scheme });
+            fileName = readonlyUri.path.split('/').pop() ?? undefined;
+        }
+        else {
+            this.commandManager.logger.error('editDefinitionFile called without valid argument');
             return;
         }
 
-        // Add artifact telemetry properties
-        this.addArtifactTelemetryProperties(telemetryActivity, node.artifact);
+        if (!editableUri) {
+            this.commandManager.logger.error('editDefinitionFile: could not determine editable URI');
+            return;
+        }
 
-        // Extract file extension for telemetry.
-        // File name may contain PII, so use only the extension
-        const parts = node.fileName.split('.');
-        const fileExtension = parts.length > 1 ? parts.pop() || '' : '';
-        telemetryActivity.addOrUpdateProperties({
-            fileExtension: fileExtension,
-        });
+        // Add artifact telemetry properties if available
+        if (artifact) {
+            this.addArtifactTelemetryProperties(telemetryActivity, artifact);
+        }
 
-        // Open the file using the editable URI (fabric-definition://)
-        // This uses the DefinitionFileSystemProvider which supports editing
-        const doc = await vscode.workspace.openTextDocument(node.editableUri);
-        await vscode.window.showTextDocument(doc, { preview: false });
+        // Extract file extension for telemetry if we have fileName
+        if (fileName) {
+            const parts = fileName.split('.');
+            const fileExtension = parts.length > 1 ? parts.pop() || '' : '';
+            telemetryActivity.addOrUpdateProperties({
+                fileExtension: fileExtension,
+            });
+        }
 
-        this.commandManager.logger.debug(`Opened definition file for editing: ${node.fileName}`);
+        // Close the readonly document if it's open
+        const readonlyUri = editableUri.with({ scheme: ReadonlyDefinitionFileSystemProvider.scheme });
+        const readonlyUriString = readonlyUri.toString();
+        const readonlyDoc = vscode.workspace.textDocuments.find(doc => doc.uri.toString() === readonlyUriString);
+        if (readonlyDoc) {
+            await vscode.window.showTextDocument(readonlyDoc, { preview: false, preserveFocus: false });
+            await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+        }
+
+        // Use vscode.open to let VS Code choose the appropriate editor
+        // For .ipynb files:
+        //   - If Jupyter extension is installed: opens in notebook editor
+        //   - If not installed: VS Code prompts to install extension or opens as JSON
+        // For other files: opens in text editor
+        // This triggers DefinitionFileEditorDecorator for text files
+        await vscode.commands.executeCommand('vscode.open', editableUri);
+
+        this.commandManager.logger.debug(`Opened definition file for editing: ${fileName || editableUri.toString()}`);
     }
 }
