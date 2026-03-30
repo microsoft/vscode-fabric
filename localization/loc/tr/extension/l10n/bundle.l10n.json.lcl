@@ -1516,7 +1516,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Notebook]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Not defteri]]></Val>
+            <Val><![CDATA[Not Defteri]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1525,7 +1525,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Notebooks]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Notebooks]]></Val>
+            <Val><![CDATA[Not Defterleri]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
