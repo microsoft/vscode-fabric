@@ -3,7 +3,7 @@
 
 import * as vscode from 'vscode';
 import { IArtifact } from './FabricApiClient';
-import { ArtifactDesignerActions, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, LocalProjectDesignerActions } from './satelliteFabricExtension';
+import { ArtifactDesignerActions, IFabricTreeNodeProvider, LocalProjectDesignerActions } from './satelliteFabricExtension';
 
 /**
  * Base class for all of the Fabric workspace tree items
@@ -149,45 +149,5 @@ export class LocalProjectTreeNode extends FabricTreeNode {
      */
     async getChildNodes(): Promise<FabricTreeNode[]> {
         return [];
-    }
-}
-
-/**
- * A default implementation for the ILocalProjectTreeNodeProvider
- *
- * @deprecated - Use the LocalProjectTreeNodeProvider class defined in the @microsoft/vscode-fabric-util package instead
- */
-export class LocalProjectTreeNodeProvider implements ILocalProjectTreeNodeProvider {
-    /**
-     * Creates a new instance of the LocalProjectTreeNodeProvider class
-     * @param artifactType The type of artifact this class provides
-     */
-    public constructor(private context: vscode.ExtensionContext, public artifactType: string) {
-    }
-
-    /**
-     * Creates a default tree node for the specified path. Creates the display name of the LocalProjectTreeNode based on the folder name
-     * @param localPath - The candidate path for a local project corresponding to the artifact type of this provider
-     * @returns - A customized (@link LocalProjectTreeNode}. Returns undefined if the path is not a valid local project
-     */
-    async createLocalProjectTreeNode(localPath: vscode.Uri): Promise<LocalProjectTreeNode | undefined> {
-        let displayName = localPath.path;
-
-        // Expected folder is '<path>/<item_name>.<item_type>'
-        // Extract the name and extension from the URI path
-        const pathSegments = localPath.path.split('/');
-        const lastSegment = pathSegments[pathSegments.length - 1] || '';
-        const lastDotIndex = lastSegment.lastIndexOf('.');
-
-        if (lastDotIndex > 0) {
-            const ext = lastSegment.substring(lastDotIndex + 1);
-            const name = lastSegment.substring(0, lastDotIndex);
-
-            if (ext.toLowerCase() === this.artifactType.toLowerCase()) {
-                displayName = name;
-            }
-        }
-
-        return new LocalProjectTreeNode(this.context, displayName, localPath);
     }
 }

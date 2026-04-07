@@ -2,7 +2,8 @@
 // Licensed under the MIT License.
 
 import { testApiVersion } from '../../../src/extensionManager/MockFabricExtensionManager';
-import { IArtifactHandler, IFabricExtension, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, ArtifactTreeNodeProvider, LocalProjectTreeNodeProvider } from '@microsoft/vscode-fabric-api';
+import { IArtifactHandler, IFabricExtension, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, ArtifactTreeNodeProvider } from '@microsoft/vscode-fabric-api';
+import { LocalProjectTreeNodeProvider } from '@microsoft/vscode-fabric-util';
 
 export const satelliteExtensionIds = [
     'fabric-test.vscode-fabric-test-extension1',
