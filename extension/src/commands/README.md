@@ -46,7 +46,7 @@ constructor(
     public readonly extensionContext: vscode.ExtensionContext,
     public readonly fabricEnvironmentProvider: IFabricEnvironmentProvider,
     public readonly workspaceManager: IWorkspaceManager,
-    public readonly artifactManager: IArtifactManagerInternal,
+    public readonly artifactManager: IArtifactManager,
     // ... other dependencies
 ) {}
 ```
@@ -141,7 +141,7 @@ Through `this.commandManager`, commands have access to:
 - `extensionContext: vscode.ExtensionContext` - VS Code extension context
 - `fabricEnvironmentProvider: IFabricEnvironmentProvider` - Current Fabric environment
 - `workspaceManager: IWorkspaceManager` - Workspace operations
-- `artifactManager: IArtifactManagerInternal` - Artifact operations
+- `artifactManager: IArtifactManager` - Artifact operations
 - `capacityManager: ICapacityManager` - Capacity management
 - `dataProvider: FabricWorkspaceDataProvider` - Tree view data provider
 - `workspaceFilterManager: IWorkspaceFilterManager` - Workspace filtering

@@ -38,5 +38,5 @@ export type TelemetryEventNames = {
 
 	// uri handler
 
-	'fabric/handleUri': { properties: ResultPropertyNames | ArtifactPropertyNames | 'query' | 'error' | 'targetEnvironment' | 'openArtifact' | 'uriQuery'; measurements: never }
+	'fabric/handleUri': { properties: ResultPropertyNames | ArtifactPropertyNames | 'query' | 'error' | 'targetEnvironment' | 'uriQuery'; measurements: never }
 };

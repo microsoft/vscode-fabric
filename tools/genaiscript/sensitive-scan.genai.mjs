@@ -65,7 +65,7 @@ Instructions:
 - Do NOT wrap the JSON in quotes or backticks; respond with bare JSON only.
 - Do NOT hallucinate. If unsure, respond with SYSTEMERROR as the severity.
 - ERROR if: secrets, credentials, subscription IDs, unredacted emails, or clearly confidential code names. Everything else is WARNING.
-- Treat the following identifiers as safe; they should never be flagged: @microsoft/vscode-fabric-util, @microsoft/vscode-fabric-api, the product brand name Fabric, interface names IFabricExtensionManagerInternal, IArtifactManagerInternal, and the enum CoreTelemetryEventNames.
+- Treat the following identifiers as safe; they should never be flagged: @microsoft/vscode-fabric-util, @microsoft/vscode-fabric-api, the product brand name Fabric, interface names IFabricExtensionManagerInternal, and the enum CoreTelemetryEventNames.
 Return only JSON. No prose.
       `;
     }, { label: `scan:${file.filename}` });

@@ -88,13 +88,6 @@
         "category": "Fabric"
       },
       {
-        "command": "vscode-fabric.openArtifact",
-        "title": "%extension.openArtifact.title%",
-        "category": "Fabric",
-        "icon": "$(open-preview)",
-        "enablement": "!isWeb"
-      },
-      {
         "command": "vscode-fabric.openLocalFolder",
         "title": "%extension.openLocalFolder.title%",
         "category": "Fabric",
@@ -302,10 +295,6 @@
           "when": "false"
         },
         {
-          "command": "vscode-fabric.openArtifact",
-          "when": "false"
-        },
-        {
           "command": "vscode-fabric.openLocalFolder",
           "when": "false"
         },
@@ -510,16 +499,6 @@
         {
           "command": "vscode-fabric.refreshArtifactView",
           "when": "view == vscode-fabric.view.workspace && (viewItem == WorkspaceRoot || viewItem =~ /Item.*/ || viewItem == ConnectionsTreeNode || viewItem == LibrariesTreeNode || viewItem == FunctionsTreeNode)",
-          "group": "inline"
-        },
-        {
-          "command": "vscode-fabric.openArtifact",
-          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-open-in-explorer/",
-          "group": "5@1"
-        },
-        {
-          "command": "vscode-fabric.openArtifact",
-          "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-open-in-explorer/",
           "group": "inline"
         },
         {

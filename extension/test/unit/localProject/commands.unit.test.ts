@@ -7,8 +7,8 @@ import * as sinon from 'sinon';
 import { Mock, It, Times } from 'moq.ts';
 import { registerLocalProjectCommands } from '../../../src/localProject/commands';
 import { commandNames } from '../../../src/constants';
-import { IWorkspaceManager, IWorkspace, LocalProjectTreeNode, IFabricApiClient } from '@microsoft/vscode-fabric-api';
-import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../../../src/apis/internal/fabricExtensionInternal';
+import { IWorkspaceManager, IWorkspace, IArtifactManager, LocalProjectTreeNode, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { IFabricExtensionManagerInternal } from '../../../src/apis/internal/fabricExtensionInternal';
 import { TelemetryService, IFabricEnvironmentProvider, ILogger } from '@microsoft/vscode-fabric-util';
 import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { ICapacityManager } from '../../../src/CapacityManager';
@@ -20,7 +20,7 @@ describe('registerLocalProjectCommands', () => {
     let contextMock: Mock<vscode.ExtensionContext>;
     let workspaceManagerMock: Mock<IWorkspaceManager>;
     let fabricEnvironmentProviderMock: Mock<IFabricEnvironmentProvider>;
-    let artifactManagerMock: Mock<IArtifactManagerInternal>;
+    let artifactManagerMock: Mock<IArtifactManager>;
     let extensionManagerMock: Mock<IFabricExtensionManagerInternal>;
     let localFolderServiceMock: Mock<ILocalFolderService>;
     let telemetryServiceMock: Mock<TelemetryService>;
@@ -37,7 +37,7 @@ describe('registerLocalProjectCommands', () => {
         contextMock = new Mock<vscode.ExtensionContext>();
         workspaceManagerMock = new Mock<IWorkspaceManager>();
         fabricEnvironmentProviderMock = new Mock<IFabricEnvironmentProvider>();
-        artifactManagerMock = new Mock<IArtifactManagerInternal>();
+        artifactManagerMock = new Mock<IArtifactManager>();
         extensionManagerMock = new Mock<IFabricExtensionManagerInternal>();
         localFolderServiceMock = new Mock<ILocalFolderService>();
         telemetryServiceMock = new Mock<TelemetryService>();

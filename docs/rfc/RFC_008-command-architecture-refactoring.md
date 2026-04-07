@@ -55,7 +55,7 @@ export interface IFabricCommandManager {
   readonly extensionContext: vscode.ExtensionContext;
   readonly fabricEnvironmentProvider: IFabricEnvironmentProvider;
   readonly workspaceManager: IWorkspaceManager;
-  readonly artifactManager: IArtifactManagerInternal;
+  readonly artifactManager: IArtifactManager;
   readonly capacityManager: ICapacityManager;
   readonly dataProvider: FabricWorkspaceDataProvider;
   readonly workspaceFilterManager: IWorkspaceFilterManager;

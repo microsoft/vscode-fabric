@@ -7,14 +7,13 @@ import { commandNames } from '../constants';
 import { CreateItemsProvider } from '../metadata/CreateItemsProvider';
 import { getArtifactTypeFolder } from '../metadata/fabricItemUtilities';
 import { fabricItemMetadata } from '../metadata/fabricItemMetadata';
-import { IArtifact,  IWorkspace, IWorkspaceManager, ArtifactTreeNode } from '@microsoft/vscode-fabric-api';
-import { OperationRequestType } from '@microsoft/vscode-fabric-api';
+import { IArtifact,  IWorkspace, IWorkspaceManager, IArtifactManager, ArtifactTreeNode } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
-import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
+import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { TelemetryActivity, TelemetryService, IFabricEnvironmentProvider, withErrorHandling, doFabricAction, ILogger, IConfigurationProvider, FABRIC_ENVIRONMENT_PROD } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { fabricViewWorkspace } from '../constants';
-import { createArtifactCommand, createArtifactCommandDeprecated, promptForArtifactTypeAndName } from './createArtifactCommand';
+import { createArtifactCommand, promptForArtifactTypeAndName } from './createArtifactCommand';
 import { readArtifactCommand } from './readArtifactCommand';
 import { renameArtifactCommand } from './renameArtifactCommand';
 import { deleteArtifactCommand } from './deleteArtifactCommand';
@@ -43,7 +42,7 @@ function registerCommand<T>(
 export async function registerArtifactCommands(context: vscode.ExtensionContext,
     workspaceManager: IWorkspaceManager,
     fabricEnvironmentProvider: IFabricEnvironmentProvider,
-    artifactManager: IArtifactManagerInternal,
+    artifactManager: IArtifactManager,
     dataProvider: FabricWorkspaceDataProvider,
     extensionManager: IFabricExtensionManagerInternal,
     workspaceFilterManager: IWorkspaceFilterManager,
@@ -106,13 +105,7 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                 folderId: parentFolderId,
             };
 
-            if (artifactManager.shouldUseDeprecatedCommand(artifact.type, OperationRequestType.create)) {
-                return await artifactManager.doContextMenuItem(cmdArgs, 'Create', async (item) => {
-                    return await createArtifactCommandDeprecated(artifactManager, artifact);
-                });
-            }
-            else {
-                return await doArtifactAction(
+            return await doArtifactAction(
                     artifact,
                     'createArtifact',
                     'item/create',
@@ -129,7 +122,6 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                         );
                     }
                 );
-            }
         },
         context
     );
@@ -147,34 +139,6 @@ export async function registerArtifactCommands(context: vscode.ExtensionContext,
                 async (activity, item) => {
                     addCommonArtifactTelemetryProps(activity, fabricEnvironmentProvider, item);
                     await deleteArtifactCommand(item, artifactManager, workspaceManager, vscode.workspace.fs, telemetryService, logger, dataProvider, activity);
-                }
-            );
-        },
-        context
-    );
-
-    registerCommand(
-        commandNames.openArtifact,
-        async (...cmdArgs) => {
-            const artifactTreeNode = cmdArgs[0] as ArtifactTreeNode;
-            await doArtifactAction(
-                artifactTreeNode?.artifact,
-                'openArtifact',
-                'item/open',
-                logger,
-                telemetryService,
-                async (activity, item) => {
-                    if (!item) {
-                        return;
-                    }
-
-                    addCommonArtifactTelemetryProps(activity, fabricEnvironmentProvider, item);
-                    if (cmdArgs.length >= 2 && cmdArgs[1] === 'Selected') { // not a context menu invocation
-                        await artifactManager.selectArtifact(item);
-                    }
-                    else {
-                        await artifactManager.openArtifact(item);
-                    }
                 }
             );
         },

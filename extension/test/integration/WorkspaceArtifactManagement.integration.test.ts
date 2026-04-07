@@ -158,8 +158,8 @@ describe('Workspace and Artifact Management Integration Tests', function () {
         const newNode = await findTreeViewItem(tvProvider, undefined, newArtifact.displayName);
         assert(newNode, `Unable to find created artifact '${newArtifact.displayName}' in tree view`);
 
-        // Test artifact opening in editor using openArtifact
-        await vscode.commands.executeCommand(commandNames.openArtifact, newNode, 'Selected');
+        // Test artifact opening in editor using readArtifact
+        await vscode.commands.executeCommand(commandNames.readArtifact, newNode);
         await sleep(2 * sleepAmount);
 
         const editor = vscode.window.activeTextEditor;

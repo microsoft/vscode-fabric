@@ -2,21 +2,16 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { IArtifact, OperationRequestType, Schema } from '@microsoft/vscode-fabric-api';
+import { IArtifact, IArtifactManager, Schema } from '@microsoft/vscode-fabric-api';
 import { formatErrorResponse, succeeded } from '../utilities';
-import { IArtifactManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { FabricError, TelemetryActivity } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 
 export async function readArtifactCommand(
     artifact: IArtifact,
-    artifactManager: IArtifactManagerInternal,
+    artifactManager: IArtifactManager,
     telemetryActivity: TelemetryActivity<CoreTelemetryEventNames>
 ): Promise<void> {
-    if (artifactManager.shouldUseDeprecatedCommand(artifact.type, OperationRequestType.select)) {
-        await artifactManager.selectArtifact(artifact);
-        return;
-    }
     const response = await artifactManager.getArtifact(artifact);
     telemetryActivity.addOrUpdateProperties({
         'statusCode': response?.status.toString(),

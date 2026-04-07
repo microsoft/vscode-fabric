@@ -6,14 +6,13 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { NotebookExtension } from '../../../../src/internalSatellites/notebook/NotebookExtension';
-import { IFabricExtensionManager, IWorkspaceManager, IArtifactManager } from '@microsoft/vscode-fabric-api';
-import { TelemetryService } from '@microsoft/vscode-fabric-util';
+import { IFabricExtensionManager } from '@microsoft/vscode-fabric-api';
+import { TelemetryService, ILogger } from '@microsoft/vscode-fabric-util';
 
 describe('NotebookExtension', function () {
     let contextMock: Mock<vscode.ExtensionContext>;
-    let workspaceManagerMock: Mock<IWorkspaceManager>;
-    let artifactManagerMock: Mock<IArtifactManager>;
     let telemetryServiceMock: Mock<TelemetryService>;
+    let loggerMock: Mock<ILogger>;
     let extensionManagerMock: Mock<IFabricExtensionManager>;
     let serviceCollection: any;
     let registerCommandStub: sinon.SinonStub;
@@ -24,14 +23,10 @@ describe('NotebookExtension', function () {
 
     beforeEach(function () {
         contextMock = new Mock<vscode.ExtensionContext>();
-        workspaceManagerMock = new Mock<IWorkspaceManager>();
-        artifactManagerMock = new Mock<IArtifactManager>();
         telemetryServiceMock = new Mock<TelemetryService>();
+        loggerMock = new Mock<ILogger>();
         extensionManagerMock = new Mock<IFabricExtensionManager>();
-        serviceCollection = {
-            workspaceManager: workspaceManagerMock.object(),
-            artifactManager: artifactManagerMock.object(),
-        };
+        serviceCollection = {};
         extensionManagerMock.setup(x => x.addExtension(It.IsAny())).returns(serviceCollection);
         // Ensure context.subscriptions is an array
         const context = contextMock.object();
@@ -56,6 +51,7 @@ describe('NotebookExtension', function () {
         const notebookExtension = new NotebookExtension(
             context,
             telemetryServiceMock.object(),
+            loggerMock.object(),
             extensionManagerMock.object()
         );
         // Assert
@@ -71,6 +67,7 @@ describe('NotebookExtension', function () {
         const notebookExtension = new NotebookExtension(
             context,
             telemetryServiceMock.object(),
+            loggerMock.object(),
             extensionManagerMock.object()
         );
         // Act & Assert

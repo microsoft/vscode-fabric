@@ -8,9 +8,9 @@ import { Mock, It, Times } from 'moq.ts';
 import { registerArtifactCommands } from '../../../src/artifactManager/commands';
 import { registerArtifactExportCommands } from '../../../src/artifactManager/commands.export';
 import { commandNames } from '../../../src/constants';
-import { ArtifactTreeNode, IWorkspaceManager, IArtifact, IWorkspace } from '@microsoft/vscode-fabric-api';
+import { ArtifactTreeNode, IWorkspaceManager, IArtifact, IWorkspace, IArtifactManager } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from '../../../src/workspace/treeView';
-import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../../../src/apis/internal/fabricExtensionInternal';
+import { IFabricExtensionManagerInternal } from '../../../src/apis/internal/fabricExtensionInternal';
 import { TelemetryService, TelemetryActivity, IFabricEnvironmentProvider, ILogger, IConfigurationProvider } from '@microsoft/vscode-fabric-util';
 import { UserCancelledError } from '@microsoft/vscode-fabric-util';
 import { IItemDefinitionWriter } from '../../../src/itemDefinition/ItemDefinitionWriter';
@@ -24,7 +24,7 @@ describe('registerArtifactCommands', () => {
     let contextMock: Mock<vscode.ExtensionContext>;
     let workspaceManagerMock: Mock<IWorkspaceManager>;
     let fabricEnvironmentProviderMock: Mock<IFabricEnvironmentProvider>;
-    let artifactManagerMock: Mock<IArtifactManagerInternal>;
+    let artifactManagerMock: Mock<IArtifactManager>;
     let localFolderServiceMock: Mock<ILocalFolderService>;
     let configurationProviderMock: Mock<IConfigurationProvider>;
     let dataProviderMock: Mock<FabricWorkspaceDataProvider>;
@@ -45,7 +45,6 @@ describe('registerArtifactCommands', () => {
         'vscode-fabric.createArtifact',
         'vscode-fabric.deleteArtifact',
         'vscode-fabric.exportArtifact',
-        'vscode-fabric.openArtifact',
         'vscode-fabric.openInPortal',
         'vscode-fabric.openLocalFolder',
         'vscode-fabric.readArtifact',
@@ -57,7 +56,7 @@ describe('registerArtifactCommands', () => {
         contextMock = new Mock<vscode.ExtensionContext>();
         workspaceManagerMock = new Mock<IWorkspaceManager>();
         fabricEnvironmentProviderMock = new Mock<IFabricEnvironmentProvider>();
-        artifactManagerMock = new Mock<IArtifactManagerInternal>();
+        artifactManagerMock = new Mock<IArtifactManager>();
         localFolderServiceMock = new Mock<ILocalFolderService>();
         configurationProviderMock = new Mock<IConfigurationProvider>();
         dataProviderMock = new Mock<FabricWorkspaceDataProvider>();
@@ -186,8 +185,6 @@ describe('registerArtifactCommands', () => {
                     promptResult = { type: 'test-artifact-type', name: 'TestArtifactDisplayName', workspaceId: 'test-workspace-id' };
                     promptStub = sinon.stub().resolves(promptResult);
                     sinon.replace(commandModule, 'promptForArtifactTypeAndName', promptStub);
-
-                    artifactManagerMock.setup(x => x.shouldUseDeprecatedCommand(It.IsAny(), It.IsAny())).returns(false);
 
                     extensionManagerMock.setup(x => x.getArtifactHandler(It.IsAny())).returns(undefined);
 

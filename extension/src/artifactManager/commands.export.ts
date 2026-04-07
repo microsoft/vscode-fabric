@@ -4,8 +4,7 @@
 import * as vscode from 'vscode';
 
 import { commandNames } from '../constants';
-import { IArtifact, IWorkspaceManager, ArtifactTreeNode } from '@microsoft/vscode-fabric-api';
-import { IArtifactManagerInternal } from '../apis/internal/fabricExtensionInternal';
+import { IArtifact, IWorkspaceManager, IArtifactManager, ArtifactTreeNode } from '@microsoft/vscode-fabric-api';
 import { TelemetryActivity, TelemetryService, IFabricEnvironmentProvider, withErrorHandling, doFabricAction, ILogger, IConfigurationProvider, FABRIC_ENVIRONMENT_PROD } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { FabricError, UserCancelledError } from '@microsoft/vscode-fabric-util';
@@ -36,7 +35,7 @@ export function registerArtifactExportCommands(
     context: vscode.ExtensionContext,
     workspaceManager: IWorkspaceManager,
     fabricEnvironmentProvider: IFabricEnvironmentProvider,
-    artifactManager: IArtifactManagerInternal,
+    artifactManager: IArtifactManager,
     localFolderService: ILocalFolderService,
     configurationProvider: IConfigurationProvider,
     accountProvider: IAccountProvider,

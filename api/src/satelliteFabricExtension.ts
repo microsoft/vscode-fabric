@@ -317,8 +317,6 @@ export enum ArtifactDesignerActions {
     rename = 1 << 1,
     viewInPortal = 1 << 2,
     default = ~(~0 << 3),
-    /** @deprecated - Use openLocalFolder instead */
-    open = 1 << 3,
     /** @deprecated - Use definition instead */
     publish = 1 << 4,
     definition = 1 << 5,

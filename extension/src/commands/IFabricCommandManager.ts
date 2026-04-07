@@ -3,8 +3,8 @@
 
 import * as vscode from 'vscode';
 import { ILogger, TelemetryService, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
-import { IWorkspaceManager, IFolderManager } from '@microsoft/vscode-fabric-api';
-import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
+import { IWorkspaceManager, IArtifactManager, IFolderManager } from '@microsoft/vscode-fabric-api';
+import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
 import { ICapacityManager } from '../CapacityManager';
 import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
@@ -29,7 +29,7 @@ export interface IFabricCommandManager {
     readonly fabricEnvironmentProvider: IFabricEnvironmentProvider;
     readonly workspaceManager: IWorkspaceManager;
     readonly folderManager: IFolderManager;
-    readonly artifactManager: IArtifactManagerInternal;
+    readonly artifactManager: IArtifactManager;
     readonly capacityManager: ICapacityManager;
     readonly dataProvider: FabricWorkspaceDataProvider;
     readonly workspaceFilterManager: IWorkspaceFilterManager;

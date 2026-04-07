@@ -8,7 +8,6 @@
     "extension.deleteFolder.title":"Delete Folder",
     "extension.renameFolder.title":"Rename Folder...",
     "extension.readArtifact.title":"View item",
-    "extension.openArtifact.title":"Open in Explorer",
     "extension.openLocalFolder.title":"Open Local Folder",
     "extension.changeLocalFolder.title":"Change Local Folder",
     "extension.exportArtifact.title":"Download Item Definition...",

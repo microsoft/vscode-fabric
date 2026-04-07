@@ -52,6 +52,7 @@ export class InternalSatelliteManager {
             new NotebookExtension(
                 this.context,
                 this.telemetryService,
+                this.logger,
                 this.extensionManager
             )
         );

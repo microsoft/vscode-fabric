@@ -3,8 +3,8 @@
 
 import * as vscode from 'vscode';
 import { AbstractDatabaseTreeNode } from './AbstractDatabaseTreeNode';
-import { ArtifactPropertyNames, TelemetryService } from '@microsoft/vscode-fabric-util';
-import { IWorkspaceManager, IArtifactManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { ArtifactPropertyNames, TelemetryService, ILogger, withErrorHandling, doFabricAction } from '@microsoft/vscode-fabric-util';
+import { IWorkspaceManager, IFabricApiClient, ArtifactTreeNode } from '@microsoft/vscode-fabric-api';
 import { openSqlExtensionInExternal } from './openSqlExtension';
 import { copyConnectionStringToClipboard } from './copyConnectionString';
 
@@ -22,9 +22,9 @@ let commandDisposables: vscode.Disposable[] = [];
 export function registerDatabaseCommands(
     context: vscode.ExtensionContext,
     workspaceManager: IWorkspaceManager,
-    artifactManager: IArtifactManager,
     apiClient: IFabricApiClient,
-    telemetryService: TelemetryService
+    telemetryService: TelemetryService,
+    logger: ILogger
 ): void {
     function registerCommand(
         commandName: string,
@@ -37,33 +37,39 @@ export function registerDatabaseCommands(
     }
 
     registerCommand(openSqlExtension, async (...cmdArgs) => {
-        await artifactManager.doContextMenuItem(cmdArgs, vscode.l10n.t('Open in SQL Extension'), async (item) => {
-            if (!cmdArgs || cmdArgs.length === 0 || !item) {
-                return;
-            }
-            const databaseTreeNode = item as AbstractDatabaseTreeNode;
-            await openSqlExtensionInExternal(
-                telemetryService,
-                workspaceManager,
-                apiClient,
-                databaseTreeNode
-            );
-        });
+        await withErrorHandling(vscode.l10n.t('Open in SQL Extension'), logger, telemetryService, async () => {
+            await doFabricAction({ fabricLogger: logger }, async () => {
+                const item = cmdArgs?.[0] as ArtifactTreeNode | undefined;
+                if (!item) {
+                    return;
+                }
+                const databaseTreeNode = item as AbstractDatabaseTreeNode;
+                await openSqlExtensionInExternal(
+                    telemetryService,
+                    workspaceManager,
+                    apiClient,
+                    databaseTreeNode
+                );
+            });
+        })();
     }, context);
 
     registerCommand(copyConnectionString, async (...cmdArgs) => {
-        await artifactManager.doContextMenuItem(cmdArgs, vscode.l10n.t('Copy Connection String'), async (item) => {
-            if (!cmdArgs || cmdArgs.length === 0 || !item) {
-                return;
-            }
-            const databaseTreeNode = item as AbstractDatabaseTreeNode;
-            await copyConnectionStringToClipboard(
-                telemetryService,
-                workspaceManager,
-                apiClient,
-                databaseTreeNode
-            );
-        });
+        await withErrorHandling(vscode.l10n.t('Copy Connection String'), logger, telemetryService, async () => {
+            await doFabricAction({ fabricLogger: logger }, async () => {
+                const item = cmdArgs?.[0] as ArtifactTreeNode | undefined;
+                if (!item) {
+                    return;
+                }
+                const databaseTreeNode = item as AbstractDatabaseTreeNode;
+                await copyConnectionStringToClipboard(
+                    telemetryService,
+                    workspaceManager,
+                    apiClient,
+                    databaseTreeNode
+                );
+            });
+        })();
     }, context);
 }
 

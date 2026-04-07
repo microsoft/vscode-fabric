@@ -68,9 +68,6 @@ function setContextValue(artifactNode: ArtifactTreeNode, allowedDesignActions: A
     if (allowedDesignActions & ArtifactDesignerActions.delete) {
         artifactNode.contextValue += '|item-delete';
     }
-    if (allowedDesignActions & ArtifactDesignerActions.open) {
-        artifactNode.contextValue += '|item-open-in-explorer';
-    }
     if (allowedDesignActions & ArtifactDesignerActions.definition || getSupportsArtifactWithDefinition(artifactNode.artifact)) {
         artifactNode.contextValue += '|item-export';
     }

@@ -4,9 +4,9 @@
 import * as vscode from 'vscode';
 
 import { commandNames } from '../constants';
-import { IWorkspaceManager, LocalProjectTreeNode } from '@microsoft/vscode-fabric-api';
+import { IWorkspaceManager, IArtifactManager, LocalProjectTreeNode } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from '../workspace/treeView';
-import { IArtifactManagerInternal, IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
+import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { TelemetryActivity, TelemetryService, IFabricEnvironmentProvider, withErrorHandling, doFabricAction, ILogger } from '@microsoft/vscode-fabric-util';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { fabricViewWorkspace } from '../constants';
@@ -33,7 +33,7 @@ export function registerLocalProjectCommands(
     context: vscode.ExtensionContext,
     workspaceManager: IWorkspaceManager,
     fabricEnvironmentProvider: IFabricEnvironmentProvider,
-    artifactManager: IArtifactManagerInternal,
+    artifactManager: IArtifactManager,
     extensionManager: IFabricExtensionManagerInternal,
     localFolderService: ILocalFolderService,
     workspaceFilterManager: IWorkspaceFilterManager,

@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { IApiClientResponse, IArtifact, IArtifactHandler, IArtifactManager, IFabricExtensionManager, IFabricExtensionServiceCollection, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, OperationRequestType } from '@microsoft/vscode-fabric-api';
+import { IArtifactHandler, IFabricExtensionManager, IFabricExtensionServiceCollection, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider } from '@microsoft/vscode-fabric-api';
 import { IObservableReadOnlyMap } from '../../collections/definitions';
 
 /**
@@ -78,29 +78,4 @@ export interface IFabricExtensionManagerInternal extends IFabricExtensionManager
      * An event to signal that the satellite extensions have been updated
      */
     onExtensionsUpdated: vscode.Event<void>;
-}
-
-export interface IArtifactManagerInternal extends IArtifactManager {
-    /**
-     * Determines if a deprecated command should be used for the given artifact type and operation request type
-     * @param artifactType - The type of the artifact
-     * @param operationRequestType - The type of the operation request
-     */
-    shouldUseDeprecatedCommand(artifactType: string, operationRequestType: OperationRequestType): boolean;
-
-    /**
-     * Creates a new artifact using deprecated API
-     * @deprecated This method is deprecated and should not be used in new code
-     * @param artifact - The artifact to create
-     */
-    createArtifactDeprecated(artifact: IArtifact): Promise<IApiClientResponse>;
-
-    /**
-     * Updates an existing artifact
-     * @deprecated This method is deprecated and should not be used in new code
-     * @param artifact - The artifact to update
-     * @param body - The update data
-     * @returns The response from the API
-     */
-    updateArtifactDeprecated(artifact: IArtifact, body: Map<string, string>): Promise<IApiClientResponse>;
 }

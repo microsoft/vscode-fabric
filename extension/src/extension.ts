@@ -37,7 +37,7 @@ import {
 import { createExpansionStateHandler, createTenantChangeHandler, initFabricVirtualDocProvider } from './shared';
 
 // APIs/Interfaces
-import { IArtifactManagerInternal, IFabricExtensionManagerInternal, IGitOperator } from './apis/internal/fabricExtensionInternal';
+import { IFabricExtensionManagerInternal, IGitOperator } from './apis/internal/fabricExtensionInternal';
 
 // Authentication
 import { FakeTokenAcquisitionService } from './authentication';
@@ -245,7 +245,7 @@ export class FabricVsCodeExtension {
         const workspaceManager = this.container.get<IWorkspaceManager>() as WorkspaceManagerBase;
         const workspaceFilterManager = this.container.get<IWorkspaceFilterManager>();
         const dataProvider = this.container.get<FabricWorkspaceDataProvider>();
-        const artifactManager = this.container.get<IArtifactManagerInternal>();
+        const artifactManager = this.container.get<IArtifactManager>();
         const extensionManager = this.container.get<IFabricExtensionManagerInternal>();
         const fabricEnvironmentProvider = this.container.get<IFabricEnvironmentProvider>();
         const capacityManager = this.container.get<ICapacityManager>();
@@ -405,7 +405,7 @@ export class FabricVsCodeExtension {
         const telemetryService = this.container.get<TelemetryService>();
         const fabricEnvironmentProvider = this.container.get<IFabricEnvironmentProvider>();
         const apiClient = this.container.get<IFabricApiClient>();
-        const artifactManager = this.container.get<IArtifactManagerInternal>();
+        const artifactManager = this.container.get<IArtifactManager>();
         const coreServiceCollection = this.container.get<IFabricExtensionServiceCollection>();
 
         extensionManager.testHooks = {
@@ -608,7 +608,6 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
 
     // Artifact manager
     container.registerSingleton<IArtifactManager, ArtifactManager>();
-    container.registerSingleton<IArtifactManagerInternal>(() => container.get<IArtifactManager>() as IArtifactManagerInternal);
 
     // Definition file system
     container.registerSingleton<DefinitionFileSystemProvider>();

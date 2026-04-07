@@ -4,7 +4,7 @@
 import * as vscode from 'vscode';
 import { IArtifact, IApiClientResponse, IFabricApiClient, IItemDefinition } from './FabricApiClient';
 import { IFabricExtension } from './satelliteFabricExtension';
-import { ArtifactTreeNode, FabricTreeNode } from './treeView';
+import { FabricTreeNode } from './treeView';
 
 /**
  * The kind of operation that can be requested of an artifact. See {@link IArtifactManager}
@@ -13,7 +13,6 @@ import { ArtifactTreeNode, FabricTreeNode } from './treeView';
  */
 export enum OperationRequestType {
     none = 0,
-    create = 1 << 0,
     select = 1 << 1,
     update = 1 << 2,
     delete = 1 << 3,
@@ -212,42 +211,6 @@ export interface IArtifactManager {
             progress?: vscode.Progress<{ message?: string; increment?: number }>;
         }
     ): Promise<IApiClientResponse>;
-
-    /**
-     * Gets the specified artifact from the Fabric back end
-     *
-     * @deprecated - use IReadArtifactWorkflow instead
-     * @param artifact - The artifact to fetch
-     */
-    selectArtifact(artifact: IArtifact): Promise<IApiClientResponse>;
-
-    /**
-     * Opens the artifact with the specified options
-     *
-     * @deprecated - use getArtifactDefinition instead
-     * @param artifact - The artifact to open
-     * @remarks  The request is fully handled by the {@link IArtifactHandler}
-     */
-    openArtifact(artifact: IArtifact): Promise<void>;
-
-    /**
-     * @deprecated
-     */
-    getArtifactData(artifact: IArtifact): Promise<IApiClientResponse>;
-
-    /**
-     * @deprecated
-     */
-    getArtifactPayload(artifact: IArtifact): Promise<any>;
-
-    /**
-     * Execute context menu items one at a time: disallow other context menu items until prior one completed.
-     *
-     * @deprecated - This will be removed in a future release
-     * @param cmdArgs the command arguments if any
-     * @param callback  the code to call when cmd invoked, passing in the ArtifactTreeNode as a parameter
-     */
-    doContextMenuItem<T>(cmdArgs: any[], description: string, callback: (item: ArtifactTreeNode | undefined) => Promise<T>): Promise<boolean>;
 }
 
 /**

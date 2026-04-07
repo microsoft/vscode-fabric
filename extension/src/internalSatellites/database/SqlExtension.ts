@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { apiVersion, IArtifactManager, IFabricExtension, IFabricExtensionManager, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, IWorkspaceManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
+import { apiVersion, IFabricExtension, IFabricExtensionManager, IFabricTreeNodeProvider, ILocalProjectTreeNodeProvider, IWorkspaceManager, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { SqlDatabaseTreeNodeProvider } from './SqlDatabaseTreeNodeProvider';
 import { SqlEndpointTreeNodeProvider } from './SqlEndpointTreeNodeProvider';
@@ -11,7 +11,6 @@ import { registerDatabaseCommands, disposeCommands } from './commands';
 
 export class SqlExtension implements IFabricExtension, vscode.Disposable {
     private workspaceManager: IWorkspaceManager;
-    private artifactManager: IArtifactManager;
     private apiClient: IFabricApiClient;
 
     public identity: string = 'fabric.internal-satellite-sql';
@@ -33,15 +32,14 @@ export class SqlExtension implements IFabricExtension, vscode.Disposable {
         const serviceCollection = extensionManager.addExtension(this);
 
         this.workspaceManager = serviceCollection.workspaceManager;
-        this.artifactManager = serviceCollection.artifactManager;
         this.apiClient = serviceCollection.apiClient;
 
         registerDatabaseCommands(
             this.context,
             this.workspaceManager,
-            this.artifactManager,
             this.apiClient,
-            this.telemetryService
+            this.telemetryService,
+            this.logger
         );
     }
 

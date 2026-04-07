@@ -9,7 +9,6 @@ import {
     IArtifactManager,
     IFabricExtensionServiceCollection,
     IFolderManager,
-    IOpenArtifactOptions,
     IWorkspace,
     IWorkspaceManager,
     IWorkspaceFolder,
@@ -22,9 +21,6 @@ import { Mock } from 'moq.ts';
 
 // #region stub IFabricServiceCollection implementations
 export class MockArtifactManagerStub extends ArtifactManager {
-    getArtifactData(artifact: IArtifact): Promise<IApiClientResponse> {
-        throw new Error('Method not implemented.');
-    }
     retrieveArtifacts(): Promise<IArtifact[]> {
         throw new Error('Method not implemented.');
     }
@@ -34,16 +30,10 @@ export class MockArtifactManagerStub extends ArtifactManager {
     getArtifact(artifact: IArtifact): Promise<IApiClientResponse> {
         throw new Error('Method not implemented.');
     }
-    selectArtifact(artifact: IArtifact): Promise<IApiClientResponse> {
-        throw new Error('Method not implemented.');
-    }
     updateArtifact(artifact: IArtifact, body: Map<string, string>): Promise<IApiClientResponse> {
         throw new Error('Method not implemented.');
     }
     deleteArtifact(artifact: IArtifact): Promise<IApiClientResponse> {
-        throw new Error('Method not implemented.');
-    }
-    openArtifact(artifact: IArtifact, openOptions?: IOpenArtifactOptions | undefined): Promise<void> {
         throw new Error('Method not implemented.');
     }
 }

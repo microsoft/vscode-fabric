@@ -4,7 +4,7 @@
 import * as vscode from 'vscode';
 import { IApiClientResponse, IArtifact, IArtifactManager, ICreateArtifactWorkflow, IWorkspace, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { TelemetryActivity, TelemetryService, ILogger } from '@microsoft/vscode-fabric-util';
-import { IFabricExtensionManagerInternal, IArtifactManagerInternal } from '../apis/internal/fabricExtensionInternal';
+import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { CreationCapability, ICreateItemsProvider, ItemCreationDetails } from '../metadata/definitions';
 import { CoreTelemetryEventNames } from '../TelemetryEventNames';
 import { succeeded, handleArtifactCreationErrorAndThrow } from '../utilities';
@@ -177,16 +177,5 @@ export async function createArtifactCommand(
     }
     else {
         await handleArtifactCreationErrorAndThrow(response, artifact.displayName, artifact.type, telemetryActivity);
-    }
-}
-
-export async function createArtifactCommandDeprecated(
-    artifactManager: IArtifactManagerInternal,
-    artifact: IArtifact
-) {
-    const response = await artifactManager.createArtifactDeprecated(artifact);
-    if (succeeded(response)) {
-        artifact.id = response.parsedBody.id;
-        return artifact;
     }
 }
