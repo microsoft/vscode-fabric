@@ -143,3 +143,75 @@ async onBeforeGetDefinition(
 | Remove / rename a param | `@deprecated` + CHANGELOG, keep one minor version | Delete without warning |
 | Handle optional params in core | Always pass the argument (even if `undefined`) | Silently skip the workflow hook |
 | Handle optional params in satellite | Guard with `if (!param)` | Assume the value is always defined |
+
+## Deprecated API Inventory
+
+The following APIs in `@microsoft/vscode-fabric-api` are marked `@deprecated`. This section tracks which extensions still consume them so that removal can be planned safely.
+
+### Enums & Constants (`FabricApiClient.ts`)
+
+| Deprecated API | Replacement | Functions | Core |
+|---|---|---|---|
+| `RuntimeType` | *(none stated)* | **Heavy** — 30+ uses across 9 src files | None |
+| `InputType` | *(none stated)* | **Moderate** — FunctionSetBase, FunctionSetOnOpen, tests | None |
+| `BindingType` | *(none stated)* | **Light** — 1 use in FunctionSetBase | None |
+| `BindingTypeToInputTypeMapping` | *(none stated)* | **Light** — 1 use in FunctionSetBase | None |
+| `RuntimeAttribute` | *(none stated)* | **Moderate** — FunctionSetArtifactHandler, FunctionSetOnOpen, FunctionSetUtils | None |
+| `InputTypeAttribute` | *(none stated)* | None | None |
+| `ArtifactAttributes` | *(none stated)* | None | None |
+
+### Interface Properties (`FabricApiClient.ts`)
+
+| Deprecated API | Replacement | Functions | Core |
+|---|---|---|---|
+| `IArtifact.attributes` | *(none stated)* | **Heavy** — 30+ uses in FunctionSetBase, FunctionSetOnOpen, many tests | None |
+
+### Workflow Enums & Interfaces (`fabricExtension.ts`)
+
+| Deprecated API | Replacement | Functions | Core |
+|---|---|---|---|
+| `OperationRequestType` | Artifact workflows | **Moderate** — GraphQL, SQL, mock handlers | **Heavy** — ArtifactManager, commands, tests |
+| `IOpenArtifactOptions` | `IGetArtifactDefinitionWorkflow` | **Moderate** — extended by `IOpenFunctionSetOptions` | **Moderate** — MockArtifactManager, tests |
+| `ILocalFileSystem` | *(none stated)* | None | None |
+
+### `IArtifactManager` Methods (`fabricExtension.ts`)
+
+| Deprecated API | Replacement | Functions | Core |
+|---|---|---|---|
+| `selectArtifact()` | `IReadArtifactWorkflow` | None | **Heavy** — commands, ArtifactManager, tests |
+| `openArtifact()` | `getArtifactDefinition()` | None | **Heavy** — commands, ArtifactManager, package.json, tests |
+| `getArtifactData()` | *(none stated)* | None | **Moderate** — ArtifactManager, tests |
+| `getArtifactPayload()` | *(none stated)* | None | **Moderate** — ArtifactManager, tests |
+| `doContextMenuItem()` | *(will be removed)* | None | **Moderate** — commands, database/notebook satellites |
+
+### `IWorkspaceManager` Methods (`fabricExtension.ts`)
+
+| Deprecated API | Replacement | Functions | Core |
+|---|---|---|---|
+| `getLocalFolderForFabricWorkspace()` | `getLocalFolderForArtifact()` | None | **Heavy** — LocalFolderManager, WorkspaceManager, tests |
+
+### `IArtifactHandler` Methods (`satelliteFabricExtension.ts`)
+
+| Deprecated API | Replacement | Functions | Core |
+|---|---|---|---|
+| `onBeforeRequest()` | Artifact workflows | **Moderate** — GraphQL, SQL, mock handlers implement it | **Heavy** — ArtifactManager, MockArtifactManager, tests |
+| `onAfterRequest()` | Artifact workflows | None | **Heavy** — ArtifactManager, DefaultArtifactHandler, tests |
+| `onOpen()` | `getDefinitionWorkflow` | **Heavy** — FunctionSetArtifactHandler implements it, integration tests | **Moderate** — ArtifactManager, MockArtifactManager |
+
+### Classes (`treeView.ts`)
+
+| Deprecated API | Replacement | Functions | Core |
+|---|---|---|---|
+| `LocalProjectTreeNodeProvider` | Same class from `@microsoft/vscode-fabric-util` | None (uses the interface only) | **Light** — test code only |
+
+### Interfaces (`IDisposable.ts`)
+
+| Deprecated API | Replacement | Functions | Core |
+|---|---|---|---|
+| `IDisposable` | *(none stated)* | None (uses util version) | **Moderate** — AccountProvider, TokenAcquisitionService, DI registration |
+
+### Key Observations
+
+- **Functions** is the primary consumer of the Functions-specific deprecated types: `RuntimeType`, `InputType`, `BindingType`, `IArtifact.attributes`, `RuntimeAttribute`, and `onOpen`. These are deeply embedded across ~30 source and test files with 150+ total occurrences.
+- **Core** is the primary consumer of the workflow/manager deprecated APIs: `OperationRequestType`, `selectArtifact`, `openArtifact`, `getArtifactData`, `getArtifactPayload`, `doContextMenuItem`, `getLocalFolderForFabricWorkspace`, `onBeforeRequest`, `onAfterRequest`, and `IDisposable`.
+- **Unused by either extension**: `InputTypeAttribute`, `ArtifactAttributes`, and `ILocalFileSystem` — these are candidates for immediate removal.

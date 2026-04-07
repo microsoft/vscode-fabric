@@ -15,6 +15,9 @@
 		{
 			"name": "🚀 @microsoft/vscode-fabric-util",
 			"path": "../util"
+		},
+		{
+			"path": "../../vscode-fabric-functions"
 		}
 	],
 	"settings": {
