@@ -214,31 +214,6 @@ export interface IArtifactManager {
 }
 
 /**
- * The filesystem provides a way for extensions to write files in consistent manner for all Fabric extensions.
- *
- * @deprecated
- * @remarks The filesystem  works with {@link Uri uris} and assumes hierarchical
- * paths, e.g. `foo:/my/path` is a child of `foo:/my/` and a parent of `foo:/my/path/deeper`.
- */
-export interface ILocalFileSystem {
-    /**
-     * Creates a Fabric-specific Uri for the specified file path
-     *
-     * @param filePath - The full path for the filesystem entity to be created
-     */
-    createUri(filePath: string): vscode.Uri;
-
-    /**
-     * Write data to a file, replacing its entire contents.
-     *
-     * @param uri The uri of the file.
-     * @param content The new content of the file.
-     * @param options Defines if missing files should or must be created.
-     */
-    writeFile(uri: vscode.Uri, content: Uint8Array, options: { create: boolean, overwrite: boolean }): void | Thenable<void>;
-}
-
-/**
  * Extension manager service for registering satellite extensions with the core Fabric extension.
  *
  * This interface provides the registration mechanism that allows satellite extensions to integrate
