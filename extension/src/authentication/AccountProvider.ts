@@ -3,7 +3,6 @@
 
 import * as vscode from 'vscode';
 
-import { IDisposable } from '@microsoft/vscode-fabric-api';
 import { IAccountProvider, ITenantSettings, ITokenAcquisitionService, TokenRequestOptions } from './interfaces';
 import { AuthenticationSessionAccountInformation } from 'vscode';
 import { doTaskWithTimeout, TelemetryActivity, TelemetryService } from '@microsoft/vscode-fabric-util';
@@ -12,7 +11,7 @@ import { SubscriptionClient, TenantIdDescription } from '@azure/arm-resources-su
 import type { TokenCredential } from '@azure/core-auth';
 import { getConfiguredAzureEnv } from '@microsoft/vscode-azext-azureauth';
 
-export class AccountProvider implements IAccountProvider, IDisposable {
+export class AccountProvider implements IAccountProvider, vscode.Disposable {
     private readonly onSuccessfulSignInEmitter = new vscode.EventEmitter<void>();
     private readonly onSuccessfulSignIn = this.onSuccessfulSignInEmitter.event;
 

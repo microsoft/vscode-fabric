@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import { IDisposable } from '@microsoft/vscode-fabric-api';
 import { ITokenAcquisitionService, TokenRequestOptions } from './interfaces';
 import * as vscode from 'vscode';
 import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
@@ -10,8 +9,8 @@ import { TelemetryService } from '@microsoft/vscode-fabric-util';
 import { ILogger, LogImportance } from '@microsoft/vscode-fabric-util';
 import { getConfiguredAzureEnv } from '@microsoft/vscode-azext-azureauth';
 
-export class TokenAcquisitionService implements ITokenAcquisitionService, IDisposable {
-    private readonly sessionsChangeEventHandle: IDisposable;
+export class TokenAcquisitionService implements ITokenAcquisitionService, vscode.Disposable {
+    private readonly sessionsChangeEventHandle: vscode.Disposable;
     private readonly msSessionChangedEmitter = new vscode.EventEmitter<void>();
     public readonly msSessionChanged = this.msSessionChangedEmitter.event;
 
