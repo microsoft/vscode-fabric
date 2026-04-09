@@ -13,6 +13,7 @@ import { FabricTreeNode } from './treeView';
  */
 export enum OperationRequestType {
     none = 0,
+    create = 1 << 0,
     select = 1 << 1,
     update = 1 << 2,
     delete = 1 << 3,
