@@ -9,7 +9,6 @@ import { FabricWorkspaceDataProvider } from './treeView';
 import { ILocalFolderManager } from '../ILocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
 import { showLocalFolderQuickPick } from '../ui/showLocalFolderQuickPick';
-import { isDirectory } from '../utilities';
 import { IFabricEnvironmentProvider, FabricError, ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IFabricFeatureConfiguration } from '../settings/FabricFeatureConfiguration';
 import { IAccountProvider, ITenantSettings } from '../authentication/interfaces';
@@ -247,26 +246,6 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager, IFolder
             this.disposables.forEach(item => item.dispose());
         }
         this.disposables = [];
-    }
-
-    /**
-     * @deprecated
-     */
-    public async getLocalFolderForFabricWorkspace(workspace: IWorkspace, options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined> {
-        let localWorkspaceFolder: vscode.Uri | undefined = await this.localFolderManager.getLocalFolderForFabricWorkspace(workspace);
-        if (!localWorkspaceFolder) {
-            localWorkspaceFolder = await this.promptForLocalFolder(workspace);
-        }
-
-        if (localWorkspaceFolder && options?.createIfNotExists && !(await isDirectory(vscode.workspace.fs, localWorkspaceFolder))) {
-            // createDirectory will create all parent folders if they do not exist
-            await vscode.workspace.fs.createDirectory(localWorkspaceFolder);
-            if (!(await isDirectory(vscode.workspace.fs, localWorkspaceFolder))) {
-                throw new Error(`Unable to create folder '${localWorkspaceFolder}'`);
-            }
-        }
-
-        return localWorkspaceFolder;
     }
 
     private ensureWorkspace(workspace: IWorkspace | undefined): IWorkspace {

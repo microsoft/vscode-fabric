@@ -409,15 +409,6 @@ export interface IWorkspaceManager {
     createWorkspace(workspaceName: string, options?: { capacityId?: string, description?: string }): Promise<IApiClientResponse>;
 
     /**
-     * Gets or creates the local folder mapped to a Fabric workspace.
-     * @deprecated - Use getLocalFolderForArtifact
-     * @param workspace - The Fabric workspace to get the local folder for
-     * @param options - Options controlling folder creation behavior
-     * @returns Promise resolving to the local folder URI, or undefined if not found/created
-     */
-    getLocalFolderForFabricWorkspace(workspace: IWorkspace, options?: { createIfNotExists?: boolean } | undefined): Promise<vscode.Uri | undefined>;
-
-    /**
      * Gets the local folder associated with a specific artifact.
      *
      * This method retrieves the locally mapped folder for an artifact. When `createIfNotExists` is true,
