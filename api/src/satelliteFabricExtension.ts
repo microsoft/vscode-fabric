@@ -3,7 +3,7 @@
 
 import { Uri } from 'vscode';
 import * as vscode from 'vscode';
-import { IArtifact, IApiClientRequestOptions, IApiClientResponse, IItemDefinition } from './FabricApiClient';
+import { IArtifact, IApiClientRequestOptions, IItemDefinition } from './FabricApiClient';
 import { OperationRequestType, IOpenArtifactOptions } from './fabricExtension';
 import { ArtifactTreeNode, LocalProjectTreeNode } from './treeView';
 
@@ -61,17 +61,6 @@ export interface IArtifactHandler {
      * @param request - The {@link IApiClientRequestOptions} that will be sent
      */
     onBeforeRequest?(action: OperationRequestType, artifact: IArtifact, request: IApiClientRequestOptions): Promise<void>;
-
-    /**
-     * Allows the artifact handler to enhance the response after it has been received from the Fabric endpoint
-     *
-     * @deprecated - Use appropriate workflows instead
-     *
-     * @param action - Indicate what kind of {@link OperationRequestType} was made
-     * @param artifact - The {@link IArtifact} that was operated upon
-     * @param request - The {@link IApiClientResponse} returned by the API
-     */
-    onAfterRequest?(action: OperationRequestType, artifact: IArtifact, response: IApiClientResponse): Promise<void>;
 
     /**
      * Allows the artifact handler to open a specific artifact from Fabric

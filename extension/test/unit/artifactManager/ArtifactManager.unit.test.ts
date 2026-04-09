@@ -209,13 +209,11 @@ describe('ArtifactManager', function () {
         it('Mismatched create workflow', async function () {
             // Arrange
             const onBeforeRequestStub = sinon.stub().resolves();
-            const onAfterRequestStub = sinon.stub().resolves();
 
             // Mock IArtifactHandler
             const artifactHandlerMock: IArtifactHandler = {
                 artifactType: 'NotNotebook',
                 onBeforeRequest: onBeforeRequestStub,
-                onAfterRequest: onAfterRequestStub,
             };
 
             extensionManagerMock.setup(x => x.getArtifactHandler(It.Is(a => a === 'NotNotebook')))
@@ -228,7 +226,6 @@ describe('ArtifactManager', function () {
             assert.strictEqual(result, apiResponse, 'Should return API response');
             assert.strictEqual(artifact.id, '', 'Artifact id should not be set from response');
             assert.ok(onBeforeRequestStub.notCalled, 'onBeforeRequest should not be called');
-            assert.ok(onAfterRequestStub.notCalled, 'onAfterRequest should not be called');
             dataProviderMock.verify(x => x.refresh(), Times.Never());
             apiClientMock.verify(
                 x => x.sendRequest(

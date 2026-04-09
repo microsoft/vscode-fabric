@@ -76,10 +76,6 @@ export class MockArtifactManager extends ArtifactManager {
             }
             const response = await this.apiClient.sendRequest(request);
 
-            if (artifactHandler?.onAfterRequest) {
-                await artifactHandler?.onAfterRequest(OperationRequestType.update, foundArtifact, response!);
-            }
-
             this.dataProvider.refresh(); // force an update to the tree
             if (response?.status !== 200) {
                 return Promise.reject('failed to update ' + response?.status);

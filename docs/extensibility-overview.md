@@ -149,7 +149,7 @@ Common workflows (implement only those you need):
 - `deleteWorkflow` – Pre‑delete confirmation logic or audit tagging.
 - `renameWorkflow` – Validate new name, enforce conventions.
 
-Legacy hooks (`onBeforeRequest`, `onAfterRequest`, `onOpen`) are deprecated in favor of the workflow model; avoid adding new usages.
+Legacy hooks (`onBeforeRequest`, `onOpen`) are deprecated in favor of the workflow model; avoid adding new usages.
 
 Execution order (simplified) for a definition update:
 

@@ -172,6 +172,7 @@ These deprecated APIs have been fully removed from the API package and all consu
 | `DefaultArtifactHandler` | Class (`extension/src/`) | Deleted — zero callers; only implemented the removed `onAfterRequest` path |
 | `ILocalFolderManager` | Interface + implementations | Deleted `ILocalFolderManager.ts`, `LocalFolderManager.ts`, `WebLocalFolderManager.ts`, unit test, DI registrations. All usage was dead code after `getLocalFolderForFabricWorkspace` removal |
 | `showLocalFolderQuickPick` | Utility function | Deleted source + test — no-op stub with zero production callers |
+| `onAfterRequest()` | `IArtifactHandler` method (`satelliteFabricExtension.ts`) | Removed from API, `MockArtifactManager`, and test stubs |
 
 ### Remaining — Used by Functions Extension (requires coordination)
 
@@ -191,16 +192,8 @@ These deprecated APIs are still actively consumed by the `vscode-fabric-function
 | `RuntimeAttribute` | `FabricApiClient.ts` | **Moderate** — `FunctionSetArtifactHandler`, `FunctionSetOnOpen`, `FunctionSetUtils` |
 | `IArtifact.attributes` | `FabricApiClient.ts` | **Heavy** — 30+ uses in `FunctionSetBase`, `FunctionSetOnOpen`, many tests |
 
-### Remaining — Core-Only (isolated to vscode-fabric repo)
-
-These deprecated APIs exist in the API package and are only consumed within the core extension. They can be removed without coordinating with the functions extension.
-
-| Deprecated API | Location | Core Usage |
-|---|---|---|
-| `onAfterRequest()` | `IArtifactHandler` (`satelliteFabricExtension.ts`) | `MockArtifactManager` only (2 call sites) |
-
 ### Key Observations
 
 - **Functions-dependent items** are deeply embedded (150+ total occurrences across ~30 files). Removal requires migration work in the functions repo first.
 - **`OperationRequestType.create`** was temporarily removed but had to be restored because the functions extension still uses it.
-- **`onAfterRequest`** is the only remaining core-only deprecated API. It is used in `MockArtifactManager` (test infrastructure) and could be removed once that mock is updated.
+- All core-only deprecated APIs have been removed. The remaining items are exclusively consumed by the functions extension.
