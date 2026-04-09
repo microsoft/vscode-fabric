@@ -4,11 +4,9 @@
 /* eslint-disable security/detect-non-literal-fs-filename */
 
 import * as vscode from 'vscode';
-import { IArtifact, IWorkspace, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IWorkspaceManager, IFolderManager, FabricTreeNode, ISourceControlInformation, IWorkspaceFolder } from '@microsoft/vscode-fabric-api';
+import { IArtifact, IWorkspace, IApiClientRequestOptions, IApiClientResponse, IFabricApiClient, IWorkspaceManager, IFolderManager, FabricTreeNode, IWorkspaceFolder } from '@microsoft/vscode-fabric-api';
 import { FabricWorkspaceDataProvider } from './treeView';
-import { ILocalFolderManager } from '../ILocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
-import { showLocalFolderQuickPick } from '../ui/showLocalFolderQuickPick';
 import { IFabricEnvironmentProvider, FabricError, ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 import { IFabricFeatureConfiguration } from '../settings/FabricFeatureConfiguration';
 import { IAccountProvider, ITenantSettings } from '../authentication/interfaces';
@@ -66,7 +64,6 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager, IFolder
 
     constructor(
         protected extensionSettingsStorage: IFabricExtensionsSettingStorage,
-        protected localFolderManager: ILocalFolderManager,
         protected account: IAccountProvider,
         protected fabricEnvironmentProvider: IFabricEnvironmentProvider,
         protected apiClient: IFabricApiClient,
@@ -248,17 +245,6 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager, IFolder
         this.disposables = [];
     }
 
-    private ensureWorkspace(workspace: IWorkspace | undefined): IWorkspace {
-        if (!workspace) {
-            throw new FabricError(vscode.l10n.t('The workspace has not been set'), 'The workspace has not been set');
-        }
-        return workspace;
-    }
-
-    private async setLocalFolderForFabricWorkspace(workspace: IWorkspace, newLocalFolder: vscode.Uri): Promise<void> {
-        await this.localFolderManager.setLocalFolderForFabricWorkspace(this.ensureWorkspace(workspace), newLocalFolder);
-    }
-
     public async getLocalFolderForArtifact(artifact: IArtifact, options?: { createIfNotExists?: boolean }): Promise<vscode.Uri | undefined> {
         // The expectation for this API is that if the folder is getting created, the artifact folder must be set
         const result = await this.localFolderService.getLocalFolder(
@@ -270,55 +256,6 @@ export abstract class WorkspaceManagerBase implements IWorkspaceManager, IFolder
         );
 
         return result?.uri;
-    }
-
-    public async promptForLocalFolder(workspace: IWorkspace): Promise<vscode.Uri | undefined> {
-        this.ensureWorkspace(workspace);
-        let localWorkspaceFolder: vscode.Uri | undefined = await this.localFolderManager.getLocalFolderForFabricWorkspace(workspace);
-        if (!localWorkspaceFolder) {
-            localWorkspaceFolder = this.localFolderManager.defaultLocalFolderForFabricWorkspace(workspace);
-        }
-
-        // Make sure the source control information is up-to-date prior to showing the folder picker
-        await this.refreshSourceControlInformation(workspace);
-
-        const selectedFolder: vscode.Uri | undefined = await showLocalFolderQuickPick(localWorkspaceFolder, workspace, this.gitOperator);
-        if (selectedFolder) {
-            await this.setLocalFolderForFabricWorkspace(workspace, selectedFolder);
-        }
-        return selectedFolder;
-    }
-
-    private async refreshSourceControlInformation(workspace: IWorkspace | undefined): Promise<void> {
-        if (workspace) {
-            const req: IApiClientRequestOptions = {
-                pathTemplate: `/v1/workspaces/${workspace.objectId}/git/connection`, // API ref: https://learn.microsoft.com/en-us/rest/api/fabric/core/git/get-connection
-                method: 'GET',
-            };
-            const response: IApiClientResponse = await this.apiClient.sendRequest(req);
-
-            if (response.status === 200 && response.parsedBody?.gitConnectionState && response.parsedBody?.gitConnectionState !== 'NotConnected') {
-                /**
-                 * Information from the ALM APIs about the git provider
-                 */
-                interface GitProviderDetails {
-                    organizationName?: string;
-                    projectName?: string;
-                    gitProviderType?: string;
-                    repositoryName?: string;
-                    branchName?: string;
-                    directoryName?: string;
-                }
-                const gitProviderDetails: GitProviderDetails = response.parsedBody.gitProviderDetails;
-
-                const sourceControlInformation: ISourceControlInformation = {
-                    branchName: gitProviderDetails.branchName,
-                    repository: `https://${gitProviderDetails.organizationName}.visualstudio.com/${gitProviderDetails.projectName}/_git/${gitProviderDetails.repositoryName}`,
-                    directoryName: gitProviderDetails.directoryName,
-                };
-                workspace.sourceControlInformation = sourceControlInformation;
-            }
-        }
     }
 
     public async getFoldersInWorkspace(workspaceId: string): Promise<IWorkspaceFolder[]> {
@@ -484,7 +421,6 @@ export class WorkspaceManager extends WorkspaceManagerBase {
     constructor(account: IAccountProvider,
         fabricEnvironmentProvider: IFabricEnvironmentProvider,
         extensionSettingsStorage: IFabricExtensionsSettingStorage,
-        localFolderManager: ILocalFolderManager,
         apiClient: IFabricApiClient,
         logger: ILogger,
         telemetryService: TelemetryService | null,
@@ -493,7 +429,7 @@ export class WorkspaceManager extends WorkspaceManagerBase {
         localFolderService: ILocalFolderService
     ) {
 
-        super(extensionSettingsStorage, localFolderManager, account, fabricEnvironmentProvider, apiClient, gitOperator, logger, telemetryService, featureConfiguration, localFolderService);
+        super(extensionSettingsStorage, account, fabricEnvironmentProvider, apiClient, gitOperator, logger, telemetryService, featureConfiguration, localFolderService);
         /**
          * The context object can store workspaceState (for the current VSCode workspace) or globalState (stringifyable JSON)
          * When our extensions tries to open a VSCode Folder, our extension is deactivated

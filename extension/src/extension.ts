@@ -91,10 +91,8 @@ import { ExtensionUriHandler } from './ExtensionUriHandler';
 import { FabricExtensionServiceCollection } from './FabricExtensionServiceCollection';
 import { FeedbackTreeDataProvider } from './feedback/FeedbackTreeDataProvider';
 import { GitOperator } from './git/GitOperator';
-import { ILocalFolderManager } from './ILocalFolderManager';
 import { InternalSatelliteManager } from './internalSatellites/InternalSatelliteManager';
 import { Base64Encoder, IBase64Encoder } from './itemDefinition/ItemDefinitionReader';
-import { LocalFolderManager } from './LocalFolderManager';
 import { ILocalFolderService, LocalFolderService } from './LocalFolderService';
 
 let app: FabricVsCodeExtension;
@@ -616,7 +614,6 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<vscode.FileSystem>(() => vscode.workspace.fs);
 
     // Local folder and git operations
-    container.registerSingleton<ILocalFolderManager, LocalFolderManager>();
     container.registerSingleton<ILocalFolderService, LocalFolderService>();
     container.registerSingleton<IGitOperator, GitOperator>();
 

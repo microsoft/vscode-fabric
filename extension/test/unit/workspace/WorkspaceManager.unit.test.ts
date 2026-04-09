@@ -7,7 +7,6 @@ import * as assert from 'assert';
 import * as sinon from 'sinon';
 import { WorkspaceManager } from '../../../src/workspace/WorkspaceManager';
 import { IFabricExtensionsSettingStorage } from '../../../src/settings/definitions';
-import { LocalFolderManager } from '../../../src/LocalFolderManager';
 import { IFabricEnvironmentProvider, ILogger, FabricError } from '@microsoft/vscode-fabric-util';
 import { IAccountProvider } from '../../../src/authentication/interfaces';
 import { IFabricFeatureConfiguration } from '../../../src/settings/FabricFeatureConfiguration';
@@ -23,7 +22,6 @@ import { ILocalFolderService, LocalFolderGetOptions } from '../../../src/LocalFo
 
 describe('WorkspaceManager', function () {
     let mockExtensionSettingsStorage: Mock<IFabricExtensionsSettingStorage>;
-    let mockLocalFolderManager: Mock<LocalFolderManager>;
     let mockAccountProvider: Mock<IAccountProvider>;
     let mockFabricEnvironmentProvider: Mock<IFabricEnvironmentProvider>;
     let mockApiClient: Mock<IFabricApiClient>;
@@ -44,7 +42,6 @@ describe('WorkspaceManager', function () {
     beforeEach(function () {
         // Initialize mocks for each test
         mockExtensionSettingsStorage = new Mock<IFabricExtensionsSettingStorage>();
-        mockLocalFolderManager = new Mock<LocalFolderManager>();
         mockAccountProvider = new Mock<IAccountProvider>();
         mockFabricEnvironmentProvider = new Mock<IFabricEnvironmentProvider>();
         mockApiClient = new Mock<IFabricApiClient>();
@@ -77,7 +74,6 @@ describe('WorkspaceManager', function () {
             mockAccountProvider.object(),
             mockFabricEnvironmentProvider.object(),
             mockExtensionSettingsStorage.object(),
-            mockLocalFolderManager.object(),
             mockApiClient.object(),
             mockLogger.object(),
             null,

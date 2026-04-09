@@ -74,7 +74,6 @@ import { registerWorkspaceCommands } from '../workspace/commands';
 import { CapacityManager, ICapacityManager } from '../CapacityManager';
 import { FabricExtensionManager } from '../extensionManager/FabricExtensionManager';
 import { FeedbackTreeDataProvider } from '../feedback/FeedbackTreeDataProvider';
-import { ILocalFolderManager } from '../ILocalFolderManager';
 import { InternalSatelliteManager } from '../internalSatellites/InternalSatelliteManager';
 import { Base64Encoder, IBase64Encoder } from '../itemDefinition/ItemDefinitionReader';
 import { ILocalFolderService, LocalFolderService } from '../LocalFolderService';
@@ -82,7 +81,6 @@ import { FabricExtensionServiceCollection } from '../FabricExtensionServiceColle
 
 // Web-specific implementations
 import { WebGitOperator } from './WebGitOperator';
-import { WebLocalFolderManager } from './WebLocalFolderManager';
 
 let app: FabricVsCodeWebExtension;
 
@@ -417,7 +415,6 @@ async function composeContainer(context: vscode.ExtensionContext): Promise<DICon
     container.registerSingleton<vscode.FileSystem>(() => vscode.workspace.fs);
 
     // Local folder and git operations (web-specific implementations)
-    container.registerSingleton<ILocalFolderManager, WebLocalFolderManager>();
     container.registerSingleton<ILocalFolderService, LocalFolderService>();
     container.registerSingleton<IGitOperator, WebGitOperator>();
 

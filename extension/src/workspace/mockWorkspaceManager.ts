@@ -6,7 +6,6 @@ import { IFabricEnvironmentProvider, ILogger, IConfigurationProvider, FakeConfig
 import { IAccountProvider } from '../authentication/interfaces';
 import { IArtifact, IWorkspace, IFabricApiClient } from '@microsoft/vscode-fabric-api';
 import { WorkspaceManagerBase } from './WorkspaceManager';
-import { LocalFolderManager } from '../LocalFolderManager';
 import { IFabricExtensionsSettingStorage } from '../settings/definitions';
 import { Memento } from 'vscode';
 import { MockHierarchicalArtifact } from './mockTreeView';
@@ -37,7 +36,7 @@ export class MockWorkspaceManager extends WorkspaceManagerBase {
         telemetryService: TelemetryService | null = null,
         featureConfiguration: IFabricFeatureConfiguration
     ) {
-        super(storage, new LocalFolderManager(storage, fabricEnvironmentProvider), account, fabricEnvironmentProvider, apiClient, gitOperator, logger, telemetryService, featureConfiguration, localFolderService);
+        super(storage, account, fabricEnvironmentProvider, apiClient, gitOperator, logger, telemetryService, featureConfiguration, localFolderService);
 
         const workspaceIds: string[] = Array.from({ length: 4 }, (e, i) => `wspaceId${i}`);
         workspaceIds.push(mockGuidWorkspaceId);
