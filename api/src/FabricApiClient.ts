@@ -195,12 +195,6 @@ export const BindingTypeToInputTypeMapping: { [key in BindingType]: string } = {
 /** @deprecated */
 export type RuntimeAttribute = RuntimeType.DotNet | RuntimeType.Python; // workload also has 'NOTASSIGNED', but we'll query user for value if not set
 
-/** @deprecated */
-export type ArtifactAttributes = {
-    'runtime'?: RuntimeAttribute
-    // 'inputType'?: InputTypeAttribute
-};
-
 /**
  * Represents a Microsoft Fabric artifact (item) as returned by the Fabric REST API.
  *
@@ -259,9 +253,6 @@ export interface IArtifact {
      * for multi-environment scenarios.
      */
     fabricEnvironment: string;
-
-    /** @deprecated */
-    attributes?: ArtifactAttributes;
 }
 
 /**
