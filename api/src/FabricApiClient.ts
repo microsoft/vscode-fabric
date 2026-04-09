@@ -194,8 +194,6 @@ export const BindingTypeToInputTypeMapping: { [key in BindingType]: string } = {
 
 /** @deprecated */
 export type RuntimeAttribute = RuntimeType.DotNet | RuntimeType.Python; // workload also has 'NOTASSIGNED', but we'll query user for value if not set
-/** @deprecated */
-export type InputTypeAttribute = InputType.Http | InputType.EventStream;
 
 /** @deprecated */
 export type ArtifactAttributes = {
