@@ -1525,7 +1525,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Notebooks]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Notebooks]]></Val>
+            <Val><![CDATA[Poznámkové bloky]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

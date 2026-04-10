@@ -18,6 +18,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";$(edit)  Start editing" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[$(edit)  Start editing]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[$(edit)  편집 시작]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";$(organization) Choose from another Workspace..." ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[$(organization) Choose from another Workspace...]]></Val>
@@ -666,6 +675,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Don't Ask Again" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Don't Ask Again]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[다시 묻지 않음]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Download" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Download]]></Val>
@@ -689,6 +707,24 @@
           <Val><![CDATA[Editing definition files is disabled. Enable the "Fabric.EditItemDefinitions" setting to edit.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[정의 파일 편집을 사용할 수 없습니다. 편집할 "Fabric.EditItemDefinitions" 설정을 사용하도록 설정합니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Enable editing for this remote file" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable editing for this remote file]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이 원격 파일에 대해 편집 활성화]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Enhance your Fabric Copilot experience by installing the Fabric MCP Server extension." ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enhance your Fabric Copilot experience by installing the Fabric MCP Server extension.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fabric MCP Server 확장을 설치하여 Fabric Copilot 경험을 향상하세요.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1134,6 +1170,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Install" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Install]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[설치]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Install extension to enable additional features..." ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Install extension to enable additional features...]]></Val>
@@ -1147,7 +1192,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Invalid Notebook definition contains both .py and .ipynb files.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[잘못된 Notebook 정의에 .py 파일과 .ipynb 파일이 모두 포함되어 있습니다.]]></Val>
+            <Val><![CDATA[잘못된 노트북 정의에 .py 파일과 .ipynb 파일이 모두 포함되어 있습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1458,11 +1503,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Not Now" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Not Now]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[나중에]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Notebook" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Notebook]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Notebook]]></Val>
+            <Val><![CDATA[노트북]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1471,7 +1525,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Notebooks]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Notebook]]></Val>
+            <Val><![CDATA[노트북]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2002,7 +2056,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Set up shared libraries, Spark compute settings, and resources for notebooks and Spark job definitions.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[공유 라이브러리, Spark 컴퓨팅 설정, Notebook 및 Spark 작업 정의에 대한 리소스를 설정합니다.]]></Val>
+            <Val><![CDATA[공유 라이브러리, Spark 컴퓨팅 설정, 노트북 및 Spark 작업 정의에 대한 리소스를 설정합니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
