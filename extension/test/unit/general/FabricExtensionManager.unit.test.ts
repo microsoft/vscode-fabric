@@ -4,10 +4,11 @@
 import * as vscode from 'vscode';
 import * as assert from 'assert';
 import { IFabricExtension } from '@microsoft/vscode-fabric-api';
-import { Mock } from 'moq.ts';
+import { Mock, It } from 'moq.ts';
 import { initializeServiceCollection } from './serviceCollection';
 import { MockFabricExtensionManager, testApiVersion } from '../../../src/extensionManager/MockFabricExtensionManager';
 import { satelliteExtensionIds, TestExtension } from '../shared/TestExtension';
+import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
 
 describe('FabricExtensionManager unit tests', () => {
     const mockContext = new Mock<vscode.ExtensionContext>();
@@ -142,4 +143,220 @@ describe('FabricExtensionManager unit tests', () => {
     function createFabricExtensionManager(): MockFabricExtensionManager {
         return MockFabricExtensionManager.create(mockContext.object());
     }
+});
+
+describe('FabricExtensionManager - getLocalProjectTreeNodeProvider tests', () => {
+    const mockContext = new Mock<vscode.ExtensionContext>();
+
+    it('getLocalProjectTreeNodeProvider: returns undefined when no provider exists', () => {
+        const manager = MockFabricExtensionManager.create(mockContext.object());
+
+        const provider = manager.getLocalProjectTreeNodeProvider('non-existent-type');
+
+        assert.strictEqual(provider, undefined, 'getLocalProjectTreeNodeProvider should return undefined for non-existent type');
+    });
+
+    it('getLocalProjectTreeNodeProvider: returns registered provider', () => {
+        const manager = MockFabricExtensionManager.create(mockContext.object());
+        const extension: IFabricExtension = TestExtension.create(satelliteExtensionIds[0], ['local-project-type'], true);
+
+        manager.addExtension(extension);
+
+        const provider = manager.getLocalProjectTreeNodeProvider('local-project-type');
+
+        assert.strictEqual(provider, extension.localProjectTreeNodeProviders![0], 'getLocalProjectTreeNodeProvider should return the registered provider');
+    });
+
+    it('addExtension: local project tree node providers are added', () => {
+        const manager = MockFabricExtensionManager.create(mockContext.object());
+        const extension1: IFabricExtension = TestExtension.create(satelliteExtensionIds[0], ['artifact-type-1'], true);
+        const extension2: IFabricExtension = TestExtension.create(satelliteExtensionIds[1], ['artifact-type-2'], true);
+
+        manager.addExtension(extension1);
+        manager.addExtension(extension2);
+
+        assert.strictEqual(manager.localProjectTreeNodeProvidersSize, 2, 'localProjectTreeNodeProvidersSize should have 2 items');
+        assert.strictEqual(manager.getLocalProjectTreeNodeProvider('artifact-type-1'), extension1.localProjectTreeNodeProviders![0], 'getLocalProjectTreeNodeProvider should return the expected provider for artifact-type-1');
+        assert.strictEqual(manager.getLocalProjectTreeNodeProvider('artifact-type-2'), extension2.localProjectTreeNodeProviders![0], 'getLocalProjectTreeNodeProvider should return the expected provider for artifact-type-2');
+    });
+});
+
+describe('FabricExtensionManager - getFunctionToFetchCommonTelemetryProperties tests', () => {
+    const mockContext = new Mock<vscode.ExtensionContext>();
+
+    it('getFunctionToFetchCommonTelemetryProperties: returns empty object when telemetry service is null', () => {
+        const mockLogger = new Mock<ILogger>();
+        mockLogger.setup(l => l.log(It.IsAny())).returns();
+
+        const manager = MockFabricExtensionManager.create(mockContext.object(), [], true, null, mockLogger.object());
+
+        const telemetryPropsFunc = manager.getFunctionToFetchCommonTelemetryProperties();
+        const props = telemetryPropsFunc();
+
+        assert.deepStrictEqual(props, {}, 'Should return empty object when telemetry service is null');
+    });
+
+    it('getFunctionToFetchCommonTelemetryProperties: returns function that retrieves defaultProps', () => {
+        const mockTelemetryService = new Mock<TelemetryService>();
+        const expectedProps = { sessionId: 'test-session', userId: 'test-user' };
+        mockTelemetryService.setup(t => t.defaultProps).returns(expectedProps);
+
+        const manager = MockFabricExtensionManager.create(mockContext.object(), [], true, mockTelemetryService.object(), null);
+
+        const telemetryPropsFunc = manager.getFunctionToFetchCommonTelemetryProperties();
+        const props = telemetryPropsFunc();
+
+        assert.deepStrictEqual(props, expectedProps, 'Should return the telemetry service defaultProps');
+    });
+
+    it('getFunctionToFetchCommonTelemetryProperties: returned function captures telemetry service state', () => {
+        const mockTelemetryService = new Mock<TelemetryService>();
+        const initialProps = { version: '1.0' };
+        const updatedProps = { version: '2.0', newProp: 'value' };
+
+        let currentProps = initialProps;
+        mockTelemetryService.setup(t => t.defaultProps).callback(() => currentProps);
+
+        const manager = MockFabricExtensionManager.create(mockContext.object(), [], true, mockTelemetryService.object(), null);
+
+        const telemetryPropsFunc = manager.getFunctionToFetchCommonTelemetryProperties();
+
+        // First call should return initial props
+        assert.deepStrictEqual(telemetryPropsFunc(), initialProps, 'Should return initial props');
+
+        // Update the props
+        currentProps = updatedProps;
+
+        // Second call should return updated props (lambda captures telemetry service, not the props)
+        assert.deepStrictEqual(telemetryPropsFunc(), updatedProps, 'Should return updated props after service state change');
+    });
+});
+
+describe('FabricExtensionManager - isAvailable and isActive tests', () => {
+    const mockContext = new Mock<vscode.ExtensionContext>();
+
+    it('isAvailable: returns true when extension is available', () => {
+        const manager = MockFabricExtensionManager.create(mockContext.object(), [], true);
+
+        assert.strictEqual(manager.isAvailable('any-extension'), true, 'isAvailable should return true when available is set to true');
+    });
+
+    it('isAvailable: returns false when extension is not available', () => {
+        const manager = MockFabricExtensionManager.create(mockContext.object(), [], false);
+
+        assert.strictEqual(manager.isAvailable('any-extension'), false, 'isAvailable should return false when available is set to false');
+    });
+
+    it('isActive: returns false by default', () => {
+        const manager = MockFabricExtensionManager.create(mockContext.object());
+
+        assert.strictEqual(manager.isActive('any-extension'), false, 'isActive should return false by default');
+    });
+
+    it('isActive: returns true after setting extension as active', () => {
+        const manager = MockFabricExtensionManager.create(mockContext.object());
+        const extensionId = 'test-extension';
+
+        manager.setActiveExtension(extensionId, true);
+
+        assert.strictEqual(manager.isActive(extensionId), true, 'isActive should return true after setting extension as active');
+    });
+
+    it('isActive: returns false after deactivating extension', () => {
+        const manager = MockFabricExtensionManager.create(mockContext.object());
+        const extensionId = 'test-extension';
+
+        manager.setActiveExtension(extensionId, true);
+        manager.setActiveExtension(extensionId, false);
+
+        assert.strictEqual(manager.isActive(extensionId), false, 'isActive should return false after deactivating extension');
+    });
+
+    it('isActive: tracks multiple extensions independently', () => {
+        const manager = MockFabricExtensionManager.create(mockContext.object());
+        const extensionId1 = 'test-extension-1';
+        const extensionId2 = 'test-extension-2';
+
+        manager.setActiveExtension(extensionId1, true);
+
+        assert.strictEqual(manager.isActive(extensionId1), true, 'isActive should return true for active extension');
+        assert.strictEqual(manager.isActive(extensionId2), false, 'isActive should return false for inactive extension');
+    });
+});
+
+describe('FabricExtensionManager - activateExtension tests', () => {
+    const mockContext = new Mock<vscode.ExtensionContext>();
+
+    it('activateExtension: returns undefined when extension is not registered', async () => {
+        const manager = MockFabricExtensionManager.create(mockContext.object());
+
+        const result = await manager.activateExtension('non-existent-extension');
+
+        assert.strictEqual(result, undefined, 'activateExtension should return undefined for non-existent extension');
+    });
+
+    it('activateExtension: returns extension when already active', async () => {
+        const manager = MockFabricExtensionManager.create(mockContext.object());
+        const extensionId = 'test-extension';
+
+        manager.registerMockExtension(extensionId, true); // Already active
+
+        const result = await manager.activateExtension(extensionId);
+
+        assert.ok(result, 'activateExtension should return the extension');
+        assert.strictEqual(result!.isActive, true, 'Extension should be active');
+        assert.strictEqual(manager.wasActivateCalled(extensionId), false, 'activate should not be called when already active');
+    });
+
+    it('activateExtension: activates inactive extension', async () => {
+        const manager = MockFabricExtensionManager.create(mockContext.object());
+        const extensionId = 'test-extension';
+
+        manager.registerMockExtension(extensionId, false); // Not active
+
+        const result = await manager.activateExtension(extensionId);
+
+        assert.ok(result, 'activateExtension should return the extension');
+        assert.strictEqual(result!.isActive, true, 'Extension should be active after activation');
+        assert.strictEqual(manager.wasActivateCalled(extensionId), true, 'activate should be called');
+        assert.strictEqual(manager.isActive(extensionId), true, 'isActive should return true after activation');
+    });
+
+    it('activateExtension: returns undefined when activation fails', async () => {
+        const manager = MockFabricExtensionManager.create(mockContext.object());
+        const extensionId = 'test-extension';
+
+        manager.registerMockExtension(extensionId, false, true); // Not active, should fail
+
+        const result = await manager.activateExtension(extensionId);
+
+        assert.strictEqual(result, undefined, 'activateExtension should return undefined when activation fails');
+        assert.strictEqual(manager.wasActivateCalled(extensionId), true, 'activate should be called even if it fails');
+    });
+
+    it('activateExtension: handles multiple extensions independently', async () => {
+        const manager = MockFabricExtensionManager.create(mockContext.object());
+        const extensionId1 = 'test-extension-1';
+        const extensionId2 = 'test-extension-2';
+
+        manager.registerMockExtension(extensionId1, false);
+        manager.registerMockExtension(extensionId2, true);
+
+        const result1 = await manager.activateExtension(extensionId1);
+        const result2 = await manager.activateExtension(extensionId2);
+
+        assert.ok(result1, 'activateExtension should return extension 1');
+        assert.ok(result2, 'activateExtension should return extension 2');
+        assert.strictEqual(manager.wasActivateCalled(extensionId1), true, 'activate should be called for extension 1');
+        assert.strictEqual(manager.wasActivateCalled(extensionId2), false, 'activate should not be called for already active extension 2');
+    });
+
+    it('activateExtension: returns undefined for non-string artifact without extension mapping', async () => {
+        const manager = MockFabricExtensionManager.create(mockContext.object());
+
+        // Passing an artifact object - mock returns undefined since it doesn't have artifact-to-extension mapping
+        const result = await manager.activateExtension({ type: 'SomeArtifactType' } as any);
+
+        assert.strictEqual(result, undefined, 'activateExtension should return undefined for artifacts without extension mapping');
+    });
 });
