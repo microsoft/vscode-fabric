@@ -63,5 +63,8 @@
     "@wessberg/di": "^3.0.2",
     "glob": "^11.1.0",
     "web-tree-sitter": "^0.24.3"
+  },
+  "overrides": {
+    "serialize-javascript": ">=7.0.3"
   }
 }
