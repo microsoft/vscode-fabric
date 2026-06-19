@@ -3,7 +3,7 @@
 
 import { Uri } from 'vscode';
 import * as vscode from 'vscode';
-import { IArtifact, IApiClientRequestOptions, IItemDefinition } from './FabricApiClient';
+import { IArtifact, IApiClientResponse, IApiClientRequestOptions, IItemDefinition } from './FabricApiClient';
 import { OperationRequestType, IOpenArtifactOptions } from './fabricExtension';
 import { ArtifactTreeNode, LocalProjectTreeNode } from './treeView';
 
