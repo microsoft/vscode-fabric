@@ -58,7 +58,7 @@ describe('SqlEndpointTreeNode', function () {
         const result = await node.getExternalUri(apiClientMock.object());
 
         // Assert
-        const expected = 'vscode://ms-mssql.mssql/connect?server=Server=myserver;Database=mydb;&authenticationType=AzureMFA&profileName=My Endpoint (SQL Analytics Endpoint)';
+        const expected = 'vscode://ms-mssql.mssql/connect?server=Server=myserver;Database=mydb;&authenticationType=AzureMFA&profileName=My Endpoint (SQL Analytics Endpoint)&source=vscode-fabric';
         assert.equal(result, expected, 'Should return the constructed external URI with encoded profile name');
     });
 });

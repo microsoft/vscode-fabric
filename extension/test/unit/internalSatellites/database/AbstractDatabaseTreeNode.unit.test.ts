@@ -62,7 +62,7 @@ describe('AbstractDatabaseTreeNode (protected methods)', function () {
     it('constructExternalUri should return correct URI without databaseName', function () {
         // Arrange
         const serverName = 'myserver.database.windows.net';
-        const expected = `${vscode.env.uriScheme}://ms-mssql.mssql/connect?server=myserver.database.windows.net&authenticationType=AzureMFA&profileName=My Database (SQL Database)`;
+        const expected = `${vscode.env.uriScheme}://ms-mssql.mssql/connect?server=myserver.database.windows.net&authenticationType=AzureMFA&profileName=My Database (SQL Database)&source=vscode-fabric`;
         // Act
         const result = node.callConstructExternalUri(serverName);
         // Assert
@@ -73,7 +73,7 @@ describe('AbstractDatabaseTreeNode (protected methods)', function () {
         // Arrange
         const serverName = 'myserver.database.windows.net';
         const databaseName = 'mydb';
-        const expected = `${vscode.env.uriScheme}://ms-mssql.mssql/connect?server=myserver.database.windows.net&authenticationType=AzureMFA&profileName=My Database (SQL Database)&database=mydb`;
+        const expected = `${vscode.env.uriScheme}://ms-mssql.mssql/connect?server=myserver.database.windows.net&authenticationType=AzureMFA&profileName=My Database (SQL Database)&source=vscode-fabric&database=mydb`;
         // Act
         const result = node.callConstructExternalUri(serverName, databaseName);
         // Assert

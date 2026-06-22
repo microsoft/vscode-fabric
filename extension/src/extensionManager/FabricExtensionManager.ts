@@ -12,6 +12,7 @@ const satelliteExtensionIds = [
     'fabric.vscode-fabric-functions',
     'fabric.vscode-testplatform',
     'ms-azuretools.vscode-cosmosdb',
+    'ms-mssql.mssql',
 ];
 
 const internalSatelliteIds = [

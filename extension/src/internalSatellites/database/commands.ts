@@ -37,7 +37,7 @@ export function registerDatabaseCommands(
     }
 
     registerCommand(openSqlExtension, async (...cmdArgs) => {
-        await artifactManager.doContextMenuItem(cmdArgs, vscode.l10n.t('Open in SQL Extension'), async (item) => {
+        await artifactManager.doContextMenuItem(cmdArgs, vscode.l10n.t('Open in MSSQL extension'), async (item) => {
             if (!cmdArgs || cmdArgs.length === 0 || !item) {
                 return;
             }

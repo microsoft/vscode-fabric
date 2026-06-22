@@ -70,7 +70,7 @@ describe('SqlDatabaseTreeNode', function () {
         const result = await node.getExternalUri(apiClientMock.object());
 
         // Assert
-        const expected = 'vscode://ms-mssql.mssql/connect?server=myserver.database.windows.net&authenticationType=AzureMFA&profileName=My Database (SQL Database)&database=mydb';
+        const expected = 'vscode://ms-mssql.mssql/connect?server=myserver.database.windows.net&authenticationType=AzureMFA&profileName=My Database (SQL Database)&source=vscode-fabric&database=mydb';
         assert.equal(result, expected, 'Should build external URI with stripped port, encoded profile name and database');
     });
 });
