@@ -48,7 +48,7 @@ describe('WarehouseTreeNode', function () {
 
         const result = await node.getExternalUri(apiClientMock.object());
 
-        const expected = 'vscode://ms-mssql.mssql/connect?server=my-connection-string-is-used-as-servername-for-warehouse;&authenticationType=AzureMFA&profileName=My Warehouse (Warehouse)&database=MyServer';
+        const expected = 'vscode://ms-mssql.mssql/connect?server=my-connection-string-is-used-as-servername-for-warehouse;&authenticationType=AzureMFA&profileName=My Warehouse (Warehouse)&source=vscode-fabric&database=MyServer';
         assert.equal(result, expected);
     });
 });
