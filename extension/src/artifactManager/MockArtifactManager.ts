@@ -2,8 +2,6 @@
 // Licensed under the MIT License.
 
 /* eslint-disable security/detect-object-injection */
-import * as vscode from 'vscode';
-
 import { IArtifact, IArtifactHandler, IApiClientRequestOptions, IApiClientResponse, OperationRequestType, IFabricApiClient, IWorkspaceManager } from '@microsoft/vscode-fabric-api';
 import { ArtifactManager } from './ArtifactManager';
 import { MockWorkspaceManager } from '../workspace/mockWorkspaceManager';
