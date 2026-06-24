@@ -400,5 +400,40 @@ describe('DefinitionFilesChildNodeProvider', function () {
             assert.ok(fileNode.readonlyUri);
             assert.strictEqual(fileNode.readonlyUri.scheme, 'fabric-definition-virtual');
         });
+
+        it('should correctly bypass stringToUint8Array for .png files disguised as Utf8 payloadType', async function () {
+            const fileName = 'image.png';
+            // Mock a corrupted binary string payload where bytes are mapped 1-to-1 to characters
+            const binaryString = '\x89PNG\r\n\x1a\n';
+            const editableUri = vscode.Uri.parse(`fabric-definition:///${workspaceId}/${artifactId}/${fileName}`);
+
+            const definition: IItemDefinition = {
+                parts: [
+                    { path: fileName, payload: binaryString, payloadType: 'Utf8' as any },
+                ],
+            };
+
+            const responseMock = new Mock<IApiClientResponse>();
+            responseMock.setup(x => x.parsedBody).returns({ definition });
+
+            artifactManagerMock.setup(x => x.getArtifactDefinition(artifact))
+                .returns(Promise.resolve(responseMock.object()));
+
+            fileSystemProviderMock.setup(x => x.registerFile(
+                artifact,
+                fileName,
+                It.Is<Uint8Array>(content => {
+                    // Check if content byte exactly matches the char code, not inflated by TextEncoder
+                    return content.length === binaryString.length && content[0] === 0x89 && content[1] === 0x50; // 0x50 is 'P'
+                })
+            )).returns(editableUri);
+
+            await provider.getChildNodes(artifact);
+
+            fileSystemProviderMock.verify(
+                x => x.registerFile(artifact, fileName, It.IsAny()),
+                Times.Once()
+            );
+        });
     });
 });
