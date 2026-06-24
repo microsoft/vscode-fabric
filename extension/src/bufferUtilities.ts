@@ -11,7 +11,14 @@
  * Web-compatible replacement for: `Buffer.from(content).toString('base64')`
  */
 export function uint8ArrayToBase64(bytes: Uint8Array): string {
-    return btoa(String.fromCharCode(...bytes));
+    // Avoid spreading into String.fromCharCode, which exceeds the
+    // maximum call-stack size for large arrays.  Process in 8 KB chunks.
+    const chunkSize = 8192;
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    return btoa(binary);
 }
 
 /**
