@@ -922,7 +922,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Eventhouse]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Eventhouse]]></Val>
+            <Val><![CDATA[Olay ambarı]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -931,7 +931,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Eventhouses]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Eventhouse’lar]]></Val>
+            <Val><![CDATA[Olay ambarları]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
