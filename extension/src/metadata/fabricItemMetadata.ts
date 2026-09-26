@@ -12,7 +12,7 @@ export const fabricItemMetadata: Partial<Record<string, FabricItemMetadata>> = {
         creationDescription: vscode.l10n.t('Build and host backend applications and APIs powered by Fabric.'),
         displayName: vscode.l10n.t('App'),
         displayNamePlural: vscode.l10n.t('Apps'),
-        iconInformation: { fileName: 'app_backend_32.svg', isThemed: false },
+        iconInformation: { fileName: 'app_backend_32.svg', isThemed: true },
         portalFolder: 'appbackends',
     },
     'CopyJob': {
