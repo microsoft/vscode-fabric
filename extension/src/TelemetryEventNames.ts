@@ -26,6 +26,12 @@ export type CoreTelemetryEventNames = {
 	'item/localFolder/open': { properties: ArtifactPropertyNames | 'actionTaken'; measurements: never },
 	'item/localFolder/change': { properties: ArtifactPropertyNames | 'actionTaken'; measurements: never },
 
+	// app backend
+	'appBackend/getStarted': { properties: 'itemType' | ResultPropertyNames; measurements: never },
+	'appBackend/createRayfinApp': { properties: ResultPropertyNames; measurements: never },
+	'appBackend/getStarted/copyPrompt': { properties: 'itemType'; measurements: never },
+	'appBackend/getStarted/copyCommand': { properties: 'itemType' | 'commandId'; measurements: never },
+
 	// folder management
 	'folder/create': { properties: ResultPropertyNames | 'workspaceId' | 'folderId' | 'parentFolderId' | ApiResultPropertyNames; measurements: never },
 	'folder/delete': { properties: ResultPropertyNames | 'workspaceId' | 'folderId' | ApiResultPropertyNames; measurements: never },

@@ -31,6 +31,8 @@
     "extension.filterWorkspaces.title":"Filter Workspaces...",
     "extension.clearWorkspaceFilter.title":"Clear Workspace Filter",
     "extension.editDefinitionFile.title":"Edit",
+    "extension.appBackend.getStarted.title":"Get Started",
+    "extension.appBackend.createRayfinApp.title":"Create Rayfin App",
 
     "extension.submenu.importArtifact.title": "Publish",
 
@@ -46,7 +48,7 @@
     "extension.welcomeTitle.autoSignIn":"signing in and getting workspace",
     "extension.welcomeTitle.emptyWorkspace":"This workspace is empty. Create an item to get started with Microsoft Fabric.\n[Create Fabric item](command:vscode-fabric.createArtifact)",
 
-    "extension.view.local.welcome": "No local project exists for a Fabric item in explorer.",
+    "extension.view.local.welcome": "No local project exists for a Fabric item in explorer.\n[Create App (Rayfin)](command:vscode-fabric.appBackend.createRayfinApp)",
 
     "extension.configuration.Environment.description": "The Fabric environment to use.",
     "extension.configuration.ApiTimeout.description": "Number of milliseconds to allow for an API call before throwing a Timeout Error",

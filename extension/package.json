@@ -188,6 +188,18 @@
         "icon": "$(group-by-ref-type)"
       },
       {
+        "command": "vscode-fabric.appBackend.getStarted",
+        "title": "%extension.appBackend.getStarted.title%",
+        "category": "Fabric"
+      },
+      {
+        "command": "vscode-fabric.appBackend.createRayfinApp",
+        "title": "%extension.appBackend.createRayfinApp.title%",
+        "category": "Fabric",
+        "enablement": "!isWeb",
+        "icon": "$(add)"
+      },
+      {
         "command": "vscode-fabric.openNotebook",
         "title": "%extension.openNotebook.title%",
         "category": "Fabric",
@@ -372,6 +384,14 @@
         {
           "command": "vscode-fabric.editDefinitionFile",
           "when": "false"
+        },
+        {
+          "command": "vscode-fabric.appBackend.getStarted",
+          "when": "false"
+        },
+        {
+          "command": "vscode-fabric.appBackend.createRayfinApp",
+          "when": "false"
         }
       ],
       "vscode-fabric.submenu.importArtifact": [
@@ -414,6 +434,11 @@
           "command": "vscode-fabric.refreshArtifactView",
           "when": "view == vscode-fabric.view.workspace",
           "group": "navigation@99"
+        },
+        {
+          "command": "vscode-fabric.appBackend.createRayfinApp",
+          "when": "view == vscode-fabric.view.local",
+          "group": "navigation@1"
         },
         {
           "command": "vscode-fabric.refreshLocalFolderView",
@@ -556,6 +581,11 @@
           "command": "vscode-fabric.deleteArtifact",
           "when": "view == vscode-fabric.view.workspace && viewItem =~ /Item.*/ && viewItem =~ /item-delete/",
           "group": "inline@99"
+        },
+        {
+          "command": "vscode-fabric.appBackend.getStarted",
+          "when": "view == vscode-fabric.view.workspace && viewItem =~ /ItemAppBackend/",
+          "group": "5@9"
         },
         {
           "command": "vscode-fabric.openNotebook",

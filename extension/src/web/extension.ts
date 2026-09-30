@@ -76,6 +76,7 @@ import { FabricExtensionManager } from '../extensionManager/FabricExtensionManag
 import { FeedbackTreeDataProvider } from '../feedback/FeedbackTreeDataProvider';
 import { ILocalFolderManager } from '../ILocalFolderManager';
 import { InternalSatelliteManager } from '../internalSatellites/InternalSatelliteManager';
+import { registerAppBackendCommands } from '../internalSatellites/appBackend/commands';
 import { Base64Encoder, IBase64Encoder } from '../itemDefinition/ItemDefinitionReader';
 import { ILocalFolderService, LocalFolderService } from '../LocalFolderService';
 import { FabricExtensionServiceCollection } from '../FabricExtensionServiceCollection';
@@ -91,6 +92,10 @@ let app: FabricVsCodeWebExtension;
  * This is a simplified entry point for browser-based VS Code environments.
  */
 export async function activate(context: vscode.ExtensionContext): Promise<IFabricExtensionManager> {
+    // Register App Backend commands immediately so they are available
+    // even before the full activation completes
+    registerAppBackendCommands(context);
+
     const container = await composeContainer(context);
     app = new FabricVsCodeWebExtension(container);
     return await app.activate();
@@ -293,7 +298,8 @@ export class FabricVsCodeWebExtension {
 
         // Activate internal satellites
         const internalSatelliteManager = this.container.get<InternalSatelliteManager>();
-        internalSatelliteManager.activateAll();
+        const fabricEnvironmentProvider = this.container.get<IFabricEnvironmentProvider>();
+        internalSatelliteManager.activateAll(fabricEnvironmentProvider);
         context.subscriptions.push(internalSatelliteManager);
 
         return extensionManager;

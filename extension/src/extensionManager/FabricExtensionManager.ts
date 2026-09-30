@@ -20,6 +20,7 @@ const internalSatelliteIds = [
     'fabric.internal-satellite-sql',
     'fabric.internal-satellite-report',
     'fabric.internal-satellite-semanticmodel',
+    'fabric.internal-satellite-appbackend',
     'fabric.vscode-tests',
 ];
 

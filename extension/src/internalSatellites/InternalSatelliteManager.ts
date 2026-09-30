@@ -6,8 +6,9 @@ import { SqlExtension } from './database/SqlExtension';
 import { NotebookExtension } from './notebook/NotebookExtension';
 import { ReportExtension } from './report/ReportExtension';
 import { SemanticModelExtension } from './semanticModel/SemanticModelExtension';
+import { AppBackendExtension } from './appBackend/AppBackendExtension';
 import { IFabricExtension } from '@microsoft/vscode-fabric-api';
-import { ILogger, TelemetryService } from '@microsoft/vscode-fabric-util';
+import { ILogger, TelemetryService, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { IFabricExtensionManagerInternal } from '../apis/internal/fabricExtensionInternal';
 import { IWorkspaceFilterManager } from '../workspace/WorkspaceFilterManager';
 
@@ -30,6 +31,7 @@ export class InternalSatelliteManager {
         NotebookExtension,
         ReportExtension,
         SemanticModelExtension,
+        AppBackendExtension,
     ];
 
     private extensionInstances: IInternalSatelliteExtension[] = [];
@@ -38,7 +40,7 @@ export class InternalSatelliteManager {
         return this.extensionInstances.map((extension) => extension.identity);
     }
 
-    public activateAll() {
+    public activateAll(fabricEnvironmentProvider: IFabricEnvironmentProvider) {
         this.extensionInstances.push(
             new SqlExtension(
                 this.context,
@@ -70,6 +72,15 @@ export class InternalSatelliteManager {
             new SemanticModelExtension(
                 this.context,
                 this.extensionManager
+            )
+        );
+
+        this.extensionInstances.push(
+            new AppBackendExtension(
+                this.context,
+                this.extensionManager,
+                fabricEnvironmentProvider,
+                this.telemetryService
             )
         );
     }
