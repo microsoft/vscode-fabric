@@ -1,5 +1,22 @@
 # Change Log
 
+## [0.40] 2026-10-01
+
+### Added
+- Preview support for Fabric App items, including create, rename, delete, a getting-started experience, and Rayfin app scaffolding from a local folder.
+- Commands to create, rename, and delete folders in the remote workspace view.
+- Item definition support for Lakehouses, ML experiments, and ML models.
+- Integration with the Azure Cosmos DB and MSSQL extensions for their corresponding Fabric item types.
+
+### Changed
+- Companion extensions are now activated on demand when expanding supported items, with an install prompt when the required extension is unavailable.
+- Item names are validated while creating an item, providing feedback before submission.
+
+### Fixed
+- Remote notebooks now open in the correct `.ipynb` format and can be viewed through the read-only item definition file system.
+- Publishing Semantic Models no longer attempts to upload `.abf` files, and item definition errors now identify the file that failed processing.
+- Updated dependencies to address security vulnerabilities.
+
 ## [0.38] 2026-02-19
 
 ### Added
