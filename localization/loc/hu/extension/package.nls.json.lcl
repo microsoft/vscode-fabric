@@ -18,6 +18,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";extension.appBackend.createRayfinApp.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create Rayfin App]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Rayfin-alkalmazás létrehozása]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.appBackend.getStarted.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Get Started]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Első lépések]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";extension.changeLocalFolder.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Change Local Folder]]></Val>
@@ -386,10 +404,13 @@
       </Item>
       <Item ItemId=";extension.view.local.welcome" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[No local project exists for a Fabric item in explorer.]]></Val>
+          <Val><![CDATA[No local project exists for a Fabric item in explorer.]A;[Create App (Rayfin)]5D;(command:vscode-fabric.appBackend.createRayfinApp)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Nem létezik helyi projekt a Fabric-elemhez az intézőben.]]></Val>
+            <Val><![CDATA[Nem létezik helyi projekt a Fabric-elemhez az intézőben.]A;[Alkalmazás létrehozása (Rayfin)]5D;(command:vscode-fabric.appBackend.createRayfinApp)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[No local project exists for a Fabric item in explorer.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
