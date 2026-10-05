@@ -83,9 +83,13 @@ export class DefinitionFilesChildNodeProvider implements IArtifactChildNodeProvi
                 // Decode base64 content
                 content = base64ToUint8Array(part.payload);
             }
+            else if (part.path.match(/\.(png|jpg|jpeg|gif|ico|bmp|webp|tiff)$/i)) {
+                // [HOTFIX] Bypass UTF-8 TextEncoder corruption for binaries erroneously sent as Utf8
+                content = Uint8Array.from(part.payload || '', c => c.charCodeAt(0));
+            }
             else {
                 // For other payload types, convert to bytes
-                content = stringToUint8Array(part.payload);
+                content = stringToUint8Array(part.payload || '');
             }
 
             // Register the file in the file system provider and get the editable URI
