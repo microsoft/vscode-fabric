@@ -2317,7 +2317,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Variable library]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Biblioteca de variables]]></Val>
+            <Val><![CDATA[Biblioteca variable]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
