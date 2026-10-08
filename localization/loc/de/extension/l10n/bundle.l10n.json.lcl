@@ -1768,7 +1768,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Real-Time Dashboard]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Echtzeitdashboard]]></Val>
+            <Val><![CDATA[Echtzeit-Dashboard]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
