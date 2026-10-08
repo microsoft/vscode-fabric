@@ -18,6 +18,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";$(edit)  Start editing" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[$(edit)  Start editing]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[$(edit) Commencez la modification]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";$(organization) Choose from another Workspace..." ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[$(organization) Choose from another Workspace...]]></Val>
@@ -666,6 +675,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Don't Ask Again" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Don't Ask Again]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ne posez plus la question]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";Download" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Download]]></Val>
@@ -689,6 +707,24 @@
           <Val><![CDATA[Editing definition files is disabled. Enable the "Fabric.EditItemDefinitions" setting to edit.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[La modification des fichiers de définition est désactivée. Activez le paramètre Fabric.EditItemDefinitions pour pouvoir modifier.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Enable editing for this remote file" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enable editing for this remote file]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Activer la modification pour ce fichier distant]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Enhance your Fabric Copilot experience by installing the Fabric MCP Server extension." ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enhance your Fabric Copilot experience by installing the Fabric MCP Server extension.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Améliorez votre expérience Fabric Copilot en installant l’extension Fabric MCP Server.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -886,7 +922,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Eventhouse]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Eventhouse]]></Val>
+            <Val><![CDATA[Centre d’événements]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -895,7 +931,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Eventhouses]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Eventhouses]]></Val>
+            <Val><![CDATA[Centres d’événements]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1130,6 +1166,15 @@
           <Val><![CDATA[Ingest data at scale and schedule data workflows.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ingérez des données à grande échelle et planifiez des flux de travail de données.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Install" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Install]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Installer]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1454,6 +1499,15 @@
           <Val><![CDATA[No workspaces found to filter.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Aucun espace de travail trouvé à filtrer.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Not Now" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Not Now]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Pas maintenant]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
