@@ -535,7 +535,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Data agent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[資料代理程式]]></Val>
+            <Val><![CDATA[資料 Agent ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -544,7 +544,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Data agents]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[資料代理程式]]></Val>
+            <Val><![CDATA[資料 Agent ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -922,7 +922,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Eventhouse]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Eventhouse]]></Val>
+            <Val><![CDATA[事件屋]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -931,7 +931,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Eventhouses]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Eventhouse]]></Val>
+            <Val><![CDATA[事件屋]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2317,7 +2317,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Variable library]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[變數庫]]></Val>
+            <Val><![CDATA[變數程式庫]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
