@@ -30,6 +30,29 @@ describe('bufferUtilities', () => {
             const result = uint8ArrayToBase64(bytes);
             assert.strictEqual(result, 'AAH/gEA=');
         });
+
+        it('should handle arrays larger than chunk size (1.5x)', () => {
+            const size = 8192 + 4096 + 1;
+            const bytes = new Uint8Array(size);
+            for (let i = 0; i < size; i++) {
+                bytes[i] = i % 256;
+            }
+            const base64 = uint8ArrayToBase64(bytes);
+            const roundtripped = base64ToUint8Array(base64);
+            assert.deepStrictEqual(Array.from(roundtripped), Array.from(bytes));
+        });
+
+        it('should handle large arrays (1 MB)', () => {
+            const size = 1024 * 1024;
+            const bytes = new Uint8Array(size);
+            for (let i = 0; i < size; i++) {
+                bytes[i] = i % 256;
+            }
+            const base64 = uint8ArrayToBase64(bytes);
+            const roundtripped = base64ToUint8Array(base64);
+            assert.strictEqual(roundtripped.length, size);
+            assert.deepStrictEqual(Array.from(roundtripped), Array.from(bytes));
+        });
     });
 
     describe('base64ToUint8Array', () => {
