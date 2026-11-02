@@ -30,6 +30,29 @@ describe('bufferUtilities', () => {
             const result = uint8ArrayToBase64(bytes);
             assert.strictEqual(result, 'AAH/gEA=');
         });
+
+        it('should handle large payloads without call stack overflow (regression: >65KB files)', () => {
+            // Simulates a ~270KB binary file (e.g., a PNG image).
+            // The original spread-based implementation would throw
+            // "Maximum call stack size exceeded" at this size.
+            const size = 270_000;
+            const bytes = new Uint8Array(size);
+            for (let i = 0; i < size; i++) {
+                bytes[i] = i % 256;
+            }
+
+            // Should not throw
+            const base64 = uint8ArrayToBase64(bytes);
+
+            // Verify roundtrip integrity
+            const decoded = base64ToUint8Array(base64);
+            assert.strictEqual(decoded.length, size);
+            assert.deepStrictEqual(Array.from(decoded.slice(0, 5)), [0, 1, 2, 3, 4]);
+            assert.deepStrictEqual(
+                Array.from(decoded.slice(size - 3)),
+                [(size - 3) % 256, (size - 2) % 256, (size - 1) % 256]
+            );
+        });
     });
 
     describe('base64ToUint8Array', () => {
