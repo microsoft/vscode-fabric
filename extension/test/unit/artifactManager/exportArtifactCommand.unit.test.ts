@@ -150,6 +150,9 @@ describe('exportArtifactCommand', () => {
                 const storageMock = new Mock<IFabricExtensionsSettingStorage>();
                 storageMock.setup(s => s.settings).returns({ version: 1, workspaces: [], artifacts: [] });
                 const fileSystemMock = new Mock<vscode.FileSystem>();
+                fileSystemMock.setup(fs => fs.stat(It.IsAny())).returns(Promise.resolve({
+                    type: vscode.FileType.Directory, ctime: 0, mtime: 0, size: 0,
+                }));
                 const localFolderService = new LocalFolderService(storageMock.object(), new MockFabricEnvironmentProvider(), fileSystemMock.object());
                 sinon.stub(vscode.window, 'showOpenDialog').resolves([localFolder]);
 

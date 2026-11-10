@@ -262,6 +262,9 @@ describe('LocalFolderService unit tests', () => {
         describe('path construction', () => {
             beforeEach(() => {
                 settingsStoreMock.setup(s => s.getLocalFolder(mockArtifact.id)).returns(undefined);
+                fileSystemMock.setup(fs => fs.stat(It.IsAny())).returns(Promise.resolve({
+                    type: vscode.FileType.Directory, ctime: 0, mtime: 0, size: 0,
+                }));
             });
 
             const unsafeComponents = [
