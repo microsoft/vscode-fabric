@@ -32,8 +32,9 @@ export async function deleteArtifactCommand(
     if (localFolder && await isDirectory(fileSystem, localFolder)) {
         cancelContext = 'folderOpened';
         msg = vscode.l10n.t(
-            'Do you want to permanently delete "{0}" from the remote workspace only or delete the local folder as well?',
-            artifact.displayName
+            'Do you want to permanently delete "{0}" from the remote workspace only or also delete the local folder "{1}" and all its contents? Choose Remote Only to keep the local files.',
+            artifact.displayName,
+            localFolder.fsPath
         );
         messageItems.push(new DeleteArtifactRemoteOnlyAction(vscode.l10n.t('Remote Only'), artifactManager, dataProvider, telemetryActivity, telemetryService, logger));
         messageItems.push(new DeleteArtifactAllAction(vscode.l10n.t('Local and Remote'), artifactManager, dataProvider, telemetryActivity, localFolder, fileSystem, telemetryService, logger));

@@ -249,6 +249,42 @@ describe('deleteArtifactCommand', () => {
         assert.strictEqual(workspaceFoldersStub.callCount, 0, 'workspaceFoldersStub call count');
     });
 
+    for (const choice of ['cancel', 'remote', 'all'] as const) {
+        it(`should show the actual legacy folder path before deletion when choosing ${choice}`, async () => {
+            const selectedFolder = vscode.Uri.file('/selected/export');
+            const legacyFolder = vscode.Uri.joinPath(selectedFolder, '../outside.Notebook');
+            workspaceManagerMock
+                .setup(wm => wm.getLocalFolderForArtifact(It.IsAny(), It.IsAny()))
+                .returns(Promise.resolve(legacyFolder));
+            showWarningMessageStub.callsFake(async (msg, opts, ...items) => {
+                assert.strictEqual(opts.modal, true);
+                assert.ok(msg.includes(`"${legacyFolder.fsPath}" and all its contents`));
+                assert.ok(msg.includes('Choose Remote Only to keep the local files.'));
+                assert.strictEqual(items.length, 2);
+                return choice === 'cancel' ? undefined : items[choice === 'remote' ? 0 : 1];
+            });
+
+            if (choice === 'cancel') {
+                await assert.rejects(() => executeCommand(), UserCancelledError);
+            }
+            else {
+                await executeCommand();
+            }
+
+            artifactManagerMock.verify(am => am.deleteArtifact(It.IsAny()), choice === 'cancel' ? Times.Never() : Times.Once());
+            fileSystemMock.verify(fs => fs.delete(It.IsAny(), It.IsAny()), choice === 'all' ? Times.Once() : Times.Never());
+            if (choice === 'all') {
+                fileSystemMock.verify(
+                    fs => fs.delete(
+                        It.Is<vscode.Uri>(uri => uri.toString() === legacyFolder.toString()),
+                        It.Is<{ recursive: boolean; useTrash: boolean }>(options => options.recursive && options.useTrash)
+                    ),
+                    Times.Once()
+                );
+            }
+        });
+    }
+
     it('Known local folder exists, local and remote, workspace folder descendant', async () => {
         // Arrange
         const localFolder = vscode.Uri.file(`/path/to/local/folder/${artifactId}`);

@@ -12,7 +12,9 @@ import * as artifactOperations from '../../../src/artifactManager/localFolderCom
 import { CoreTelemetryEventNames } from '../../../src/TelemetryEventNames';
 import { IItemDefinitionConflictDetector } from '../../../src/itemDefinition/ItemDefinitionConflictDetector';
 import { IItemDefinitionWriter } from '../../../src/itemDefinition/ItemDefinitionWriter';
-import { ILocalFolderService } from '../../../src/LocalFolderService';
+import { ILocalFolderService, LocalFolderService } from '../../../src/LocalFolderService';
+import { IFabricExtensionsSettingStorage } from '../../../src/settings/definitions';
+import { MockFabricEnvironmentProvider } from '../general/serviceCollection';
 
 const artifactDisplayName = 'Test Artifact';
 const artifactId = 'Test Artifact Id';
@@ -133,6 +135,48 @@ describe('exportArtifactCommand', () => {
         assert.ok(downloadAndSaveArtifactStub.notCalled, 'downloadAndSaveArtifact should not be called');
         assert.ok(showFolderActionAndSavePreferenceStub.notCalled, 'showFolderActionAndSavePreference should not be called');
     });
+
+    for (const field of ['displayName', 'type'] as const) {
+        for (const value of ['../outside', '..\\outside']) {
+            it(`rejects traversal in ${field} without downloading, writing or remembering an export`, async () => {
+                const artifact: IArtifact = {
+                    id: artifactId,
+                    displayName: artifactDisplayName,
+                    type: 'Notebook',
+                    workspaceId: 'workspace-id',
+                    fabricEnvironment: 'MOCK',
+                    [field]: value,
+                };
+                const storageMock = new Mock<IFabricExtensionsSettingStorage>();
+                storageMock.setup(s => s.settings).returns({ version: 1, workspaces: [], artifacts: [] });
+                const fileSystemMock = new Mock<vscode.FileSystem>();
+                fileSystemMock.setup(fs => fs.stat(It.IsAny())).returns(Promise.resolve({
+                    type: vscode.FileType.Directory, ctime: 0, mtime: 0, size: 0,
+                }));
+                const localFolderService = new LocalFolderService(storageMock.object(), new MockFabricEnvironmentProvider(), fileSystemMock.object());
+                sinon.stub(vscode.window, 'showOpenDialog').resolves([localFolder]);
+
+                await assert.rejects(
+                    () => exportArtifactCommand(
+                        artifact,
+                        artifactManagerMock.object(),
+                        localFolderService,
+                        configurationProviderMock.object(),
+                        conflictDetectorMock.object(),
+                        itemDefinitionWriterMock.object(),
+                        telemetryActivityMock.object()
+                    ),
+                    FabricError
+                );
+
+                assert.ok(downloadAndSaveArtifactStub.notCalled);
+                assert.ok(showFolderActionAndSavePreferenceStub.notCalled);
+                itemDefinitionWriterMock.verify(writer => writer.save(It.IsAny(), It.IsAny()), Times.Never());
+                fileSystemMock.verify(fs => fs.createDirectory(It.IsAny()), Times.Never());
+                storageMock.verify(s => s.save(), Times.Never());
+            });
+        }
+    }
 
     it('Error: downloadAndSaveArtifact throws UserCancelledError', async () => {
         // Arrange
