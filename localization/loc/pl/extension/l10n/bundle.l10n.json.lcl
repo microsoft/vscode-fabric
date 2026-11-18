@@ -922,7 +922,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Eventhouse]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Eventhouse]]></Val>
+            <Val><![CDATA[Dom wydarzeń]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -931,7 +931,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Eventhouses]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Magazyny zdarzeń]]></Val>
+            <Val><![CDATA[Domy wydarzeń]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1768,7 +1768,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Real-Time Dashboard]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Pulpit nawigacyjny w czasie rzeczywistym]]></Val>
+            <Val><![CDATA[Pulpit nawigacyjny czasu rzeczywistego]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
