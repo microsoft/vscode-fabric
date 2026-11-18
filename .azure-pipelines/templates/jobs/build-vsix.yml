@@ -60,7 +60,7 @@ jobs:
     displayName: Prepare manifest for signing
 
   # Sign the manifest
-  - task: EsrpCodeSigning@5
+  - task: EsrpCodeSigning@6
     inputs:
       ConnectedServiceName: $(EsrpConnectedServiceName)
       UseMSIAuthentication: true
