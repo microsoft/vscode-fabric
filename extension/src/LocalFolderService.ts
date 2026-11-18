@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import { IArtifact } from '@microsoft/vscode-fabric-api';
 import { IFabricExtensionsSettingStorage, ILocalFolderSettingsStore } from './settings/definitions';
 import { LocalFolderSettingsStore } from './settings/LocalFolderSettingsStore';
-import { IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
+import { FabricError, IFabricEnvironmentProvider } from '@microsoft/vscode-fabric-util';
 import { isDirectory } from './utilities';
 
 export enum LocalFolderSaveBehavior {
@@ -149,7 +149,33 @@ export class LocalFolderService implements ILocalFolderService {
 
             if (selectedUris && selectedUris.length > 0) {
                 prompted = true;
-                folderUri = vscode.Uri.joinPath(selectedUris[0], `${artifact.displayName}.${artifact.type}`);
+                const folderName = `${artifact.displayName}.${artifact.type}`;
+                const unsafeComponent = [artifact.displayName, artifact.type].some(component =>
+                    !component || component === '.' || component === '..' ||
+                    /[<>:"/\\|?*\x00-\x1f]/.test(component) || /[. ]$/.test(component)
+                );
+                // Windows device names remain reserved even with an item-type extension.
+                const reservedName = /^(con|prn|aux|nul|com[1-9\u00b9\u00b2\u00b3]|lpt[1-9\u00b9\u00b2\u00b3])$/i.test(folderName.split('.')[0].trimEnd());
+                if (unsafeComponent || reservedName) {
+                    throw new FabricError(
+                        vscode.l10n.t('Cannot use item "{0}" of type "{1}" as a local folder name. Rename the item to use a valid folder name without path separators or reserved characters.',
+                            artifact.displayName, artifact.type),
+                        'Unsafe item folder name',
+                        { showInUserNotification: 'Error' }
+                    );
+                }
+
+                const selectedFolder = vscode.Uri.joinPath(selectedUris[0], '.');
+                folderUri = vscode.Uri.joinPath(selectedFolder, folderName);
+                const parentFolder = vscode.Uri.joinPath(folderUri, '..');
+                if (folderUri.scheme !== selectedFolder.scheme || folderUri.authority !== selectedFolder.authority ||
+                    parentFolder.path !== selectedFolder.path || folderUri.path === selectedFolder.path) {
+                    throw new FabricError(
+                        vscode.l10n.t('The item folder must be directly inside the selected folder.'),
+                        'Unsafe item folder path',
+                        { showInUserNotification: 'Error' }
+                    );
+                }
 
                 // Make sure the user wants to overwrite the existing folder
                 const existingArtifact = this.getArtifactInformation(folderUri);

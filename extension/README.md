@@ -41,6 +41,12 @@ With the Microsoft Fabric Extension, you can now create, delete, and rename any 
 
    ![image](/docs/images/readme/open-and-publish-notebook.gif)
 
+### Local item folders
+
+When selecting a folder for an item definition, the extension creates a direct child named `<item name>.<item type>`. Names containing path separators, reserved filename characters, Windows device names, or trailing dots or spaces are rejected rather than rewritten. Rename the item before selecting its local folder.
+
+When deleting an item that has a remembered local folder, the confirmation shows the full local path and warns that all its contents will be deleted. This also applies to folder associations saved by earlier extension versions. Verify the path before choosing **Local and Remote**, or choose **Remote Only** to keep the local files.
+
 ## Command palette  
 You can access almost all Azure services provided by these extensions through the Command palette in VS Code. Press **F1**, then type in `Fabric` to find the available commands.
 ![image](/docs/images/readme/command-palette.png)

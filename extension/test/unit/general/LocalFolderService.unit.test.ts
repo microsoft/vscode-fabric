@@ -9,6 +9,7 @@ import { Mock, Times, It } from 'moq.ts';
 import { LocalFolderService, LocalFolderPromptMode, LocalFolderGetOptions } from '../../../src/LocalFolderService';
 import { IFabricExtensionSettings, IFabricExtensionsSettingStorage, ILocalFolderSettingsStore } from '../../../src/settings/definitions';
 import { IArtifact } from '@microsoft/vscode-fabric-api';
+import { FabricError } from '@microsoft/vscode-fabric-util';
 import { MockFabricEnvironmentProvider } from './serviceCollection';
 
 describe('LocalFolderService unit tests', () => {
@@ -259,6 +260,86 @@ describe('LocalFolderService unit tests', () => {
         });
 
         describe('path construction', () => {
+            beforeEach(() => {
+                settingsStoreMock.setup(s => s.getLocalFolder(mockArtifact.id)).returns(undefined);
+                fileSystemMock.setup(fs => fs.stat(It.IsAny())).returns(Promise.resolve({
+                    type: vscode.FileType.Directory, ctime: 0, mtime: 0, size: 0,
+                }));
+            });
+
+            const unsafeComponents = [
+                '',
+                '.',
+                '..',
+                '../outside',
+                '..\\outside',
+                '../../outside',
+                '..\\..\\outside',
+                'nested/../outside',
+                'nested\\..\\outside',
+                '/absolute',
+                '\\absolute',
+                'C:\\outside',
+                'C:outside',
+                '\\\\server\\share',
+                'name:stream',
+                'name?',
+                'name*',
+                'name|other',
+                'name<other',
+                'name>other',
+                'name"other',
+                'name\u0000',
+                'name\u001f',
+                'name.',
+                'name ',
+            ];
+
+            for (const field of ['displayName', 'type'] as const) {
+                for (const value of unsafeComponents) {
+                    it(`should reject unsafe ${field} ${JSON.stringify(value)} before filesystem operations`, async () => {
+                        const unsafeArtifact: IArtifact = { ...mockArtifact, [field]: value };
+                        showOpenDialogStub.resolves([vscode.Uri.file('/base/folder')]);
+
+                        await assert.rejects(
+                            () => service.getLocalFolder(unsafeArtifact, { create: true }),
+                            (error: Error) => error instanceof FabricError && error.message.includes('valid folder name')
+                        );
+
+                        fileSystemMock.verify(fs => fs.stat(It.IsAny()), Times.Never());
+                        fileSystemMock.verify(fs => fs.createDirectory(It.IsAny()), Times.Never());
+                        settingsStoreMock.verify(s => s.setLocalFolder(It.IsAny(), It.IsAny(), It.IsAny(), It.IsAny()), Times.Never());
+                    });
+                }
+            }
+
+            for (const displayName of ['CON', 'nul', 'PRN', 'AUX', 'COM1', 'lpt9', 'COM\u00b9', 'con.extra', 'CON .extra']) {
+                it(`should reject reserved device name ${JSON.stringify(displayName)}`, async () => {
+                    showOpenDialogStub.resolves([vscode.Uri.file('/base/folder')]);
+
+                    await assert.rejects(
+                        () => service.getLocalFolder({ ...mockArtifact, displayName }, { create: true }),
+                        FabricError
+                    );
+
+                    fileSystemMock.verify(fs => fs.stat(It.IsAny()), Times.Never());
+                    fileSystemMock.verify(fs => fs.createDirectory(It.IsAny()), Times.Never());
+                });
+            }
+
+            for (const displayName of ['My.Notebook', '..safe', '100%20complete', 'CONsole', ' name', 'Sales \u00e9']) {
+                it(`should preserve valid item name ${JSON.stringify(displayName)} as a direct child`, async () => {
+                    const selectedUri = vscode.Uri.file('/base/folder/');
+                    showOpenDialogStub.resolves([selectedUri]);
+
+                    const result = await service.getLocalFolder({ ...mockArtifact, displayName });
+
+                    assert.ok(result);
+                    assert.strictEqual(result.uri.path, vscode.Uri.joinPath(selectedUri, `${displayName}.${mockArtifact.type}`).path);
+                    assert.strictEqual(vscode.Uri.joinPath(result.uri, '..').path, vscode.Uri.joinPath(selectedUri, '.').path);
+                });
+            }
+
             it('should construct artifact folder path correctly', async () => {
                 const selectedUri = vscode.Uri.file('/base/folder');
                 const expectedPath = vscode.Uri.joinPath(selectedUri, `${mockArtifact.displayName}.${mockArtifact.type}`);
