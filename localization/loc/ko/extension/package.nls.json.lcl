@@ -18,6 +18,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";extension.appBackend.createRayfinApp.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create Rayfin App]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Rayfin 앱 만들기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";extension.appBackend.getStarted.title" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Get Started]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[시작]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";extension.changeLocalFolder.title" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Change Local Folder]]></Val>
@@ -386,10 +404,13 @@
       </Item>
       <Item ItemId=";extension.view.local.welcome" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[No local project exists for a Fabric item in explorer.]]></Val>
+          <Val><![CDATA[No local project exists for a Fabric item in explorer.]A;[Create App (Rayfin)]5D;(command:vscode-fabric.appBackend.createRayfinApp)]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[탐색기에 Fabric 항목에 대한 로컬 프로젝트가 없습니다.]]></Val>
+            <Val><![CDATA[탐색기에 Fabric 항목에 대한 로컬 프로젝트가 없습니다.]A;[앱 만들기(Rayfin)]5D;(command:vscode-fabric.appBackend.createRayfinApp)]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[No local project exists for a Fabric item in explorer.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
