@@ -922,7 +922,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Eventhouse]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Eseményház]]></Val>
+            <Val><![CDATA[Eventhouse]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -931,7 +931,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Eventhouses]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Eseményházak]]></Val>
+            <Val><![CDATA[Eventhouses]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
